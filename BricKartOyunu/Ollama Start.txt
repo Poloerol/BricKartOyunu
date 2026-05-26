@@ -1,0 +1,3 @@
+ollama launch claude --model gemma4:31b-cloud
+ollama launch claude --model qwen2.5-coder:32b
+ollama launch claude --model gemma4:e4b
