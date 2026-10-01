@@ -136,6 +136,17 @@ namespace BricKartOyunu
 
         private readonly Player _humanPlayer = Player.Guney;
 
+        // ====================================================================
+        // OYUN OYNAMA — Kart Takibi
+        // ====================================================================
+        // Şu anki elin masadaki kartları (4 kart — bir el tamamlanınca temizlenir)
+        private readonly Dictionary<Player, PictureBox> _masadakiKartlar
+            = new Dictionary<Player, PictureBox>();
+
+        // Masa kartı boyutu (elden biraz küçük — 4 kart masada sığsın)
+        private const int MasaKartGenislik = 70;
+        private const int MasaKartYukseklik = 105;
+
         // 🔹 Kart karıştırma için tek Random instance. Her dağıtımda yeni Random()
         // oluşturmak, aynı milisaniyede yapılan ardışık çağrılarda aynı seed'e
         // düşüp aynı dağıtıma sebep olabiliyordu. Tek instance bunu engeller.
@@ -376,8 +387,19 @@ namespace BricKartOyunu
             {
                 if (guneyKartlar[i] == null)
                 {
-                    guneyKartlar[i] = new PictureBox { Width = _kartGenislik, Height = _kartYukseklik, SizeMode = PictureBoxSizeMode.StretchImage, BorderStyle = BorderStyle.FixedSingle };
+                    guneyKartlar[i] = new PictureBox
+                    {
+                        Width = _kartGenislik,
+                        Height = _kartYukseklik,
+                        SizeMode = PictureBoxSizeMode.StretchImage,
+                        BorderStyle = BorderStyle.FixedSingle,
+                        Cursor = Cursors.Hand   // 🔹 Tıklanabilir hissi
+                    };
                     this.Controls.Add(guneyKartlar[i]);
+
+                    // 🔹 Tıklama event'i — closure için index'i kopyala
+                    int kartIndex = i;
+                    guneyKartlar[i].Click += (s, ev) => GuneyKartTiklandi(kartIndex);
                 }
             }
             BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, guneyX, _guneyY, false, false);
@@ -941,6 +963,7 @@ namespace BricKartOyunu
                         if (pb != null)
                         {
                             pb.Image = renkGrubu[i].Image;
+                            pb.Tag = renkGrubu[i];   // 🔹 Card nesnesini Tag'de sakla
                             pb.Location = new Point(guncelX, baslangicY);
                             pb.Visible = true;
                             pb.BringToFront();
@@ -956,14 +979,17 @@ namespace BricKartOyunu
                 foreach (var card in eldekiKartlar)
                 {
                     if (toplamYerlestirilen >= kartResimleri.Length) break;
+
                     PictureBox pb = kartResimleri[toplamYerlestirilen];
                     if (pb != null)
                     {
                         pb.Image = card.Image;
+                        pb.Tag = card;   // 🔹 Card nesnesini Tag'de sakla
                         pb.Location = new Point(guncelX, baslangicY);
                         pb.Visible = true;
                         pb.BringToFront();
                     }
+
                     enSonKartBitisX = guncelX + _kartGenislik;
                     toplamYerlestirilen++;
                     guncelX += (_kartGenislik - 55);
@@ -1288,6 +1314,29 @@ namespace BricKartOyunu
             {
                 this.ResumeLayout(true);
             }
+        }
+
+        /// <summary>
+        /// Kullanıcı Güney'in elindeki bir karta tıkladığında çalışır.
+        /// Şimdilik sadece Debug'a yazıyor. Sonraki adımlarda kart masaya taşınacak,
+        /// sıra takibi yapılacak, el kazananı belirlenecek.
+        /// </summary>
+        private void GuneyKartTiklandi(int kartIndex)
+        {
+            if (kartIndex < 0 || kartIndex >= guneyKartlar.Length) return;
+
+            var pb = guneyKartlar[kartIndex];
+            if (pb == null || !pb.Visible) return;
+
+            if (!(pb.Tag is Card card))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[BricOyna] Güney kart #{kartIndex} tıklandı ama Tag'de Card nesnesi yok.");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[BricOyna] Güney kart #{kartIndex} tıklandı: {card.Suit} {card.Value}");
         }
         /// <summary>
         /// DeklarasyonForm'dan gelen aktif oyuncu bilgisine göre BricOyna üzerindeki 
