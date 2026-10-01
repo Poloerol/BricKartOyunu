@@ -136,6 +136,27 @@ namespace BricKartOyunu
 
         private readonly Player _humanPlayer = Player.Guney;
 
+        
+
+       
+        // ====================================================================
+        // OYUN OYNAMA — Masa Kartları
+        // ====================================================================
+        // Masa kartı boyutu (elden biraz küçük — 4 kart masada sığsın)
+        private const int MasaKartGenislik = 70;
+        private const int MasaKartYukseklik = 105;
+
+        // Masa kartlarının playZonePanel içindeki göreli konumları (merkez noktaları)
+        // Bu değerleri değiştirerek kartların masada nerede duracağını ayarlayabilirsin.
+        private static readonly Point MasaPozisyonGuney = new Point(215, 380);  // alt orta
+        private static readonly Point MasaPozisyonKuzey = new Point(215, 15);   // üst orta
+        private static readonly Point MasaPozisyonBati = new Point(15, 200);    // sol orta
+        private static readonly Point MasaPozisyonDogu = new Point(415, 200);   // sağ orta
+
+        // Şu anki elin masadaki kartları (4 kart — bir el tamamlanınca temizlenir)
+        private readonly Dictionary<Player, PictureBox> _masadakiKartlar
+            = new Dictionary<Player, PictureBox>();
+
         // 🔹 Kart karıştırma için tek Random instance. Her dağıtımda yeni Random()
         // oluşturmak, aynı milisaniyede yapılan ardışık çağrılarda aynı seed'e
         // düşüp aynı dağıtıma sebep olabiliyordu. Tek instance bunu engeller.
@@ -376,8 +397,19 @@ namespace BricKartOyunu
             {
                 if (guneyKartlar[i] == null)
                 {
-                    guneyKartlar[i] = new PictureBox { Width = _kartGenislik, Height = _kartYukseklik, SizeMode = PictureBoxSizeMode.StretchImage, BorderStyle = BorderStyle.FixedSingle };
+                    guneyKartlar[i] = new PictureBox
+                    {
+                        Width = _kartGenislik,
+                        Height = _kartYukseklik,
+                        SizeMode = PictureBoxSizeMode.StretchImage,
+                        BorderStyle = BorderStyle.FixedSingle,
+                        Cursor = Cursors.Hand   // 🔹 Tıklanabilir hissi
+                    };
                     this.Controls.Add(guneyKartlar[i]);
+
+                    // 🔹 Tıklama event'i — closure için index'i kopyala
+                    int kartIndex = i;
+                    guneyKartlar[i].Click += (s, ev) => GuneyKartTiklandi(kartIndex);
                 }
             }
             BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, guneyX, _guneyY, false, false);
@@ -941,6 +973,7 @@ namespace BricKartOyunu
                         if (pb != null)
                         {
                             pb.Image = renkGrubu[i].Image;
+                            pb.Tag = renkGrubu[i];   // 🔹 Card nesnesini Tag'de sakla
                             pb.Location = new Point(guncelX, baslangicY);
                             pb.Visible = true;
                             pb.BringToFront();
@@ -956,14 +989,17 @@ namespace BricKartOyunu
                 foreach (var card in eldekiKartlar)
                 {
                     if (toplamYerlestirilen >= kartResimleri.Length) break;
+
                     PictureBox pb = kartResimleri[toplamYerlestirilen];
                     if (pb != null)
                     {
                         pb.Image = card.Image;
+                        pb.Tag = card;   // 🔹 Card nesnesini Tag'de sakla
                         pb.Location = new Point(guncelX, baslangicY);
                         pb.Visible = true;
                         pb.BringToFront();
                     }
+
                     enSonKartBitisX = guncelX + _kartGenislik;
                     toplamYerlestirilen++;
                     guncelX += (_kartGenislik - 55);
@@ -1289,6 +1325,95 @@ namespace BricKartOyunu
                 this.ResumeLayout(true);
             }
         }
+
+        /// <summary>
+        /// Kullanıcı Güney'in elindeki bir karta tıkladığında çalışır.
+        /// Şimdilik sadece Debug'a yazıyor. Sonraki adımlarda kart masaya taşınacak,
+        /// sıra takibi yapılacak, el kazananı belirlenecek.
+        /// </summary>
+        /// <summary>
+        /// Kullanıcı Güney'in elindeki bir karta tıkladığında çalışır.
+        /// Kartı elden kaldırır ve masaya (playZonePanel içine) yerleştirir.
+        /// </summary>
+        private void GuneyKartTiklandi(int kartIndex)
+        {
+            if (kartIndex < 0 || kartIndex >= guneyKartlar.Length) return;
+
+            var pb = guneyKartlar[kartIndex];
+            if (pb == null || !pb.Visible) return;
+
+            if (!(pb.Tag is Card card))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[BricOyna] Güney kart #{kartIndex} tıklandı ama Tag'de Card nesnesi yok.");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[BricOyna] Güney kart #{kartIndex} tıklandı: {card.Suit} {card.Value}");
+
+            // 🔹 Karti masaya yerlestir
+            KartiMasayaYerlestir(Player.Guney, card, pb.Image);
+
+            // 🔹 Karti elden kaldir
+            pb.Visible = false;
+            pb.Tag = null;
+        }
+
+        /// <summary>
+        /// Belirtilen oyuncunun kartını masaya (playZonePanel içine) yerleştirir.
+        /// O kart zaten masada varsa önce eskisini kaldırır.
+        /// </summary>
+        private void KartiMasayaYerlestir(Player oyuncu, Card card, Image image)
+        {
+            if (playZonePanel == null) return;
+
+            // Aynı oyuncunun masada kartı varsa önce kaldır
+            if (_masadakiKartlar.TryGetValue(oyuncu, out var eskiPb) && eskiPb != null)
+            {
+                playZonePanel.Controls.Remove(eskiPb);
+                eskiPb.Dispose();
+                _masadakiKartlar.Remove(oyuncu);
+            }
+
+            // Yeni PictureBox oluştur
+            var masaPb = new PictureBox
+            {
+                Width = MasaKartGenislik,
+                Height = MasaKartYukseklik,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BorderStyle = BorderStyle.FixedSingle,
+                Image = image,
+                Tag = card
+            };
+
+            // Oyuncuya göre pozisyon
+            Point pozisyon = OyuncuIcinMasaPozisyonu(oyuncu);
+            masaPb.Location = pozisyon;
+
+            playZonePanel.Controls.Add(masaPb);
+            masaPb.BringToFront();
+            _masadakiKartlar[oyuncu] = masaPb;
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[BricOyna] {oyuncu} kartı masaya kondu: {card.Suit} {card.Value} @ {pozisyon}");
+        }
+
+        /// <summary>
+        /// Belirtilen oyuncu için masadaki kart pozisyonunu döndürür.
+        /// </summary>
+        private Point OyuncuIcinMasaPozisyonu(Player oyuncu)
+        {
+            switch (oyuncu)
+            {
+                case Player.Guney: return MasaPozisyonGuney;
+                case Player.Kuzey: return MasaPozisyonKuzey;
+                case Player.Bati: return MasaPozisyonBati;
+                case Player.Dogu: return MasaPozisyonDogu;
+                default: return new Point(0, 0);
+            }
+        }
+        
         /// <summary>
         /// DeklarasyonForm'dan gelen aktif oyuncu bilgisine göre BricOyna üzerindeki 
         /// ilgili oyuncu etiketini SARI renge boyar, diğerlerini normale çeker.
