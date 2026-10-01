@@ -13,11 +13,20 @@ namespace BricKartOyunu.Forms
     public partial class DekBasForm : Form
     {
         private readonly BricOyna _bricOyna;
+
+        // 🔹 Programatik kapatma bayrağı: X ile kapatmayı buton kapatmasından ayırır
+        private bool _programatikKapatma = false;
         public DekBasForm(BricOyna bricOyna)
+
+
         {
             InitializeComponent();
             _bricOyna = bricOyna;
             this.StartPosition = FormStartPosition.Manual;
+
+            // 🔹 X'e basınca tüm formları kapat
+            this.FormClosing += DekBasForm_FormClosing;
+
 
             // 🔹 Titreme önlemi: standart double-buffer kalıbı.
             this.DoubleBuffered = true;
@@ -43,6 +52,48 @@ namespace BricKartOyunu.Forms
             }
         }
 
+        /// <summary>
+        /// DekBasForm'un X (kapatma) butonuna basıldığında tüm formları kapatır
+        /// ve AnaSayfa'ya dönüşü tetikler.
+        /// </summary>
+        private void DekBasForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Uygulama tamamen kapanıyorsa engel koyma
+            if (e.CloseReason == CloseReason.ApplicationExitCall ||
+                e.CloseReason == CloseReason.WindowsShutDown ||
+                e.CloseReason == CloseReason.TaskManagerClosing)
+            {
+                return;
+            }
+
+            // 🔹 Programatik kapatma (buton tıklaması) ise sadece bu formu kapat
+            if (_programatikKapatma)
+            {
+                return;
+            }
+
+            // 🔹 Buraya geldiysek: Kullanıcı X'e bastı
+            // Tüm ilgili formları kapat
+
+            // 1) Açık DeklarasyonForm'ları kapat
+            foreach (Form f in Application.OpenForms.Cast<Form>()
+                        .Where(f => f is DeklarasyonForm)
+                        .ToArray())
+            {
+                if (f is DeklarasyonForm dek)
+                {
+                    dek.IzinliKapat();
+                }
+                else
+                {
+                    f.Close();
+                }
+            }
+
+            // 2) BricOyna'yı kapat
+            _bricOyna?.Close();
+        }
+
         private DeklarasyonForm _dekForm;
 
         private void BtnDeklarasyon_Click(object sender, EventArgs e)
@@ -59,10 +110,7 @@ namespace BricKartOyunu.Forms
                     ekran.Y + (boyut.Height - _dekForm.Height) / 2
                 );
 
-                // 🔹 YENİ: DeklarasyonForm açılmadan hemen önce 7 butonu aktif et
                 _bricOyna.DeklarasyonAsamasindaButonlariAktifEt();
-
-                // DeklarasyonForm'u göster
                 _dekForm.Show(_bricOyna);
             }
             else
@@ -70,7 +118,8 @@ namespace BricKartOyunu.Forms
                 _dekForm.BringToFront();
             }
 
-            // DekBasForm'u kapat
+            // 🔹 Programatik kapatma: event bunu X ile karıştırmasın
+            _programatikKapatma = true;
             this.Close();
         }
 
@@ -91,6 +140,9 @@ namespace BricKartOyunu.Forms
             // BricOyna'yı kapat
             var bricFormu = forms.OfType<BricOyna>().FirstOrDefault();
             bricFormu?.Close();
+
+            // 🔹 Programatik kapatma
+            _programatikKapatma = true;
 
             // DekBasForm'u kapat (kendisi)
             this.Close();
@@ -139,6 +191,12 @@ namespace BricKartOyunu.Forms
             elDegistirForm.Show(_bricOyna);
 
             // Bu formu kapat
+            _programatikKapatma = true;
+            this.Close();
+        }
+        public void ProgramatikKapat()
+        {
+            _programatikKapatma = true;
             this.Close();
         }
     }

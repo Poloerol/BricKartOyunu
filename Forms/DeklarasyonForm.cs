@@ -30,6 +30,20 @@ namespace BricKartOyunu.Forms
         // DeklarasyonForm.cs sınıf seviyesine ekleyin:
         private readonly List<string> _bids = new List<string>();
 
+        // İleri alınan (redo) hamleleri tutar
+        private readonly List<(string Oyuncu, string Teklif)> _ileriAlinanHamleler
+            = new List<(string, string)>();
+
+        /// <summary>
+        /// Geri alınacak hamle var mı?
+        /// </summary>
+        public bool GeriAlinabilirMi => _teklifSayisi > 0;
+
+        /// <summary>
+        /// İleri alınacak (redo) hamle var mı?
+        /// </summary>
+        public bool IleriAlinabilirMi => _ileriAlinanHamleler.Count > 0;
+
         // Grid Ölçüleri
         private const int SatirSayisi = 7;
         private const int SutunSayisi = 5;
@@ -85,15 +99,36 @@ namespace BricKartOyunu.Forms
 
         private void DeklarasyonForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (!_kapanmayaIzinVerildi && e.CloseReason != CloseReason.UserClosing)
+            // Uygulama tamamen kapanıyorsa engel koyma
+            if (e.CloseReason == CloseReason.ApplicationExitCall ||
+                e.CloseReason == CloseReason.WindowsShutDown ||
+                e.CloseReason == CloseReason.TaskManagerClosing)
             {
-                e.Cancel = true;
                 return;
             }
 
-            if (_kapanmayaIzinVerildi) return;
+            // İzinli kapatma ise devam et
+            if (_kapanmayaIzinVerildi)
+            {
+                return;
+            }
 
-            _bricOyna?.Close();
+            // Kullanıcı X'e bastı → tüm formları kapat, AnaSayfa'ya dön
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                _kapanmayaIzinVerildi = true;
+
+                // Açık DekBasForm'ları kapat
+                foreach (Form f in Application.OpenForms.Cast<Form>()
+                            .Where(f => f is DekBasForm)
+                            .ToArray())
+                {
+                    f.Close();
+                }
+
+                // BricOyna'yı kapat
+                _bricOyna?.Close();
+            }
         }
 
         private void DeklarasyonForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -277,6 +312,9 @@ namespace BricKartOyunu.Forms
             _bids.Add(deger);
 
             _teklifSayisi++;
+            // 🔹 BricOyna'daki BtnGeriAl / BtnileriAl durumlarını güncelle
+            _bricOyna?.GeriAlIleriAlButonlariniGuncelle();
+
         }
 
         private void LstIhale_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
@@ -341,7 +379,9 @@ namespace BricKartOyunu.Forms
             EkleIhaleGecmisi(_aktifOyuncu, "Pas");
             _ustUstePasSayisi++;
 
-            // İhale Bitiş Kontrolü
+            // 🔹 YENİ: Pas yapıldı, geri alınabilir hale geldi
+            _bricOyna?.GeriAlButonunuAktifEt();
+
             if (IhaleBittiMi())
             {
                 IhaleyiSonlandir();
@@ -365,12 +405,26 @@ namespace BricKartOyunu.Forms
         private void BtnDouble_Click(object sender, EventArgs e)
         {
             EkleIhaleGecmisi(_aktifOyuncu, "Dbl");
+
+            // 🔹 Kontr da bir tekliftir → pas sayacını sıfırla
+            _ustUstePasSayisi = 0;
+
+            // 🔹 Geri al butonunu aktif et
+            _bricOyna?.GeriAlButonunuAktifEt();
+
             SonrakiOyuncuyaGec();
         }
 
         private void BtnRedouble_Click(object sender, EventArgs e)
         {
             EkleIhaleGecmisi(_aktifOyuncu, "RDbl");
+
+            // 🔹 S.Kontr da bir tekliftir → pas sayacını sıfırla
+            _ustUstePasSayisi = 0;
+
+            // 🔹 Geri al butonunu aktif et
+            _bricOyna?.GeriAlButonunuAktifEt();
+
             SonrakiOyuncuyaGec();
         }
         private bool IhaleBittiMi()
@@ -389,6 +443,104 @@ namespace BricKartOyunu.Forms
 
             return false;
         }
+        /// <summary>
+        /// Son yapılan teklifi/pası/kontru geri alır.
+        /// BricOyna'daki BtnGeriAl tarafından çağrılır.
+        /// </summary>
+        public void SonHamleyiGeriAl()
+        {
+            if (_teklifSayisi == 0) return;
+            if (lstIhale == null || lstIhale.Items.Count == 0) return;
+
+            // 1. Son satırın son dolu hücresini bul ve temizle
+            ListViewItem sonSatir = lstIhale.Items[lstIhale.Items.Count - 1];
+            int sonSutun = -1;
+            string silinenTeklif = "";
+            string silinenOyuncu = "";
+
+            for (int i = sonSatir.SubItems.Count - 1; i >= 0; i--)
+            {
+                if (!string.IsNullOrEmpty(sonSatir.SubItems[i].Text))
+                {
+                    sonSutun = i;
+                    silinenTeklif = sonSatir.SubItems[i].Text;
+                    silinenOyuncu = OyuncuSirasi[i];
+                    sonSatir.SubItems[i].Text = "";
+                    break;
+                }
+            }
+
+            if (sonSutun == -1) return;
+
+            // 2. Satır tamamen boşsa satırı sil
+            bool bosMu = sonSatir.SubItems.Cast<ListViewItem.ListViewSubItem>()
+                                .All(s => string.IsNullOrEmpty(s.Text));
+            if (bosMu)
+            {
+                lstIhale.Items.Remove(sonSatir);
+            }
+
+            // 3. _bids'ten son elemanı çıkar
+            if (_bids.Count > 0)
+            {
+                _bids.RemoveAt(_bids.Count - 1);
+            }
+
+            // 4. İleri almak için sakla
+            _ileriAlinanHamleler.Add((silinenOyuncu, silinenTeklif));
+
+            // 5. Sayacı azalt
+            _teklifSayisi--;
+
+            // 6. Aktif oyuncuyu bir öncekine al
+            int idx = Array.IndexOf(OyuncuSirasi, _aktifOyuncu);
+            if (idx >= 0)
+            {
+                idx = (idx - 1 + OyuncuSirasi.Length) % OyuncuSirasi.Length;
+                _aktifOyuncu = OyuncuSirasi[idx];
+            }
+            IsaretleAktifOyuncu();
+
+            // 7. Kontrat bilgilerini sıfırla (basit yaklaşım)
+            _sonKontratTeklifi = "";
+            _sonKontratVeren = "";
+            _kontratKozu = "";
+            _sonTeklifIndex = -1;
+            _ustUstePasSayisi = 0;
+
+            // 8. Grid'i yenile
+            panelGrid?.Invalidate();
+
+            // 9. Buton durumlarını güncelle
+            UpdateBiddingButtonsState();
+        }
+
+        /// <summary>
+        /// Geri alınan son hamleyi ileri alır (redo).
+        /// BricOyna'daki BtnileriAl tarafından çağrılır.
+        /// </summary>
+        public void SonHamleyiIleriAl()
+        {
+            if (_ileriAlinanHamleler.Count == 0) return;
+
+            // Son geri alınan hamleyi al
+            var (Oyuncu, Teklif) = _ileriAlinanHamleler[_ileriAlinanHamleler.Count - 1];
+            _ileriAlinanHamleler.RemoveAt(_ileriAlinanHamleler.Count - 1);
+
+            // Aktif oyuncuyu hamlenin sahibine ayarla
+            _aktifOyuncu = Oyuncu;
+            IsaretleAktifOyuncu();
+
+            // Teklifi tekrar ekle
+            EkleIhaleGecmisi(Oyuncu, Teklif);
+
+            // Sonraki oyuncuya geç
+            SonrakiOyuncuyaGec();
+
+            panelGrid?.Invalidate();
+            UpdateBiddingButtonsState();
+        }
+
         private void IhaleyiSonlandir()
         {
             if (string.IsNullOrEmpty(_sonKontratTeklifi))
@@ -476,10 +628,10 @@ namespace BricKartOyunu.Forms
             if (s >= SutunSayisi || r >= SatirSayisi) return;
 
             int idx = LinearIndex(r, s);
-            if (idx <= _sonTeklifIndex) return; // Önceki tekliften daha düşük teklif verilemez
+            if (idx <= _sonTeklifIndex) return;
 
             _sonTeklifIndex = idx;
-            _ustUstePasSayisi = 0; // Bir teklif verildiği için pas sayısı sıfırlanır
+            _ustUstePasSayisi = 0;
 
             int seviye = r + 1;
             string koz = KozLabel[s];
@@ -492,6 +644,9 @@ namespace BricKartOyunu.Forms
             EkleIhaleGecmisi(_aktifOyuncu, deger);
             SonrakiOyuncuyaGec();
             panelGrid.Invalidate();
+
+            // 🔹 YENİ: İlk teklif yapıldı, geri alınabilir hale geldi
+            _bricOyna?.GeriAlButonunuAktifEt();
         }
         /// <summary>
         /// Deklarasyon butonlarının aktiflik/pasiflik durumlarını kontrol eder.
@@ -504,33 +659,60 @@ namespace BricKartOyunu.Forms
 
         private void UpdateBiddingButtonsState()
         {
-            if (_bids == null || btnDouble == null) return;
+            if (_bids == null || btnDouble == null || btnRedouble == null) return;
 
-            // "Pas", "Dbl", "RDbl" dışındaki gerçek renk/sanzatu tekliflerini alıyoruz
-            var realBids = _bids.Where(b => b != "Pas" && b != "Dbl" && b != "RDbl" && b != "PAS").ToList();
+            // "Pas", "Dbl", "RDbl" dışındaki gerçek renk/sanzatu tekliflerini al
+            var realBids = _bids
+                .Where(b => b != "Pas" && b != "Dbl" && b != "RDbl" && b != "PAS")
+                .ToList();
 
-            if (realBids.Count > 0)
+            // Varsayılan: her ikisi de pasif
+            btnDouble.Enabled = false;
+            btnRedouble.Enabled = false;
+
+            if (realBids.Count == 0) return;
+
+            // Son gerçek teklifi ve indeksini bul
+            string lastRealBid = realBids.Last();
+            int lastRealBidIndex = _bids.LastIndexOf(lastRealBid);
+
+            // Bu tekliften sonra atılan hamleler
+            var sonrakiHamleler = _bids.Skip(lastRealBidIndex + 1).ToList();
+
+            // Bu teklife Kontr atılmış mı?
+            bool isAlreadyDoubled = sonrakiHamleler.Any(b => b == "Dbl");
+
+            // Bu teklife S.Kontr atılmış mı?
+            bool isAlreadyRedoubled = sonrakiHamleler.Any(b => b == "RDbl");
+
+            // Son teklifi yapan sütun
+            int teklifGlobalIndex = _baslangicSutunu + lastRealBidIndex;
+            int teklifSutunCol = teklifGlobalIndex % 4; // 0:Bati, 1:Kuzey, 2:Dogu, 3:Guney
+
+            // Aktif oyuncunun sütunu
+            int aktifSutunCol = OyuncuSutunIndex(_aktifOyuncu);
+
+            // Aynı takımda mı? (0 ve 2 bir takım, 1 ve 3 diğer takım)
+            bool ayniTakim = (teklifSutunCol % 2) == (aktifSutunCol % 2);
+            bool rakipTakim = !ayniTakim;
+
+            // ── KONTR (Dbl) KURALI ──
+            // Rakip takım, son teklife kontr atabilir (henüz atılmamışsa)
+            btnDouble.Enabled = rakipTakim && !isAlreadyDoubled;
+
+            // ── S.KONTR (RDbl) KURALI ──
+            // Kontr atılmış ve henüz s.kontr atılmamışsa,
+            // kontr atan tarafın RAKİBİ (yani teklifi yapan takım) s.kontr atabilir
+            if (isAlreadyDoubled && !isAlreadyRedoubled)
             {
-                string lastRealBid = realBids.Last();
-                int lastRealBidIndex = _bids.LastIndexOf(lastRealBid);
+                // Kontr'u atan oyuncuyu bul
+                int kontrIndex = _bids.LastIndexOf("Dbl");
+                int kontrGlobalIndex = _baslangicSutunu + kontrIndex;
+                int kontrSutunCol = kontrGlobalIndex % 4;
 
-                // Bu tekliften sonra Kontr (Dbl) atılmış mı?
-                bool isAlreadyDoubled = _bids.Skip(lastRealBidIndex + 1).Any(b => b == "Dbl" || b == "Kontur" || b == "X");
-
-                // Teklifi yapan sütun indeksi ile şu anki aktif oyuncunun sütun indeksini karşılaştırıp rakip mi bakıyoruz
-                int teklifGlobalIndex = _baslangicSutunu + lastRealBidIndex;
-                int teklifSutunCol = teklifGlobalIndex % 4; // 0:Bati, 1:Kuzey, 2:Dogu, 3:Guney
-
-                int aktifSutunCol = OyuncuSutunIndex(_aktifOyuncu);
-
-                // Briçte rakipler tek/çift indeks mantığıdır (0 ve 2 kumpanya, 1 ve 3 kumpanya)
-                bool isOpponent = (teklifSutunCol % 2) != (aktifSutunCol % 2);
-
-                btnDouble.Enabled = isOpponent && !isAlreadyDoubled;
-            }
-            else
-            {
-                btnDouble.Enabled = false;
+                // Kontr atan takımın rakibi (yani teklif sahibi takım) s.kontr atabilir
+                bool kontrAtanRakip = (kontrSutunCol % 2) != (aktifSutunCol % 2);
+                btnRedouble.Enabled = kontrAtanRakip;
             }
         }
 

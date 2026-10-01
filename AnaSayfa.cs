@@ -239,6 +239,24 @@ namespace BricKartOyunu.Forms
         {
             CenterPanel();
         }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            // 🔹 AnaSayfa kapanırken (yani uygulama kapanırken) kart resim
+            // önbelleğini temizle. Program.cs'deki finally bloğu da aynı işi
+            // yapar; ancak Environment.Exit gibi yollarla erken kapanmalarda
+            // finally atlanabilir. İki katmanlı güvence.
+            try
+            {
+                BricOyna.CacheTemizle();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AnaSayfa] Cache temizlenirken hata: {ex.Message}");
+            }
+
+            base.OnFormClosing(e);
+        }
 
         // ====================================================================
         // ANA BUTON KİLİTLEME

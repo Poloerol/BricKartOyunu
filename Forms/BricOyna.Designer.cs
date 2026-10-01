@@ -56,6 +56,7 @@
             this.BtnOtoOyna = new System.Windows.Forms.ToolStripButton();
             this.BtnClaim = new System.Windows.Forms.ToolStripButton();
             this.BtnGeriAl = new System.Windows.Forms.ToolStripButton();
+
             this.BtnileriAl = new System.Windows.Forms.ToolStripButton();
             this.BtnIpucu = new System.Windows.Forms.ToolStripButton();
             this.BtnSonrakiEl = new System.Windows.Forms.ToolStripButton();
@@ -95,7 +96,7 @@
             this.yardımToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(507, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1099, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -244,7 +245,7 @@
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(507, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1099, 25);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -412,7 +413,7 @@
             // 
             this.statusStrip1.Location = new System.Drawing.Point(0, 555);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(507, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1099, 22);
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -420,7 +421,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(507, 577);
+            this.ClientSize = new System.Drawing.Size(1099, 577);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.btnGeri);

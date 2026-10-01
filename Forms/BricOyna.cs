@@ -47,7 +47,12 @@ namespace BricKartOyunu
         private List<string> _sonIhaleGecmisi = new List<string>();
         private string _ihaleBaslangicOyuncusu = "Guney";
 
-       
+        // 🔹 Badge font'ları — tüm BricOyna örnekleri arasında paylaşılır.
+        // Her CreateBadge çağrısında yeni Font yaratmak yerine tek instance.
+        private static readonly Font _badgeDirFont = new Font("Arial", 8, FontStyle.Bold);
+        private static readonly Font _badgeNameFont = new Font("Arial", 9);
+
+
 
         // IMAGE CACHING
         // 🔹 ÖNEMLİ: static olduğu için uygulama açık kaldığı sürece TEK SEFER diskten okunur.
@@ -77,8 +82,50 @@ namespace BricKartOyunu
             _cardImageCache[path] = img;
             return img;
         }
+        /// <summary>
+        /// Kart resim önbelleğini temizler ve tüm resim kaynaklarını serbest bırakır.
+        /// Uygulama kapanmadan önce çağrılmalıdır. Idempotent'tir (birden çok kez
+        /// çağrılabilir, ikinci çağrı hiçbir şey yapmaz).
+        /// </summary>
+        public static void CacheTemizle()
+        {
+            if (_cardImageCache == null || _cardImageCache.Count == 0) return;
 
-        private Player activePlayer = Player.Guney;
+            foreach (var img in _cardImageCache.Values)
+            {
+                img?.Dispose();
+            }
+            _cardImageCache.Clear();
+
+            System.Diagnostics.Debug.WriteLine(
+                "[BricOyna] Kart resim önbelleği temizlendi.");
+        }
+
+        private Player _activePlayer = Player.Guney;
+
+        /// <summary>
+        /// Aktif oyuncu. Set edildiğinde BtnGuney butonu ve oyuncu badge'leri
+        /// otomatik olarak güncellenir. Böylece "activePlayer = X" sonrası
+        /// tekrar tekrar BtnGuney.Enabled ve UpdatePlayerBadges() çağırmaya
+        /// gerek kalmaz.
+        /// </summary>
+        private Player activePlayer
+        {
+            get => _activePlayer;
+            set
+            {
+                if (_activePlayer == value) return;
+                _activePlayer = value;
+
+                if (BtnGuney != null)
+                {
+                    BtnGuney.Checked = false;
+                    BtnGuney.Enabled = (_activePlayer != _humanPlayer);
+                }
+
+                UpdatePlayerBadges();
+            }
+        }
         private Player _declarer = Player.Guney;
 
         private Player _dealer = Player.Guney;   // Yeni elin dağıtanı (ihaleyi başlatan)
@@ -88,6 +135,11 @@ namespace BricKartOyunu
         public Player ActivePlayer => activePlayer;
 
         private readonly Player _humanPlayer = Player.Guney;
+
+        // 🔹 Kart karıştırma için tek Random instance. Her dağıtımda yeni Random()
+        // oluşturmak, aynı milisaniyede yapılan ardışık çağrılarda aynı seed'e
+        // düşüp aynı dağıtıma sebep olabiliyordu. Tek instance bunu engeller.
+        private static readonly Random _rng = new Random();
 
         public BricOyna()
         {
@@ -103,6 +155,12 @@ namespace BricKartOyunu
             }
             this.Load += BricOyna_Load;
             this.Resize += BricOyna_Resize;
+
+            // 🔹 Geri Al / İleri Al butonlarının tıklama olaylarını bağla
+            if (BtnGeriAl != null)
+                BtnGeriAl.Click += BtnGeriAl_Click;
+            if (BtnileriAl != null)
+                BtnileriAl.Click += BtnileriAl_Click;
         }
 
         // ⚠️ NOT: WS_EX_COMPOSITED kaldırıldı.
@@ -142,15 +200,6 @@ namespace BricKartOyunu
 
             this.BackColor = AnaSayfa.MasaRengi;
 
-            // 🔹 İlk açılışta form üzerindeki tüm MenuStrip bileşenlerini pasif yapıyoruz
-            foreach (Control ctrl in this.Controls)
-            {
-                if (ctrl is MenuStrip menuStrip)
-                {
-                    menuStrip.Enabled = false;
-                }
-            }
-
             // İlk elin dağıtanı Güney'dir
             _dealer = Player.Guney;
             activePlayer = _dealer;
@@ -168,6 +217,9 @@ namespace BricKartOyunu
             UpdateInfoBoard(_dealer);
             UpdatePlayerBadges();
 
+            // 🔹 YENİ: Oyun bilgi panelini güncelle (Dealer, Zon görünsün)
+            OyunBilgiPaneliniGuncelle();
+
             YeniDekBasFormAc();
         }
 
@@ -178,42 +230,47 @@ namespace BricKartOyunu
         {
             try
             {
-                if (playZonePanel != null)
+                if (playZonePanel == null)
                 {
-                    DekBasForm dekForm = new DekBasForm(this)
-                    {
-                        StartPosition = FormStartPosition.Manual
-                    };
-
-                    // playZonePanel'in ekran üzerindeki merkezini bul
-                    Point panelCenterScreen = playZonePanel.PointToScreen(
-                        new Point(
-                            playZonePanel.Width / 2,
-                            playZonePanel.Height / 2
-                        ));
-
-                    // DekBasForm'un merkezini playZonePanel merkezine getir
-                    dekForm.Location = new Point(
-                        panelCenterScreen.X - dekForm.Width / 2,
-                        panelCenterScreen.Y - dekForm.Height / 2
-                    );
-
-                    // BricOyna'nın sahibi olduğu form olarak aç
-                    dekForm.Show(this);
-                    dekForm.BringToFront();
-                    dekForm.Activate();
+                    System.Diagnostics.Debug.WriteLine(
+                        "[BricOyna] YeniDekBasFormAc: playZonePanel null, DekBasForm açılamadı.");
+                    return;
                 }
+
+                DekBasForm dekForm = new DekBasForm(this)
+                {
+                    StartPosition = FormStartPosition.Manual
+                };
+
+                // playZonePanel'in ekran üzerindeki merkezini bul
+                Point panelCenterScreen = playZonePanel.PointToScreen(
+                    new Point(
+                        playZonePanel.Width / 2,
+                        playZonePanel.Height / 2
+                    ));
+
+                // DekBasForm'un merkezini playZonePanel merkezine getir
+                dekForm.Location = new Point(
+                    panelCenterScreen.X - dekForm.Width / 2,
+                    panelCenterScreen.Y - dekForm.Height / 2
+                );
+
+                // BricOyna'nın sahibi olduğu form olarak aç
+                dekForm.Show(this);
+                dekForm.BringToFront();
+                dekForm.Activate();
             }
-            catch
+            catch (Exception ex)
             {
-                // Form açılırken oluşabilecek hataları burada sessizce geç
+                System.Diagnostics.Debug.WriteLine(
+                    $"[BricOyna] DekBasForm açılamadı: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
         // 🔹 "Sonraki el" onaylandığında senaryoyu sıfırdan başlatır: aktif oyuncu/eli
         // Güney'e döner, tur sayacı sıfırlanır, kartlar yeniden dağıtılır ve yeni bir
         // DekBasForm açılır. BricOyna_Load ile aynı başlangıç durumunu üretir.
-        
+
 
         // 🔹 DeklarasyonForm (ya da ileride açılabilecek başka bir alt form) ekrandayken
         // BricOyna üzerinde sadece menüstrip ve toolstrip aktif kalmalı; oyun alanındaki
@@ -329,6 +386,17 @@ namespace BricKartOyunu
             SetupPlayerBadges();
             SetupPlayZone();
 
+            // 🔹 YENİ: Oyun bilgi panelini oluştur ve sağ üste konumlandır
+            SetupOyunBilgiPanel();
+            if (oyunBilgiPanel != null)
+            {
+                oyunBilgiPanel.Location = new Point(
+                    this.ClientSize.Width - oyunBilgiPanel.Width - BilgiPanelSagBosluk,
+                    BilgiPanelUstBosluk
+                );
+                OyunBilgiPaneliniGuncelle();
+            }
+
             int guneyBitisX = guneyX + (12 * (_kartGenislik / 2)) + _kartGenislik;
             int btnY = this.ClientSize.Height - 70;
             btnGeri.Left = guneyBitisX + 10;
@@ -365,6 +433,149 @@ namespace BricKartOyunu
             infoBoardPanel.BringToFront();
         }
 
+        /// <summary>
+        /// Sağ üst köşede oyun bilgi panelini (Dealer, Zon, Kontrat, Deklaran,
+        /// Kazanılan El) oluşturur. Panel her zaman görünür.
+        /// </summary>
+        private void SetupOyunBilgiPanel()
+        {
+            if (oyunBilgiPanel != null) return;
+
+            oyunBilgiPanel = new Panel
+            {
+                Size = new Size(BilgiPanelGenislik, BilgiPanelYukseklik),
+                BackColor = Color.FromArgb(245, 245, 220),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            EnableDoubleBuffer(oyunBilgiPanel);
+
+            // ─── Başlık ───
+            var lblBaslik = new Label
+            {
+                Dock = DockStyle.Top,
+                Height = 24,
+                Text = "OYUN BİLGİSİ",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(60, 60, 90)
+            };
+            oyunBilgiPanel.Controls.Add(lblBaslik);
+
+            // ─── İçerik paneli ───
+            var icerik = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(8, 6, 8, 6),
+                BackColor = Color.Transparent
+            };
+            oyunBilgiPanel.Controls.Add(icerik);
+            icerik.BringToFront();
+
+            // ─── Bilgi satırları ───
+            int y = 0;
+            const int satirYuksekligi = 22;
+
+            lblBilgiTur = BilgiSatiriOlustur(icerik, "Tur:", y); y += satirYuksekligi;
+            lblBilgiDealer = BilgiSatiriOlustur(icerik, "Dealer:", y); y += satirYuksekligi;
+            lblBilgiZon = BilgiSatiriOlustur(icerik, "Zon:", y); y += satirYuksekligi;
+            lblBilgiKontrat = BilgiSatiriOlustur(icerik, "Kontrat:", y); y += satirYuksekligi;
+            lblBilgiDeklaran = BilgiSatiriOlustur(icerik, "Deklaran:", y); y += satirYuksekligi + 4;
+
+            // ─── Kazanılan El başlığı ───
+            var lblKazanilanBaslik = new Label
+            {
+                Location = new Point(8, y),
+                Size = new Size(icerik.Width - 16, 20),
+                Text = "Kazanılan El",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(80, 80, 80),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            icerik.Controls.Add(lblKazanilanBaslik);
+            y += 22;
+
+            lblBilgiKazanilanEl = new Label
+            {
+                Location = new Point(8, y),
+                Size = new Size(icerik.Width - 16, 22),
+                Text = "NS: 0   •   EW: 0",
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                ForeColor = Color.DarkRed,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            icerik.Controls.Add(lblBilgiKazanilanEl);
+
+            this.Controls.Add(oyunBilgiPanel);
+            oyunBilgiPanel.BringToFront();
+        }
+
+        /// <summary>
+        /// Etiket + değer satırı oluşturur (örn. "Dealer: Kuzey").
+        /// </summary>
+        private Label BilgiSatiriOlustur(Panel parent, string baslik, int y)
+        {
+            var lblBaslik = new Label
+            {
+                Location = new Point(8, y),
+                Size = new Size(70, 20),
+                Text = baslik,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(80, 80, 80),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            parent.Controls.Add(lblBaslik);
+
+            var lblDeger = new Label
+            {
+                Location = new Point(80, y),
+                Size = new Size(parent.Width - 88, 20),
+                Text = "—",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            parent.Controls.Add(lblDeger);
+
+            return lblDeger;
+        }
+
+        /// <summary>
+        /// Oyun bilgi panelini günceller.
+        /// </summary>
+        private void OyunBilgiPaneliniGuncelle()
+        {
+            if (oyunBilgiPanel == null) return;
+
+            // 🔹 Tur
+            if (lblBilgiTur != null)
+                lblBilgiTur.Text = _currentTour.ToString();
+
+            // Dealer
+            if (lblBilgiDealer != null)
+                lblBilgiDealer.Text = PlayerIsmiTurkce(_dealer);
+
+            // Zon
+            if (lblBilgiZon != null)
+                lblBilgiZon.Text = ZonDurumuMetni();
+
+            // Kontrat
+            if (lblBilgiKontrat != null)
+                lblBilgiKontrat.Text = string.IsNullOrEmpty(_kontrat) ? "—" : _kontrat;
+
+            // Deklaran
+            if (lblBilgiDeklaran != null)
+                lblBilgiDeklaran.Text = string.IsNullOrEmpty(_kontrat)
+                    ? "—"
+                    : PlayerIsmiTurkce(_kontratDeklaran);
+
+            // Kazanılan El
+            if (lblBilgiKazanilanEl != null)
+                lblBilgiKazanilanEl.Text = $"NS: {_kazanilanElNS}   •   EW: {_kazanilanElEW}";
+
+            oyunBilgiPanel.BringToFront();
+        }
+
         private Label CreateInfoBox(int size, int x, int y)
         {
             return new Label { Size = new Size(size, size), Location = new Point(x, y), TextAlign = ContentAlignment.MiddleCenter, BorderStyle = BorderStyle.FixedSingle, Font = new Font("Arial", 12F, FontStyle.Bold) };
@@ -397,6 +608,9 @@ namespace BricKartOyunu
             UpdateBox(lblSouth, nsZonda);
             UpdateBox(lblEast, ewZonda);
             UpdateBox(lblWest, ewZonda);
+
+            // 🔹 YENİ: Oyun bilgi panelindeki Zon ve Dealer'ı da güncelle
+            OyunBilgiPaneliniGuncelle();
         }
 
         private void UpdateBox(Label lbl, bool isZonActive)
@@ -410,44 +624,77 @@ namespace BricKartOyunu
 
         private void SetupPlayerBadges()
         {
-            if (lblN_Dir != null) this.Controls.Remove(lblN_Dir);
-            if (lblN_Name != null) this.Controls.Remove(lblN_Name);
-            if (lblS_Dir != null) this.Controls.Remove(lblS_Dir);
-            if (lblS_Name != null) this.Controls.Remove(lblS_Name);
-            if (lblW_Dir != null) this.Controls.Remove(lblW_Dir);
-            if (lblW_Name != null) this.Controls.Remove(lblW_Name);
-            if (lblE_Dir != null) this.Controls.Remove(lblE_Dir);
-            if (lblE_Name != null) this.Controls.Remove(lblE_Name);
+            // 🔹 İlk çağrıda Label'ları oluştur (SADECE BİR KEZ)
+            // Sonraki çağrılarda yeniden yaratma, sadece konumlarını güncelle.
+            // Bu, her Resize'da 8 Label × (handle + GDI) sızıntısını önler.
+            if (lblN_Dir == null)
+            {
+                CreateBadge(out lblN_Dir, out lblN_Name, "N", "Oyuncu 3", 0, 0);
+                CreateBadge(out lblS_Dir, out lblS_Name, "G", "Siz", 0, 0);
+                CreateBadge(out lblW_Dir, out lblW_Name, "B", "Oyuncu 2", 0, 0);
+                CreateBadge(out lblE_Dir, out lblE_Name, "E", "Oyuncu 4", 0, 0);
+            }
 
             int bosluk = 1;
 
+            // ─── KUZEY ───
             int kuzeyY_Alt = _kuzeyY + _kartYukseklik + bosluk;
             int kuzeyX_Baslangic = 250;
-            CreateBadge(out lblN_Dir, out lblN_Name, "N", "Oyuncu 3", kuzeyX_Baslangic, kuzeyY_Alt);
+            lblN_Dir.Location = new Point(kuzeyX_Baslangic, kuzeyY_Alt);
+            lblN_Name.Location = new Point(kuzeyX_Baslangic + 22, kuzeyY_Alt);
 
+            // ─── GÜNEY ───
             int guneyY_Alt = _guneyY + _kartYukseklik + bosluk;
             int guneyX_Baslangic = 250;
-            CreateBadge(out lblS_Dir, out lblS_Name, "G", "Siz", guneyX_Baslangic, guneyY_Alt);
+            lblS_Dir.Location = new Point(guneyX_Baslangic, guneyY_Alt);
+            lblS_Name.Location = new Point(guneyX_Baslangic + 22, guneyY_Alt);
 
+            // ─── BATI ve DOĞU ortak Y ───
             int ewStartingY = GetCenteredEWStartingY();
             int suitBoslugu = 2;
             int maxEWToplamYukseklik = (4 * _kartYukseklik) + (3 * suitBoslugu);
             int gercekEwY_Alt = ewStartingY + maxEWToplamYukseklik + bosluk;
 
+            // ─── BATI ───
             int batiX = 40;
-            CreateBadge(out lblW_Dir, out lblW_Name, "B", "Oyuncu 2", batiX, gercekEwY_Alt);
+            lblW_Dir.Location = new Point(batiX, gercekEwY_Alt);
+            lblW_Name.Location = new Point(batiX + 22, gercekEwY_Alt);
 
-            // 💡 DÜZELTME: Varsayılan yedek koordinat değeri de 30 piksel artırılarak 930 yapıldı
+            // ─── DOĞU ───
             int doguX = doguKartlar[0] != null ? doguKartlar[0].Left : 930;
-            CreateBadge(out lblE_Dir, out lblE_Name, "E", "Oyuncu 4", doguX, gercekEwY_Alt);
+            lblE_Dir.Location = new Point(doguX, gercekEwY_Alt);
+            lblE_Name.Location = new Point(doguX + 22, gercekEwY_Alt);
 
+            // Aktif oyuncunun rengini güncelle
             UpdatePlayerBadges();
         }
 
         private void CreateBadge(out Label dirLbl, out Label nameLbl, string dir, string name, int x, int y)
         {
-            dirLbl = new Label { Text = dir, Size = new Size(20, 20), Location = new Point(x, y), BackColor = Color.Gray, ForeColor = Color.White, TextAlign = ContentAlignment.MiddleCenter, BorderStyle = BorderStyle.FixedSingle, Font = new Font("Arial", 8, FontStyle.Bold) };
-            nameLbl = new Label { Text = name, Size = new Size(80, 20), Location = new Point(x + 22, y), BackColor = Color.Gray, ForeColor = Color.White, TextAlign = ContentAlignment.MiddleLeft, BorderStyle = BorderStyle.FixedSingle, Font = new Font("Arial", 9) };
+            dirLbl = new Label
+            {
+                Text = dir,
+                Size = new Size(20, 20),
+                Location = new Point(x, y),
+                BackColor = Color.Gray,
+                ForeColor = Color.White,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = _badgeDirFont  // 🔹 Static font
+            };
+
+            nameLbl = new Label
+            {
+                Text = name,
+                Size = new Size(80, 20),
+                Location = new Point(x + 22, y),
+                BackColor = Color.Gray,
+                ForeColor = Color.White,
+                TextAlign = ContentAlignment.MiddleLeft,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = _badgeNameFont  // 🔹 Static font
+            };
+
             this.Controls.Add(dirLbl);
             this.Controls.Add(nameLbl);
             dirLbl.BringToFront();
@@ -508,8 +755,12 @@ namespace BricKartOyunu
                     foreach (var r in rank)
                         kartlar.Add(r + s + ".png");
 
-                Random rnd = new Random();
-                kartlar = kartlar.OrderBy(x => rnd.Next()).ToList();
+                // 🔹 Fisher-Yates shuffle
+                for (int i = kartlar.Count - 1; i > 0; i--)
+                {
+                    int j = _rng.Next(i + 1);
+                    (kartlar[i], kartlar[j]) = (kartlar[j], kartlar[i]);
+                }
 
                 var kuzey = kartlar.Take(13).ToList();
                 var dogu = kartlar.Skip(13).Take(13).ToList();
@@ -797,7 +1048,10 @@ namespace BricKartOyunu
             return new Card { Suit = suit, Value = value, Image = GetCachedImage(imgPath) };
         }
 
-        private void ÇıkışToolStripMenuItem_Click(object sender, EventArgs e) { Environment.Exit(0); }
+        private void ÇıkışToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
         private void MasaRengiToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (ColorDialog cd = new ColorDialog())
@@ -816,18 +1070,18 @@ namespace BricKartOyunu
         // bu tek metodu çağırıyor; böylece iki tetikleyici de aynı davranışa sahip.
         public void SonrakiElIsteği()
         {
-            // Onay mekanizması olmadan doğrudan açık alt formları kapatır ve yeni eli başlatır
             foreach (Form f in Application.OpenForms.Cast<Form>()
                          .Where(f => f != this && !(f is AnaSayfa))
                          .ToArray())
             {
                 if (f is DeklarasyonForm dek)
                     dek.IzinliKapat();
+                else if (f is DekBasForm dekBas)
+                    dekBas.ProgramatikKapat();   // 🔹 Programatik kapat — tüm formlar kapanmasın
                 else
                     f.Close();
             }
 
-            // 4 Pas sonrasındaki tüm adımları kapsayan döngüsel süreci çalıştır
             DortPasSonrasiYeniEliBaslat();
         }
 
@@ -852,10 +1106,19 @@ namespace BricKartOyunu
 
         private void BricOyna_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason == CloseReason.ApplicationExitCall || e.CloseReason == CloseReason.WindowsShutDown) return;
-            // Güvenlik ağı: form BtnGeri dışında bir yoldan (ör. pencere X butonu) kapatılırsa
-            // AnaSayfa ekranda görünür olduğundan emin ol.
-            if (Application.OpenForms["AnaSayfa"] is AnaSayfa anaSayfa && !anaSayfa.Visible)
+            if (e.CloseReason == CloseReason.ApplicationExitCall ||
+                e.CloseReason == CloseReason.WindowsShutDown)
+                return;
+
+            // Güvenlik ağı: Form, BtnGeri dışında bir yoldan (ör. pencere X butonu)
+            // kapatılırsa AnaSayfa'nın ekranda görünür olduğundan emin ol.
+            //
+            // NOT: Eskiden Application.OpenForms["AnaSayfa"] şeklinde string ile arama
+            // yapılıyordu; bu, Designer'da form adı değiştiğinde sessizce bozuluyordu.
+            // Artık tipe göre arıyoruz — daha güvenli ve refactor dostu.
+            var anaSayfa = Application.OpenForms.OfType<AnaSayfa>().FirstOrDefault();
+
+            if (anaSayfa != null && !anaSayfa.Visible)
             {
                 anaSayfa.ShowInTaskbar = true;
                 anaSayfa.Show();
@@ -1033,11 +1296,7 @@ namespace BricKartOyunu
         public void AktifOyuncuEtiketiniGuncelle(string aktifOyuncu)
         {
             activePlayer = OyuncuyaCevir(aktifOyuncu);
-
-            // Aktif oyuncu butonunun durumunu da güncelle
-            BtnGuney.Enabled = (activePlayer != _humanPlayer);
-
-            UpdatePlayerBadges();
+            // Property setter'ı otomatik olarak BtnGuney ve badge'leri günceller
         }
 
         private void IhaleGösterToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1054,45 +1313,49 @@ namespace BricKartOyunu
             return guneyEl;
         }
 
-     
+
 
         public void DortPasSonrasiYeniEliBaslat()
         {
-            // Adım 1: Tur sayısını artır (Bord numarası)
             _currentTour++;
-
-            // Adım 2: DAĞITAN oyuncuyu saat yönünde ilerlet
             _dealer = SonrakiOyuncu(_dealer);
-
-            // Adım 3: İhale başlangıcında aktif oyuncu = dağıtan
             activePlayer = _dealer;
-
-            // Adım 4: Yeni elde ihale henüz yapılmadı — deklaran geçici olarak dağıtan
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
 
-            // Adım 5: Aktif oyuncu butonunun durumunu güncelle
-            BtnGuney.Checked = false;
-            BtnGuney.Enabled = (activePlayer != _humanPlayer);
+            // 🔹 Yeni el başlıyor — kontrat bilgilerini sıfırla
+            _kontrat = null;
+            _kontratDeklaran = _dealer;
 
-            // Adım 6: Etiketleri güncelle
-            UpdatePlayerBadges();
+            ButonlariInaktifYap();
             UpdateInfoBoard(_dealer);
-
-            // Adım 7: Kartları yeniden dağıt
-            // (KartlariDagit içinde KartYerlesimiHazirla + SadeceGuneyiGoster çağrılıyor)
             KartlariDagit(AnaSayfa.SeciliKartSeti);
 
-            // Adım 8: DeklarasyonForm'u aç
+            // 🔹 YENİ: Bilgi panelini güncelle (yeni Dealer ve Zon görünsün)
+            OyunBilgiPaneliniGuncelle();
+
             YeniDekBasFormAc();
         }
 
         private void BtnSonrakiEl_Click(object sender, EventArgs e)
         {
-            bool deklarasyonAcik = Application.OpenForms.OfType<DeklarasyonForm>()
-                                                    .Any(f => f.Visible);
+            // Açık bir deklarasyon formu varsa kullanıcıyı uyar
+            bool deklarasyonAcik = Application.OpenForms
+                .OfType<DeklarasyonForm>()
+                .Any(f => f.Visible);
 
-            
+            if (deklarasyonAcik)
+            {
+                var cevap = MessageBox.Show(
+                    "Devam eden bir deklarasyon var. Yine de sonraki ele geçmek istiyor musunuz?\n" +
+                    "Mevcut el kaybolacak.",
+                    "Sonraki El Onayı",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (cevap != DialogResult.Yes) return;
+            }
+
             SonrakiElIsteği();
         }
 
@@ -1100,6 +1363,71 @@ namespace BricKartOyunu
         private string _kontrat;
         private Player _kontratDeklaran;
         private Player _atakYapacakOyuncu;
+              
+
+        // 🔹 Kazanılan el sayıları (oyun sırasında artacak)
+        private readonly int _kazanilanElNS = 0;
+        private readonly int _kazanilanElEW = 0;
+
+        // 🔹 UI'ya yansıtmak için public erişim
+        public string Kontrat => _kontrat;
+        public Player KontratDeklaran => _kontratDeklaran;
+        public Player AtakYapacakOyuncu => _atakYapacakOyuncu;
+        public int KazanilanElNS => _kazanilanElNS;
+        public int KazanilanElEW => _kazanilanElEW;
+
+        // ====================================================================
+        // OYUN BİLGİ PANELİ (Sağ üst köşe)
+        // --------------------------------------------------------------------
+        // Dealer, Zon, Kontrat, Deklaran ve kazanılan el bilgilerini gösterir.
+        // Konum ve boyut burada; değiştirmek için alanları güncelle.
+        // ====================================================================
+        private Panel oyunBilgiPanel;
+        private Label lblBilgiTur;
+        private Label lblBilgiDealer;
+        private Label lblBilgiZon;
+        private Label lblBilgiKontrat;
+        private Label lblBilgiDeklaran;
+        private Label lblBilgiKazanilanEl;
+
+        private const int BilgiPanelGenislik = 220;
+        private const int BilgiPanelYukseklik = 190;
+        private const int BilgiPanelSagBosluk = 20;
+        private const int BilgiPanelUstBosluk = 70;
+
+        /// <summary>
+        /// Bir Player enum değerini Türkçe oyuncu ismine çevirir.
+        /// </summary>
+        public static string PlayerIsmiTurkce(Player p)
+        {
+            switch (p)
+            {
+                case Player.Kuzey: return "Kuzey";
+                case Player.Guney: return "Güney";
+                case Player.Bati: return "Batı";
+                case Player.Dogu: return "Doğu";
+                default: return "—";
+            }
+        }
+
+        /// <summary>
+        /// Zon durumunu Türkçe metin olarak döndürür.
+        /// </summary>
+        private string ZonDurumuMetni()
+        {
+            int boardMod = ((_currentTour - 1) % 16) + 1;
+
+            bool nsZonda = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
+                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+
+            bool ewZonda = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
+                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+
+            if (nsZonda && ewZonda) return "Herkes";
+            if (nsZonda) return "Kuzey/Güney";
+            if (ewZonda) return "Batı/Doğu";
+            return "Zonsuz";
+        }
 
         private static Player OyuncuyaCevir(string oyuncu)
         {
@@ -1126,9 +1454,8 @@ namespace BricKartOyunu
             // Oyun başlangıcında sıra atak yapacak oyuncuda
             activePlayer = _atakYapacakOyuncu;
 
-            // Aktif oyuncu butonunun durumu
-            BtnGuney.Checked = false;
-            BtnGuney.Enabled = (activePlayer != _humanPlayer);
+            // 🔹 YENİ: Kontrat ve deklaran bilgisini panele yansıt
+            OyunBilgiPaneliniGuncelle();
 
             // Görsel: aktif oyuncu insan oyuncu değilse, onun elini gösterme
             // (Kullanıcı isterse BtnGuney ile açabilir)
@@ -1205,5 +1532,72 @@ namespace BricKartOyunu
             BtnEW.Enabled = true;
             BtnNS.Enabled = true;
         }
+        // DeklarasyonForm içinde herhangi bir teklif/pas/kontr yapıldığında çağrılır.
+        // Artık geri alınacak bir hamle olduğu için BtnGeriAl aktif edilir.
+        public void GeriAlButonunuAktifEt()
+        {
+            if (BtnGeriAl != null)
+                BtnGeriAl.Enabled = true;
+        }
+        private void BtnGeriAl_Click(object sender, EventArgs e)
+        {
+            var dekForm = Application.OpenForms
+                .OfType<DeklarasyonForm>()
+                .FirstOrDefault(f => f.Visible);
+
+            if (dekForm != null)
+                dekForm.SonHamleyiGeriAl();
+            else
+                OyunSonHamleyiGeriAl();
+
+            GeriAlIleriAlButonlariniGuncelle();
+        }
+
+        private void BtnileriAl_Click(object sender, EventArgs e)
+        {
+            var dekForm = Application.OpenForms
+                .OfType<DeklarasyonForm>()
+                .FirstOrDefault(f => f.Visible);
+
+            if (dekForm != null)
+                dekForm.SonHamleyiIleriAl();
+            else
+                OyunSonHamleyiIleriAl();
+
+            GeriAlIleriAlButonlariniGuncelle();
+        }
+
+        public void GeriAlIleriAlButonlariniGuncelle()
+        {
+            if (BtnGeriAl == null || BtnileriAl == null) return;
+
+            var dekForm = Application.OpenForms
+                .OfType<DeklarasyonForm>()
+                .FirstOrDefault(f => f.Visible);
+
+            if (dekForm != null)
+            {
+                BtnGeriAl.Enabled = dekForm.GeriAlinabilirMi;
+                BtnileriAl.Enabled = dekForm.IleriAlinabilirMi;
+            }
+            else
+            {
+                BtnGeriAl.Enabled = false;
+                BtnileriAl.Enabled = false;
+            }
+        }
+
+        private void OyunSonHamleyiGeriAl()
+        {
+            System.Diagnostics.Debug.WriteLine(
+                "[BricOyna] OyunSonHamleyiGeriAl: Henüz implemente edilmedi.");
+        }
+
+        private void OyunSonHamleyiIleriAl()
+        {
+            System.Diagnostics.Debug.WriteLine(
+                "[BricOyna] OyunSonHamleyiIleriAl: Henüz implemente edilmedi.");
+        }     
+       
     }
 }

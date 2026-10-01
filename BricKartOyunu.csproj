@@ -455,16 +455,16 @@
     <Content Include="Resources\Cards\Classic\QS.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Cards\Sembols\10c.png">
+    <Content Include="Resources\Cards\Sembols\10C.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Cards\Sembols\10d.png">
+    <Content Include="Resources\Cards\Sembols\10D.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Cards\Sembols\10h.png">
+    <Content Include="Resources\Cards\Sembols\10H.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Cards\Sembols\10s.png">
+    <Content Include="Resources\Cards\Sembols\10S.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Cards\Sembols\2C.png">

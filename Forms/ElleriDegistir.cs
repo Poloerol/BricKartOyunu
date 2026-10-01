@@ -13,11 +13,15 @@ namespace BricKartOyunu.Forms
 {
     public partial class ElleriDegistir : Form
     {
+        // 🔹 Programatik kapatma bayrağı
+        private bool _programatikKapatma = false;
         public ElleriDegistir()
         {
             InitializeComponent();
 
-            // 🔹 Titreme önlemi: standart double-buffer kalıbı.
+            // 🔹 X'e basınca tüm formları kapat
+            this.FormClosing += ElleriDegistir_FormClosing;
+
             this.DoubleBuffered = true;
             this.SetStyle(
                 ControlStyles.AllPaintingInWmPaint |
@@ -26,7 +30,59 @@ namespace BricKartOyunu.Forms
             this.UpdateStyles();
         }
 
+        /// <summary>
+        /// X (kapatma) butonuna basıldığında tüm ilgili formları kapatır
+        /// ve AnaSayfa'ya dönüşü tetikler.
+        /// </summary>
+        private void ElleriDegistir_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Uygulama tamamen kapanıyorsa engel koyma
+            if (e.CloseReason == CloseReason.ApplicationExitCall ||
+                e.CloseReason == CloseReason.WindowsShutDown ||
+                e.CloseReason == CloseReason.TaskManagerClosing)
+            {
+                return;
+            }
 
+            // 🔹 Programatik kapatma (BtnOK_Click) → sadece bu form kapansın
+            if (_programatikKapatma)
+            {
+                return;
+            }
+
+            // 🔹 Buraya geldiysek: Kullanıcı X'e bastı
+            // Tüm ilgili formları kapat
+
+            // 1) Açık DeklarasyonForm'ları kapat
+            foreach (Form f in Application.OpenForms.Cast<Form>()
+                        .Where(f => f is DeklarasyonForm)
+                        .ToArray())
+            {
+                if (f is DeklarasyonForm dek)
+                {
+                    dek.IzinliKapat();
+                }
+            }
+
+            // 2) Açık DekBasForm'ları kapat
+            foreach (Form f in Application.OpenForms.Cast<Form>()
+                        .Where(f => f is DekBasForm)
+                        .ToArray())
+            {
+                f.Close();
+            }
+
+            // 3) En son BricOyna'yı kapat
+            if (this.Owner is BricOyna bric)
+            {
+                bric.Close();
+            }
+            else
+            {
+                var bricFromOpen = Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
+                bricFromOpen?.Close();
+            }
+        }
 
         private void ElleriDegistir_Load(object sender, EventArgs e)
         {
@@ -37,9 +93,6 @@ namespace BricKartOyunu.Forms
         {
             if (this.Owner is BricOyna bricOyna)
             {
-                // 🔹 Seçili radio button'a göre Güney'in eli (kullanıcının eli), seçilen
-                // yönün eliyle takas edilir. radioButton1=Batı, radioButton2=Kuzey,
-                // radioButton3=Doğu (bkz. label1: "Hangi el Güney'in Eli ile değiştirilecek?").
                 Player secilenYon;
                 if (radioButton1.Checked) secilenYon = Player.Bati;
                 else if (radioButton2.Checked) secilenYon = Player.Kuzey;
@@ -52,21 +105,18 @@ namespace BricKartOyunu.Forms
                     StartPosition = FormStartPosition.Manual
                 };
 
-                // playZonePanel'in ekran üzerindeki merkezini bul
                 Point panelCenterScreen = bricOyna.GetPlayZoneCenterScreen();
-
-                // DeklarasyonForm'un merkezini playZonePanel merkezine getir
                 deklarasyonForm.Location = new Point(
                     panelCenterScreen.X - deklarasyonForm.Width / 2,
                     panelCenterScreen.Y - deklarasyonForm.Height / 2
                 );
 
-                // BricOyna'nın sahibi olduğu form olarak aç
                 deklarasyonForm.Show(bricOyna);
                 deklarasyonForm.BringToFront();
                 deklarasyonForm.Activate();
 
-                // ElleriDegistir'i kapat
+                // 🔹 Programatik kapatma — event bunu X ile karıştırmasın
+                _programatikKapatma = true;
                 this.Close();
             }
         }
