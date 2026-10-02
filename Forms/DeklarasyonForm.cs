@@ -445,7 +445,7 @@ namespace BricKartOyunu.Forms
         }
         /// <summary>
         /// Son yapılan teklifi/pası/kontru geri alır.
-        /// BricOyna'daki BtnGeriAl tarafından çağrılır.
+        /// Hem ListView hem grid panelinin görünümünü doğru state'e döndürür.
         /// </summary>
         public void SonHamleyiGeriAl()
         {
@@ -501,18 +501,91 @@ namespace BricKartOyunu.Forms
             }
             IsaretleAktifOyuncu();
 
-            // 7. Kontrat bilgilerini sıfırla (basit yaklaşım)
+            // 🔹 7. KRİTİK DÜZELTME: Grid'i doğru state'e döndür
+            //     Önce tüm değişkenleri sıfırla
             _sonKontratTeklifi = "";
             _sonKontratVeren = "";
             _kontratKozu = "";
             _sonTeklifIndex = -1;
             _ustUstePasSayisi = 0;
 
-            // 8. Grid'i yenile
+            // 🔹 Sonra kalan teklifleri tarayıp en son "gerçek" teklifin indeksini bul
+            //    "_bids" listesindeki her bir teklif için hangi hücreye denk geldiğini hesapla
+            //    (Aynı mantıkla: teklif -> seviye ve koz, seviye-1 ve koz indeksinden hesapla)
+            if (_bids.Count > 0)
+            {
+                // _bids'teki son GERÇEK teklifi bul (Pas, Dbl, RDbl değil)
+                string sonGercekTeklif = "";
+                for (int i = _bids.Count - 1; i >= 0; i--)
+                {
+                    string b = _bids[i];
+                    if (b != "Pas" && b != "Dbl" && b != "RDbl")
+                    {
+                        sonGercekTeklif = b;
+                        break;
+                    }
+                }
+
+                // Eğer son gerçek teklif varsa, grid indeksini hesapla
+                if (!string.IsNullOrEmpty(sonGercekTeklif))
+                {
+                    _sonTeklifIndex = TeklifGridIndexHesapla(sonGercekTeklif);
+
+                    // Ayrıca bu teklifin kontrat bilgilerini geri yükle
+                    // (örn. teklif "2♣" ise, kontrat 2♣, kozu Sinek olur)
+                    string koz = sonGercekTeklif.Length > 0
+                        ? sonGercekTeklif.Last().ToString()
+                        : "";
+
+                    int seviye = 0;
+                    if (sonGercekTeklif.Length > 1)
+                        int.TryParse(sonGercekTeklif.Substring(0, sonGercekTeklif.Length - 1), out seviye);
+
+                    _sonKontratTeklifi = sonGercekTeklif;
+                    _kontratKozu = koz;
+                    // _sonKontratVeren'i kesin bilmiyoruz, bırakabiliriz
+                    // (IhaleyiSonlandir sırasında zaten liste üzerinden bulunuyor)
+                }
+            }
+
+            // 8. Grid'i yenile — ARTIK _sonTeklifIndex doğru değere sahip
             panelGrid?.Invalidate();
 
             // 9. Buton durumlarını güncelle
             UpdateBiddingButtonsState();
+        }
+
+        /// <summary>
+        /// "2♣" gibi bir teklifi grid indeksine çevirir.
+        /// Grid: Satır = seviye (1-7), Sütun = koz (♣=0, ♦=1, ♥=2, ♠=3, NT=4)
+        /// </summary>
+        private static int TeklifGridIndexHesapla(string teklif)
+        {
+            if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return -1;
+
+            string koz = teklif.Last().ToString();
+            string seviyeStr = teklif.Substring(0, teklif.Length - 1);
+
+            int seviye;
+            if (!int.TryParse(seviyeStr, out seviye)) return -1;
+
+            if (seviye < 1 || seviye > 7) return -1;
+
+            int sutun = -1;
+            switch (koz)
+            {
+                case "♣": sutun = 0; break;
+                case "♦": sutun = 1; break;
+                case "♥": sutun = 2; break;
+                case "♠": sutun = 3; break;
+                case "NT":
+                case "N":
+                case "T": sutun = 4; break;
+                default: return -1;
+            }
+
+            int satir = seviye - 1;
+            return satir * 5 + sutun;
         }
 
         /// <summary>
@@ -536,6 +609,9 @@ namespace BricKartOyunu.Forms
 
             // Sonraki oyuncuya geç
             SonrakiOyuncuyaGec();
+
+            // Yeni teklif eklendi, _sonTeklifIndex güncellenmeli
+            _sonTeklifIndex = TeklifGridIndexHesapla(Teklif);
 
             panelGrid?.Invalidate();
             UpdateBiddingButtonsState();

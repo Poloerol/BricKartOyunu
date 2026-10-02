@@ -166,6 +166,12 @@ namespace BricKartOyunu
         // Atak rengi (bu elde ilk oynanan kartın rengi) — 4 kart tamamlanınca sıfırlanır
         private string _buEldeAtakRengi = null;
 
+        // 🔹 El bitti mi? (Kullanıcı PlayZone'a tıklayınca yeni el başlayacak)
+        private bool _elBittiBekliyor = false;
+
+        // 🔹 Son elin kazananı (PlayZone tıklamasında yeni eli başlatacak)
+        private Player _sonElKazanani = Player.Guney;
+
         // ====================================================================
         // OYUN OYNAMA — Masa Kartları
         // ====================================================================
@@ -789,15 +795,60 @@ namespace BricKartOyunu
                 {
                     BackColor = Color.FromArgb(0, 100, 0),
                     BorderStyle = BorderStyle.FixedSingle,
-                    Size = new Size(500, 500)
+                    Size = new Size(500, 500),
+                    Cursor = Cursors.Hand   // 🔹 Tıklanabilir hissi
                 };
                 EnableDoubleBuffer(playZonePanel);
                 this.Controls.Add(playZonePanel);
+
+                // 🔹 YENİ: Panel tıklaması — el bittiğinde yeni el başlatır
+                playZonePanel.Click += PlayZonePanel_Click;
             }
 
             playZonePanel.Left = ((this.ClientSize.Width - playZonePanel.Width) / 6) + 30;
             playZonePanel.Top = (_kuzeyY + _guneyY) / 2 - (playZonePanel.Height / 3);
             playZonePanel.BringToFront();
+        }
+
+        /// <summary>
+        /// PlayZonePanel'e tıklandığında çalışır.
+        /// El bittiyse → kartları temizler ve yeni eli başlatır.
+        /// </summary>
+        private void PlayZonePanel_Click(object sender, EventArgs e)
+        {
+            // El bitmediyse hiçbir şey yapma
+            if (!_elBittiBekliyor)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[PlayZone] Tıklandı ama el henüz bitmedi.");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[PlayZone] El bitti onaylandı — yeni el başlıyor. Kazanan: {_sonElKazanani}");
+
+            // Bayrağı sıfırla
+            _elBittiBekliyor = false;
+
+            // Masadaki kartları temizle
+            MasadakiKartlariTemizle();
+
+            // Yeni elin aktif oyuncusu = son elin kazananı
+            activePlayer = _sonElKazanani;
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[PlayZone] Aktif oyuncu: {activePlayer}");
+
+            // Sıra AI'da mı? Otomatik oynat
+            if (activePlayer != _humanPlayer)
+            {
+                AITetikle();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[PlayZone] Sıra kullanıcıda, kart bekleniyor.");
+            }
         }
 
         private Image GetBackImage()
@@ -1137,6 +1188,10 @@ namespace BricKartOyunu
         // bu tek metodu çağırıyor; böylece iki tetikleyici de aynı davranışa sahip.
         public void SonrakiElIsteği()
         {
+            
+            // 🔹 Masadaki kartları temizle
+            MasadakiKartlariTemizle();
+
             foreach (Form f in Application.OpenForms.Cast<Form>()
                          .Where(f => f != this && !(f is AnaSayfa))
                          .ToArray())
@@ -1144,7 +1199,7 @@ namespace BricKartOyunu
                 if (f is DeklarasyonForm dek)
                     dek.IzinliKapat();
                 else if (f is DekBasForm dekBas)
-                    dekBas.ProgramatikKapat();   // 🔹 Programatik kapat — tüm formlar kapanmasın
+                    dekBas.ProgramatikKapat();
                 else
                     f.Close();
             }
@@ -1173,7 +1228,7 @@ namespace BricKartOyunu
 
         private void BricOyna_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // Timer'ı durdur (yoksa kapanışta hata verebilir)
+            // Timer'ları temizle (kapanışta hata vermemesi için)
             _aiTimer?.Stop();
             _aiTimer?.Dispose();
             _aiTimer = null;
@@ -1452,38 +1507,34 @@ namespace BricKartOyunu
                 $"[KartOyna] {oyuncu} oynadı: {kart.Suit} {kart.Value} " +
                 $"(bu elde {_buEldeOynananlar.Count}/4)");
 
-            
-            // 4 kart tamamlandı mı?
+
             if (_buEldeOynananlar.Count >= 4)
             {
-                // 🔹 El kazananını belirle
                 Player kazanan = ElKazananiniBelirle();
 
                 System.Diagnostics.Debug.WriteLine(
                     $"[KartOyna] El tamamlandı — kazanan: {kazanan}");
 
-                // 🔹 Skor artışı (NS mi, EW mi?)
+                // Skor artışı
                 if (kazanan == Player.Kuzey || kazanan == Player.Guney)
-                {
                     _kazanilanElNS++;
-                }
                 else
-                {
                     _kazanilanElEW++;
-                }
 
-                // 🔹 Oyun bilgi panelini güncelle
                 OyunBilgiPaneliniGuncelle();
 
                 System.Diagnostics.Debug.WriteLine(
                     $"[KartOyna] Skor → NS: {_kazanilanElNS}, EW: {_kazanilanElEW}");
 
-                // TODO (Adım 3d): Kartları temizle, 2 saniye bekle, yeni el başlat
-                // Şimdilik: sadece aktif oyuncuyu kazanana çevir
-
+                // El durumunu sakla (tıklama ile yeni el başlayacak)
                 _buEldeAtakRengi = null;
                 _buEldeOynananlar.Clear();
-                activePlayer = kazanan;   // Kazanan yeni eli başlatır
+                _sonElKazanani = kazanan;
+                _elBittiBekliyor = true;
+
+                System.Diagnostics.Debug.WriteLine(
+                    "[KartOyna] El bitti. PlayZone'a tıklayınca yeni el başlayacak.");
+
                 return;
             }
 
@@ -1496,6 +1547,28 @@ namespace BricKartOyunu
             {
                 AITetikle();
             }
+        }
+
+
+        /// <summary>
+        /// PlayZone'daki tüm masa kartlarını kaldırır ve dispose eder.
+        /// </summary>
+        private void MasadakiKartlariTemizle()
+        {
+            if (playZonePanel == null) return;
+
+            foreach (var pb in _masadakiKartlar.Values)
+            {
+                if (pb != null && !pb.IsDisposed)
+                {
+                    playZonePanel.Controls.Remove(pb);
+                    pb.Dispose();
+                }
+            }
+            _masadakiKartlar.Clear();
+
+            System.Diagnostics.Debug.WriteLine(
+                "[YeniEl] Masadaki kartlar temizlendi.");
         }
         /// <summary>
         /// Aktif oyuncu AI ise, kısa bir gecikme ile AI'ın oynamasını tetikler.
