@@ -1461,9 +1461,6 @@ namespace BricKartOyunu
             // 5. Kartı oyna (merkezi metot üzerinden)
             KartOyna(Player.Guney, card, pb.Image);
 
-            // 6. Görsel olarak kartı elden kaldır
-            pb.Visible = false;
-            pb.Tag = null;
         }
 
         /// <summary>
@@ -1499,6 +1496,9 @@ namespace BricKartOyunu
             // Kartı oyuncunun elinden çıkar
             var el = OyuncuEli(oyuncu);
             el?.Remove(kart);
+
+            // 🔹 Kart oynandı — oyuncunun elini görsel olarak güncelle
+            OyuncuEliniGuncelle(oyuncu, kart);
 
             // Bu elde oynananlar listesine ekle
             _buEldeOynananlar.Add((oyuncu, kart));
@@ -1549,6 +1549,72 @@ namespace BricKartOyunu
             }
         }
 
+        /// <summary>
+        /// Belirtilen oyuncunun kartını görsel olarak da elden kaldırır.
+        /// Yani kart PictureBox'ını gizler ve eldeki kartları yeniden dizer.
+        /// </summary>
+        private void OyuncuEliniGuncelle(Player oyuncu, Card oynananKart)
+        {
+            // ─── 1. Oyuncunun kart dizisini seç ───
+            PictureBox[] kartResimleri;
+            List<Card> el;
+            bool yatayDizim = false;
+            int baslangicX = 0;
+            int baslangicY = 0;
+
+            switch (oyuncu)
+            {
+                case Player.Kuzey:
+                    kartResimleri = kuzeyKartlar;
+                    el = kuzeyEl;
+                    yatayDizim = true;
+                    baslangicX = 250;
+                    baslangicY = _kuzeyY;
+                    break;
+                case Player.Guney:
+                    kartResimleri = guneyKartlar;
+                    el = guneyEl;
+                    yatayDizim = true;
+                    baslangicX = 250;
+                    baslangicY = _guneyY;
+                    break;
+                case Player.Bati:
+                    kartResimleri = batiKartlar;
+                    el = batiEl;
+                    yatayDizim = false;
+                    baslangicX = 40;
+                    baslangicY = GetCenteredEWStartingY();
+                    break;
+                case Player.Dogu:
+                    kartResimleri = doguKartlar;
+                    el = doguEl;
+                    yatayDizim = false;
+                    baslangicX = doguKartlar[0]?.Left ?? 930;
+                    baslangicY = GetCenteredEWStartingY();
+                    break;
+                default:
+                    return;
+            }
+
+            // ─── 2. Tüm PictureBox'ları gizle ───
+            for (int i = 0; i < kartResimleri.Length; i++)
+            {
+                if (kartResimleri[i] != null)
+                    kartResimleri[i].Visible = false;
+            }
+
+            // ─── 3. Kalan kartları yeniden diz ───
+            // NOT: Zaten diğer kartlar dizili ama oynanan kart gizlenmediği için
+            //      yeniden dizmek en temiz yol.
+            if (yatayDizim)
+            {
+                BricStandartlarinaGoreDizYatay(kartResimleri, el, baslangicX, baslangicY, false, true);
+            }
+            else
+            {
+                BricStandartlarinaGoreDiz(kartResimleri, el, baslangicX, baslangicY);
+            }
+        }
 
         /// <summary>
         /// PlayZone'daki tüm masa kartlarını kaldırır ve dispose eder.
