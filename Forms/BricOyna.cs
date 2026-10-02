@@ -136,9 +136,24 @@ namespace BricKartOyunu
 
         private readonly Player _humanPlayer = Player.Guney;
 
-        
+        // ====================================================================
+        // OYUN AŞAMASI
+        // --------------------------------------------------------------------
+        // BricOyna'nın hangi aşamada olduğunu belirtir. Kart tıklama vs.
+        // sadece Oyun aşamasında çalışır. Başlangıç ve Deklarasyon
+        // aşamalarında kart tıklaması reddedilir.
+        // ====================================================================
+        public enum OyunAsamasi
+        {
+            Baslangic,      // BricOyna açıldı, ihale henüz başlamadı (DekBasForm açık)
+            Deklarasyon,    // DeklarasyonForm açık, ihale devam ediyor
+            Oyun            // İhale bitti, kart oynanıyor
+        }
 
-       
+        // 🔹 Mevcut oyun aşaması — kart tıklama kontrolü için kullanılır
+        private OyunAsamasi _oyunAsamasi = OyunAsamasi.Baslangic;
+
+
         // ====================================================================
         // OYUN OYNAMA — Masa Kartları
         // ====================================================================
@@ -217,7 +232,11 @@ namespace BricKartOyunu
 
         private void BricOyna_Load(object sender, EventArgs e)
         {
+
+
             if (this.DesignMode) return;
+
+            _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
 
             this.BackColor = AnaSayfa.MasaRengi;
 
@@ -1326,17 +1345,21 @@ namespace BricKartOyunu
             }
         }
 
-        /// <summary>
-        /// Kullanıcı Güney'in elindeki bir karta tıkladığında çalışır.
-        /// Şimdilik sadece Debug'a yazıyor. Sonraki adımlarda kart masaya taşınacak,
-        /// sıra takibi yapılacak, el kazananı belirlenecek.
-        /// </summary>
+     
         /// <summary>
         /// Kullanıcı Güney'in elindeki bir karta tıkladığında çalışır.
         /// Kartı elden kaldırır ve masaya (playZonePanel içine) yerleştirir.
         /// </summary>
         private void GuneyKartTiklandi(int kartIndex)
         {
+            // 🔹 Oyun aşamasında değilsek kart oynanamaz
+            if (_oyunAsamasi != OyunAsamasi.Oyun)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[BricOyna] Kart tıklaması reddedildi — aşama: {_oyunAsamasi}");
+                return;
+            }
+
             if (kartIndex < 0 || kartIndex >= guneyKartlar.Length) return;
 
             var pb = guneyKartlar[kartIndex];
@@ -1442,6 +1465,7 @@ namespace BricKartOyunu
 
         public void DortPasSonrasiYeniEliBaslat()
         {
+            _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
             _currentTour++;
             _dealer = SonrakiOyuncu(_dealer);
             activePlayer = _dealer;
@@ -1491,8 +1515,8 @@ namespace BricKartOyunu
               
 
         // 🔹 Kazanılan el sayıları (oyun sırasında artacak)
-        private readonly int _kazanilanElNS = 0;
-        private readonly int _kazanilanElEW = 0;
+        private int _kazanilanElNS = 0;
+        private int _kazanilanElEW = 0;
 
         // 🔹 UI'ya yansıtmak için public erişim
         public string Kontrat => _kontrat;
@@ -1571,6 +1595,7 @@ namespace BricKartOyunu
         /// </summary>
         public void IhaleTamamlandiBaslat(string kontrat, string deklaran, string solRakip)
         {
+            _oyunAsamasi = OyunAsamasi.Oyun;   // ← EKLE
             _kontrat = kontrat;
             _kontratDeklaran = OyuncuyaCevir(deklaran);
             _declarer = _kontratDeklaran;               // Deklaran belirlendi
@@ -1649,6 +1674,7 @@ namespace BricKartOyunu
         // DeklarasyonForm açılırken bu 7 buton aktif hale gelir.
         public void DeklarasyonAsamasindaButonlariAktifEt()
         {
+            _oyunAsamasi = OyunAsamasi.Deklarasyon;   // ← EKLE
             BtnOtoOyna.Enabled = true;
             BtnIpucu.Enabled = true;
             BtnSonrakiEl.Enabled = true;
