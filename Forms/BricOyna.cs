@@ -153,6 +153,15 @@ namespace BricKartOyunu
         // 🔹 Mevcut oyun aşaması — kart tıklama kontrolü için kullanılır
         private OyunAsamasi _oyunAsamasi = OyunAsamasi.Baslangic;
 
+        // ====================================================================
+        // SIRA TAKİBİ — Oyun Sırası
+        // ====================================================================
+        // Bu elde masaya oynanan kartlar (sıra ile) — el tamamlanınca temizlenir
+        private readonly List<(Player Oyuncu, Card Kart)> _buEldeOynananlar
+            = new List<(Player, Card)>();
+
+        // Atak rengi (bu elde ilk oynanan kartın rengi) — 4 kart tamamlanınca sıfırlanır
+        private string _buEldeAtakRengi = null;
 
         // ====================================================================
         // OYUN OYNAMA — Masa Kartları
@@ -1345,14 +1354,14 @@ namespace BricKartOyunu
             }
         }
 
-     
+
         /// <summary>
         /// Kullanıcı Güney'in elindeki bir karta tıkladığında çalışır.
         /// Kartı elden kaldırır ve masaya (playZonePanel içine) yerleştirir.
         /// </summary>
         private void GuneyKartTiklandi(int kartIndex)
         {
-            // 🔹 Oyun aşamasında değilsek kart oynanamaz
+            // 1. Aşama kontrolü
             if (_oyunAsamasi != OyunAsamasi.Oyun)
             {
                 System.Diagnostics.Debug.WriteLine(
@@ -1360,8 +1369,18 @@ namespace BricKartOyunu
                 return;
             }
 
+            // 2. Sıra kontrolü
+            if (activePlayer != _humanPlayer)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[BricOyna] Sıra sizde değil — aktif: {activePlayer}");
+                return;
+            }
+
+            // 3. Index kontrolü
             if (kartIndex < 0 || kartIndex >= guneyKartlar.Length) return;
 
+            // 4. Kart kontrolü
             var pb = guneyKartlar[kartIndex];
             if (pb == null || !pb.Visible) return;
 
@@ -1372,15 +1391,136 @@ namespace BricKartOyunu
                 return;
             }
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[BricOyna] Güney kart #{kartIndex} tıklandı: {card.Suit} {card.Value}");
+            // 5. Kartı oyna (merkezi metot üzerinden)
+            KartOyna(Player.Guney, card, pb.Image);
 
-            // 🔹 Karti masaya yerlestir
-            KartiMasayaYerlestir(Player.Guney, card, pb.Image);
-
-            // 🔹 Karti elden kaldir
+            // 6. Görsel olarak kartı elden kaldır
             pb.Visible = false;
             pb.Tag = null;
+        }
+
+        /// <summary>
+        /// Bir oyuncunun kart oynamasını işler. Sıra takibini yönetir:
+        /// - Kart masaya gider
+        /// - Oyuncunun elinden çıkar
+        /// - _buEldeOynananlar listesine eklenir
+        /// - Sıra bir sonraki oyuncuya geçer
+        /// - Sıra AI'da ise otomatik oynar (AI hamlesi tetiklenir)
+        /// </summary>
+        private void KartOyna(Player oyuncu, Card kart, Image kartResmi)
+        {
+            if (kart == null) return;
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+
+            // Sıra bu oyuncuda mı?
+            if (activePlayer != oyuncu)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KartOyna] Sıra {oyuncu}'da değil, aktif: {activePlayer}");
+                return;
+            }
+
+            // Bu elde ilk kart mı? Atak rengini belirle
+            if (_buEldeAtakRengi == null)
+            {
+                _buEldeAtakRengi = kart.Suit;
+            }
+
+            // Kartı masaya yerleştir
+            KartiMasayaYerlestir(oyuncu, kart, kartResmi);
+
+            // Kartı oyuncunun elinden çıkar
+            var el = OyuncuEli(oyuncu);
+            el?.Remove(kart);
+
+            // Bu elde oynananlar listesine ekle
+            _buEldeOynananlar.Add((oyuncu, kart));
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[KartOyna] {oyuncu} oynadı: {kart.Suit} {kart.Value} " +
+                $"(bu elde {_buEldeOynananlar.Count}/4)");
+
+            // 4 kart tamamlandı mı?
+            if (_buEldeOynananlar.Count >= 4)
+            {
+                // TODO (Adım 3c): El kazananını belirle
+                System.Diagnostics.Debug.WriteLine(
+                    "[KartOyna] El tamamlandı — el kazananı (3c'de eklenecek)");
+
+                // Şimdilik sırayı sıfırla
+                _buEldeAtakRengi = null;
+                _buEldeOynananlar.Clear();
+                // Aktif oyuncu değişmesin (test için)
+                return;
+            }
+
+            // Sırayı bir sonraki oyuncuya geçir
+            activePlayer = SonrakiOyuncu(activePlayer);
+
+            // Sıra AI'da mı? Otomatik oynat
+            if (activePlayer != _humanPlayer)
+            {
+                // Kısa bir gecikme ile AI oynasın (animasyon hissi)
+                var zamanlayici = new System.Windows.Forms.Timer { Interval = 800 };
+                zamanlayici.Tick += (s, e) =>
+                {
+                    zamanlayici.Stop();
+                    zamanlayici.Dispose();
+                    AIOyna(activePlayer);
+                };
+                zamanlayici.Start();
+            }
+        }
+
+        /// <summary>
+        /// Belirtilen oyuncunun elini döndürür.
+        /// </summary>
+        private List<Card> OyuncuEli(Player oyuncu)
+        {
+            switch (oyuncu)
+            {
+                case Player.Kuzey: return kuzeyEl;
+                case Player.Guney: return guneyEl;
+                case Player.Bati: return batiEl;
+                case Player.Dogu: return doguEl;
+                default: return null;
+            }
+        }
+
+        /// <summary>
+        /// Aktif oyuncu AI ise otomatik oynar (basit: renk takip + rastgele).
+        /// </summary>
+        private void AIOyna(Player oyuncu)
+        {
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+            if (activePlayer != oyuncu) return;
+            if (oyuncu == _humanPlayer) return;
+
+            var el = OyuncuEli(oyuncu);
+            if (el == null || el.Count == 0) return;
+
+            // Renk takip: atak renginden var mı?
+            Card secilen = null;
+            if (!string.IsNullOrEmpty(_buEldeAtakRengi))
+            {
+                var ayniRenk = el.Where(c => c.Suit == _buEldeAtakRengi).ToList();
+                if (ayniRenk.Count > 0)
+                {
+                    secilen = ayniRenk[_rng.Next(ayniRenk.Count)];
+                }
+            }
+
+            // Yoksa rastgele
+            if (secilen == null)
+            {
+                secilen = el[_rng.Next(el.Count)];
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[AIOyna] {oyuncu} AI oynadı: {secilen.Suit} {secilen.Value}");
+
+            // Kartı oyna (aynı merkezi metot)
+            KartOyna(oyuncu, secilen, secilen.Image);
         }
 
         /// <summary>
