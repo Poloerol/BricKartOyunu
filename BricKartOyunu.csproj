@@ -160,6 +160,12 @@
     <Compile Include="Forms\DagilimDepo.Designer.cs">
       <DependentUpon>DagilimDepo.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\DealCompleteForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\DealCompleteForm.Designer.cs">
+      <DependentUpon>DealCompleteForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\DekBasForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -231,6 +237,9 @@
     <EmbeddedResource Include="Forms\DagilimDepo.resx">
       <DependentUpon>DagilimDepo.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\DealCompleteForm.resx">
+      <DependentUpon>DealCompleteForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\DekBasForm.resx">
       <DependentUpon>DekBasForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -270,6 +279,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include=".editorconfig" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

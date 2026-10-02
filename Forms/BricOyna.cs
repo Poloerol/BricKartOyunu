@@ -172,6 +172,9 @@ namespace BricKartOyunu
         // 🔹 Son elin kazananı (PlayZone tıklamasında yeni eli başlatacak)
         private Player _sonElKazanani = Player.Guney;
 
+        // 🔹 Bu bordda kaç el oynandı? (13'e ulaşınca bord biter)
+        private int _oynananToplamEl = 0;
+
         // ====================================================================
         // OYUN OYNAMA — Masa Kartları
         // ====================================================================
@@ -850,6 +853,87 @@ namespace BricKartOyunu
                     "[PlayZone] Sıra kullanıcıda, kart bekleniyor.");
             }
         }
+        /// <summary>
+        /// 13 el tamamlandığında Deal Complete formunu açar.
+        /// Form kapandığında ne olacağını form kendi belirler
+        /// (yeni el, ana menü vs.).
+        /// </summary>
+        private void BordTamamlandiFormuAc()
+        {
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
+
+            _elBittiBekliyor = false;
+
+            System.Diagnostics.Debug.WriteLine(
+                "[BordTamamlandi] DealCompleteForm açılıyor...");
+
+            using (var form = new DealCompleteForm(this))
+            {
+                var sonuc = form.ShowDialog(this);
+
+                if (sonuc == DialogResult.OK)
+                {
+                    // "Go to Next Deal" → yeni bord
+                    System.Diagnostics.Debug.WriteLine(
+                        "[BordTamamlandi] Kullanıcı yeni bord seçti.");
+                    YeniBordBaslat();
+                }
+                else
+                {
+                    // "Return to Main Menu" veya X → AnaSayfa
+                    System.Diagnostics.Debug.WriteLine(
+                        "[BordTamamlandi] Kullanıcı ana menüye döndü.");
+                    this.Close();
+                }
+            }
+        }
+        /// <summary>
+        /// "Go to Next Deal" basıldığında çağrılır.
+        /// Yeni bord başlatır: sayaçları sıfırlar, kartları yeniden dağıtır,
+        /// yeni DekBasForm açar.
+        /// </summary>
+        public void YeniBordBaslat()
+        {
+            System.Diagnostics.Debug.WriteLine(
+                "[YeniBord] Yeni bord başlatılıyor...");
+
+            // 1) El sayacını sıfırla
+            _oynananToplamEl = 0;
+
+            // 2) Masadaki kartları temizle
+            MasadakiKartlariTemizle();
+
+            // 3) Bu elde oynananları sıfırla
+            _buEldeOynananlar.Clear();
+            _buEldeAtakRengi = null;
+            _elBittiBekliyor = false;
+
+            // 4) Aktif oyuncu, dealer, kontrat vs. sıfırlanır — DortPasSonrasiYeniEliBaslat ile aynı
+            _oyunAsamasi = OyunAsamasi.Baslangic;
+            _currentTour++;
+            _dealer = SonrakiOyuncu(_dealer);
+            activePlayer = _dealer;
+            _declarer = _dealer;
+            _atakYapacakOyuncu = _dealer;
+
+            _kontrat = null;
+            _kontratDeklaran = _dealer;
+
+            // 5) Butonları inaktif yap
+            ButonlariInaktifYap();
+
+            // 6) Info board ve oyun bilgi panelini güncelle
+            UpdateInfoBoard(_dealer);
+            OyunBilgiPaneliniGuncelle();
+
+            // 7) Yeni kartları dağıt
+            KartlariDagit(AnaSayfa.SeciliKartSeti);
+
+            // 8) Yeni DekBasForm aç
+            YeniDekBasFormAc();
+        }
 
         private Image GetBackImage()
         {
@@ -1497,7 +1581,7 @@ namespace BricKartOyunu
             var el = OyuncuEli(oyuncu);
             el?.Remove(kart);
 
-            // 🔹 Kart oynandı — oyuncunun elini görsel olarak güncelle
+            // Kart oynandı — oyuncunun elini görsel olarak güncelle
             OyuncuEliniGuncelle(oyuncu, kart);
 
             // Bu elde oynananlar listesine ekle
@@ -1507,9 +1591,12 @@ namespace BricKartOyunu
                 $"[KartOyna] {oyuncu} oynadı: {kart.Suit} {kart.Value} " +
                 $"(bu elde {_buEldeOynananlar.Count}/4)");
 
-
+            // ═══════════════════════════════════════════════════════════════
+            // 4 KART TAMAMLANDI MI? (Yani el bitti mi?)
+            // ═══════════════════════════════════════════════════════════════
             if (_buEldeOynananlar.Count >= 4)
             {
+                // El kazananını belirle
                 Player kazanan = ElKazananiniBelirle();
 
                 System.Diagnostics.Debug.WriteLine(
@@ -1526,9 +1613,30 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[KartOyna] Skor → NS: {_kazanilanElNS}, EW: {_kazanilanElEW}");
 
-                // El durumunu sakla (tıklama ile yeni el başlayacak)
+                // El sayacını artır
+                _oynananToplamEl++;
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KartOyna] Bu bordda {_oynananToplamEl}/13 el oynandı.");
+
+                // Bu elde oynananları sıfırla (yeni el için hazırlık)
                 _buEldeAtakRengi = null;
                 _buEldeOynananlar.Clear();
+
+                // ═══════════════════════════════════════════════════════════
+                // BORD BİTTİ Mİ? (13 el tamamlandı mı?)
+                // ═══════════════════════════════════════════════════════════
+                if (_oynananToplamEl >= 13)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "[KartOyna] BORD TAMAMLANDI! Deal Complete formu açılacak.");
+
+                    _elBittiBekliyor = false;
+                    BordTamamlandiFormuAc();
+                    return;
+                }
+
+                // El bitti ama bord devam ediyor
                 _sonElKazanani = kazanan;
                 _elBittiBekliyor = true;
 
@@ -1538,8 +1646,9 @@ namespace BricKartOyunu
                 return;
             }
 
-            // Sırayı bir sonraki oyuncuya geçir
-            // Sırayı bir sonraki oyuncuya geçir
+            // ═══════════════════════════════════════════════════════════════
+            // EL HENÜZ BİTMEDİ — Sırayı bir sonraki oyuncuya geçir
+            // ═══════════════════════════════════════════════════════════════
             activePlayer = SonrakiOyuncu(activePlayer);
 
             // Sıra AI'da mı? Otomatik oynat
@@ -1660,7 +1769,7 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[AITetikle] Yeni timer oluşturuluyor (800ms).");
 
-            _aiTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            _aiTimer = new System.Windows.Forms.Timer { Interval = 50 };
             _aiTimer.Tick += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine(
