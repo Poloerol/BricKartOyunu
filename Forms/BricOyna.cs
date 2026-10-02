@@ -52,8 +52,6 @@ namespace BricKartOyunu
         private static readonly Font _badgeDirFont = new Font("Arial", 8, FontStyle.Bold);
         private static readonly Font _badgeNameFont = new Font("Arial", 9);
 
-
-
         // IMAGE CACHING
         // 🔹 ÖNEMLİ: static olduğu için uygulama açık kaldığı sürece TEK SEFER diskten okunur.
         // Önceden BricOyna her açıldığında (ve her yeni el dağıtıldığında) 52 kart resmi
@@ -135,6 +133,11 @@ namespace BricKartOyunu
         public Player ActivePlayer => activePlayer;
 
         private readonly Player _humanPlayer = Player.Guney;
+
+        // 🔹 AI hamlesini geciktirmek için kullanılan timer.
+        // Yerel değişken olarak tanımlanırsa GC tarafından toplanıp
+        // AI oynamaz. Sınıf alanı olarak tutulmalı.
+        private System.Windows.Forms.Timer _aiTimer;
 
         // ====================================================================
         // OYUN AŞAMASI
@@ -1170,6 +1173,11 @@ namespace BricKartOyunu
 
         private void BricOyna_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // Timer'ı durdur (yoksa kapanışta hata verebilir)
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
+
             if (e.CloseReason == CloseReason.ApplicationExitCall ||
                 e.CloseReason == CloseReason.WindowsShutDown)
                 return;
@@ -1361,6 +1369,10 @@ namespace BricKartOyunu
         /// </summary>
         private void GuneyKartTiklandi(int kartIndex)
         {
+            System.Diagnostics.Debug.WriteLine(
+        $"[GuneyKartTiklandi] Çağrıldı — index: {kartIndex}, " +
+        $"aktif: {activePlayer}, aşama: {_oyunAsamasi}");
+
             // 1. Aşama kontrolü
             if (_oyunAsamasi != OyunAsamasi.Oyun)
             {
@@ -1440,36 +1452,105 @@ namespace BricKartOyunu
                 $"[KartOyna] {oyuncu} oynadı: {kart.Suit} {kart.Value} " +
                 $"(bu elde {_buEldeOynananlar.Count}/4)");
 
+            
             // 4 kart tamamlandı mı?
             if (_buEldeOynananlar.Count >= 4)
             {
-                // TODO (Adım 3c): El kazananını belirle
-                System.Diagnostics.Debug.WriteLine(
-                    "[KartOyna] El tamamlandı — el kazananı (3c'de eklenecek)");
+                // 🔹 El kazananını belirle
+                Player kazanan = ElKazananiniBelirle();
 
-                // Şimdilik sırayı sıfırla
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KartOyna] El tamamlandı — kazanan: {kazanan}");
+
+                // 🔹 Skor artışı (NS mi, EW mi?)
+                if (kazanan == Player.Kuzey || kazanan == Player.Guney)
+                {
+                    _kazanilanElNS++;
+                }
+                else
+                {
+                    _kazanilanElEW++;
+                }
+
+                // 🔹 Oyun bilgi panelini güncelle
+                OyunBilgiPaneliniGuncelle();
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KartOyna] Skor → NS: {_kazanilanElNS}, EW: {_kazanilanElEW}");
+
+                // TODO (Adım 3d): Kartları temizle, 2 saniye bekle, yeni el başlat
+                // Şimdilik: sadece aktif oyuncuyu kazanana çevir
+
                 _buEldeAtakRengi = null;
                 _buEldeOynananlar.Clear();
-                // Aktif oyuncu değişmesin (test için)
+                activePlayer = kazanan;   // Kazanan yeni eli başlatır
                 return;
             }
 
+            // Sırayı bir sonraki oyuncuya geçir
             // Sırayı bir sonraki oyuncuya geçir
             activePlayer = SonrakiOyuncu(activePlayer);
 
             // Sıra AI'da mı? Otomatik oynat
             if (activePlayer != _humanPlayer)
             {
-                // Kısa bir gecikme ile AI oynasın (animasyon hissi)
-                var zamanlayici = new System.Windows.Forms.Timer { Interval = 800 };
-                zamanlayici.Tick += (s, e) =>
-                {
-                    zamanlayici.Stop();
-                    zamanlayici.Dispose();
-                    AIOyna(activePlayer);
-                };
-                zamanlayici.Start();
+                AITetikle();
             }
+        }
+        /// <summary>
+        /// Aktif oyuncu AI ise, kısa bir gecikme ile AI'ın oynamasını tetikler.
+        /// Timer sınıf alanı olarak tutulur — yoksa GC toplayıp oyun takılır.
+        /// </summary>
+        private void AITetikle()
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[AITetikle] Çağrıldı — aktif: {activePlayer}, aşama: {_oyunAsamasi}, " +
+                $"insan: {_humanPlayer}");
+
+            if (activePlayer == _humanPlayer)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[AITetikle] Aktif oyuncu insan, çıkılıyor.");
+                return;
+            }
+
+            // Önceki timer varsa temizle
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+
+            System.Diagnostics.Debug.WriteLine(
+                "[AITetikle] Yeni timer oluşturuluyor (800ms).");
+
+            _aiTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            _aiTimer.Tick += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AITetikle] Timer tick — aktif: {activePlayer}");
+
+                _aiTimer?.Stop();
+                _aiTimer?.Dispose();
+                _aiTimer = null;
+
+                var oynayacak = activePlayer;
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AITetikle] AIOyna çağrılacak: {oynayacak}");
+
+                if (oynayacak != _humanPlayer)
+                {
+                    AIOyna(oynayacak);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "[AITetikle] Ama aktif oyuncu insan, AIOyna çağrılmıyor.");
+                }
+            };
+
+            System.Diagnostics.Debug.WriteLine(
+                "[AITetikle] Timer.Start() çağrılıyor.");
+            _aiTimer.Start();
+            System.Diagnostics.Debug.WriteLine(
+                "[AITetikle] Timer başlatıldı.");
         }
 
         /// <summary>
@@ -1492,12 +1573,36 @@ namespace BricKartOyunu
         /// </summary>
         private void AIOyna(Player oyuncu)
         {
-            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
-            if (activePlayer != oyuncu) return;
-            if (oyuncu == _humanPlayer) return;
+            System.Diagnostics.Debug.WriteLine(
+        $"[AIOyna] Çağrıldı — oyuncu: {oyuncu}, aktif: {activePlayer}, " +
+        $"aşama: {_oyunAsamasi}");
+
+            if (_oyunAsamasi != OyunAsamasi.Oyun)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[AIOyna] Aşama Oyun değil, çıkılıyor.");
+                return;
+            }
+            if (oyuncu == _humanPlayer)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[AIOyna] Oyuncu insan, çıkılıyor.");
+                return;
+            }
+            if (activePlayer != oyuncu)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AIOyna] Sıra {oyuncu}'da değil, aktif: {activePlayer}");
+                return;
+            }
 
             var el = OyuncuEli(oyuncu);
-            if (el == null || el.Count == 0) return;
+            if (el == null || el.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AIOyna] {oyuncu}'ın eli boş, çıkılıyor.");
+                return;
+            }
 
             // Renk takip: atak renginden var mı?
             Card secilen = null;
@@ -1521,6 +1626,58 @@ namespace BricKartOyunu
 
             // Kartı oyna (aynı merkezi metot)
             KartOyna(oyuncu, secilen, secilen.Image);
+        }
+
+        /// <summary>
+        /// Bu elde oynanan 4 kart arasında kazananı belirler.
+        /// Kurallar:
+        /// - Atak rengi (ilk oynanan kartın rengi) belirleyicidir
+        /// - Aynı renkten en yüksek kart kazanır
+        /// - Koz varsa ve oynanmışsa, en yüksek koz kazanır
+        /// </summary>
+        private Player ElKazananiniBelirle()
+        {
+            if (_buEldeOynananlar.Count != 4) return activePlayer;
+
+            string koz = KontratKozu();
+            string atakRengi = _buEldeAtakRengi;
+
+            // En yüksek kozu bul (varsa)
+            Card enYuksekKoz = null;
+            Player kozSahibi = activePlayer;
+
+            // En yüksek atak rengi kartını bul
+            Card enYuksekAtak = null;
+            Player atakSahibi = activePlayer;
+
+            foreach (var (oyuncu, kart) in _buEldeOynananlar)
+            {
+                // Koz kontrolü
+                if (!string.IsNullOrEmpty(koz) && kart.Suit == koz)
+                {
+                    if (enYuksekKoz == null || kart.Value > enYuksekKoz.Value)
+                    {
+                        enYuksekKoz = kart;
+                        kozSahibi = oyuncu;
+                    }
+                }
+
+                // Atak rengi kontrolü
+                if (kart.Suit == atakRengi)
+                {
+                    if (enYuksekAtak == null || kart.Value > enYuksekAtak.Value)
+                    {
+                        enYuksekAtak = kart;
+                        atakSahibi = oyuncu;
+                    }
+                }
+            }
+
+            // Koz varsa ve oynanmışsa → koz kazanır
+            if (enYuksekKoz != null) return kozSahibi;
+
+            // Koz yoksa veya oynanmamışsa → atak rengindeki en yüksek kazanır
+            return atakSahibi;
         }
 
         /// <summary>
@@ -1698,6 +1855,27 @@ namespace BricKartOyunu
                 default: return "—";
             }
         }
+        /// <summary>
+        /// Mevcut kontrattan koz rengini çıkarır.
+        /// Örnek: "4♠" → "Maça", "3NT" → null (koz yok).
+        /// </summary>
+        private string KontratKozu()
+        {
+            if (string.IsNullOrEmpty(_kontrat)) return null;
+
+            char sonKarakter = _kontrat.Last();
+
+            switch (sonKarakter)
+            {
+                case '♠': return "Maça";
+                case '♥': return "Kupa";
+                case '♦': return "Karo";
+                case '♣': return "Sinek";
+                case 'T': return null;   // NT — koz yok
+                case 't': return null;
+                default: return null;
+            }
+        }
 
         /// <summary>
         /// Zon durumunu Türkçe metin olarak döndürür.
@@ -1758,6 +1936,12 @@ namespace BricKartOyunu
             {
                 this.ResumeLayout(true);
             }
+            // 🔹 İhale bittiğinde sıra AI'da ise otomatik oynat
+            if (activePlayer != _humanPlayer)
+            {
+                AITetikle();
+            }
+
 
             UpdatePlayerBadges();
         }
