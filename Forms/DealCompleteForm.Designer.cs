@@ -53,7 +53,7 @@
             this.btnReplay.Name = "btnReplay";
             this.btnReplay.Size = new System.Drawing.Size(200, 40);
             this.btnReplay.TabIndex = 1;
-            this.btnReplay.Text = "Eli Tekrar Oyna";
+            this.btnReplay.Text = "Bu Eli Tekrar Oyna";
             this.btnReplay.UseVisualStyleBackColor = true;
             // 
             // btnReviewBidding
@@ -80,7 +80,7 @@
             this.btnSavePPL.Name = "btnSavePPL";
             this.btnSavePPL.Size = new System.Drawing.Size(200, 40);
             this.btnSavePPL.TabIndex = 4;
-            this.btnSavePPL.Text = "Dağılımı Kaydet";
+            this.btnSavePPL.Text = "Dağılımı PPL Olarak Kaydet";
             this.btnSavePPL.UseVisualStyleBackColor = true;
             // 
             // btnPrint
@@ -89,7 +89,7 @@
             this.btnPrint.Name = "btnPrint";
             this.btnPrint.Size = new System.Drawing.Size(200, 40);
             this.btnPrint.TabIndex = 5;
-            this.btnPrint.Text = "Dağılımı Yazdır";
+            this.btnPrint.Text = "Bu Dağılımı Yazdır";
             this.btnPrint.UseVisualStyleBackColor = true;
             // 
             // btnNextDeal
@@ -98,7 +98,7 @@
             this.btnNextDeal.Name = "btnNextDeal";
             this.btnNextDeal.Size = new System.Drawing.Size(200, 40);
             this.btnNextDeal.TabIndex = 6;
-            this.btnNextDeal.Text = "Sonraki Dağılım";
+            this.btnNextDeal.Text = "Sonraki Dağılıma Geç";
             this.btnNextDeal.UseVisualStyleBackColor = true;
             // 
             // btnMainMenu

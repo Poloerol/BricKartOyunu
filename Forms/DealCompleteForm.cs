@@ -85,10 +85,7 @@ namespace BricKartOyunu.Forms
 
         private void BtnReviewPlay_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(
-                "Oynanan ellerin incelemesi özelliği henüz geliştirilmedi.\n" +
-                "(İleride eklenecek)",
-                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            _bricOyna?.OynananElleriGoster();
         }
 
         private void BtnSavePPL_Click(object sender, EventArgs e)

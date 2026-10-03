@@ -175,6 +175,11 @@ namespace BricKartOyunu
         // 🔹 Bu bordda kaç el oynandı? (13'e ulaşınca bord biter)
         private int _oynananToplamEl = 0;
 
+        // 🔹 Bu bordda oynanan tüm eller — OynananElleriGosterForm için saklanır
+        // Tuple: (ElNo, Oyuncu, Kart, KazandiMi)
+        private readonly List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> _oynananTumEller
+            = new List<(int, Player, Card, bool)>();
+
         // ====================================================================
         // OYUN OYNAMA — Masa Kartları
         // ====================================================================
@@ -899,6 +904,9 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[YeniBord] Yeni bord başlatılıyor...");
 
+            // 🔹 Oynanan tüm eller listesini temizle
+            _oynananTumEller.Clear();
+
             // 1) El sayacını sıfırla
             _oynananToplamEl = 0;
 
@@ -1599,6 +1607,17 @@ namespace BricKartOyunu
                 // El kazananını belirle
                 Player kazanan = ElKazananiniBelirle();
 
+                // 🔹 Bu eli kaydet
+                int elNo = _oynananToplamEl + 1;
+                foreach (var (o, k) in _buEldeOynananlar)
+                {
+                    bool kazandi = (o == kazanan);
+                    _oynananTumEller.Add((elNo, o, k, kazandi));
+                }
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KartOyna] El #{elNo} kaydedildi (kazanan: {kazanan})");
+
                 System.Diagnostics.Debug.WriteLine(
                     $"[KartOyna] El tamamlandı — kazanan: {kazanan}");
 
@@ -1769,7 +1788,7 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[AITetikle] Yeni timer oluşturuluyor (800ms).");
 
-            _aiTimer = new System.Windows.Forms.Timer { Interval = 50 };
+            _aiTimer = new System.Windows.Forms.Timer { Interval = 800 };
             _aiTimer.Tick += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine(
@@ -2213,6 +2232,11 @@ namespace BricKartOyunu
             _ihaleBaslangicOyuncusu = baslangicOyuncusu;
         }
 
+        private void oynananElleriGösterToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OynananElleriGoster();
+        }
+
         // Kullanıcı oyun esnasında ihale geçmişini görmek istediğinde çağrılacak metot
         public void IhaleGecmisiniGoster()
         {
@@ -2223,6 +2247,28 @@ namespace BricKartOyunu
             }
 
             using (IhaleGecmisiForm form = new IhaleGecmisiForm(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu))
+            {
+                form.ShowDialog(this);
+            }
+        }
+
+        /// <summary>
+        /// Oynanan tüm elleri bir formda gösterir.
+        /// Deal Complete formundaki "Oyunu Göster" butonu da bunu çağırır.
+        /// </summary>
+        public void OynananElleriGoster()
+        {
+            if (_oynananTumEller == null || _oynananTumEller.Count == 0)
+            {
+                MessageBox.Show(
+                    "Henüz oynanmış bir el bulunmuyor.",
+                    "Oynanan Eller",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            using (var form = new OynananElleriGosterForm(_oynananTumEller))
             {
                 form.ShowDialog(this);
             }

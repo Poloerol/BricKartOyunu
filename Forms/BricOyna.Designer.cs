@@ -56,7 +56,6 @@
             this.BtnOtoOyna = new System.Windows.Forms.ToolStripButton();
             this.BtnClaim = new System.Windows.Forms.ToolStripButton();
             this.BtnGeriAl = new System.Windows.Forms.ToolStripButton();
-
             this.BtnileriAl = new System.Windows.Forms.ToolStripButton();
             this.BtnIpucu = new System.Windows.Forms.ToolStripButton();
             this.BtnSonrakiEl = new System.Windows.Forms.ToolStripButton();
@@ -68,6 +67,7 @@
             this.BtnGuney = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.oynananElleriGösterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -133,7 +133,8 @@
             // eylmlerToolStripMenuItem
             // 
             this.eylmlerToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ihaleGösterToolStripMenuItem});
+            this.ihaleGösterToolStripMenuItem,
+            this.oynananElleriGösterToolStripMenuItem});
             this.eylmlerToolStripMenuItem.Name = "eylmlerToolStripMenuItem";
             this.eylmlerToolStripMenuItem.Size = new System.Drawing.Size(64, 20);
             this.eylmlerToolStripMenuItem.Text = "Eylemler";
@@ -141,7 +142,7 @@
             // ihaleGösterToolStripMenuItem
             // 
             this.ihaleGösterToolStripMenuItem.Name = "ihaleGösterToolStripMenuItem";
-            this.ihaleGösterToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.ihaleGösterToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.ihaleGösterToolStripMenuItem.Text = "İhaleyi Göster";
             this.ihaleGösterToolStripMenuItem.Click += new System.EventHandler(this.IhaleGösterToolStripMenuItem_Click);
             // 
@@ -417,6 +418,13 @@
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
+            // oynananElleriGösterToolStripMenuItem
+            // 
+            this.oynananElleriGösterToolStripMenuItem.Name = "oynananElleriGösterToolStripMenuItem";
+            this.oynananElleriGösterToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.oynananElleriGösterToolStripMenuItem.Text = "Oynanan Elleri Göster";
+            this.oynananElleriGösterToolStripMenuItem.Click += new System.EventHandler(this.oynananElleriGösterToolStripMenuItem_Click);
+            // 
             // BricOyna
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -480,6 +488,7 @@
         private System.Windows.Forms.ToolStripMenuItem sonrakiElToolStripMenuItem;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripMenuItem ihaleGösterToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem oynananElleriGösterToolStripMenuItem;
     }
 }
 

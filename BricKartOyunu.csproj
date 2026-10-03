@@ -214,6 +214,12 @@
     <Compile Include="AnaSayfa.Designer.cs">
       <DependentUpon>AnaSayfa.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\OynananElleriGosterForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\OynananElleriGosterForm.Designer.cs">
+      <DependentUpon>OynananElleriGosterForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Turnuva.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -263,6 +269,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="AnaSayfa.resx">
       <DependentUpon>AnaSayfa.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OynananElleriGosterForm.resx">
+      <DependentUpon>OynananElleriGosterForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Turnuva.resx">
       <DependentUpon>Turnuva.cs</DependentUpon>
