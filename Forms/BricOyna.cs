@@ -500,6 +500,20 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: Pas, Gelen: {motor.TeklifVer(DurumOlustur(el4, anlasma))}");
 
+                // El 5: 16 HP + dengeli (5'li majör yok) → 1NT beklenir
+                var el5 = YapayElOlustur(
+                    "♠KJ3 ♥QJ3 ♦AKQ5 ♣J87");
+                TestTekEl(motor, el5, "Yapay-5: 16 HP dengeli, 5'li majör yok");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1NT, Gelen: {motor.TeklifVer(DurumOlustur(el5, anlasma))}");
+
+                // El 6: 15 HP + 5'li Maça → BesliMajor (1♠) beklenir
+                var el6 = YapayElOlustur(
+                    "♠AKQ54 ♥QJ3 ♦Q2 ♣J87");
+                TestTekEl(motor, el6, "Yapay-6: 15 HP + 5'li Maça (BesliMajor önce)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♠, Gelen: {motor.TeklifVer(DurumOlustur(el6, anlasma))}");
+
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }
             catch (Exception ex)

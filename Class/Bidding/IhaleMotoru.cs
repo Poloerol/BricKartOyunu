@@ -43,10 +43,11 @@ namespace BricKartOyunu.Class.Bidding
 
             // Kayıtlı tüm konvansiyonlar
             _konvansiyonlar = new List<IKonvansiyon>
-            {
-     // Açılış konvansiyonları
-    new BesliMajor(),
-            };
+{
+    // Açılış konvansiyonları (öncelik sırasına göre)
+    new BesliMajor(),       // Öncelik 10
+    new StrongNT(),         // Öncelik 20
+};
 
             // Anlaşmaya göre aktif/pasif ayarla
             AnlasmayiUygula();
