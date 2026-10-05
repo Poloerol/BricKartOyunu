@@ -489,9 +489,9 @@ namespace BricKartOyunu
                 // El 3: 13 HP ama 5'li majör yok → fallback (1♦ veya 1♣)
                 var el3 = YapayElOlustur(
                     "♠KJ3 ♥QJ3 ♦AKQ5 ♣J87");
-                TestTekEl(motor, el3, "Yapay-3: 13 HP, 4'lü Karo");
+                TestTekEl(motor, el3, "Yapay-3: 17 HP dengeli (StrongNT aralığı)");
                 System.Diagnostics.Debug.WriteLine(
-                    $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el3, anlasma))}");
+                    $"[TEST]   → Beklenen: 1NT, Gelen: {motor.TeklifVer(DurumOlustur(el3, anlasma))}");
 
                 // El 4: 8 HP → Pas beklenir
                 var el4 = YapayElOlustur(
