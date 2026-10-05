@@ -5,6 +5,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
+using BricKartOyunu.Class.Bidding;
+using BricKartOyunu.Class.Bidding.Conventions;
 
 namespace BricKartOyunu.Forms
 {
@@ -13,6 +15,31 @@ namespace BricKartOyunu.Forms
         private readonly BricOyna _bricOyna;
 
         private bool _kapanmayaIzinVerildi = false;
+
+        // ═══════════════════════════════════════════════════════════════════
+        // İHALE MOTORU — AI'ların teklif vermesi için
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// İhale motoru — AI'ların teklif vermesi için.
+        /// </summary>
+        private IhaleMotoru _motor;
+
+        /// <summary>
+        /// Ortaklık anlaşması (konvansiyon ayarları).
+        /// </summary>
+        private OrtaklikAnlasmasi _anlasma;
+
+        /// <summary>
+        /// AI hamlesini geciktirmek için timer (düşünme efekti).
+        /// </summary>
+        private System.Windows.Forms.Timer _aiTimer;
+
+        /// <summary>
+        /// AI oynayacak mı? (test için kapatılabilir)
+        /// </summary>
+        private bool _aiAktif = true;
+
         private int _sonTeklifIndex = -1;
 
         private string _aktifOyuncu;
@@ -29,6 +56,8 @@ namespace BricKartOyunu.Forms
 
         // DeklarasyonForm.cs sınıf seviyesine ekleyin:
         private readonly List<string> _bids = new List<string>();
+
+        private readonly List<IhaleHamlesi> _ihaleHamleleri = new List<IhaleHamlesi>();
 
         // İleri alınan (redo) hamleleri tutar
         private readonly List<(string Oyuncu, string Teklif)> _ileriAlinanHamleler
@@ -81,6 +110,13 @@ namespace BricKartOyunu.Forms
 
             this.FormClosing += DeklarasyonForm_FormClosing;
             this.FormClosed += DeklarasyonForm_FormClosed;
+
+            // 🔹 İhale motorunu başlat
+            _anlasma = OrtaklikAnlasmasi.Varsayilan();
+            _motor = new IhaleMotoru(_anlasma);
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[DeklarasyonForm] Motor başlatıldı: {_motor.Ozet()}");
         }
 
         private static void EnableDoubleBuffer(Control c)
@@ -194,11 +230,11 @@ namespace BricKartOyunu.Forms
             idx = (idx + 1) % OyuncuSirasi.Length;
             _aktifOyuncu = OyuncuSirasi[idx];
 
-            // Hem İhale paneli hem BricOyna üzerindeki Sarı etiketi günceller
             IsaretleAktifOyuncu();
-
-            // Kontr ve Sürkontr buton durumlarını sıradaki oyuncuya göre aktif/pasif yapabilirsiniz
             KontrolluButonlariGuncelle();
+
+            // 🔹 AI sırası mı? Tetikle
+            AITetikle();
         }
 
         private void TurkcelestirButonlar()
@@ -314,6 +350,14 @@ namespace BricKartOyunu.Forms
             _teklifSayisi++;
             // 🔹 BricOyna'daki BtnGeriAl / BtnileriAl durumlarını güncelle
             _bricOyna?.GeriAlIleriAlButonlariniGuncelle();
+
+            _ihaleHamleleri.Add(new IhaleHamlesi
+            {
+                Oyuncu = OyuncuyaCevir(oyuncu),
+                Teklif = deger,
+                Sira = _ihaleHamleleri.Count + 1,
+                GecerliMi = true
+            });
 
         }
 
@@ -824,6 +868,208 @@ namespace BricKartOyunu.Forms
             {
                 frm.StartPosition = FormStartPosition.CenterScreen;
                 frm.Show(this);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // AI İHALE
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Aktif oyuncu AI ise, kısa bir gecikmeyle motoru çalıştırır.
+        /// Şimdilik SADECE Batı AI. Diğerleri insan.
+        /// </summary>
+        private void AITetikle()
+        {
+            // AI aktif mi?
+            if (!_aiAktif) return;
+            if (_motor == null) return;
+
+            // Aktif oyuncu AI mi? (Şimdilik SADECE Batı)
+            if (!AIMi(_aktifOyuncu))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AI] {_aktifOyuncu} insan, AI tetiklenmiyor.");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[AI] {_aktifOyuncu} AI sırası — motor çalışacak.");
+
+            // Önceki timer'ı temizle
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+
+            // 800ms sonra AI oynasın
+            _aiTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            _aiTimer.Tick += (s, e) =>
+            {
+                _aiTimer.Stop();
+                _aiTimer.Dispose();
+                _aiTimer = null;
+
+                AIHamlesiYap();
+            };
+            _aiTimer.Start();
+        }
+
+        /// <summary>
+        /// Belirtilen oyuncu AI mı?
+        /// Şimdilik SADECE Batı AI. Diğerleri insan.
+        /// </summary>
+        private bool AIMi(string oyuncu)
+        {
+            return oyuncu == "Bati";   // 🔹 Şimdilik sadece Batı
+        }
+
+        /// <summary>
+        /// AI'ın hamlesini yapar: motoru çağırır, teklifi uygular.
+        /// </summary>
+        private void AIHamlesiYap()
+        {
+            try
+            {
+                // 1. İhale durumunu oluştur
+                var durum = IhaleDurumuOlustur();
+
+                // 2. Motor'dan teklif al
+                string teklif = _motor.TeklifVer(durum);
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AI] {_aktifOyuncu} motor teklifi: {teklif}");
+
+                // 3. Teklifi uygula
+                AIHamlesiniUygula(teklif);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AI] HATA: {ex.Message}\n{ex.StackTrace}");
+
+                // Güvenli fallback: Pas
+                AIHamlesiniUygula("Pas");
+            }
+        }
+
+        /// <summary>
+        /// AI teklifini uygular (Pas, teklif, kontr, vs.).
+        /// </summary>
+        private void AIHamlesiniUygula(string teklif)
+        {
+            if (string.IsNullOrEmpty(teklif)) teklif = "Pas";
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[AI] Uygulanıyor: {_aktifOyuncu} → {teklif}");
+
+            // Pas mı?
+            if (teklif == "Pas" || teklif == "PAS")
+            {
+                EkleIhaleGecmisi(_aktifOyuncu, "Pas");
+                _ustUstePasSayisi++;
+
+                // İhale bitti mi?
+                if (IhaleBittiMi())
+                {
+                    IhaleyiSonlandir();
+                    return;
+                }
+
+                SonrakiOyuncuyaGec();
+                return;
+            }
+
+            // Dbl / RDbl
+            if (teklif == "Dbl" || teklif == "Kontr")
+            {
+                EkleIhaleGecmisi(_aktifOyuncu, "Dbl");
+                _ustUstePasSayisi = 0;
+                SonrakiOyuncuyaGec();
+                return;
+            }
+
+            if (teklif == "RDbl" || teklif == "S.Kontr")
+            {
+                EkleIhaleGecmisi(_aktifOyuncu, "RDbl");
+                _ustUstePasSayisi = 0;
+                SonrakiOyuncuyaGec();
+                return;
+            }
+
+            // Gerçek teklif — parse et
+            // Örnek: "1♠", "3NT", "4♥"
+            if (teklif.Length >= 2)
+            {
+                // Koz ve seviye
+                char sonKarakter = teklif[teklif.Length - 1];
+                string seviyeStr = teklif.Substring(0, teklif.Length - 1);
+
+                int seviye;
+                if (!int.TryParse(seviyeStr, out seviye))
+                {
+                    // Parse edilemedi — Pas yap
+                    EkleIhaleGecmisi(_aktifOyuncu, "Pas");
+                    _ustUstePasSayisi++;
+                    if (IhaleBittiMi()) { IhaleyiSonlandir(); return; }
+                    SonrakiOyuncuyaGec();
+                    return;
+                }
+
+                // Kontrat bilgilerini güncelle
+                _sonKontratTeklifi = teklif;
+                _sonKontratVeren = _aktifOyuncu;
+                _kontratKozu = sonKarakter.ToString();
+
+                // Grid indeksini hesapla (görsel için)
+                _sonTeklifIndex = TeklifGridIndexHesapla(teklif);
+
+                // ListView'a ekle
+                EkleIhaleGecmisi(_aktifOyuncu, teklif);
+
+                // Pas sayacını sıfırla
+                _ustUstePasSayisi = 0;
+
+                // Grid'i yenile
+                panelGrid?.Invalidate();
+
+                // Sonraki oyuncuya geç
+                SonrakiOyuncuyaGec();
+            }
+        }
+
+        /// <summary>
+        /// Mevcut ihale durumunu motor için oluşturur.
+        /// </summary>
+        private IhaleDurumu IhaleDurumuOlustur()
+        {
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = OyuncuyaCevir(_aktifOyuncu),
+                Anlasma = _anlasma,
+                TurNo = 1,
+                ZonNS = false,   // TODO: BricOyna'dan al
+                ZonEW = false,   // TODO: BricOyna'dan al
+                AktifOyuncuEli = _bricOyna?.GetOyuncuEli(OyuncuyaCevir(_aktifOyuncu))
+            };
+
+            // Basit geçmiş aktarımı — sıra numarası ve oyuncu ataması yapılamıyor
+            // (Bu yüzden motor "ilk teklif" sanabilir.)
+            // Şimdilik idare ediyoruz.
+
+            durum.Gecmis = new List<IhaleHamlesi>(_ihaleHamleleri);
+            return durum;
+        }
+
+        /// <summary>
+        /// Bir Player enum'unu string'e çevirir (mevcut sistem uyumu için).
+        /// </summary>
+        private static Player OyuncuyaCevir(string oyuncu)
+        {
+            switch (oyuncu)
+            {
+                case "Kuzey": return Player.Kuzey;
+                case "Dogu": return Player.Dogu;
+                case "Bati": return Player.Bati;
+                default: return Player.Guney;
             }
         }
 

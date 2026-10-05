@@ -2696,5 +2696,21 @@ namespace BricKartOyunu
                 "[BricOyna] OyunSonHamleyiIleriAl: Henüz implemente edilmedi.");
         }
 
+        /// <summary>
+        /// Belirtilen oyuncunun elini döndürür.
+        /// (Ihale motoru için.)
+        /// </summary>
+        public List<Card> GetOyuncuEli(Player oyuncu)
+        {
+            switch (oyuncu)
+            {
+                case Player.Kuzey: return kuzeyEl;
+                case Player.Guney: return guneyEl;
+                case Player.Bati: return batiEl;
+                case Player.Dogu: return doguEl;
+                default: return null;
+            }
+        }
+
     }
 }
