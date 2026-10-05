@@ -455,7 +455,6 @@
             // classicToolStripMenuItem
             // 
             this.classicToolStripMenuItem.Checked = true;
-            this.classicToolStripMenuItem.CheckOnClick = false;
             this.classicToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.classicToolStripMenuItem.Name = "classicToolStripMenuItem";
             this.classicToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
@@ -464,7 +463,6 @@
             // 
             // sayısalToolStripMenuItem
             // 
-            this.sayısalToolStripMenuItem.CheckOnClick = false;
             this.sayısalToolStripMenuItem.Name = "sayısalToolStripMenuItem";
             this.sayısalToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
             this.sayısalToolStripMenuItem.Text = "Sayısal";
@@ -511,7 +509,6 @@
             // kırmızıToolStripMenuItem
             // 
             this.kırmızıToolStripMenuItem.Checked = true;
-            this.kırmızıToolStripMenuItem.CheckOnClick = false;
             this.kırmızıToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.kırmızıToolStripMenuItem.Name = "kırmızıToolStripMenuItem";
             this.kırmızıToolStripMenuItem.Size = new System.Drawing.Size(180, 22);

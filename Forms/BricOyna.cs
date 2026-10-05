@@ -18,7 +18,7 @@ namespace BricKartOyunu
         private readonly PictureBox[] doguKartlar = new PictureBox[13];
         private readonly PictureBox[] batiKartlar = new PictureBox[13];
 
-     
+
         // Eller için listeler
         private readonly List<Card> kuzeyEl = new List<Card>();
         private readonly List<Card> guneyEl = new List<Card>();
@@ -203,6 +203,8 @@ namespace BricKartOyunu
         // düşüp aynı dağıtıma sebep olabiliyordu. Tek instance bunu engeller.
         private static readonly Random _rng = new Random();
 
+
+
         public BricOyna()
         {
             InitializeComponent();
@@ -223,6 +225,31 @@ namespace BricKartOyunu
                 BtnGeriAl.Click += BtnGeriAl_Click;
             if (BtnileriAl != null)
                 BtnileriAl.Click += BtnileriAl_Click;
+
+            // 🔹 YENİ: ToolStrip butonlarında "ilk tıklama odağa gidiyor" sorununu çözmek için
+            // Click yerine MouseDown kullan. Click bağlamasını çıkar.
+            FirstClickSorununuCoz(BtnHepsi, BtnHepsi_Click);
+            FirstClickSorununuCoz(BtnEW, BtnEW_Click);
+            FirstClickSorununuCoz(BtnNS, BtnNS_Click);
+            FirstClickSorununuCoz(BtnGuney, BtnGuney_Click);
+            FirstClickSorununuCoz(BtnGeriAl, BtnGeriAl_Click);
+            FirstClickSorununuCoz(BtnileriAl, BtnileriAl_Click);
+            FirstClickSorununuCoz(BtnSonrakiEl, BtnSonrakiEl_Click);
+        }
+
+        /// <summary>
+        /// Bir ToolStrip butonunda "ilk tıklama odağa gidiyor" sorununu çözer.
+        /// Click bağlamasını çıkarıp MouseDown bağlar.
+        /// </summary>
+        private static void FirstClickSorununuCoz(ToolStripItem item, EventHandler handler)
+        {
+            if (item == null || handler == null) return;
+            item.Click -= handler;                  // Designer'dan gelen Click bağlamasını çıkar
+            item.MouseDown += (s, e) =>              // MouseDown bağla
+            {
+                if (e.Button == MouseButtons.Left)
+                    handler(s, e);
+            };
         }
 
         // ⚠️ NOT: WS_EX_COMPOSITED kaldırıldı.
@@ -239,11 +266,102 @@ namespace BricKartOyunu
         {
             if (c == null) return;
             typeof(Control).InvokeMember("DoubleBuffered",
-                System.Reflection.BindingFlags.SetProperty | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                System.Reflection.BindingFlags.SetProperty |
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic,
                 null, c, new object[] { true });
         }
 
-        private void BricOyna_Resize(object sender, EventArgs e)
+        // ═══════════════════════════════════════════════════════════════════════
+        // TOOLBAR BUTON RESİMLERİ — Basılı / Basılmamış
+        // ═══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Resources/ToolBarImage klasöründeki bir resmi yükler.
+        /// </summary>
+        private static Image ToolbarResmiYukle(string dosyaAdi)
+        {
+            try
+            {
+                string yol = Path.Combine(
+                    Application.StartupPath, "Resources", "ToolBarImage", dosyaAdi);
+                if (!File.Exists(yol)) return null;
+
+                using (var fs = new FileStream(yol, FileMode.Open, FileAccess.Read))
+                using (var temp = Image.FromStream(fs))
+                {
+                    return new Bitmap(temp);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[ToolbarResmiYukle] {dosyaAdi} yüklenemedi: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Bir ToolStripButton için basılı/basılmamış resim çiftini ayarlar.
+        /// Checked durumuna göre resim otomatik değişir.
+        /// </summary>
+        private void ToolbarButonResimleriniAyarla(
+            ToolStripButton btn, string basilmisResim, string basilmamisResim)
+        {
+            if (btn == null) return;
+
+            Image altResim = ToolbarResmiYukle(basilmisResim);
+            Image ustResim = ToolbarResmiYukle(basilmamisResim);
+
+            if (altResim == null && ustResim == null) return;
+
+            // 🔹 Resmi ToolStrip boyutuna otomatik ölçekle
+            btn.ImageScaling = ToolStripItemImageScaling.SizeToFit;
+
+            // Başlangıç: basılmamış resim
+            btn.Image = ustResim ?? btn.Image;
+
+            // Tag'e her iki resmi de sakla
+            btn.Tag = new ToolbarResimCifti
+            {
+                Alt = altResim,
+                Ust = ustResim
+            };
+
+            // Checked değiştiğinde resmi değiştir (önce çıkar, sonra ekle)
+            btn.CheckedChanged -= ToolbarButon_CheckedChanged;
+            btn.CheckedChanged += ToolbarButon_CheckedChanged;
+
+            // Başlangıç durumuna göre resmi ayarla
+            ToolbarButon_CheckedChanged(btn, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Toolbar butonunun Checked durumuna göre resmini değiştirir.
+        /// </summary>
+        private void ToolbarButon_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!(sender is ToolStripButton btn)) return;
+            if (!(btn.Tag is ToolbarResimCifti cift)) return;
+
+            btn.Image = btn.Checked ? cift.Alt : cift.Ust;
+        }
+
+        /// <summary>
+        /// Basılı / basılmamış resim çiftini tutar.
+        /// </summary>
+        private class ToolbarResimCifti
+        {
+            public Image Alt { get; set; }   // Basılı (Checked=true)
+            public Image Ust { get; set; }   // Basılmamış (Checked=false)
+        }
+        
+        
+                
+        /// <summary>
+        /// Basılı / basılmamış resim çiftini tutar.
+        /// </summary>
+               private void BricOyna_Resize(object sender, EventArgs e)
         {
             this.SuspendLayout();
             try
@@ -261,6 +379,17 @@ namespace BricKartOyunu
 
 
             if (this.DesignMode) return;
+
+            // 🔹 ToolStrip butonlarının görsel boyutunu büyüt (32x32 → 48x48)
+            toolStrip1.ImageScalingSize = new Size(32, 32);
+            toolStrip1.AutoSize = false;
+            toolStrip1.Height = 40;
+
+            // 🔹 Toolbar butonlarının basılı/basılmamış resimlerini ayarla
+            ToolbarButonResimleriniAyarla(BtnHepsi, "allHandsalt.png", "allHandsUst.png");
+            ToolbarButonResimleriniAyarla(BtnEW, "EWalt.png", "EWUst.png");
+            ToolbarButonResimleriniAyarla(BtnNS, "NSalt.png", "NSUst.png");
+            ToolbarButonResimleriniAyarla(BtnGuney, "Southalt.png", "SouthUst.png");
 
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
 
@@ -469,7 +598,7 @@ namespace BricKartOyunu
             {
                 oyunBilgiPanel.Location = new Point(
                     this.ClientSize.Width - oyunBilgiPanel.Width - BilgiPanelSagBosluk,
-                    BilgiPanelUstBosluk
+                    _kuzeyY   // ← Kuzey elinin Y koordinatı
                 );
                 OyunBilgiPaneliniGuncelle();
             }
@@ -486,7 +615,7 @@ namespace BricKartOyunu
             // Infoboard boyutunu büyütüyoruz
             int size = 50;
             int panelX = 20;
-            int panelY = 70;
+            int panelY = _kuzeyY;   // ← Kuzey elinin Y koordinatı
 
             if (infoBoardPanel == null)
             {
@@ -1047,7 +1176,7 @@ namespace BricKartOyunu
                 this.ResumeLayout(true);
             }
         }
-        
+
 
         private void HepsiniGoster()
         {
@@ -1280,7 +1409,7 @@ namespace BricKartOyunu
         // bu tek metodu çağırıyor; böylece iki tetikleyici de aynı davranışa sahip.
         public void SonrakiElIsteği()
         {
-            
+
             // 🔹 Masadaki kartları temizle
             MasadakiKartlariTemizle();
 
@@ -2000,7 +2129,7 @@ namespace BricKartOyunu
                 default: return new Point(0, 0);
             }
         }
-        
+
         /// <summary>
         /// DeklarasyonForm'dan gelen aktif oyuncu bilgisine göre BricOyna üzerindeki 
         /// ilgili oyuncu etiketini SARI renge boyar, diğerlerini normale çeker.
@@ -2016,7 +2145,7 @@ namespace BricKartOyunu
             IhaleGecmisiniGoster();
         }
 
-       
+
 
         public List<Card> GetGuneyElinKartlari()
         {
@@ -2076,7 +2205,7 @@ namespace BricKartOyunu
         private string _kontrat;
         private Player _kontratDeklaran;
         private Player _atakYapacakOyuncu;
-              
+
 
         // 🔹 Kazanılan el sayıları (oyun sırasında artacak)
         private int _kazanilanElNS = 0;
@@ -2225,7 +2354,7 @@ namespace BricKartOyunu
             }
         }
 
-        
+
         public void IhaleGecmisiniKaydet(List<string> bids, string baslangicOyuncusu)
         {
             _sonIhaleGecmisi = new List<string>(bids);
@@ -2366,7 +2495,7 @@ namespace BricKartOyunu
         {
             System.Diagnostics.Debug.WriteLine(
                 "[BricOyna] OyunSonHamleyiIleriAl: Henüz implemente edilmedi.");
-        }     
-       
+        }
+
     }
 }

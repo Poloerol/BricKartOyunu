@@ -709,5 +709,7 @@ namespace BricKartOyunu.Forms
                 btn.ForeColor = fore;
             };
         }
+
+       
     }
 }

@@ -139,6 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppState.cs" />
+    <Compile Include="Class\Bidding\ElDegerlendirici.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
     <Compile Include="Class\Player.cs" />
@@ -315,7 +316,7 @@
     <Content Include="Resources\Cards\Backs\Back.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Cards\Backs\Back01.png">
+    <Content Include="Resources\Cards\Backs\BackBlack.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Cards\Classic\10C.png">
@@ -651,7 +652,7 @@
     <EmbeddedResource Include="Resources\ToolBarImage\Claim.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\ToolBarImage\EW.png">
+    <EmbeddedResource Include="Resources\ToolBarImage\EWalt.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\ToolBarImage\EWUst.png">
@@ -663,7 +664,7 @@
     <EmbeddedResource Include="Resources\ToolBarImage\Next.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\ToolBarImage\NS.png">
+    <EmbeddedResource Include="Resources\ToolBarImage\NSalt.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\ToolBarImage\NSUst.png">
@@ -675,7 +676,7 @@
     <EmbeddedResource Include="Resources\ToolBarImage\Okileri.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\ToolBarImage\South.png">
+    <EmbeddedResource Include="Resources\ToolBarImage\Southalt.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\ToolBarImage\SouthUst.png">
