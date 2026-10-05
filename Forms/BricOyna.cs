@@ -514,6 +514,27 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♠, Gelen: {motor.TeklifVer(DurumOlustur(el6, anlasma))}");
 
+                // El 7: 22+ HP → 2♣ beklenir
+                var el7 = YapayElOlustur(
+    "♠AKQ54 ♥AKQ3 ♦AK ♣T8");
+                TestTekEl(motor, el7, "Yapay-7: 22 HP → 2♣ (yapay güçlü)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 2♣, Gelen: {motor.TeklifVer(DurumOlustur(el7, anlasma))}");
+
+                // El 8: 24 HP + 5-5 → 2♣ beklenir
+                var el8 = YapayElOlustur(
+    "♠AKQ54 ♥AKQJ3 ♦KQ ♣T");
+                TestTekEl(motor, el8, "Yapay-8: 24 HP + 5-5 → 2♣ (9 tricks)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 2♣, Gelen: {motor.TeklifVer(DurumOlustur(el8, anlasma))}");
+
+                // El 9: 20 HP + 5'li Maça → BesliMajor (1♠) beklenir (2♣ değil!)
+                var el9 = YapayElOlustur(
+    "♠AKQ54 ♥KQ3 ♦KQ2 ♣T8");
+                TestTekEl(motor, el9, "Yapay-9: 20 HP + 5'li Maça → 1♠ (2♣ değil)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♠, Gelen: {motor.TeklifVer(DurumOlustur(el9, anlasma))}");
+
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }
             catch (Exception ex)

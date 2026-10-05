@@ -45,6 +45,7 @@ namespace BricKartOyunu.Class.Bidding
             _konvansiyonlar = new List<IKonvansiyon>
 {
     // Açılış konvansiyonları (öncelik sırasına göre)
+    new IkiliSinekGuclu(),  // Öncelik 5  — en önce
     new BesliMajor(),       // Öncelik 10
     new StrongNT(),         // Öncelik 20
 };
