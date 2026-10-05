@@ -37,6 +37,7 @@
             this.sonrakiElToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.eylmlerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ihaleGösterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.oynananElleriGösterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.görünümToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.masaRengiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.değerlendirmeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,7 +68,6 @@
             this.BtnGuney = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.oynananElleriGösterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -145,6 +145,13 @@
             this.ihaleGösterToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.ihaleGösterToolStripMenuItem.Text = "İhaleyi Göster";
             this.ihaleGösterToolStripMenuItem.Click += new System.EventHandler(this.IhaleGösterToolStripMenuItem_Click);
+            // 
+            // oynananElleriGösterToolStripMenuItem
+            // 
+            this.oynananElleriGösterToolStripMenuItem.Name = "oynananElleriGösterToolStripMenuItem";
+            this.oynananElleriGösterToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.oynananElleriGösterToolStripMenuItem.Text = "Oynanan Elleri Göster";
+            this.oynananElleriGösterToolStripMenuItem.Click += new System.EventHandler(this.oynananElleriGösterToolStripMenuItem_Click);
             // 
             // görünümToolStripMenuItem
             // 
@@ -418,13 +425,6 @@
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // oynananElleriGösterToolStripMenuItem
-            // 
-            this.oynananElleriGösterToolStripMenuItem.Name = "oynananElleriGösterToolStripMenuItem";
-            this.oynananElleriGösterToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
-            this.oynananElleriGösterToolStripMenuItem.Text = "Oynanan Elleri Göster";
-            this.oynananElleriGösterToolStripMenuItem.Click += new System.EventHandler(this.oynananElleriGösterToolStripMenuItem_Click);
-            // 
             // BricOyna
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -440,6 +440,7 @@
             this.Text = "Birç Oyna";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BricOyna_FormClosing);
+            this.Load += new System.EventHandler(this.BricOyna_Load_1);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.toolStrip1.ResumeLayout(false);

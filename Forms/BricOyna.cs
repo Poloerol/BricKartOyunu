@@ -6,6 +6,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using BricKartOyunu.Class.Bidding;
+using BricKartOyunu.Class.Bidding.Conventions;
 
 
 namespace BricKartOyunu
@@ -415,7 +417,164 @@ namespace BricKartOyunu
             // 🔹 YENİ: Oyun bilgi panelini güncelle (Dealer, Zon görünsün)
             OyunBilgiPaneliniGuncelle();
 
+            // 🔹 TEST: İhale motoru çalışıyor mu?
+            TestIhaleMotoru();
+
             YeniDekBasFormAc();
+        }
+
+        /// <summary>
+        /// Test amaçlı — ihale motorunu çalıştırır ve Debug'a yazar.
+        /// Gerçek entegrasyon sonraki adımda yapılacak.
+        /// </summary>
+        private void TestIhaleMotoru()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("═══════════════════════");
+                System.Diagnostics.Debug.WriteLine("[TEST] İhale Motoru Testi");
+                System.Diagnostics.Debug.WriteLine("═══════════════════════");
+
+                var anlasma = OrtaklikAnlasmasi.Varsayilan();
+                var motor = new IhaleMotoru(anlasma);
+
+                System.Diagnostics.Debug.WriteLine($"[TEST] {motor.Ozet()}");
+
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 1: Gerçek eller
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- GERÇEK ELLER ---");
+
+                Player[] oyuncular = { Player.Guney, Player.Bati, Player.Kuzey, Player.Dogu };
+                foreach (var oyuncu in oyuncular)
+                {
+                    var el = OyuncuEli(oyuncu);
+                    if (el == null || el.Count != 13) continue;
+
+                    var durum = new IhaleDurumu
+                    {
+                        AktifOyuncu = oyuncu,
+                        AktifOyuncuEli = el,
+                        Anlasma = anlasma
+                    };
+
+                    string teklif = motor.TeklifVer(durum);
+                    string ozet = ElDegerlendirici.Ozet(el);
+
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[TEST] {oyuncu} ({ozet}) → {teklif}");
+                }
+
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 2: Yapay eller (BesliMajor'ı test et)
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- YAPAY ELLER ---");
+
+                // El 1: 15 HP + 5'li Maça → 1♠ beklenir
+                var el1 = YapayElOlustur(
+                    "♠AKQ54 ♥KJ3 ♦Q2 ♣T87");
+                TestTekEl(motor, el1, "Yapay-1: 15 HP + 5'li Maça");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♠, Gelen: {motor.TeklifVer(DurumOlustur(el1, anlasma))}");
+
+                // El 2: 15 HP + 5'li Kupa → 1♥ beklenir
+                var el2 = YapayElOlustur(
+                    "♠KJ3 ♥AKQ54 ♦Q2 ♣T87");
+                TestTekEl(motor, el2, "Yapay-2: 15 HP + 5'li Kupa");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♥, Gelen: {motor.TeklifVer(DurumOlustur(el2, anlasma))}");
+
+                // El 3: 13 HP ama 5'li majör yok → fallback (1♦ veya 1♣)
+                var el3 = YapayElOlustur(
+                    "♠KJ3 ♥QJ3 ♦AKQ5 ♣J87");
+                TestTekEl(motor, el3, "Yapay-3: 13 HP, 4'lü Karo");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el3, anlasma))}");
+
+                // El 4: 8 HP → Pas beklenir
+                var el4 = YapayElOlustur(
+                    "♠KJ3 ♥Q43 ♦J52 ♣J87");
+                TestTekEl(motor, el4, "Yapay-4: 8 HP");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: Pas, Gelen: {motor.TeklifVer(DurumOlustur(el4, anlasma))}");
+
+                System.Diagnostics.Debug.WriteLine("═══════════════════════");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST] HATA: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// Test için tek el çalıştırır.
+        /// </summary>
+        private void TestTekEl(IhaleMotoru motor, List<Card> el, string aciklama)
+        {
+            System.Diagnostics.Debug.WriteLine($"[TEST] {aciklama}");
+            System.Diagnostics.Debug.WriteLine($"       {ElDegerlendirici.Ozet(el)}");
+        }
+
+        /// <summary>
+        /// Test için el oluşturur.
+        /// Format: "♠AKQ54 ♥KJ3 ♦Q2 ♣T87"
+        /// </summary>
+        private List<Card> YapayElOlustur(string metin)
+        {
+            var el = new List<Card>();
+            string[] renkGruplari = metin.Split(' ');
+
+            foreach (var grup in renkGruplari)
+            {
+                if (string.IsNullOrEmpty(grup) || grup.Length < 2) continue;
+
+                char renkSembolu = grup[0];
+                string renk = "";
+                switch (renkSembolu)
+                {
+                    case '♠': renk = "Maça"; break;
+                    case '♥': renk = "Kupa"; break;
+                    case '♦': renk = "Karo"; break;
+                    case '♣': renk = "Sinek"; break;
+                    default: continue;
+                }
+
+                string kartlar = grup.Substring(1);
+                foreach (char k in kartlar)
+                {
+                    int deger;
+                    switch (k)
+                    {
+                        case 'A': deger = 14; break;
+                        case 'K': deger = 13; break;
+                        case 'Q': deger = 12; break;
+                        case 'J': deger = 11; break;
+                        case 'T': deger = 10; break;
+                        default:
+                            if (!int.TryParse(k.ToString(), out deger)) continue;
+                            break;
+                    }
+                    el.Add(new Card { Suit = renk, Value = deger });
+                }
+            }
+
+            return el;
+        }
+
+        /// <summary>
+        /// Test için ihale durumu oluşturur.
+        /// </summary>
+        private IhaleDurumu DurumOlustur(List<Card> el, OrtaklikAnlasmasi anlasma)
+        {
+            return new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = anlasma
+            };
         }
 
         // 🔹 DekBasForm'u oluşturup playZonePanel'in tam ortasında gösterir.
@@ -2364,6 +2523,11 @@ namespace BricKartOyunu
         private void oynananElleriGösterToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OynananElleriGoster();
+        }
+
+        private void BricOyna_Load_1(object sender, EventArgs e)
+        {
+
         }
 
         // Kullanıcı oyun esnasında ihale geçmişini görmek istediğinde çağrılacak metot
