@@ -155,7 +155,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppState.cs" />
+    <Compile Include="Class\Bidding\Conventions\BesliMajor.cs" />
     <Compile Include="Class\Bidding\ElDegerlendirici.cs" />
+    <Compile Include="Class\Bidding\IhaleDurumu.cs" />
+    <Compile Include="Class\Bidding\IhaleHamlesi.cs" />
+    <Compile Include="Class\Bidding\IhaleMotoru.cs" />
+    <Compile Include="Class\Bidding\IKonvansiyon.cs" />
     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
