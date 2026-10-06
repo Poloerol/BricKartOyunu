@@ -198,6 +198,11 @@ namespace BricKartOyunu.Forms
             if (panelGrid != null) panelGrid.BackColor = Color.FromArgb(236, 233, 216);
 
             _bricOyna?.SetGameControlsEnabled(false);
+
+            System.Diagnostics.Debug.WriteLine(
+    $"[DeklarasyonForm_Load] Aktif oyuncu: {_aktifOyuncu}, " +
+    $"BricOyna.ActivePlayer: {_bricOyna?.ActivePlayer}, " +
+    $"baslangicSutunu: {_baslangicSutunu}");
         }
 
         private void IsaretleAktifOyuncu()
@@ -222,6 +227,10 @@ namespace BricKartOyunu.Forms
 
         private void SonrakiOyuncuyaGec()
         {
+            System.Diagnostics.Debug.WriteLine(
+        $"[SonrakiOyuncuyaGec] ÇAĞRILDI — aktif: {_aktifOyuncu}, " +
+        $"çağıran: {new System.Diagnostics.StackTrace().GetFrame(1)?.GetMethod()?.Name}");
+
             if (string.IsNullOrEmpty(_aktifOyuncu)) return;
 
             int idx = Array.IndexOf(OyuncuSirasi, _aktifOyuncu);
@@ -881,6 +890,10 @@ namespace BricKartOyunu.Forms
         /// </summary>
         private void AITetikle()
         {
+            System.Diagnostics.Debug.WriteLine(
+        $"[AITetikle] ÇAĞRILDI — aktif: {_aktifOyuncu}, " +
+        $"çağıran: {new System.Diagnostics.StackTrace().GetFrame(1)?.GetMethod()?.Name}");
+
             // AI aktif mi?
             if (!_aiAktif) return;
             if (_motor == null) return;
@@ -919,7 +932,9 @@ namespace BricKartOyunu.Forms
         /// </summary>
         private bool AIMi(string oyuncu)
         {
-            return oyuncu == "Bati";   // 🔹 Şimdilik sadece Batı
+            // Batı, Kuzey, Doğu → AI
+            // Güney → insan
+            return oyuncu != "Guney";
         }
 
         /// <summary>
