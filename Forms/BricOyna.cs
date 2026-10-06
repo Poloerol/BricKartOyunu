@@ -535,6 +535,24 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♠, Gelen: {motor.TeklifVer(DurumOlustur(el9, anlasma))}");
 
+                // El 10: 13 HP + 3-3-4-3 → 1♦ beklenir (MinörAcilis)
+                var el10 = YapayElOlustur("♠KJ3 ♥Q43 ♦KQ52 ♣J87");
+                TestTekEl(motor, el10, "Yapay-10: 13 HP dengeli, 4'lü Karo");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el10, anlasma))}");
+
+                // El 11: 12 HP + 3-3-4-3 → 1♦ beklenir
+                var el11 = YapayElOlustur("♠KJ3 ♥Q43 ♦QJ52 ♣AJ8");
+                TestTekEl(motor, el11, "Yapay-11: 12 HP, 4'lü Karo");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el11, anlasma))}");
+
+                // El 12: 14 HP + 3-4-4-3 → 1♦ beklenir (karo ≥ sinek)
+                var el12 = YapayElOlustur("♠KJ3 ♥QJ4 ♦KQ52 ♣J87");
+                TestTekEl(motor, el12, "Yapay-12: 14 HP, 4'lü Karo, 4'lü Sinek");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el12, anlasma))}");
+
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }
             catch (Exception ex)

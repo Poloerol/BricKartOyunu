@@ -157,6 +157,7 @@
     <Compile Include="AppState.cs" />
     <Compile Include="Class\Bidding\Conventions\BesliMajor.cs" />
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />
+    <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />
     <Compile Include="Class\Bidding\Conventions\StrongNT.cs" />
     <Compile Include="Class\Bidding\ElDegerlendirici.cs" />
     <Compile Include="Class\Bidding\IhaleDurumu.cs" />
