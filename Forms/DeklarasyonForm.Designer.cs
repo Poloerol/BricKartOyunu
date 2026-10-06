@@ -142,7 +142,7 @@ namespace BricKartOyunu.Forms
             this.btnInterpret.Name = "btnInterpret";
             this.btnInterpret.Size = new System.Drawing.Size(110, 32);
             this.btnInterpret.TabIndex = 7;
-            this.btnInterpret.Text = "İhale Analizi";
+            this.btnInterpret.Text = "İhale Yorumu";
             this.btnInterpret.UseVisualStyleBackColor = true;
             this.btnInterpret.Click += new System.EventHandler(this.BtnInterpret_Click);
             // 
