@@ -47,9 +47,16 @@ namespace BricKartOyunu.Class.Bidding
     new BesliMajor(),
     new StrongNT(),
     new MinorAcilis(),
-    new NegativeDouble(),
-    new CueBid(),           // ← YENİ (Blackwood'dan ÖNCE)
-    new Blackwood(),
+
+    new Gerber(),           // ← YENİ  (öncelik 13)
+    new CueBid(),           // (öncelik 14)
+    new Blackwood(),        // (öncelik 15)
+    new Jacoby2NT(),        // ← YENİ  (öncelik 16)
+    new Splinter(),         // ← YENİ  (öncelik 17)
+
+    new NegativeDouble(),   // (öncelik 20)
+    new Michaels(),         // ← YENİ  (öncelik 21)
+
     new Stayman(),
     new JacobyTransfer(),
     new BasitCevap(),
@@ -338,7 +345,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Support Double": return _anlasma.SupportDouble;
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
                 case "Lebensohl": return _anlasma.Lebensohl;
-                case "Michaels": return _anlasma.Michaels;
+                case "Michaels": return _anlasma.Michaels;          // ← YENİ
                 case "Unusual 2NT": return _anlasma.Unusual2NT;
 
                 default:

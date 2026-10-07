@@ -74,20 +74,31 @@ namespace BricKartOyunu.Class.Bidding
         {
             return new OrtaklikAnlasmasi
             {
+                // Açılışlar
                 BesliMajor = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
+
+                // 1NT cevapları
                 Stayman = true,
                 JacobyTransfer = true,
+
+                // Slam
                 Blackwood = true,
                 RKCB = true,
                 RKCB1430 = true,
-                Jacoby2NT = true,
-                Splinter = true,
+                Gerber = true,          // ← YENİ (varsayılan açık)
+
+                // Ortaklık
+                Jacoby2NT = true,        // ← YENİ
+                Splinter = true,         // ← YENİ
                 CueBid = true,
+
+                // Rakip müdahalesi
                 NegativeDouble = true,
-                Michaels = true,
+                Michaels = true,         // ← YENİ
                 Unusual2NT = true,
+
                 StandartSignal = true
             };
         }
@@ -103,11 +114,12 @@ namespace BricKartOyunu.Class.Bidding
                 JacobyTransfer = false,
                 Blackwood = true,
                 RKCB = false,
-                Jacoby2NT = false,
-                Splinter = false,
+                Gerber = false,          // ← YENİ (kapalı)
+                Jacoby2NT = false,       // ← YENİ (kapalı)
+                Splinter = false,        // ← YENİ (kapalı)
                 CueBid = false,
                 NegativeDouble = true,
-                Michaels = false,
+                Michaels = false,        // ← YENİ (kapalı)
                 Unusual2NT = false
             };
         }

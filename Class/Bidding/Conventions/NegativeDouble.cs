@@ -64,6 +64,21 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string rakipKozu = TekliftenKozCikar(sonRakipTeklifi);
             if (string.IsNullOrEmpty(rakipKozu)) return false;
 
+            // ═══════════════════════════════════════════════════════════════
+            // YENİ: 5-5 dağılım kontrolü — Michaels'a bırak
+            // ═══════════════════════════════════════════════════════════════
+            int macaUzun = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupaUzun = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int karoUzun = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinekUzun = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+
+            if (rakipKozu == "Maça" && kupaUzun >= 5 && (karoUzun >= 5 || sinekUzun >= 5))
+                return false;
+            if (rakipKozu == "Kupa" && macaUzun >= 5 && (karoUzun >= 5 || sinekUzun >= 5))
+                return false;
+            if ((rakipKozu == "Karo" || rakipKozu == "Sinek") && macaUzun >= 5 && kupaUzun >= 5)
+                return false;
+
             // 7. Gösteremediğimiz majör var mı?
             //    Rakip Maça açtıysa → Kupa göstermek isteriz (4'lü)
             //    Rakip Kupa açtıysa → Maça göstermek isteriz (4'lü)

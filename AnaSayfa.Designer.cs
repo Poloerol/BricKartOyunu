@@ -141,7 +141,7 @@
             this.yardımToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(810, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1366, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -420,7 +420,7 @@
             this.araçÇubuğuToolStripMenuItem.CheckOnClick = true;
             this.araçÇubuğuToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.araçÇubuğuToolStripMenuItem.Name = "araçÇubuğuToolStripMenuItem";
-            this.araçÇubuğuToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.araçÇubuğuToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.araçÇubuğuToolStripMenuItem.Text = "Araç Çubuğu";
             this.araçÇubuğuToolStripMenuItem.Click += new System.EventHandler(this.AraçÇubuğuToolStripMenuItem_Click);
             // 
@@ -430,14 +430,14 @@
             this.durumÇubuğuToolStripMenuItem.CheckOnClick = true;
             this.durumÇubuğuToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.durumÇubuğuToolStripMenuItem.Name = "durumÇubuğuToolStripMenuItem";
-            this.durumÇubuğuToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.durumÇubuğuToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.durumÇubuğuToolStripMenuItem.Text = "Durum Çubuğu";
             this.durumÇubuğuToolStripMenuItem.Click += new System.EventHandler(this.DurumÇubuğuToolStripMenuItem_Click);
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(175, 6);
             // 
             // kartYüzleriToolStripMenuItem
             // 
@@ -449,7 +449,7 @@
             this.fransızToolStripMenuItem,
             this.almanToolStripMenuItem});
             this.kartYüzleriToolStripMenuItem.Name = "kartYüzleriToolStripMenuItem";
-            this.kartYüzleriToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.kartYüzleriToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.kartYüzleriToolStripMenuItem.Text = "Kart Yüzleri";
             // 
             // classicToolStripMenuItem
@@ -495,7 +495,7 @@
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(175, 6);
             // 
             // kartArkaYüzüToolStripMenuItem
             // 
@@ -503,7 +503,7 @@
             this.kırmızıToolStripMenuItem,
             this.maviToolStripMenuItem});
             this.kartArkaYüzüToolStripMenuItem.Name = "kartArkaYüzüToolStripMenuItem";
-            this.kartArkaYüzüToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.kartArkaYüzüToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.kartArkaYüzüToolStripMenuItem.Text = "Arka Yüz Rengi";
             // 
             // kırmızıToolStripMenuItem
@@ -511,39 +511,39 @@
             this.kırmızıToolStripMenuItem.Checked = true;
             this.kırmızıToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.kırmızıToolStripMenuItem.Name = "kırmızıToolStripMenuItem";
-            this.kırmızıToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.kırmızıToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
             this.kırmızıToolStripMenuItem.Text = "Kırmızı";
             this.kırmızıToolStripMenuItem.Click += new System.EventHandler(this.KırmızıToolStripMenuItem_Click);
             // 
             // maviToolStripMenuItem
             // 
             this.maviToolStripMenuItem.Name = "maviToolStripMenuItem";
-            this.maviToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.maviToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
             this.maviToolStripMenuItem.Text = "Mavi";
             this.maviToolStripMenuItem.Click += new System.EventHandler(this.MaviToolStripMenuItem_Click);
             // 
             // masaRengiToolStripMenuItem
             // 
             this.masaRengiToolStripMenuItem.Name = "masaRengiToolStripMenuItem";
-            this.masaRengiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.masaRengiToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.masaRengiToolStripMenuItem.Text = "Masa Rengi";
             this.masaRengiToolStripMenuItem.Click += new System.EventHandler(this.MasaRengiToolStripMenuItem_Click);
             // 
             // masaMetinRengiToolStripMenuItem
             // 
             this.masaMetinRengiToolStripMenuItem.Name = "masaMetinRengiToolStripMenuItem";
-            this.masaMetinRengiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.masaMetinRengiToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.masaMetinRengiToolStripMenuItem.Text = "Masa Metin Rengi";
             // 
             // toolStripSeparator7
             // 
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(175, 6);
             // 
             // sonHamleyiGösterToolStripMenuItem
             // 
             this.sonHamleyiGösterToolStripMenuItem.Name = "sonHamleyiGösterToolStripMenuItem";
-            this.sonHamleyiGösterToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sonHamleyiGösterToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.sonHamleyiGösterToolStripMenuItem.Text = "Son Hamleyi Göster";
             // 
             // değerlendirmeToolStripMenuItem
@@ -715,9 +715,9 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1,
             this.toolStripStatusLabel2});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 344);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 559);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(810, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1366, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -742,7 +742,7 @@
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(810, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1366, 25);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -845,7 +845,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(810, 366);
+            this.ClientSize = new System.Drawing.Size(1366, 581);
             this.Controls.Add(this.ButonPaneli);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip1);
