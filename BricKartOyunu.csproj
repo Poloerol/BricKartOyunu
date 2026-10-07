@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppState.cs" />
+    <Compile Include="Class\Bidding\Conventions\BasitCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\BesliMajor.cs" />
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />

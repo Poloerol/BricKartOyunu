@@ -553,6 +553,67 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el12, anlasma))}");
 
+                // ─── BasitCevap Testleri ───
+
+                // Yapay-13: Partner 1♠ açtı, ben 8 HP + 3 Maça → 2♠ beklenir
+                var el13 = YapayElOlustur("♠J43 ♥Q43 ♦J52 ♣QJ87");
+                var durum13 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el13,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-13: Partner 1♠, ben 8 HP + 3 Maça → 2♠ beklenir");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el13)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum13)}");
+
+                // Yapay-14: Partner 1♠ açtı, ben 14 HP + 5 Kupa → 2♥ beklenir (2/1 GF)
+                var el14 = YapayElOlustur("♠J43 ♥AKQ54 ♦QJ2 ♣87");
+                var durum14 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el14,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-14: Partner 1♠, ben 14 HP + 5 Kupa → 2♥ beklenir (2/1 GF)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el14)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum14)}");
+
+                // Yapay-15: Partner 1♠ açtı, ben 12 HP dengeli → 2NT beklenir
+                var el15 = YapayElOlustur("♠J43 ♥QJ4 ♦KQ52 ♣AJ8");
+                var durum15 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el15,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-15: Partner 1♠, ben 12 HP dengeli → 2NT beklenir");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el15)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum15)}");
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }
             catch (Exception ex)

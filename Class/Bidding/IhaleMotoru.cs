@@ -49,6 +49,9 @@ namespace BricKartOyunu.Class.Bidding
     new BesliMajor(),       // Öncelik 10
     new StrongNT(),         // Öncelik 20
     new MinorAcilis(),      // Öncelik 30
+
+    // Cevap konvansiyonları
+    new BasitCevap(),       // Öncelik 100
 };
 
             // Anlaşmaya göre aktif/pasif ayarla
