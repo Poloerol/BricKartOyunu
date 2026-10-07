@@ -41,7 +41,6 @@ namespace BricKartOyunu.Class.Bidding
         {
             _anlasma = anlasma ?? OrtaklikAnlasmasi.Varsayilan();
 
-            // Kayıtlı tüm konvansiyonlar
             _konvansiyonlar = new List<IKonvansiyon>
 {
     // Açılış konvansiyonları (öncelik sırasına göre)
@@ -51,6 +50,7 @@ namespace BricKartOyunu.Class.Bidding
     new MinorAcilis(),      // Öncelik 30
 
     // Cevap konvansiyonları
+    new Stayman(),          // Öncelik 10  ← YENİ
     new BasitCevap(),       // Öncelik 100
 };
 

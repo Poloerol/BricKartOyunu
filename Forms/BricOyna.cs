@@ -425,7 +425,6 @@ namespace BricKartOyunu
 
         /// <summary>
         /// Test amaçlı — ihale motorunu çalıştırır ve Debug'a yazar.
-        /// Gerçek entegrasyon sonraki adımda yapılacak.
         /// </summary>
         private void TestIhaleMotoru()
         {
@@ -467,7 +466,7 @@ namespace BricKartOyunu
                 }
 
                 // ═══════════════════════════════════════════════════════════════
-                // TEST 2: Yapay eller (BesliMajor'ı test et)
+                // TEST 2: Yapay eller
                 // ═══════════════════════════════════════════════════════════════
                 System.Diagnostics.Debug.WriteLine("");
                 System.Diagnostics.Debug.WriteLine("[TEST] --- YAPAY ELLER ---");
@@ -486,7 +485,7 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♥, Gelen: {motor.TeklifVer(DurumOlustur(el2, anlasma))}");
 
-                // El 3: 13 HP ama 5'li majör yok → fallback (1♦ veya 1♣)
+                // El 3: 17 HP dengeli → 1NT beklenir
                 var el3 = YapayElOlustur(
                     "♠KJ3 ♥QJ3 ♦AKQ5 ♣J87");
                 TestTekEl(motor, el3, "Yapay-3: 17 HP dengeli (StrongNT aralığı)");
@@ -500,14 +499,14 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: Pas, Gelen: {motor.TeklifVer(DurumOlustur(el4, anlasma))}");
 
-                // El 5: 16 HP + dengeli (5'li majör yok) → 1NT beklenir
+                // El 5: 16 HP dengeli, 5'li majör yok → 1NT beklenir
                 var el5 = YapayElOlustur(
                     "♠KJ3 ♥QJ3 ♦AKQ5 ♣J87");
                 TestTekEl(motor, el5, "Yapay-5: 16 HP dengeli, 5'li majör yok");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1NT, Gelen: {motor.TeklifVer(DurumOlustur(el5, anlasma))}");
 
-                // El 6: 15 HP + 5'li Maça → BesliMajor (1♠) beklenir
+                // El 6: 15 HP + 5'li Maça → 1♠ beklenir
                 var el6 = YapayElOlustur(
                     "♠AKQ54 ♥QJ3 ♦Q2 ♣J87");
                 TestTekEl(motor, el6, "Yapay-6: 15 HP + 5'li Maça (BesliMajor önce)");
@@ -516,44 +515,51 @@ namespace BricKartOyunu
 
                 // El 7: 22+ HP → 2♣ beklenir
                 var el7 = YapayElOlustur(
-    "♠AKQ54 ♥AKQ3 ♦AK ♣T8");
+                    "♠AKQ54 ♥AKQ3 ♦AK ♣T8");
                 TestTekEl(motor, el7, "Yapay-7: 22 HP → 2♣ (yapay güçlü)");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 2♣, Gelen: {motor.TeklifVer(DurumOlustur(el7, anlasma))}");
 
                 // El 8: 24 HP + 5-5 → 2♣ beklenir
                 var el8 = YapayElOlustur(
-    "♠AKQ54 ♥AKQJ3 ♦KQ ♣T");
+                    "♠AKQ54 ♥AKQJ3 ♦KQ ♣T");
                 TestTekEl(motor, el8, "Yapay-8: 24 HP + 5-5 → 2♣ (9 tricks)");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 2♣, Gelen: {motor.TeklifVer(DurumOlustur(el8, anlasma))}");
 
-                // El 9: 20 HP + 5'li Maça → BesliMajor (1♠) beklenir (2♣ değil!)
+                // El 9: 20 HP + 5'li Maça → 1♠ beklenir
                 var el9 = YapayElOlustur(
-    "♠AKQ54 ♥KQ3 ♦KQ2 ♣T8");
+                    "♠AKQ54 ♥KQ3 ♦KQ2 ♣T8");
                 TestTekEl(motor, el9, "Yapay-9: 20 HP + 5'li Maça → 1♠ (2♣ değil)");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♠, Gelen: {motor.TeklifVer(DurumOlustur(el9, anlasma))}");
 
-                // El 10: 13 HP + 3-3-4-3 → 1♦ beklenir (MinörAcilis)
-                var el10 = YapayElOlustur("♠KJ3 ♥Q43 ♦KQ52 ♣J87");
-                TestTekEl(motor, el10, "Yapay-10: 13 HP dengeli, 4'lü Karo");
+                // El 10: 12 HP dengeli, 4'lü Karo → 1♦ beklenir
+                var el10 = YapayElOlustur(
+                    "♠KJ3 ♥Q43 ♦KQ52 ♣J87");
+                TestTekEl(motor, el10, "Yapay-10: 12 HP dengeli, 4'lü Karo");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el10, anlasma))}");
 
-                // El 11: 12 HP + 3-3-4-3 → 1♦ beklenir
-                var el11 = YapayElOlustur("♠KJ3 ♥Q43 ♦QJ52 ♣AJ8");
-                TestTekEl(motor, el11, "Yapay-11: 12 HP, 4'lü Karo");
+                // El 11: 14 HP + 4'lü Karo → 1♦ beklenir
+                var el11 = YapayElOlustur(
+                    "♠KJ3 ♥Q43 ♦QJ52 ♣AJ8");
+                TestTekEl(motor, el11, "Yapay-11: 14 HP, 4'lü Karo");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el11, anlasma))}");
 
-                // El 12: 14 HP + 3-4-4-3 → 1♦ beklenir (karo ≥ sinek)
-                var el12 = YapayElOlustur("♠KJ3 ♥QJ4 ♦KQ52 ♣J87");
-                TestTekEl(motor, el12, "Yapay-12: 14 HP, 4'lü Karo, 4'lü Sinek");
+                // El 12: 13 HP + 4'lü Karo, 4'lü Sinek → 1♦ beklenir
+                var el12 = YapayElOlustur(
+                    "♠KJ3 ♥QJ4 ♦KQ52 ♣J87");
+                TestTekEl(motor, el12, "Yapay-12: 13 HP, 4'lü Karo, 4'lü Sinek");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: 1♦, Gelen: {motor.TeklifVer(DurumOlustur(el12, anlasma))}");
 
-                // ─── BasitCevap Testleri ───
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 3: BasitCevap Testleri
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- BASİT CEVAP TESTLERİ ---");
 
                 // Yapay-13: Partner 1♠ açtı, ben 8 HP + 3 Maça → 2♠ beklenir
                 var el13 = YapayElOlustur("♠J43 ♥Q43 ♦J52 ♣QJ87");
@@ -563,10 +569,10 @@ namespace BricKartOyunu
                     AktifOyuncuEli = el13,
                     Anlasma = anlasma,
                     Gecmis = new List<IhaleHamlesi>
-    {
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
-        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
-    }
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+                    }
                 };
                 System.Diagnostics.Debug.WriteLine(
                     "[TEST] Yapay-13: Partner 1♠, ben 8 HP + 3 Maça → 2♠ beklenir");
@@ -575,7 +581,7 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Gelen: {motor.TeklifVer(durum13)}");
 
-                // Yapay-14: Partner 1♠ açtı, ben 14 HP + 5 Kupa → 2♥ beklenir (2/1 GF)
+                // Yapay-14: Partner 1♠, ben 14 HP + 5 Kupa dengeli → 2NT beklenir
                 var el14 = YapayElOlustur("♠J43 ♥AKQ54 ♦QJ2 ♣87");
                 var durum14 = new IhaleDurumu
                 {
@@ -583,19 +589,19 @@ namespace BricKartOyunu
                     AktifOyuncuEli = el14,
                     Anlasma = anlasma,
                     Gecmis = new List<IhaleHamlesi>
-    {
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
-        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
-    }
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+                    }
                 };
                 System.Diagnostics.Debug.WriteLine(
-                    "[TEST] Yapay-14: Partner 1♠, ben 14 HP + 5 Kupa → 2♥ beklenir (2/1 GF)");
+                    "[TEST] Yapay-14: Partner 1♠, ben 14 HP + 5 Kupa dengeli → 2NT beklenir");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   {ElDegerlendirici.Ozet(el14)}");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Gelen: {motor.TeklifVer(durum14)}");
 
-                // Yapay-15: Partner 1♠ açtı, ben 12 HP dengeli → 2NT beklenir
+                // Yapay-15: Partner 1♠, ben 12 HP dengeli → 2NT beklenir
                 var el15 = YapayElOlustur("♠J43 ♥QJ4 ♦KQ52 ♣AJ8");
                 var durum15 = new IhaleDurumu
                 {
@@ -603,10 +609,10 @@ namespace BricKartOyunu
                     AktifOyuncuEli = el15,
                     Anlasma = anlasma,
                     Gecmis = new List<IhaleHamlesi>
-    {
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
-        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
-    }
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+                    }
                 };
                 System.Diagnostics.Debug.WriteLine(
                     "[TEST] Yapay-15: Partner 1♠, ben 12 HP dengeli → 2NT beklenir");
@@ -614,6 +620,55 @@ namespace BricKartOyunu
                     $"[TEST]   {ElDegerlendirici.Ozet(el15)}");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Gelen: {motor.TeklifVer(durum15)}");
+
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 4: Stayman Testleri
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- STAYMAN TESTLERİ ---");
+
+                // Yapay-16: Partner 1NT, ben 4'lü Maça + 10 HP → 2♣ (Stayman sorusu)
+                var el16 = YapayElOlustur("♠KJ43 ♥Q43 ♦J52 ♣QJ8");
+                var durum16 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el16,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-16: Partner 1NT, ben 4'lü Maça + 10 HP → 2♣ (Stayman)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el16)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum16)}");
+
+                // Yapay-17: Ben 1NT açtım, partner 2♣ dedi, 4'lü Maça → 2♠
+                var el17 = YapayElOlustur("♠KJ43 ♥Q43 ♦J52 ♣QJ8");
+                var durum17 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Kuzey,
+                    AktifOyuncuEli = el17,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-17: Ben 1NT, partner 2♣ (Stayman), 4'lü Maça → 2♠");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el17)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum17)}");
+
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }
             catch (Exception ex)
