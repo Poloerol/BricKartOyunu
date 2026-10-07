@@ -940,6 +940,103 @@ namespace BricKartOyunu
                     $"[TEST]   → Gelen: {motor.TeklifVer(durum35)}");
                 System.Diagnostics.Debug.WriteLine("");
 
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 8: Cue Bid Testleri
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- CUE BID TESTLERİ ---");
+
+                // Yapay-41: 1♠-3♠ sonrası, elimde ♣A var → 4♣ cue bid
+                var el41 = YapayElOlustur("♠KQ54 ♥AJ3 ♦KQ2 ♣A32");
+                var durum41 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el41,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-41: Partner 1♠, ben 3♠, elimde ♣A → 4♣ cue bid");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el41)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   As: {ElDegerlendirici.AsSayisi(el41)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum41)}");
+
+                // Yapay-42: 1♥-3♥ sonrası, elimde ♣K var → 4♣ cue bid
+                var el42 = YapayElOlustur("♠AJ3 ♥KQ54 ♦KQ2 ♣K32");
+                var durum42 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el42,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♥", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-42: Partner 1♥, ben 3♥, elimde ♣K → 4♣ cue bid");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el42)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum42)}");
+
+                // Yapay-43: 1♠-3♠ sonrası, ♣'te kontrol yok ama ♦'da A var → 4♦ cue bid
+                var el43 = YapayElOlustur("♠KQ54 ♥AJ3 ♦A32 ♣Q87");
+                var durum43 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el43,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-43: Partner 1♠, ben 3♠, ♣'te kontrol yok ama ♦'da A → 4♦ cue bid");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el43)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum43)}");
+
+                // Yapay-44: 1♠-3♠ sonrası, sadece 12 HP → cue bid değil, Blackwood da değil
+                var el44 = YapayElOlustur("♠KQ54 ♥QJ3 ♦QJ2 ♣Q87");
+                var durum44 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el44,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-44: Partner 1♠, ben 3♠, sadece 12 HP → cue bid yapılmaz");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el44)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum44)}");
+                System.Diagnostics.Debug.WriteLine("");
+
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }
             catch (Exception ex)

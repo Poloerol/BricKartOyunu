@@ -48,7 +48,8 @@ namespace BricKartOyunu.Class.Bidding
     new StrongNT(),
     new MinorAcilis(),
     new NegativeDouble(),
-    new Blackwood(),        // ← YENİ (buraya ekle)
+    new CueBid(),           // ← YENİ (Blackwood'dan ÖNCE)
+    new Blackwood(),
     new Stayman(),
     new JacobyTransfer(),
     new BasitCevap(),
