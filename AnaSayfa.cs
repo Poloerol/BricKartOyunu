@@ -710,6 +710,59 @@ namespace BricKartOyunu.Forms
             };
         }
 
-      
+        private void BtnTest_Gerber_SoruSorma_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Gerber_SoruSorma();
+        }
+
+        private void BtnGerberCevapVerme_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Gerber_Cevap();
+        }
+
+        private void BtnGerberNegatif_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Gerber_Negatif();
+        }
+
+        private void BtnJacoby2NTPozitif_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Jacoby2NT_Pozitif();    
+        }
+
+        private void BtnJacoby2NTNegatif3luDestek_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Jacoby2NT_Negatif_3luDestek();
+        }
+
+        private void BtnJacoby2NTRakipMudahele_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Jacoby2NT_Negatif_RakipMudahalesi();
+        }
+
+        private void BtnSplinterMacaSinek_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Splinter_Maca_Sinek();
+        }
+
+        private void BtnSplinterKosKupaKisaMaca_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Splinter_Kupa_Maca();
+        }
+
+        private void BtnMichaelsRakipMacaActi_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Michaels_RakipMaca();
+        }
+
+        private void BtnMichaelsRakipKaroActi_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Michaels_RakipKaro();
+        }
+
+        private void BtnMichaelsNegatif_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Michaels_Negatif(); 
+        }
     }
 }

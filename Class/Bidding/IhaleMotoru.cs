@@ -42,25 +42,25 @@ namespace BricKartOyunu.Class.Bidding
             _anlasma = anlasma ?? OrtaklikAnlasmasi.Varsayilan();
 
             _konvansiyonlar = new List<IKonvansiyon>
-{
-    new IkiliSinekGuclu(),
-    new BesliMajor(),
-    new StrongNT(),
-    new MinorAcilis(),
+            {
+                new IkiliSinekGuclu(),
+                new BesliMajor(),
+                new StrongNT(),
+                new MinorAcilis(),
 
-    new Gerber(),           // ← YENİ  (öncelik 13)
-    new CueBid(),           // (öncelik 14)
-    new Blackwood(),        // (öncelik 15)
-    new Jacoby2NT(),        // ← YENİ  (öncelik 16)
-    new Splinter(),         // ← YENİ  (öncelik 17)
+                new Gerber(),           // ← öncelik 13
+                new CueBid(),           // ← öncelik 14
+                new Blackwood(),        // ← öncelik 15
+                new Splinter(),         // ← öncelik 16
+                new Jacoby2NT(),        // ← öncelik 17
 
-    new NegativeDouble(),   // (öncelik 20)
-    new Michaels(),         // ← YENİ  (öncelik 21)
+                new NegativeDouble(),   // ← öncelik 20
+                new Michaels(),         // ← öncelik 21
 
-    new Stayman(),
-    new JacobyTransfer(),
-    new BasitCevap(),
-};
+                new Stayman(),
+                new JacobyTransfer(),
+                new BasitCevap(),
+            };
 
             // Anlaşmaya göre aktif/pasif ayarla
             AnlasmayiUygula();
@@ -136,31 +136,30 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // TEMEL MANTIK (FALLBACK)
+        // TEMEL MANTIK (FALLBACK) — GÜÇLENDİRİLMİŞ
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Hiçbir konvansiyon uymadığında çalışan basit mantık.
+        /// Hiçbir konvansiyon uymadığında çalışan temel mantık.
         /// 
-        /// Kurallar:
-        /// - 12+ HP → en uzun rengi aç (1♠/1♥/1♦/1♣)
-        /// - 15-17 HP dengeli → 1NT
-        /// - 20+ HP → 2♣ (yapay güçlü)
-        /// - Aksi halde → Pas
+        /// Katmanlar:
+        /// 1. İlk teklif (açılış)
+        /// 2. Partner açtı, ben cevap veriyorum (yeni renk / NT)
+        /// 3. Partner açtı, ben destek veriyorum
+        /// 4. Rakip açtı, ben müdahale ediyorum
+        /// 5. Orta/geç ihale (fallback)
         /// </summary>
         private string TemelMantik(IhaleDurumu durum)
         {
             var el = durum.AktifOyuncuEli;
-            if (el == null || el.Count != 13)
-            {
-                // El bilinmiyor veya eksik → güvenli taraf: Pas
-                return "Pas";
-            }
+            if (el == null || el.Count != 13) return "Pas";
 
             int hp = ElDegerlendirici.HCP(el);
             bool dengeli = ElDegerlendirici.DengeliEl(el);
 
-            // 1. İlk teklif mi?
+            // ═══════════════════════════════════════════════════════════════
+            // 1. İLK TEKLİF (AÇILIŞ)
+            // ═══════════════════════════════════════════════════════════════
             if (durum.IlkTeklifMi())
             {
                 // 22+ HP → 2♣ (yapay güçlü)
@@ -173,40 +172,177 @@ namespace BricKartOyunu.Class.Bidding
                 if (hp >= 15 && hp <= 17 && dengeli) return "1NT";
 
                 // 12+ HP → en uzun rengi aç
-                if (hp >= 12)
-                {
-                    return EnUzunRengiAc(el);
-                }
+                if (hp >= 12) return EnUzunRengiAc(el);
 
                 // 12 HP altı → Pas
                 return "Pas";
             }
 
-            // 2. Orta ihale — basit kural
-            // 6+ HP → Pas değil, ama en azından destek ver
-            if (hp >= 6)
+            // ═══════════════════════════════════════════════════════════════
+            // 2. PARTNER AÇTI, BEN CEVAP VERİYORUM (FORCING)
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count == 0)
             {
-                // Partner açtıysa ve destek varsa destek ver
-                var partnerTeklifleri = durum.PartnerTeklifleri;
-                if (partnerTeklifleri.Count > 0)
+                return PartnerAcilisinaCevap(durum, el, hp, dengeli);
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // 3. PARTNER AÇTI, BEN DESTEK VERİYORUM
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.PartnerActiMi())
+            {
+                string sonPartnerTeklifi = durum.PartnerTeklifleri.Last();
+                string partnerKozu = TekliftenKozCikar(sonPartnerTeklifi);
+
+                if (!string.IsNullOrEmpty(partnerKozu) && partnerKozu != "NT")
                 {
-                    string sonPartnerTeklifi = partnerTeklifleri.Last();
-                    string partnerKozu = TekliftenKozCikar(sonPartnerTeklifi);
-
-                    if (!string.IsNullOrEmpty(partnerKozu))
+                    int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+                    if (destek >= 3)
                     {
-                        int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
-
-                        // 3+ destek → destek teklifi
-                        if (destek >= 3)
-                        {
-                            return DestekTeklifi(durum, partnerKozu, hp);
-                        }
+                        return DestekTeklifi(durum, partnerKozu, hp);
                     }
                 }
             }
 
-            // Varsayılan: Pas
+            // ═══════════════════════════════════════════════════════════════
+            // 4. RAKİP AÇTI, BEN MÜDAHALE EDİYORUM
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.RakipActiMi() && durum.KendiTeklifleri.Count == 0)
+            {
+                return RakipAcilisinaMudahale(durum, el, hp);
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // 5. ORTA/GEÇ İHALE — FALLBACK
+            // ═══════════════════════════════════════════════════════════════
+            // Destek varsa destek ver
+            if (durum.PartnerActiMi())
+            {
+                string sonPartnerTeklifi = durum.PartnerTeklifleri.Last();
+                string partnerKozu = TekliftenKozCikar(sonPartnerTeklifi);
+
+                if (!string.IsNullOrEmpty(partnerKozu) && partnerKozu != "NT")
+                {
+                    int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+                    if (destek >= 3 && hp >= 6)
+                    {
+                        return DestekTeklifi(durum, partnerKozu, hp);
+                    }
+                }
+            }
+
+            // Aksi halde Pas
+            return "Pas";
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // YARDIMCI: PARTNER AÇILIŞINA CEVAP
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Partner açtı (1♠/1♥/1♦/1♣/1NT), ben ilk kez konuşuyorum.
+        /// </summary>
+        private string PartnerAcilisinaCevap(IhaleDurumu durum, List<Card> el, int hp, bool dengeli)
+        {
+            string partnerTeklifi = durum.PartnerTeklifleri.Last();
+            string partnerKozu = TekliftenKozCikar(partnerTeklifi);
+
+            // ─── Partner 1NT açtı ───────────────────────────────────────
+            if (partnerTeklifi == "1NT")
+            {
+                // 10+ HP dengeli → 3NT (game)
+                if (hp >= 10 && dengeli) return "3NT";
+                // 8-9 HP dengeli → 2NT (invite)
+                if (hp >= 8 && hp <= 9 && dengeli) return "2NT";
+                // Zayıf → Pas
+                return "Pas";
+            }
+
+            // ─── Partner 2NT açtı ───────────────────────────────────────
+            if (partnerTeklifi == "2NT")
+            {
+                if (hp >= 5) return "3NT";
+                return "Pas";
+            }
+
+            // ─── Partner 1 seviyesinde renk açtı ────────────────────────
+            if (partnerKozu != null && partnerKozu != "NT")
+            {
+                // 1-5 HP → Pas
+                if (hp < 6) return "Pas";
+
+                // Majör desteği ara
+                if (partnerKozu == "Maça" || partnerKozu == "Kupa")
+                {
+                    int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+                    if (destek >= 4)
+                    {
+                        // 4'lü majör desteği
+                        if (hp >= 13) return "2NT";       // Jacoby 2NT
+                        if (hp >= 10 && hp <= 12) return "3" + KozSembolu(partnerKozu); // Limit raise
+                        if (hp >= 6 && hp <= 9) return "2" + KozSembolu(partnerKozu);   // Basit destek
+                    }
+                    else if (destek == 3)
+                    {
+                        // 3'lü majör desteği
+                        if (hp >= 10 && hp <= 12) return "2" + KozSembolu(partnerKozu);
+                        if (hp >= 6 && hp <= 9) return "2" + KozSembolu(partnerKozu);
+                    }
+                }
+
+                // Yeni renk teklif et (6+ HP)
+                // Majör varsa önce onu göster
+                if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
+                    return "1♠";
+                if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
+                    return "1♥";
+
+                // 5+ minör
+                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5 && partnerKozu != "Karo")
+                    return "2♦";
+                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5 && partnerKozu != "Sinek")
+                    return "2♣";
+
+                // Dengeli ve 10-12 HP → 2NT (invite)
+                if (dengeli && hp >= 10 && hp <= 12) return "2NT";
+
+                // Dengeli ve 13-15 HP → 3NT (game)
+                if (dengeli && hp >= 13 && hp <= 15) return "3NT";
+
+                // Fallback: minör varsa göster
+                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4) return "2♦";
+                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4) return "2♣";
+            }
+
+            return "Pas";
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // YARDIMCI: RAKİP AÇILIŞINA MÜDAHALE
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Rakip açtı, ben ilk kez konuşuyorum.
+        /// Basit müdahale: 5+ renk + 8+ HP → o rengi teklif et.
+        /// </summary>
+        private string RakipAcilisinaMudahale(IhaleDurumu durum, List<Card> el, int hp)
+        {
+            if (hp < 8) return "Pas";
+
+            string sonRakipTeklifi = durum.RakipTeklifleri.Last();
+            string rakipKozu = TekliftenKozCikar(sonRakipTeklifi);
+
+            // Sırayla dene: uzun majör önce, sonra minör
+            if (rakipKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 5)
+                return "1♠";
+            if (rakipKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5)
+                return "1♥";
+            if (rakipKozu != "Karo" && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5)
+                return "2♦";
+            if (rakipKozu != "Sinek" && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5)
+                return "2♣";
+
+            // Müdahale edecek 5'li renk yok
             return "Pas";
         }
 
@@ -238,18 +374,48 @@ namespace BricKartOyunu.Class.Bidding
         /// </summary>
         private string DestekTeklifi(IhaleDurumu durum, string koz, int hp)
         {
-            int destek = ElDegerlendirici.RenkUzunlugu(
-                durum.AktifOyuncuEli, koz);
+            var el = durum.AktifOyuncuEli;
+            int destek = ElDegerlendirici.RenkUzunlugu(el, koz);
+            string sembol = KozSembolu(koz);
 
-            // Destek sayısına ve HP'ye göre seviye
-            int seviye = 2;  // Varsayılan
+            // Şu ana kadar yapılan destek seviyesini bul
+            // (partner daha önce kaç seviyesinde teklif etti?)
+            int mevcutSeviye = 1;
+            var partnerTeklifleri = durum.PartnerTeklifleri;
+            if (partnerTeklifleri.Count > 0)
+            {
+                string son = partnerTeklifleri.Last();
+                if (son.Length > 0 && char.IsDigit(son[0]))
+                    mevcutSeviye = son[0] - '0';
+            }
 
-            if (hp >= 10 && destek >= 4) seviye = 3;
-            if (hp >= 13 && destek >= 4) seviye = 4;  // Game
+            // Destek + HP kombinasyonu
+            int hedefSeviye;
 
-            // Koz sembolünü al
-            string kozSembol = KozSembolu(koz);
-            return $"{seviye}{kozSembol}";
+            // Çok güçlü el (game forcing)
+            if (hp >= 13 && destek >= 4)
+            {
+                // 4'lü majör desteği + 13+ HP → 4 seviyesi (game)
+                hedefSeviye = 4;
+            }
+            // Limit raise (invite)
+            else if (hp >= 10 && destek >= 4)
+            {
+                hedefSeviye = 3;
+            }
+            // Basit destek
+            else
+            {
+                hedefSeviye = 2;
+            }
+
+            // Mevcut seviyeden küçük olamaz
+            if (hedefSeviye <= mevcutSeviye) hedefSeviye = mevcutSeviye + 1;
+
+            // 4'ten büyük olmasın
+            if (hedefSeviye > 4) hedefSeviye = 4;
+
+            return $"{hedefSeviye}{sembol}";
         }
 
         /// <summary>
@@ -345,7 +511,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Support Double": return _anlasma.SupportDouble;
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
                 case "Lebensohl": return _anlasma.Lebensohl;
-                case "Michaels": return _anlasma.Michaels;          // ← YENİ
+                case "Michaels": return _anlasma.Michaels;
                 case "Unusual 2NT": return _anlasma.Unusual2NT;
 
                 default:
@@ -361,8 +527,6 @@ namespace BricKartOyunu.Class.Bidding
         {
             if (yeniAnlasma == null) return;
 
-            // _anlasma readonly → yeni bir motor gerekir
-            // Ama şimdilik sadece uyarı ver
             System.Diagnostics.Debug.WriteLine(
                 "[IhaleMotoru] Anlaşma değişikliği için yeni motor oluşturun.");
 

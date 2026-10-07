@@ -26,7 +26,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public string Ad => "Negative Double";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 20;   // Stayman (10) sonra, BasitCevap (100) önce
+        public int Oncelik => 20;
 
         // ═══════════════════════════════════════════════════════════════════
         // UYGUNLUK KONTROLÜ
@@ -65,24 +65,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (string.IsNullOrEmpty(rakipKozu)) return false;
 
             // ═══════════════════════════════════════════════════════════════
-            // YENİ: 5-5 dağılım kontrolü — Michaels'a bırak
+            // 6.5. 5-5 MAJÖR KONTROLÜ — Michaels'a bırak
             // ═══════════════════════════════════════════════════════════════
+            // 5♠ + 5♥ ellerde Negatif Kontr yerine Michaels tercih edilir.
             int macaUzun = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupaUzun = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-            int karoUzun = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-            int sinekUzun = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-
-            if (rakipKozu == "Maça" && kupaUzun >= 5 && (karoUzun >= 5 || sinekUzun >= 5))
-                return false;
-            if (rakipKozu == "Kupa" && macaUzun >= 5 && (karoUzun >= 5 || sinekUzun >= 5))
-                return false;
-            if ((rakipKozu == "Karo" || rakipKozu == "Sinek") && macaUzun >= 5 && kupaUzun >= 5)
-                return false;
+            if (macaUzun >= 5 && kupaUzun >= 5) return false;
 
             // 7. Gösteremediğimiz majör var mı?
             //    Rakip Maça açtıysa → Kupa göstermek isteriz (4'lü)
             //    Rakip Kupa açtıysa → Maça göstermek isteriz (4'lü)
-            //    Rakip minör açtıysa → 4'lü Maça veya 4'lü Kupa göstermek isteriz
+            //    Rakip minör açtıysa → 4'lü Maça VEYA 4'lü Kupa göstermek isteriz
 
             int dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");

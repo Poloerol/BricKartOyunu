@@ -121,6 +121,17 @@
             this.BtnYarisma = new System.Windows.Forms.Button();
             this.BtnAraclar = new System.Windows.Forms.Button();
             this.ButonPaneli = new System.Windows.Forms.Panel();
+            this.BtnTest_Gerber_SoruSorma = new System.Windows.Forms.Button();
+            this.BtnGerberCevapVerme = new System.Windows.Forms.Button();
+            this.BtnGerberNegatif = new System.Windows.Forms.Button();
+            this.BtnJacoby2NTPozitif = new System.Windows.Forms.Button();
+            this.BtnJacoby2NTNegatif3luDestek = new System.Windows.Forms.Button();
+            this.BtnJacoby2NTRakipMudahele = new System.Windows.Forms.Button();
+            this.BtnSplinterMacaSinek = new System.Windows.Forms.Button();
+            this.BtnSplinterKosKupaKisaMaca = new System.Windows.Forms.Button();
+            this.BtnMichaelsRakipMacaActi = new System.Windows.Forms.Button();
+            this.BtnMichaelsRakipKaroActi = new System.Windows.Forms.Button();
+            this.BtnMichaelsNegatif = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -841,11 +852,132 @@
             this.ButonPaneli.Size = new System.Drawing.Size(314, 165);
             this.ButonPaneli.TabIndex = 7;
             // 
+            // BtnTest_Gerber_SoruSorma
+            // 
+            this.BtnTest_Gerber_SoruSorma.Location = new System.Drawing.Point(29, 116);
+            this.BtnTest_Gerber_SoruSorma.Name = "BtnTest_Gerber_SoruSorma";
+            this.BtnTest_Gerber_SoruSorma.Size = new System.Drawing.Size(138, 37);
+            this.BtnTest_Gerber_SoruSorma.TabIndex = 8;
+            this.BtnTest_Gerber_SoruSorma.Text = "Test Gerber Soru Sorma";
+            this.BtnTest_Gerber_SoruSorma.UseVisualStyleBackColor = true;
+            this.BtnTest_Gerber_SoruSorma.Click += new System.EventHandler(this.BtnTest_Gerber_SoruSorma_Click);
+            // 
+            // BtnGerberCevapVerme
+            // 
+            this.BtnGerberCevapVerme.Location = new System.Drawing.Point(29, 159);
+            this.BtnGerberCevapVerme.Name = "BtnGerberCevapVerme";
+            this.BtnGerberCevapVerme.Size = new System.Drawing.Size(138, 37);
+            this.BtnGerberCevapVerme.TabIndex = 9;
+            this.BtnGerberCevapVerme.Text = "Test Gerber Cevap";
+            this.BtnGerberCevapVerme.UseVisualStyleBackColor = true;
+            this.BtnGerberCevapVerme.Click += new System.EventHandler(this.BtnGerberCevapVerme_Click);
+            // 
+            // BtnGerberNegatif
+            // 
+            this.BtnGerberNegatif.Location = new System.Drawing.Point(29, 202);
+            this.BtnGerberNegatif.Name = "BtnGerberNegatif";
+            this.BtnGerberNegatif.Size = new System.Drawing.Size(138, 37);
+            this.BtnGerberNegatif.TabIndex = 10;
+            this.BtnGerberNegatif.Text = "Test Gerber Negatif";
+            this.BtnGerberNegatif.UseVisualStyleBackColor = true;
+            this.BtnGerberNegatif.Click += new System.EventHandler(this.BtnGerberNegatif_Click);
+            // 
+            // BtnJacoby2NTPozitif
+            // 
+            this.BtnJacoby2NTPozitif.Location = new System.Drawing.Point(173, 116);
+            this.BtnJacoby2NTPozitif.Name = "BtnJacoby2NTPozitif";
+            this.BtnJacoby2NTPozitif.Size = new System.Drawing.Size(138, 37);
+            this.BtnJacoby2NTPozitif.TabIndex = 11;
+            this.BtnJacoby2NTPozitif.Text = "Test Jacoby2NT Pozitif";
+            this.BtnJacoby2NTPozitif.UseVisualStyleBackColor = true;
+            this.BtnJacoby2NTPozitif.Click += new System.EventHandler(this.BtnJacoby2NTPozitif_Click);
+            // 
+            // BtnJacoby2NTNegatif3luDestek
+            // 
+            this.BtnJacoby2NTNegatif3luDestek.Location = new System.Drawing.Point(173, 159);
+            this.BtnJacoby2NTNegatif3luDestek.Name = "BtnJacoby2NTNegatif3luDestek";
+            this.BtnJacoby2NTNegatif3luDestek.Size = new System.Drawing.Size(138, 37);
+            this.BtnJacoby2NTNegatif3luDestek.TabIndex = 12;
+            this.BtnJacoby2NTNegatif3luDestek.Text = "Test Jacoby 2NT Negatif (3\'lü Destek)";
+            this.BtnJacoby2NTNegatif3luDestek.UseVisualStyleBackColor = true;
+            this.BtnJacoby2NTNegatif3luDestek.Click += new System.EventHandler(this.BtnJacoby2NTNegatif3luDestek_Click);
+            // 
+            // BtnJacoby2NTRakipMudahele
+            // 
+            this.BtnJacoby2NTRakipMudahele.Location = new System.Drawing.Point(173, 202);
+            this.BtnJacoby2NTRakipMudahele.Name = "BtnJacoby2NTRakipMudahele";
+            this.BtnJacoby2NTRakipMudahele.Size = new System.Drawing.Size(138, 37);
+            this.BtnJacoby2NTRakipMudahele.TabIndex = 13;
+            this.BtnJacoby2NTRakipMudahele.Text = "Test Jacoby 2NT Negatif Rakip Müdahelesi";
+            this.BtnJacoby2NTRakipMudahele.UseVisualStyleBackColor = true;
+            this.BtnJacoby2NTRakipMudahele.Click += new System.EventHandler(this.BtnJacoby2NTRakipMudahele_Click);
+            // 
+            // BtnSplinterMacaSinek
+            // 
+            this.BtnSplinterMacaSinek.Location = new System.Drawing.Point(317, 116);
+            this.BtnSplinterMacaSinek.Name = "BtnSplinterMacaSinek";
+            this.BtnSplinterMacaSinek.Size = new System.Drawing.Size(138, 37);
+            this.BtnSplinterMacaSinek.TabIndex = 14;
+            this.BtnSplinterMacaSinek.Text = "Test Splinter Maca Sinek";
+            this.BtnSplinterMacaSinek.UseVisualStyleBackColor = true;
+            this.BtnSplinterMacaSinek.Click += new System.EventHandler(this.BtnSplinterMacaSinek_Click);
+            // 
+            // BtnSplinterKosKupaKisaMaca
+            // 
+            this.BtnSplinterKosKupaKisaMaca.Location = new System.Drawing.Point(317, 159);
+            this.BtnSplinterKosKupaKisaMaca.Name = "BtnSplinterKosKupaKisaMaca";
+            this.BtnSplinterKosKupaKisaMaca.Size = new System.Drawing.Size(138, 37);
+            this.BtnSplinterKosKupaKisaMaca.TabIndex = 15;
+            this.BtnSplinterKosKupaKisaMaca.Text = "Test Splinter Koz Kupa Kısa Maça";
+            this.BtnSplinterKosKupaKisaMaca.UseVisualStyleBackColor = true;
+            this.BtnSplinterKosKupaKisaMaca.Click += new System.EventHandler(this.BtnSplinterKosKupaKisaMaca_Click);
+            // 
+            // BtnMichaelsRakipMacaActi
+            // 
+            this.BtnMichaelsRakipMacaActi.Location = new System.Drawing.Point(173, 267);
+            this.BtnMichaelsRakipMacaActi.Name = "BtnMichaelsRakipMacaActi";
+            this.BtnMichaelsRakipMacaActi.Size = new System.Drawing.Size(138, 37);
+            this.BtnMichaelsRakipMacaActi.TabIndex = 16;
+            this.BtnMichaelsRakipMacaActi.Text = "Test Michaels Rakip Maca Açtı";
+            this.BtnMichaelsRakipMacaActi.UseVisualStyleBackColor = true;
+            this.BtnMichaelsRakipMacaActi.Click += new System.EventHandler(this.BtnMichaelsRakipMacaActi_Click);
+            // 
+            // BtnMichaelsRakipKaroActi
+            // 
+            this.BtnMichaelsRakipKaroActi.Location = new System.Drawing.Point(173, 310);
+            this.BtnMichaelsRakipKaroActi.Name = "BtnMichaelsRakipKaroActi";
+            this.BtnMichaelsRakipKaroActi.Size = new System.Drawing.Size(138, 37);
+            this.BtnMichaelsRakipKaroActi.TabIndex = 17;
+            this.BtnMichaelsRakipKaroActi.Text = "Test Michaels Rakip Karo Açtı";
+            this.BtnMichaelsRakipKaroActi.UseVisualStyleBackColor = true;
+            this.BtnMichaelsRakipKaroActi.Click += new System.EventHandler(this.BtnMichaelsRakipKaroActi_Click);
+            // 
+            // BtnMichaelsNegatif
+            // 
+            this.BtnMichaelsNegatif.Location = new System.Drawing.Point(173, 353);
+            this.BtnMichaelsNegatif.Name = "BtnMichaelsNegatif";
+            this.BtnMichaelsNegatif.Size = new System.Drawing.Size(138, 37);
+            this.BtnMichaelsNegatif.TabIndex = 18;
+            this.BtnMichaelsNegatif.Text = "Test Michaels Negatif";
+            this.BtnMichaelsNegatif.UseVisualStyleBackColor = true;
+            this.BtnMichaelsNegatif.Click += new System.EventHandler(this.BtnMichaelsNegatif_Click);
+            // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1366, 581);
+            this.Controls.Add(this.BtnMichaelsNegatif);
+            this.Controls.Add(this.BtnMichaelsRakipKaroActi);
+            this.Controls.Add(this.BtnMichaelsRakipMacaActi);
+            this.Controls.Add(this.BtnSplinterKosKupaKisaMaca);
+            this.Controls.Add(this.BtnSplinterMacaSinek);
+            this.Controls.Add(this.BtnJacoby2NTRakipMudahele);
+            this.Controls.Add(this.BtnJacoby2NTNegatif3luDestek);
+            this.Controls.Add(this.BtnJacoby2NTPozitif);
+            this.Controls.Add(this.BtnGerberNegatif);
+            this.Controls.Add(this.BtnGerberCevapVerme);
+            this.Controls.Add(this.BtnTest_Gerber_SoruSorma);
             this.Controls.Add(this.ButonPaneli);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip1);
@@ -964,5 +1096,16 @@
         private System.Windows.Forms.ToolStripMenuItem anaMenüyeDönToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem kırmızıToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem maviToolStripMenuItem;
+        private System.Windows.Forms.Button BtnTest_Gerber_SoruSorma;
+        private System.Windows.Forms.Button BtnGerberCevapVerme;
+        private System.Windows.Forms.Button BtnGerberNegatif;
+        private System.Windows.Forms.Button BtnJacoby2NTPozitif;
+        private System.Windows.Forms.Button BtnJacoby2NTNegatif3luDestek;
+        private System.Windows.Forms.Button BtnJacoby2NTRakipMudahele;
+        private System.Windows.Forms.Button BtnSplinterMacaSinek;
+        private System.Windows.Forms.Button BtnSplinterKosKupaKisaMaca;
+        private System.Windows.Forms.Button BtnMichaelsRakipMacaActi;
+        private System.Windows.Forms.Button BtnMichaelsRakipKaroActi;
+        private System.Windows.Forms.Button BtnMichaelsNegatif;
     }
 }

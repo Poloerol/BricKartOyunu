@@ -270,6 +270,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestRunner.cs" />
     <EmbeddedResource Include="Forms\BricMaci.resx">
       <DependentUpon>BricMaci.cs</DependentUpon>
     </EmbeddedResource>
