@@ -277,6 +277,52 @@ namespace BricKartOyunu.Class.Bidding
             return benim;
         }
 
+        /// <summary>
+        /// Partnerle ortak olarak anlaşılan kozu bulur.
+        /// 
+        /// Mantık:
+        /// 1. Partner ve ben aynı rengi teklif ettiysek → o renk
+        /// 2. Son majör teklifi (partnerden veya benden) → o majör
+        /// 3. NT açılışı yapıldıysa → "NT"
+        /// 4. Bulunamazsa → null
+        /// 
+        /// Örnek: 1♠ (Partner) - 3♠ (Ben) → "Maça"
+        ///        1NT (Partner) - 2♣ (Ben, Stayman) → "NT"
+        /// </summary>
+        public string AnlasilanKoz()
+        {
+            if (Gecmis == null || Gecmis.Count == 0) return null;
+
+            // 1. Ben ve partner aynı rengi teklif ettik mi?
+            var benimRenkler = Gecmis
+                .Where(h => h.Oyuncu == AktifOyuncu && h.GercekTeklifMi)
+                .Select(h => h.Koz)
+                .Where(k => !string.IsNullOrEmpty(k) && k != "NT")
+                .ToList();
+
+            var partnerRenkler = Gecmis
+                .Where(h => h.Oyuncu == Partner && h.GercekTeklifMi)
+                .Select(h => h.Koz)
+                .Where(k => !string.IsNullOrEmpty(k) && k != "NT")
+                .ToList();
+
+            // Her iki tarafta da geçen renk (ortak koz)
+            var ortakRenkler = benimRenkler.Intersect(partnerRenkler).ToList();
+            if (ortakRenkler.Count > 0)
+            {
+                // En son anlaşılan rengi al
+                return ortakRenkler.Last();
+            }
+
+            // 2. Sadece majör bir renk anlaşması var mı?
+            //    (Örn. partner 1♠ açtı, ben 2♠ dedim — bu ortakRenkler'e girer)
+
+            // 3. NT açılışı yapıldı mı?
+            bool ntVar = Gecmis.Any(h => h.GercekTeklifMi && h.Koz == "NT");
+            if (ntVar) return "NT";
+
+            return null;
+        }
         // ═══════════════════════════════════════════════════════════════════
         // GEÇMİŞ YÖNETİMİ
         // ═══════════════════════════════════════════════════════════════════

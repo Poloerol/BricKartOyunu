@@ -494,7 +494,7 @@ namespace BricKartOyunu
 
                 // El 4: 8 HP → Pas beklenir
                 var el4 = YapayElOlustur(
-                    "♠KJ3 ♥Q43 ♦J52 ♣J87");
+                    "♠KJ3 ♥Q432 ♦J52 ♣J87");
                 TestTekEl(motor, el4, "Yapay-4: 8 HP");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Beklenen: Pas, Gelen: {motor.TeklifVer(DurumOlustur(el4, anlasma))}");
@@ -736,6 +736,209 @@ namespace BricKartOyunu
                     $"[TEST]   {ElDegerlendirici.Ozet(el20)}");
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Gelen: {motor.TeklifVer(durum20)}");
+
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 6: NegativeDouble Testleri
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- NEGATİF KONTR TESTLERİ ---");
+
+                // Yapay-21: Rakip 1♠ açtı, ben 4'lü Kupa + 10 HP → Dbl
+                var el21 = YapayElOlustur("♠Q43 ♥KJ43 ♦QJ2 ♣Q87");
+                var durum21 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el21,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "1♠", Sira = 1 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-21: Rakip 1♠ açtı, ben 4'lü Kupa + 10 HP → Dbl");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el21)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum21)}");
+
+                // Yapay-22: Rakip 1♥ açtı, ben 4'lü Maça + 10 HP → Dbl
+                var el22 = YapayElOlustur("♠KJ43 ♥Q43 ♦QJ2 ♣Q87");
+                var durum22 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el22,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "1♥", Sira = 1 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-22: Rakip 1♥ açtı, ben 4'lü Maça + 10 HP → Dbl");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el22)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum22)}");
+
+                // Yapay-23: Rakip 1♦ açtı, ben 4'lü Maça + 4'lü Kupa → Dbl
+                var el23 = YapayElOlustur("♠KJ43 ♥QJ43 ♦Q2 ♣Q87");
+                var durum23 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el23,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "1♦", Sira = 1 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-23: Rakip 1♦ açtı, ben 4'lü Maça + 4'lü Kupa → Dbl");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el23)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum23)}");
+
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 7: Blackwood / RKCB Testleri
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- BLACKWOOD / RKCB TESTLERİ ---");
+
+                // Yapay-31: Partner 1♠ açtı, ben 3♠ dedim, partner Pas → ben 4NT soracağım
+                var el31 = YapayElOlustur("♠KQ54 ♥AJ3 ♦KQ2 ♣K32");  // ♣A K 2 = 3 kart
+                var durum31 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el31,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 5 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 6 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-31: Partner 1♠, ben 3♠, partner Pas → ben Blackwood sorusu → 4NT");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el31)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   As: {ElDegerlendirici.AsSayisi(el31)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum31)}");
+
+                // Yapay-32: Partner 4NT dedi, ben 0 As → 5♣
+                var el32 = YapayElOlustur("♠Q43 ♥KJ43 ♦QJ2 ♣Q87");
+                var durum32 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el32,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4NT", Sira = 5 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 6 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-32: Partner 4NT dedi, ben 0 As → 5♣");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el32)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   As: {ElDegerlendirici.AsSayisi(el32)}, " +
+                    $"Kilit kart (♠): {ElDegerlendirici.KilitKartSayisi(el32, "Maça")}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum32)}");
+
+                // Yapay-33: Partner 4NT dedi, ben 1 As → 5♦
+                var el33 = YapayElOlustur("♠A43 ♥KJ43 ♦QJ2 ♣Q87");
+                var durum33 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el33,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4NT", Sira = 5 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 6 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-33: Partner 4NT dedi, ben 1 As → 5♦");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el33)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   As: {ElDegerlendirici.AsSayisi(el33)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum33)}");
+
+                // Yapay-34: Partner 4NT dedi, ben 2 As → 5♥
+                var el34 = YapayElOlustur("♠A43 ♥AJ43 ♦QJ2 ♣Q87");
+                var durum34 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el34,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4NT", Sira = 5 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 6 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-34: Partner 4NT dedi, ben 2 As → 5♥");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el34)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   As: {ElDegerlendirici.AsSayisi(el34)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum34)}");
+
+                // Yapay-35: Partner 4NT dedi, ben 2 kilit kart (1 As + koz K) → 5♠
+                var el35 = YapayElOlustur("♠KJ43 ♥AJ43 ♦QJ2 ♣Q8");
+                var durum35 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el35,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 },
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4NT", Sira = 5 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 6 },
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-35: Partner 4NT dedi, ben 2 kilit kart (1 As + ♠K) → 5♠");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el35)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   As: {ElDegerlendirici.AsSayisi(el35)}, " +
+                    $"Papaz: {ElDegerlendirici.PapazSayisi(el35)}, " +
+                    $"Kilit kart (♠): {ElDegerlendirici.KilitKartSayisi(el35, "Maça")}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum35)}");
+                System.Diagnostics.Debug.WriteLine("");
 
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }

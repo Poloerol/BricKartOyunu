@@ -305,6 +305,73 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         // ═══════════════════════════════════════════════════════════════════
+        // AS / PAPAZ / KİLİT KART SAYIMI (Blackwood & RKCB için)
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Elde kaç As var? (0-4)
+        /// </summary>
+        public static int AsSayisi(List<Card> el)
+        {
+            if (el == null) return 0;
+            return el.Count(c => c.Value == 14);
+        }
+
+        /// <summary>
+        /// Elde kaç Papaz var? (0-4)
+        /// </summary>
+        public static int PapazSayisi(List<Card> el)
+        {
+            if (el == null) return 0;
+            return el.Count(c => c.Value == 13);
+        }
+
+        /// <summary>
+        /// Toplam kontrol sayısı = As + Papaz (0-8).
+        /// </summary>
+        public static int KontrolSayisi(List<Card> el)
+        {
+            return AsSayisi(el) + PapazSayisi(el);
+        }
+
+        /// <summary>
+        /// RKCB için kilit kart sayısı = 4 As + koz Papazı (0-5).
+        /// Koz "NT" ise sadece As'lar sayılır (NT'de koz K'si yok).
+        /// </summary>
+        public static int KilitKartSayisi(List<Card> el, string koz)
+        {
+            if (el == null) return 0;
+
+            int sayi = AsSayisi(el);
+
+            // NT'de koz Papazı yok
+            if (string.IsNullOrEmpty(koz) || koz == "NT") return sayi;
+
+            // Koz rengindeki Papaz'ı bul
+            bool kozPapaziVar = el.Any(c => c.Suit == koz && c.Value == 13);
+            if (kozPapaziVar) sayi++;
+
+            return sayi;
+        }
+
+        /// <summary>
+        /// Belirli bir renkte Papaz (K) var mı?
+        /// </summary>
+        public static bool PapazVar(List<Card> el, string renk)
+        {
+            if (el == null || string.IsNullOrEmpty(renk)) return false;
+            return el.Any(c => c.Suit == renk && c.Value == 13);
+        }
+
+        /// <summary>
+        /// Belirli bir renkte Kız (Q) var mı?
+        /// </summary>
+        public static bool KizVar(List<Card> el, string renk)
+        {
+            if (el == null || string.IsNullOrEmpty(renk)) return false;
+            return el.Any(c => c.Suit == renk && c.Value == 12);
+        }
+        // ═══════════════════════════════════════════════════════════════════
         // YARDIMCI
         // ═══════════════════════════════════════════════════════════════════
 
