@@ -669,6 +669,74 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[TEST]   → Gelen: {motor.TeklifVer(durum17)}");
 
+                // ═══════════════════════════════════════════════════════════════
+                // TEST 5: JacobyTransfer Testleri
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("[TEST] --- JACOBY TRANSFER TESTLERİ ---");
+
+                // Yapay-18: Partner 1NT, ben 5+ Kupa → 2♦ (Kupa transferi)
+                var el18 = YapayElOlustur("♠Q43 ♥KJ543 ♦J52 ♣QJ");
+                var durum18 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el18,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-18: Partner 1NT, ben 5+ Kupa → 2♦ (Kupa transferi)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el18)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum18)}");
+
+                // Yapay-19: Partner 1NT, ben 5+ Maça → 2♥ (Maça transferi)
+                var el19 = YapayElOlustur("♠KJ543 ♥Q43 ♦J52 ♣QJ");
+                var durum19 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Guney,
+                    AktifOyuncuEli = el19,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-19: Partner 1NT, ben 5+ Maça → 2♥ (Maça transferi)");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el19)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum19)}");
+
+                // Yapay-20: Ben 1NT, partner 2♦ (Kupa transferi) → 2♥ kabul
+                var el20 = YapayElOlustur("♠KJ3 ♥Q43 ♦KQ52 ♣AJ8");
+                var durum20 = new IhaleDurumu
+                {
+                    AktifOyuncu = Player.Kuzey,
+                    AktifOyuncuEli = el20,
+                    Anlasma = anlasma,
+                    Gecmis = new List<IhaleHamlesi>
+                    {
+                        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1 },
+                        new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 },
+                        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♦", Sira = 3 },
+                        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 4 }
+                    }
+                };
+                System.Diagnostics.Debug.WriteLine(
+                    "[TEST] Yapay-20: Ben 1NT, partner 2♦ (Kupa transferi) → 2♥ kabul");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   {ElDegerlendirici.Ozet(el20)}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[TEST]   → Gelen: {motor.TeklifVer(durum20)}");
+
                 System.Diagnostics.Debug.WriteLine("═══════════════════════");
             }
             catch (Exception ex)
@@ -728,6 +796,14 @@ namespace BricKartOyunu
                     }
                     el.Add(new Card { Suit = renk, Value = deger });
                 }
+            }
+
+            // 🔹 Kontrol: 13 kart olmalı
+            if (el.Count != 13)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[YapayElOlustur] UYARI: El {el.Count} kart! " +
+                    $"Beklenen: 13. Girdi: '{metin}'");
             }
 
             return el;

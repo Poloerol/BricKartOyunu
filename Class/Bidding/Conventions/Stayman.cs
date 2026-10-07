@@ -38,8 +38,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 && durum.KendiTeklifleri.Count == 0
                 && !durum.RakipActiMi())
             {
+                // 5+ majör varsa → Transfer kullan (Stayman değil)
+                bool besliMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 5;
+                bool besliKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5;
+
+                if (besliMaca || besliKupa) return false;
+
                 // 4'lü majör var mı?
-                if (ElDegerlendirici.DortluMajorVar(el)
+                bool dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4;
+                bool dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4;
+
+                // 4'lü majör + 8+ HP → Stayman
+                if ((dortluMaca || dortluKupa)
                     && ElDegerlendirici.HCP(el) >= 8)
                 {
                     return true;

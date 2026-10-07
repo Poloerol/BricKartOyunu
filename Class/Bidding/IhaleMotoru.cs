@@ -50,7 +50,8 @@ namespace BricKartOyunu.Class.Bidding
     new MinorAcilis(),      // Öncelik 30
 
     // Cevap konvansiyonları
-    new Stayman(),          // Öncelik 10  ← YENİ
+    new Stayman(),          // Öncelik 10
+    new JacobyTransfer(),   // Öncelik 15  ← YENİ
     new BasitCevap(),       // Öncelik 100
 };
 

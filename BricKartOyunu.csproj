@@ -158,6 +158,7 @@
     <Compile Include="Class\Bidding\Conventions\BasitCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\BesliMajor.cs" />
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />
+    <Compile Include="Class\Bidding\Conventions\JacobyTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />
     <Compile Include="Class\Bidding\Conventions\Stayman.cs" />
     <Compile Include="Class\Bidding\Conventions\StrongNT.cs" />
