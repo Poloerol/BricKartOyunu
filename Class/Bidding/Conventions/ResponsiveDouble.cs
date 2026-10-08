@@ -1,25 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Responsive Double Konvansiyonu.
-    /// 
+    /// Responsive Double (Tepkisel Kontr) Konvansiyonu (SAYC Standard).
+    ///
     /// Kural:
-    /// - Partner bir renk açtı (1♠/1♥/1♦/1♣) VEYA overcall yaptı
-    /// - Rakip de overcall yaptı
-    /// - Rakip kendi rengini 2 seviyesinde destekledi
-    /// - Ben Dbl derim → "Diğer iki renkte değerim var"
-    /// 
-    /// Amaç: Rakipler bir renkte anlaştığında, kalan iki rengi göstermek.
-    /// 
+    /// - Rakip 1 seviyede açtı, partner pas geçti ve rakip kendi rengini 2 seviyesinde destekledi.
+    /// - Ben Dbl diyerek "diğer renklerde (özellikle majörlerde) değerim var" mesajı veririm.
+    ///
     /// Örnek:
-    ///   1♠ (Rakip) - Pas - 2♠ (Rakip) - Dbl (Ben) = ♥ + bir minör
-    ///   1♥ (Rakip) - Pas - 2♥ (Rakip) - Dbl (Ben) = ♠ + bir minör
-    ///   1♦ (Rakip) - Pas - 2♦ (Rakip) - Dbl (Ben) = ♠ + ♥ (iki majör)
-    /// 
+    ///   Rakip 1♠ - Partner Pas - Rakip 2♠ - Ben: Dbl
+    ///   (Bu durum, elimde majör ve bir minör olduğunu veya iki majör olduğunu gösterir)
+    ///
     /// Öncelik: 22
     /// </summary>
     public class ResponsiveDouble : IKonvansiyon
@@ -35,67 +30,51 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
-            // 1. Son 3 teklifi kontrol et:
-            //    [0] = rakip açtı
-            //    [1] = partner pas
-            //    [2] = rakip destekledi
-            var sonTeklifler = durum.Gecmis
-                .Where(h => h.GercekTeklifMi || h.PasMi)
-                .ToList();
+            // Senaryo Kontrolü: Rakip 1X -> Partner Pas -> Rakip 2X
+            var gecmis = durum.Gecmis.Where(h => h.GercekTeklifMi || h.PasMi).ToList();
+            if (gecmis.Count < 3) return false;
 
-            if (sonTeklifler.Count < 3) return false;
+            var son = gecmis.Last();
+            var onceki = gecmis[gecmis.Count - 2];
+            var ilk = gecmis[gecmis.Count - 3];
 
-            // Son teklif rakip mi?
-            var sonTeklif = sonTeklifler[sonTeklifler.Count - 1];
-            if (!durum.Rakipler.Contains(sonTeklif.Oyuncu)) return false;
+            // 1. Son teklif rakip tarafından 2 seviyesinde verilmiş olmalı
+            if (!durum.Rakipler.Contains(son.Oyuncu) || TekliftenSeviyeCikar(son.Teklif) != 2)
+                return false;
 
-            // Son teklif 2 seviyesinde mi?
-            if (string.IsNullOrEmpty(sonTeklif.Teklif)) return false;
-            if (sonTeklif.Teklif.Length == 0) return false;
-            if (!char.IsDigit(sonTeklif.Teklif[0])) return false;
-            int seviye = sonTeklif.Teklif[0] - '0';
-            if (seviye != 2) return false;
+            // 2. Partner pas geçmiş olmalı
+            if (onceki.Oyuncu != durum.Partner || !onceki.PasMi)
+                return false;
 
-            // 2 teklif önce (yani benim konuşma sıramdan önce) partner Pas demiş mi?
-            // Aslında: Rakip 1X - Partner Pas - Rakip 2X formatına bakıyoruz.
-            // Bu formatta "Rakip 1X - Partner Pas" olması gerekiyor.
-            var oncekiTeklif = sonTeklifler[sonTeklifler.Count - 2];
-            if (oncekiTeklif.Oyuncu != durum.Partner) return false;
-            if (!oncekiTeklif.PasMi) return false;
+            // 3. İlk teklif rakip tarafından 1 seviyesinde verilmiş olmalı
+            if (!durum.Rakipler.Contains(ilk.Oyuncu) || TekliftenSeviyeCikar(ilk.Teklif) != 1)
+                return false;
 
-            // 3 teklif önce rakip 1 seviyesinde mi açtı?
-            var ilkTeklif = sonTeklifler[sonTeklifler.Count - 3];
-            if (!durum.Rakipler.Contains(ilkTeklif.Oyuncu)) return false;
-            if (string.IsNullOrEmpty(ilkTeklif.Teklif)) return false;
-            if (ilkTeklif.Teklif.Length == 0) return false;
-            if (!char.IsDigit(ilkTeklif.Teklif[0])) return false;
-            int ilkSeviye = ilkTeklif.Teklif[0] - '0';
-            if (ilkSeviye != 1) return false;
+            // 4. Rakip aynı rengi desteklemiş olmalı
+            if (TekliftenKozCikar(ilk.Teklif) != TekliftenKozCikar(son.Teklif))
+                return false;
 
-            // Aynı rakip rengi mi desteklendi?
-            string ilkKoz = TekliftenKozCikar(ilkTeklif.Teklif);
-            string sonKoz = TekliftenKozCikar(sonTeklif.Teklif);
-            if (ilkKoz != sonKoz) return false;
-
-            // 2. Ben henüz konuşmadım
+            // 5. Kendi tekliflerim boş olmalı
             if (durum.KendiTeklifleri.Count > 0) return false;
 
-            // 3. Elimde diğer renklerde değer var mı?
-            //    (en az 8 HP ve en az 2 tane 4+ kart rengi)
+            // 6. El gücü ve dağılım kontrolü (En az 6-8 HP ve yan renklerde değer)
             var el = durum.AktifOyuncuEli;
-            int hp = ElDegerlendirici.HCP(el);
-            if (hp < 8) return false;
+            if (ElDegerlendirici.HCP(el) < 6) return false;
 
-            // 4. En az iki tane 4+ kart rengi (rakip kozu hariç)
-            int dortluRenkSayisi = 0;
+            // Yan renklerde en az bir tane 4+ kart olması beklenir
+            string rakipKozu = TekliftenKozCikar(ilk.Teklif);
+            bool yanRenkDegerli = false;
             foreach (var renk in new[] { "Maça", "Kupa", "Karo", "Sinek" })
             {
-                if (renk == ilkKoz) continue;
+                if (renk == rakipKozu) continue;
                 if (ElDegerlendirici.RenkUzunlugu(el, renk) >= 4)
-                    dortluRenkSayisi++;
+                {
+                    yanRenkDegerli = true;
+                    break;
+                }
             }
 
-            return dortluRenkSayisi >= 2;
+            return yanRenkDegerli;
         }
 
         public string TeklifVer(IhaleDurumu durum)
@@ -106,17 +85,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private string TekliftenKozCikar(string teklif)
         {
             if (string.IsNullOrEmpty(teklif)) return null;
-            char sonKarakter = teklif[teklif.Length - 1];
-            switch (sonKarakter)
-            {
-                case '♠': return "Maça";
-                case '♥': return "Kupa";
-                case '♦': return "Karo";
-                case '♣': return "Sinek";
-                case 'T':
-                case 't': return "NT";
-                default: return null;
-            }
+            char son = teklif[teklif.Length - 1];
+            return son switch { '♠' => "Maça", '♥' => "Kupa", '♦' => "Karo", '♣' => "Sinek", 'T' => "NT", 't' => "NT", _ => null };
+        }
+
+        private int TekliftenSeviyeCikar(string teklif)
+        {
+            if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return 0;
+            if (int.TryParse(teklif.Substring(0, teklif.Length - 1), out int s)) return s;
+            return 0;
         }
     }
 }
