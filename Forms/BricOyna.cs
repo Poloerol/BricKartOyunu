@@ -3103,6 +3103,11 @@ namespace BricKartOyunu
             }
         }
 
+        private void BtnOtoOyna_Click(object sender, EventArgs e)
+        {
+
+        }
+
         /// <summary>
         /// Oynanan tüm elleri bir formda gösterir.
         /// Deal Complete formundaki "Oyunu Göster" butonu da bunu çağırır.
