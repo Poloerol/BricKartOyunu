@@ -1,24 +1,20 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding
 {
     /// <summary>
     /// Briç elini değerlendiren yardımcı sınıf.
-    /// 
+    ///
     /// Bu sınıf şunları hesaplar:
     /// - HCP (High Card Points): A=4, K=3, Q=2, J=1
     /// - Dağılım puanı: void=3, singleton=2, doubleton=1
     /// - Toplam puan: HCP + Dağılım
     /// - Renk sayıları (her renkten kaç kart)
-    /// - Dengeli/dengesiz el kontrolü
+    /// - Dengeli/yarı-dengeli el kontrolü
     /// - Majör/minör uzunlukları
     /// - Stopper (durdurucu) kontrolü
-    /// 
-    /// Kullanım:
-    ///   var el = guneyEl;
-    ///   int hcp = ElDegerlendirici.HCP(el);        // 15
-    ///   bool dengeli = ElDegerlendirici.DengeliEl(el);  // true
     /// </summary>
     public static class ElDegerlendirici
     {
@@ -26,10 +22,6 @@ namespace BricKartOyunu.Class.Bidding
         // PUAN HESAPLAMA
         // ═══════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// HCP (High Card Points) hesaplar.
-        /// As = 4, Papaz = 3, Kız = 2, Vale = 1
-        /// </summary>
         public static int HCP(List<Card> el)
         {
             if (el == null) return 0;
@@ -48,10 +40,6 @@ namespace BricKartOyunu.Class.Bidding
             return puan;
         }
 
-        /// <summary>
-        /// Dağılım puanı hesaplar.
-        /// Void (şikan) = 3, Singleton = 2, Doubleton = 1
-        /// </summary>
         public static int DagilimPuani(List<Card> el)
         {
             if (el == null) return 0;
@@ -69,9 +57,6 @@ namespace BricKartOyunu.Class.Bidding
             return puan;
         }
 
-        /// <summary>
-        /// Toplam puan = HCP + Dağılım puanı.
-        /// </summary>
         public static int ToplamPuan(List<Card> el)
         {
             return HCP(el) + DagilimPuani(el);
@@ -81,10 +66,6 @@ namespace BricKartOyunu.Class.Bidding
         // RENK SAYILARI
         // ═══════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Her renkten kaç kart olduğunu döndürür.
-        /// Örnek: { "Maça": 5, "Kupa": 3, "Karo": 3, "Sinek": 2 }
-        /// </summary>
         public static Dictionary<string, int> RenkSayilari(List<Card> el)
         {
             var sayilar = new Dictionary<string, int>
@@ -106,36 +87,24 @@ namespace BricKartOyunu.Class.Bidding
             return sayilar;
         }
 
-        /// <summary>
-        /// Belirli bir renkten kaç kart olduğunu döndürür.
-        /// </summary>
         public static int RenkUzunlugu(List<Card> el, string renk)
         {
             if (el == null || string.IsNullOrEmpty(renk)) return 0;
             return el.Count(c => c.Suit == renk);
         }
 
-        /// <summary>
-        /// En uzun rengi döndürür.
-        /// </summary>
         public static string EnUzunRenk(List<Card> el)
         {
             var sayilar = RenkSayilari(el);
             return sayilar.OrderByDescending(kv => kv.Value).First().Key;
         }
 
-        /// <summary>
-        /// İkinci en uzun rengi döndürür.
-        /// </summary>
         public static string IkinciEnUzunRenk(List<Card> el)
         {
             var sayilar = RenkSayilari(el);
             return sayilar.OrderByDescending(kv => kv.Value).Skip(1).First().Key;
         }
 
-        /// <summary>
-        /// Belirli bir renkte en az X kart var mı?
-        /// </summary>
         public static bool RenkVar(List<Card> el, string renk, int minimumAdet)
         {
             return RenkUzunlugu(el, renk) >= minimumAdet;
@@ -146,59 +115,42 @@ namespace BricKartOyunu.Class.Bidding
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// El dengeli mi?
-        /// Dengeli dağılımlar: 4-3-3-3, 4-4-3-2, 5-3-3-2, 5-4-2-2, 6-3-2-2
+        /// Tam dengeli dağılımlar: 4-3-3-3, 4-4-3-2, 5-3-3-2
         /// </summary>
         public static bool DengeliEl(List<Card> el)
         {
             if (el == null || el.Count != 13) return false;
+            var s = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
 
-            var sayilar = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
-
-            // 4-3-3-3
-            if (sayilar[0] == 4 && sayilar[1] == 3 && sayilar[2] == 3 && sayilar[3] == 3)
-                return true;
-
-            // 4-4-3-2
-            if (sayilar[0] == 4 && sayilar[1] == 4 && sayilar[2] == 3 && sayilar[3] == 2)
-                return true;
-
-            // 5-3-3-2
-            if (sayilar[0] == 5 && sayilar[1] == 3 && sayilar[2] == 3 && sayilar[3] == 2)
-                return true;
-
-            // 5-4-2-2
-            if (sayilar[0] == 5 && sayilar[1] == 4 && sayilar[2] == 2 && sayilar[3] == 2)
-                return true;
-
-            // 6-3-2-2
-            if (sayilar[0] == 6 && sayilar[1] == 3 && sayilar[2] == 2 && sayilar[3] == 2)
-                return true;
-
-            return false;
+            return (s[0] == 4 && s[1] == 3 && s[2] == 3 && s[3] == 3) ||
+                   (s[0] == 4 && s[1] == 4 && s[2] == 3 && s[3] == 2) ||
+                   (s[0] == 5 && s[1] == 3 && s[2] == 3 && s[3] == 2);
         }
 
         /// <summary>
-        /// Elde 5'li majör var mı? (Maça veya Kupa 5+)
+        /// Yarı-dengeli dağılımlar: 5-4-2-2, 6-3-2-2
         /// </summary>
+        public static bool YariDengeliEl(List<Card> el)
+        {
+            if (el == null || el.Count != 13) return false;
+            var s = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
+
+            return (s[0] == 5 && s[1] == 4 && s[2] == 2 && s[3] == 2) ||
+                   (s[0] == 6 && s[1] == 3 && s[2] == 2 && s[3] == 2);
+        }
+
         public static bool BesliMajorVar(List<Card> el)
         {
             return RenkUzunlugu(el, "Maça") >= 5 ||
                    RenkUzunlugu(el, "Kupa") >= 5;
         }
 
-        /// <summary>
-        /// Elde 4'lü majör var mı? (Maça veya Kupa 4+)
-        /// </summary>
         public static bool DortluMajorVar(List<Card> el)
         {
             return RenkUzunlugu(el, "Maça") >= 4 ||
                    RenkUzunlugu(el, "Kupa") >= 4;
         }
 
-        /// <summary>
-        /// Elde 5'li minör var mı? (Karo veya Sinek 5+)
-        /// </summary>
         public static bool BesliMinorVar(List<Card> el)
         {
             return RenkUzunlugu(el, "Karo") >= 5 ||
@@ -206,13 +158,12 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // STOPPER KONTROLÜ (NT için önemli)
+        // STOPPER KONTROLÜ (NT için gelişmiş yapı)
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Belirli bir renkte stopper (durdurucu) var mı?
-        /// Stopper: As, Kx, QJx, J10xx, vs.
-        /// Bu basit versiyon sadece As ve Kx kontrol eder.
+        /// Belirli bir renkte stopper kontrolü yapar.
+        /// Puanlama: As=3, Kx=2, KQ=2, QJ=1. Toplam >= 2 ise güçlü stopper.
         /// </summary>
         public static bool StopperVar(List<Card> el, string renk)
         {
@@ -224,23 +175,18 @@ namespace BricKartOyunu.Class.Bidding
 
             if (renkKartlari.Count == 0) return false;
 
-            // As var mı?
+            // En yüksek kart As ise kesin stopper
             if (renkKartlari[0].Value == 14) return true;
 
-            // Kx var mı? (Papaz + en az 1 kart)
-            if (renkKartlari[0].Value == 13 && renkKartlari.Count >= 2) return true;
+            // Diğer kombinasyonlar için puanlama
+            int stopperPuan = 0;
+            if (renkKartlari[0].Value == 13 && renkKartlari.Count >= 2) stopperPuan += 2; // Kx
+            if (renkKartlari.Count >= 2 && renkKartlari[0].Value == 13 && renkKartlari[1].Value == 12) stopperPuan += 1; // KQ ekstra güç
+            if (renkKartlari.Count >= 2 && renkKartlari[0].Value == 12 && renkKartlari[1].Value == 11) stopperPuan += 1; // QJ
 
-            // QJ var mı?
-            if (renkKartlari.Count >= 2 &&
-                renkKartlari[0].Value == 12 &&
-                renkKartlari[1].Value == 11) return true;
-
-            return false;
+            return stopperPuan >= 2;
         }
 
-        /// <summary>
-        /// Elde kaç renkte stopper var? (0-4)
-        /// </summary>
         public static int StopperSayisi(List<Card> el)
         {
             int sayi = 0;
@@ -251,144 +197,104 @@ namespace BricKartOyunu.Class.Bidding
             return sayi;
         }
 
-        /// <summary>
-        /// NT (No Trump) için el uygun mu?
-        /// Dengeli + 3-4 stopper
-        /// </summary>
         public static bool NTUygun(List<Card> el)
         {
-            return DengeliEl(el) && StopperSayisi(el) >= 3;
+            // Tam dengeli veya yarı-dengeli + yeterli stopper
+            return (DengeliEl(el) || YariDengeliEl(el)) && StopperSayisi(el) >= 3;
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // HIZLI EL SAYISI (QUICK TRICKS)
+        // HIZLI EL SAYISI (Standard Quick Tricks Table)
         // ═══════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Hızlı el sayısı tahmini.
-        /// As = 1, Kx = 0.5, KQ = 1, QJx = 0.5
-        /// </summary>
         public static double HizliElSayisi(List<Card> el)
         {
             if (el == null) return 0;
 
-            double sayi = 0;
+            double toplamSayı = 0;
             var renkler = new[] { "Maça", "Kupa", "Karo", "Sinek" };
 
             foreach (var renk in renkler)
             {
-                var renkKartlari = el.Where(c => c.Suit == renk)
-                                     .OrderByDescending(c => c.Value)
-                                     .ToList();
+                var c = el.Where(card => card.Suit == renk).OrderByDescending(card => card.Value).ToList();
+                if (c.Count == 0) continue;
 
-                if (renkKartlari.Count == 0) continue;
-
-                // As = 1
-                if (renkKartlari[0].Value == 14) sayi += 1;
-
-                // Kx = 0.5
-                if (renkKartlari[0].Value == 13 && renkKartlari.Count >= 2) sayi += 0.5;
-                else if (renkKartlari.Count >= 2 && renkKartlari[0].Value == 13) sayi += 0.5;
-
-                // KQ = 1
-                if (renkKartlari.Count >= 2 &&
-                    renkKartlari[0].Value == 13 &&
-                    renkKartlari[1].Value == 12) sayi += 0.5; // KQ toplam 1
-
-                // QJx = 0.5
-                if (renkKartlari.Count >= 2 &&
-                    renkKartlari[0].Value == 12 &&
-                    renkKartlari[1].Value == 11) sayi += 0.5;
+                // Standart Quick Trick Tablosu
+                if (c[0].Value == 14) // As var
+                {
+                    if (c.Count < 2) toplamSayı += 1.0;
+                    else if (c[1].Value == 13) toplamSayı += 2.0; // AK
+                    else if (c[1].Value == 12) toplamSayı += 1.5; // AQ
+                    else if (c[1].Value == 11) toplamSayı += 1.0; // AJ
+                    else toplamSayı += 1.0;
+                }
+                else if (c[0].Value == 13) // Papaz en yüksek
+                {
+                    if (c.Count < 2) toplamSayı += 0.0;
+                    else if (c[1].Value == 12) toplamSayı += 1.0; // KQ
+                    else if (c[1].Value == 11) toplamSayı += 0.5; // KJ
+                    else toplamSayı += 0.5; // Kx
+                }
+                else if (c[0].Value == 12) // Kız en yüksek
+                {
+                    if (c.Count < 2) toplamSayı += 0.0;
+                    else if (c[1].Value == 11) toplamSayı += 0.5; // QJ
+                    else toplamSayı += 0.0;
+                }
             }
 
-            return sayi;
+            return toplamSayı;
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // AS / PAPAZ / KİLİT KART SAYIMI (Blackwood & RKCB için)
+        // AS / PAPAZ / KİLİT KART SAYIMI
         // ═══════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Elde kaç As var? (0-4)
-        /// </summary>
         public static int AsSayisi(List<Card> el)
         {
             if (el == null) return 0;
             return el.Count(c => c.Value == 14);
         }
 
-        /// <summary>
-        /// Elde kaç Papaz var? (0-4)
-        /// </summary>
         public static int PapazSayisi(List<Card> el)
         {
             if (el == null) return 0;
             return el.Count(c => c.Value == 13);
         }
 
-        /// <summary>
-        /// Toplam kontrol sayısı = As + Papaz (0-8).
-        /// </summary>
         public static int KontrolSayisi(List<Card> el)
         {
             return AsSayisi(el) + PapazSayisi(el);
         }
 
-        /// <summary>
-        /// RKCB için kilit kart sayısı = 4 As + koz Papazı (0-5).
-        /// Koz "NT" ise sadece As'lar sayılır (NT'de koz K'si yok).
-        /// </summary>
         public static int KilitKartSayisi(List<Card> el, string koz)
         {
             if (el == null) return 0;
-
             int sayi = AsSayisi(el);
-
-            // NT'de koz Papazı yok
             if (string.IsNullOrEmpty(koz) || koz == "NT") return sayi;
-
-            // Koz rengindeki Papaz'ı bul
-            bool kozPapaziVar = el.Any(c => c.Suit == koz && c.Value == 13);
-            if (kozPapaziVar) sayi++;
-
+            if (el.Any(c => c.Suit == koz && c.Value == 13)) sayi++;
             return sayi;
         }
 
-        /// <summary>
-        /// Belirli bir renkte Papaz (K) var mı?
-        /// </summary>
         public static bool PapazVar(List<Card> el, string renk)
         {
             if (el == null || string.IsNullOrEmpty(renk)) return false;
             return el.Any(c => c.Suit == renk && c.Value == 13);
         }
 
-        /// <summary>
-        /// Belirli bir renkte Kız (Q) var mı?
-        /// </summary>
         public static bool KizVar(List<Card> el, string renk)
         {
             if (el == null || string.IsNullOrEmpty(renk)) return false;
             return el.Any(c => c.Suit == renk && c.Value == 12);
         }
-        // ═══════════════════════════════════════════════════════════════════
-        // YARDIMCI
-        // ═══════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Elin özet metni (debug için).
-        /// Örnek: "15 HCP, 6 TP, Dengeli, Maça:5 Kupa:3 Karo:3 Sinek:2"
-        /// </summary>
         public static string Ozet(List<Card> el)
         {
             if (el == null) return "Boş el";
-
             var sayilar = RenkSayilari(el);
             string dagilim = $"Maça:{sayilar["Maça"]} Kupa:{sayilar["Kupa"]} " +
                             $"Karo:{sayilar["Karo"]} Sinek:{sayilar["Sinek"]}";
-
-            string dengeli = DengeliEl(el) ? "Dengeli" : "Dengesiz";
-
+            string dengeli = DengeliEl(el) ? "Dengeli" : (YariDengeliEl(el) ? "Yarı-Dengeli" : "Dengesiz");
             return $"{HCP(el)} HCP, {ToplamPuan(el)} TP, {dengeli}, {dagilim}";
         }
     }
