@@ -3017,6 +3017,19 @@ namespace BricKartOyunu
             _kontrat = kontrat;
             _kontratDeklaran = OyuncuyaCevir(deklaran);
             _declarer = _kontratDeklaran;               // Deklaran belirlendi
+
+            // 🔹 BUG FIX: Eğer deklaran Kuzey ise, insan oyuncu (Güney) kontratı oynamalı.
+            // Masa yapısını 180 derece döndürerek (N<->S ve E<->W) simetriyi koruyoruz.
+            if (deklaran == "Kuzey")
+            {
+                ElleriTakasEt(Player.Kuzey); // Kuzey <-> Güney
+                ElleriTakasEt(Player.Dogu);  // Doğu <-> Batı (Simetri için)
+
+                // Takastan sonra deklaran artık fiziksel olarak Güney'de.
+                _kontratDeklaran = Player.Guney;
+                _declarer = Player.Guney;
+            }
+
             _atakYapacakOyuncu = OyuncuyaCevir(solRakip);
 
             // Oyun başlangıcında sıra atak yapacak oyuncuda
