@@ -1,24 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Splinter Konvansiyonu — Majör açılışına çift zıplama ile kısa renk gösterimi.
-    /// 
+    /// Splinter Konvansiyonu (SAYC Standard).
+    ///
     /// Kural:
-    /// - Partner 1♠ veya 1♥ açtı
-    /// - Elimizde 4+ majör destek + 13+ HP + bir renkte singleton/void
-    /// - O rengi çift zıplama ile teklif ederiz
-    /// 
-    /// Örnek:
-    ///   1♠ - 4♣ = Sinek'te singleton/void + Maça desteği
-    ///   1♥ - 3♠ = Maça'da singleton/void + Kupa desteği (çift zıplama)
-    ///   1♥ - 4♣ = Sinek'te singleton/void + Kupa desteği
-    ///   1♥ - 4♦ = Karo'da singleton/void + Kupa desteği
-    /// 
-    /// Öncelik: 17
+    /// - Partner 1♠ veya 1♥ açtı.
+    /// - Elimizde 4+ majör destek + 13+ HP + bir renkte singleton veya void var.
+    /// - Kısa olan rengi "çift zıplama" (jump shift) ile teklif ederek slam ilgisini ve kısa rengi bildiririz.
+    ///
+    /// Örnekler:
+    ///   1♠ - 4♣ = Sinek'te singleton/void + Maça desteği.
+    ///   1♥ - 3♠ = Maça'da singleton/void + Kupa desteği.
+    ///   1♥ - 4♣ = Sinek'te singleton/void + Kupa desteği.
+    ///
+    /// Öncelik: 16 (Jacoby 2NT'den önce, BasitCevap'tan sonra)
     /// </summary>
     public class Splinter : IKonvansiyon
     {
@@ -38,8 +37,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (partnerSon != "1♠" && partnerSon != "1♥") return false;
 
             if (durum.KendiTeklifleri.Count > 0) return false;
+
+            // Rakip müdahale ettiyse Splinter genellikle kullanılmaz (doğal teklifler önceliklidir)
             bool rakipGercekTeklifVerdi = durum.Gecmis.Any(h =>
-    durum.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi);
+                durum.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi);
             if (rakipGercekTeklifVerdi) return false;
 
             string koz = partnerSon == "1♠" ? "Maça" : "Kupa";
@@ -49,7 +50,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
             if (hp < 13) return false;
 
-            // Kısa renk var mı? (singleton veya void)
+            // Kısa renk kontrolü (singleton veya void)
             var sayilar = ElDegerlendirici.RenkSayilari(durum.AktifOyuncuEli);
             foreach (var kv in sayilar)
             {
@@ -68,35 +69,44 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             var sayilar = ElDegerlendirici.RenkSayilari(el);
 
-            // Kısa rengi bul
-            foreach (var kv in sayilar)
-            {
-                if (kv.Key == koz) continue;
-                if (kv.Value <= 1)
-                {
-                    // Seviye: koz Maça ise 4, koz Kupa ise 3 (Maça kısa ise) veya 4
-                    int seviye;
-                    if (koz == "Maça") seviye = 4;
-                    else if (kv.Key == "Maça") seviye = 3;  // 1♥ - 3♠
-                    else seviye = 4;                         // 1♥ - 4♣/4♦
+            // En kısa rengi bul (singleton/void)
+            string kisaRenk = sayilar
+                .Where(kv => kv.Key != koz && kv.Value <= 1)
+                .OrderBy(kv => kv.Value)
+                .ThenByDescending(kv => kv.Key == "Maça" || kv.Key == "Kupa") // Majör kısa renkleri önceliklendir
+                .Select(kv => kv.Key)
+                .FirstOrDefault();
 
-                    return $"{seviye}{KozSembolu(kv.Key)}";
-                }
+            if (string.IsNullOrEmpty(kisaRenk)) return "Pas";
+
+            // Seviye hesaplama (Çift Zıplama/Jump Shift)
+            // 1♠ açılışına: 2 (tek), 3 (tek), 4 (çift zıplama)
+            // 1♥ açılışına: 2 (tek), 3 (Majörse tek, Minörse çift zıplama), 4 (minörse çift zıplama)
+
+            int seviye;
+            if (koz == "Maça")
+            {
+                seviye = 4; // 1♠ -> 4 (Sinek/Karo)
+            }
+            else // koz == "Kupa"
+            {
+                if (kisaRenk == "Maça") seviye = 3; // 1♥ -> 3♠ (çift zıplama)
+                else seviye = 4;                    // 1♥ -> 4♣/4♦ (çift zıplama)
             }
 
-            return "Pas";
+            return $"{seviye}{KozSembolu(kisaRenk)}";
         }
 
         private string KozSembolu(string renk)
         {
-            switch (renk)
+            return renk switch
             {
-                case "Maça": return "♠";
-                case "Kupa": return "♥";
-                case "Karo": return "♦";
-                case "Sinek": return "♣";
-                default: return "?";
-            }
+                "Maça" => "♠",
+                "Kupa" => "♥",
+                "Karo" => "♦",
+                "Sinek" => "♣",
+                _ => "?"
+            };
         }
     }
 }
