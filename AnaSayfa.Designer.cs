@@ -132,6 +132,15 @@
             this.BtnMichaelsRakipMacaActi = new System.Windows.Forms.Button();
             this.BtnMichaelsRakipKaroActi = new System.Windows.Forms.Button();
             this.BtnMichaelsNegatif = new System.Windows.Forms.Button();
+            this.BtnTemelMantikYeniRenk = new System.Windows.Forms.Button();
+            this.BtnNTInvite = new System.Windows.Forms.Button();
+            this.BtnTemelMantikRakipMudahele = new System.Windows.Forms.Button();
+            this.BtnUnusual2NTRakip1Sinek = new System.Windows.Forms.Button();
+            this.BtnSupportDouble = new System.Windows.Forms.Button();
+            this.BtnResponsiveDouble = new System.Windows.Forms.Button();
+            this.BtnUnusual2NTRakip1Karo = new System.Windows.Forms.Button();
+            this.BtnUnusual2NTRakip1Kupa = new System.Windows.Forms.Button();
+            this.BtnUnusual2NTRakip1Maca = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -934,7 +943,7 @@
             // 
             // BtnMichaelsRakipMacaActi
             // 
-            this.BtnMichaelsRakipMacaActi.Location = new System.Drawing.Point(173, 267);
+            this.BtnMichaelsRakipMacaActi.Location = new System.Drawing.Point(29, 267);
             this.BtnMichaelsRakipMacaActi.Name = "BtnMichaelsRakipMacaActi";
             this.BtnMichaelsRakipMacaActi.Size = new System.Drawing.Size(138, 37);
             this.BtnMichaelsRakipMacaActi.TabIndex = 16;
@@ -944,7 +953,7 @@
             // 
             // BtnMichaelsRakipKaroActi
             // 
-            this.BtnMichaelsRakipKaroActi.Location = new System.Drawing.Point(173, 310);
+            this.BtnMichaelsRakipKaroActi.Location = new System.Drawing.Point(29, 310);
             this.BtnMichaelsRakipKaroActi.Name = "BtnMichaelsRakipKaroActi";
             this.BtnMichaelsRakipKaroActi.Size = new System.Drawing.Size(138, 37);
             this.BtnMichaelsRakipKaroActi.TabIndex = 17;
@@ -954,7 +963,7 @@
             // 
             // BtnMichaelsNegatif
             // 
-            this.BtnMichaelsNegatif.Location = new System.Drawing.Point(173, 353);
+            this.BtnMichaelsNegatif.Location = new System.Drawing.Point(29, 353);
             this.BtnMichaelsNegatif.Name = "BtnMichaelsNegatif";
             this.BtnMichaelsNegatif.Size = new System.Drawing.Size(138, 37);
             this.BtnMichaelsNegatif.TabIndex = 18;
@@ -962,11 +971,110 @@
             this.BtnMichaelsNegatif.UseVisualStyleBackColor = true;
             this.BtnMichaelsNegatif.Click += new System.EventHandler(this.BtnMichaelsNegatif_Click);
             // 
+            // BtnTemelMantikYeniRenk
+            // 
+            this.BtnTemelMantikYeniRenk.Location = new System.Drawing.Point(173, 267);
+            this.BtnTemelMantikYeniRenk.Name = "BtnTemelMantikYeniRenk";
+            this.BtnTemelMantikYeniRenk.Size = new System.Drawing.Size(138, 37);
+            this.BtnTemelMantikYeniRenk.TabIndex = 19;
+            this.BtnTemelMantikYeniRenk.Text = "Test Temel Mantik Yeni Renk";
+            this.BtnTemelMantikYeniRenk.UseVisualStyleBackColor = true;
+            this.BtnTemelMantikYeniRenk.Click += new System.EventHandler(this.BtnTemelMantikYeniRenk_Click);
+            // 
+            // BtnNTInvite
+            // 
+            this.BtnNTInvite.Location = new System.Drawing.Point(173, 310);
+            this.BtnNTInvite.Name = "BtnNTInvite";
+            this.BtnNTInvite.Size = new System.Drawing.Size(138, 37);
+            this.BtnNTInvite.TabIndex = 20;
+            this.BtnNTInvite.Text = "Test Temel Mantik NTInvite";
+            this.BtnNTInvite.UseVisualStyleBackColor = true;
+            this.BtnNTInvite.Click += new System.EventHandler(this.BtnNTInvite_Click);
+            // 
+            // BtnTemelMantikRakipMudahele
+            // 
+            this.BtnTemelMantikRakipMudahele.Location = new System.Drawing.Point(173, 353);
+            this.BtnTemelMantikRakipMudahele.Name = "BtnTemelMantikRakipMudahele";
+            this.BtnTemelMantikRakipMudahele.Size = new System.Drawing.Size(138, 37);
+            this.BtnTemelMantikRakipMudahele.TabIndex = 21;
+            this.BtnTemelMantikRakipMudahele.Text = "Test Temel Mantik Rakip Mudahale";
+            this.BtnTemelMantikRakipMudahele.UseVisualStyleBackColor = true;
+            this.BtnTemelMantikRakipMudahele.Click += new System.EventHandler(this.BtnTemelMantikRakipMudahele_Click);
+            // 
+            // BtnUnusual2NTRakip1Sinek
+            // 
+            this.BtnUnusual2NTRakip1Sinek.Location = new System.Drawing.Point(317, 267);
+            this.BtnUnusual2NTRakip1Sinek.Name = "BtnUnusual2NTRakip1Sinek";
+            this.BtnUnusual2NTRakip1Sinek.Size = new System.Drawing.Size(138, 37);
+            this.BtnUnusual2NTRakip1Sinek.TabIndex = 22;
+            this.BtnUnusual2NTRakip1Sinek.Text = "TEST 6.1a — Unusual 2NT (Rakip 1♣)";
+            this.BtnUnusual2NTRakip1Sinek.UseVisualStyleBackColor = true;
+            this.BtnUnusual2NTRakip1Sinek.Click += new System.EventHandler(this.BtnUnusual2NTRakip1Sinek_Click_1);
+            // 
+            // BtnSupportDouble
+            // 
+            this.BtnSupportDouble.Location = new System.Drawing.Point(29, 406);
+            this.BtnSupportDouble.Name = "BtnSupportDouble";
+            this.BtnSupportDouble.Size = new System.Drawing.Size(138, 37);
+            this.BtnSupportDouble.TabIndex = 23;
+            this.BtnSupportDouble.Text = "Test 6.2: Support Double";
+            this.BtnSupportDouble.UseVisualStyleBackColor = true;
+            this.BtnSupportDouble.Click += new System.EventHandler(this.BtnSupportDouble_Click);
+            // 
+            // BtnResponsiveDouble
+            // 
+            this.BtnResponsiveDouble.Location = new System.Drawing.Point(173, 406);
+            this.BtnResponsiveDouble.Name = "BtnResponsiveDouble";
+            this.BtnResponsiveDouble.Size = new System.Drawing.Size(138, 37);
+            this.BtnResponsiveDouble.TabIndex = 24;
+            this.BtnResponsiveDouble.Text = "Test 6.3: Responsive Double";
+            this.BtnResponsiveDouble.UseVisualStyleBackColor = true;
+            this.BtnResponsiveDouble.Click += new System.EventHandler(this.BtnResponsiveDouble_Click);
+            // 
+            // BtnUnusual2NTRakip1Karo
+            // 
+            this.BtnUnusual2NTRakip1Karo.Location = new System.Drawing.Point(317, 310);
+            this.BtnUnusual2NTRakip1Karo.Name = "BtnUnusual2NTRakip1Karo";
+            this.BtnUnusual2NTRakip1Karo.Size = new System.Drawing.Size(138, 37);
+            this.BtnUnusual2NTRakip1Karo.TabIndex = 25;
+            this.BtnUnusual2NTRakip1Karo.Text = "TEST 6.1b — Unusual 2NT (Rakip 1♦)";
+            this.BtnUnusual2NTRakip1Karo.UseVisualStyleBackColor = true;
+            this.BtnUnusual2NTRakip1Karo.Click += new System.EventHandler(this.BtnUnusual2NTRakip1Karo_Click);
+            // 
+            // BtnUnusual2NTRakip1Kupa
+            // 
+            this.BtnUnusual2NTRakip1Kupa.Location = new System.Drawing.Point(317, 353);
+            this.BtnUnusual2NTRakip1Kupa.Name = "BtnUnusual2NTRakip1Kupa";
+            this.BtnUnusual2NTRakip1Kupa.Size = new System.Drawing.Size(138, 37);
+            this.BtnUnusual2NTRakip1Kupa.TabIndex = 26;
+            this.BtnUnusual2NTRakip1Kupa.Text = "TEST 6.1c — Unusual 2NT (Rakip 1♥)";
+            this.BtnUnusual2NTRakip1Kupa.UseVisualStyleBackColor = true;
+            this.BtnUnusual2NTRakip1Kupa.Click += new System.EventHandler(this.BtnUnusual2NTRakip1Kupa_Click);
+            // 
+            // BtnUnusual2NTRakip1Maca
+            // 
+            this.BtnUnusual2NTRakip1Maca.Location = new System.Drawing.Point(317, 406);
+            this.BtnUnusual2NTRakip1Maca.Name = "BtnUnusual2NTRakip1Maca";
+            this.BtnUnusual2NTRakip1Maca.Size = new System.Drawing.Size(138, 37);
+            this.BtnUnusual2NTRakip1Maca.TabIndex = 27;
+            this.BtnUnusual2NTRakip1Maca.Text = "TEST 6.1d — Unusual 2NT (Rakip 1♠)";
+            this.BtnUnusual2NTRakip1Maca.UseVisualStyleBackColor = true;
+            this.BtnUnusual2NTRakip1Maca.Click += new System.EventHandler(this.BtnUnusual2NTRakip1Maca_Click);
+            // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1366, 581);
+            this.Controls.Add(this.BtnUnusual2NTRakip1Maca);
+            this.Controls.Add(this.BtnUnusual2NTRakip1Kupa);
+            this.Controls.Add(this.BtnUnusual2NTRakip1Karo);
+            this.Controls.Add(this.BtnResponsiveDouble);
+            this.Controls.Add(this.BtnSupportDouble);
+            this.Controls.Add(this.BtnUnusual2NTRakip1Sinek);
+            this.Controls.Add(this.BtnTemelMantikRakipMudahele);
+            this.Controls.Add(this.BtnNTInvite);
+            this.Controls.Add(this.BtnTemelMantikYeniRenk);
             this.Controls.Add(this.BtnMichaelsNegatif);
             this.Controls.Add(this.BtnMichaelsRakipKaroActi);
             this.Controls.Add(this.BtnMichaelsRakipMacaActi);
@@ -1107,5 +1215,14 @@
         private System.Windows.Forms.Button BtnMichaelsRakipMacaActi;
         private System.Windows.Forms.Button BtnMichaelsRakipKaroActi;
         private System.Windows.Forms.Button BtnMichaelsNegatif;
+        private System.Windows.Forms.Button BtnTemelMantikYeniRenk;
+        private System.Windows.Forms.Button BtnNTInvite;
+        private System.Windows.Forms.Button BtnTemelMantikRakipMudahele;
+        private System.Windows.Forms.Button BtnUnusual2NTRakip1Sinek;
+        private System.Windows.Forms.Button BtnSupportDouble;
+        private System.Windows.Forms.Button BtnResponsiveDouble;
+        private System.Windows.Forms.Button BtnUnusual2NTRakip1Karo;
+        private System.Windows.Forms.Button BtnUnusual2NTRakip1Kupa;
+        private System.Windows.Forms.Button BtnUnusual2NTRakip1Maca;
     }
 }

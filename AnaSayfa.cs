@@ -1,4 +1,7 @@
-﻿using System;
+﻿using BricKartOyunu.Class;
+using BricKartOyunu.Class.Bidding;
+using iText.Svg.Renderers.Impl;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -763,6 +766,55 @@ namespace BricKartOyunu.Forms
         private void BtnMichaelsNegatif_Click(object sender, EventArgs e)
         {
             TestRunner.Test_Michaels_Negatif(); 
+        }
+
+        private void BtnTemelMantikYeniRenk_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_TemelMantik_YeniRenk();
+        }
+
+        private void BtnTemelMantikRakipMudahele_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_TemelMantik_RakipMudahale();
+        }
+
+        private void BtnNTInvite_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_TemelMantik_NTInvite();
+        }
+
+        
+
+        private void BtnSupportDouble_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_SupportDouble();
+        }
+
+        private void BtnResponsiveDouble_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_ResponsiveDouble();
+        }
+
+       
+
+        private void BtnUnusual2NTRakip1Karo_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Unusual2NT_1Karo();
+        }
+
+        private void BtnUnusual2NTRakip1Kupa_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Unusual2NT_1Kupa();
+        }
+
+        private void BtnUnusual2NTRakip1Maca_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Unusual2NT_1Maca();
+        }
+
+        private void BtnUnusual2NTRakip1Sinek_Click_1(object sender, EventArgs e)
+        {
+            TestRunner.Test_Unusual2NT_1Sinek();
         }
     }
 }

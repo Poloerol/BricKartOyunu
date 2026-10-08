@@ -110,14 +110,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "Pas";
             }
 
-            // ─── 10-12 HP → 2NT, limit raise veya yeni renk ───
             if (hp < 16)
             {
-                // Dengeli → 2NT
-                if (ElDegerlendirici.DengeliEl(el)) return "2NT";
+                // 1. ÖNCE 4'lü MAJÖR göster
+                if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
+                    return "1♠";
+                if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
+                    return "1♥";
 
-                // Destek varsa → 3♠ (limit raise)
-                if (!string.IsNullOrEmpty(partnerKozu))
+                // 2. Partnerin majörüne 4+ destek varsa → limit raise
+                if (!string.IsNullOrEmpty(partnerKozu) &&
+                    (partnerKozu == "Maça" || partnerKozu == "Kupa"))
                 {
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 4 && partnerSeviye == 1)
@@ -127,10 +130,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
-                // Yeni renk
-                string yeniRenk = YeniRenkBul(el, partnerKozu, 4, "1");
-                if (!string.IsNullOrEmpty(yeniRenk)) return yeniRenk;
+                // 3. Dengeli ise → 2NT (invite)
+                if (ElDegerlendirici.DengeliEl(el)) return "2NT";
 
+                // 4. 5+ minör varsa → 2 seviyesi
+                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5 && partnerKozu != "Karo")
+                    return "2♦";
+                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5 && partnerKozu != "Sinek")
+                    return "2♣";
+
+                // 5. Son çare: 2NT
                 return "2NT";
             }
 

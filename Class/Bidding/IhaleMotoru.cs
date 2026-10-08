@@ -42,25 +42,28 @@ namespace BricKartOyunu.Class.Bidding
             _anlasma = anlasma ?? OrtaklikAnlasmasi.Varsayilan();
 
             _konvansiyonlar = new List<IKonvansiyon>
-            {
-                new IkiliSinekGuclu(),
-                new BesliMajor(),
-                new StrongNT(),
-                new MinorAcilis(),
+{
+    new IkiliSinekGuclu(),
+    new BesliMajor(),
+    new StrongNT(),
+    new MinorAcilis(),
 
-                new Gerber(),           // ← öncelik 13
-                new CueBid(),           // ← öncelik 14
-                new Blackwood(),        // ← öncelik 15
-                new Splinter(),         // ← öncelik 16
-                new Jacoby2NT(),        // ← öncelik 17
+    new Gerber(),
+    new CueBid(),
+    new Blackwood(),
+    new Splinter(),
+    new Jacoby2NT(),
+    new SupportDouble(),     // ← YENİ (öncelik 18)
 
-                new NegativeDouble(),   // ← öncelik 20
-                new Michaels(),         // ← öncelik 21
+    new Michaels(),
+    new NegativeDouble(),
+    new ResponsiveDouble(),  // ← YENİ (öncelik 22)
+    new Unusual2NT(),        // ← YENİ (öncelik 23)
 
-                new Stayman(),
-                new JacobyTransfer(),
-                new BasitCevap(),
-            };
+    new Stayman(),
+    new JacobyTransfer(),
+    new BasitCevap(),
+};
 
             // Anlaşmaya göre aktif/pasif ayarla
             AnlasmayiUygula();
@@ -378,44 +381,50 @@ namespace BricKartOyunu.Class.Bidding
             int destek = ElDegerlendirici.RenkUzunlugu(el, koz);
             string sembol = KozSembolu(koz);
 
-            // Şu ana kadar yapılan destek seviyesini bul
-            // (partner daha önce kaç seviyesinde teklif etti?)
-            int mevcutSeviye = 1;
+            // Partnerin son teklifinin seviyesi
+            int partnerSeviye = 1;
             var partnerTeklifleri = durum.PartnerTeklifleri;
             if (partnerTeklifleri.Count > 0)
             {
                 string son = partnerTeklifleri.Last();
                 if (son.Length > 0 && char.IsDigit(son[0]))
-                    mevcutSeviye = son[0] - '0';
+                    partnerSeviye = son[0] - '0';
             }
 
-            // Destek + HP kombinasyonu
-            int hedefSeviye;
+            // ═══════════════════════════════════════════════════════════════
+            // DESTEK SEVİYESİ BELİRLEME
+            // ═══════════════════════════════════════════════════════════════
 
-            // Çok güçlü el (game forcing)
+            // 1. Game forcing el (13+ HP + 4+ destek) → game seviyesi
             if (hp >= 13 && destek >= 4)
             {
-                // 4'lü majör desteği + 13+ HP → 4 seviyesi (game)
-                hedefSeviye = 4;
+                if (koz == "Maça" || koz == "Kupa")
+                    return $"4{sembol}";  // Majör game
+                                          // Minör game 5 seviyesi (nadir)
+                if (hp >= 15) return $"5{sembol}";
+                return $"3{sembol}";  // 3NT denemesi
             }
-            // Limit raise (invite)
-            else if (hp >= 10 && destek >= 4)
+
+            // 2. Limit raise (10-12 HP + 4+ destek) → 3 seviyesi
+            if (hp >= 10 && destek >= 4)
             {
-                hedefSeviye = 3;
+                int hedef = 3;
+                if (hedef <= partnerSeviye) hedef = partnerSeviye + 1;
+                if (hedef > 4) return "Pas";  // Çok yüksek → Pas
+                return $"{hedef}{sembol}";
             }
-            // Basit destek
-            else
+
+            // 3. Basit destek (6-9 HP) → 2 seviyesi
+            if (hp >= 6 && hp <= 9)
             {
-                hedefSeviye = 2;
+                int hedef = 2;
+                // Partner zaten 2 demişse → 3'e çıkmak yerine Pas
+                if (hedef <= partnerSeviye) return "Pas";
+                return $"{hedef}{sembol}";
             }
 
-            // Mevcut seviyeden küçük olamaz
-            if (hedefSeviye <= mevcutSeviye) hedefSeviye = mevcutSeviye + 1;
-
-            // 4'ten büyük olmasın
-            if (hedefSeviye > 4) hedefSeviye = 4;
-
-            return $"{hedefSeviye}{sembol}";
+            // 4. Çok zayıf (< 6 HP) → Pas
+            return "Pas";
         }
 
         /// <summary>

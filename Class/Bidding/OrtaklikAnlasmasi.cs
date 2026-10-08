@@ -98,6 +98,8 @@ namespace BricKartOyunu.Class.Bidding
                 NegativeDouble = true,
                 Michaels = true,         // ← YENİ
                 Unusual2NT = true,
+                SupportDouble = true,    // ← YENİ
+                ResponsiveDouble = true, // ← YENİ
 
                 StandartSignal = true
             };
