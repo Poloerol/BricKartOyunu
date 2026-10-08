@@ -1,42 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Basit Cevap Konvansiyonu.
-    /// 
+    /// Basit Cevap Konvansiyonu (SAYC Standard).
+    ///
     /// Partner bir renk açtığında (1♠/1♥/1♦/1♣), bu konvansiyon cevabı belirler.
-    /// 
-    /// Kural:
+    ///
+    /// Genel Kurallar:
     /// - 0-5 HP → Pas
-    /// - 6-9 HP → Basit destek (2♠/2♥/2♦/2♣) veya yeni renk (1♠/1♥/1♦/1♣)
-    /// - 10-12 HP → 2NT (dengeli) veya 3♠/3♥ (limit raise) veya yeni renk
-    /// - 13+ HP → Yeni renk 2 seviyesinde (2/1 game force)
-    /// 
-    /// Öncelik: 100 (fallback'ten önce)
-    /// 
-    /// Örnek:
-    ///   Partner: 1♠
-    ///   Ben: 6-9 HP + 3+ Maça → 2♠
-    ///   Ben: 6-9 HP + 5+ Kupa → 2♥ (yeni renk)
-    ///   Ben: 10-12 HP dengeli → 2NT
-    ///   Ben: 13+ HP + 5+ Kupa → 2♥ (2/1 GF)
+    /// - 6-9 HP → Basit destek (2 seviyesi) veya yeni renk (1 seviyesi)
+    /// - 10-12 HP → 2NT (dengeli invite) veya limit raise (3 seviyesi majör) veya yeni renk
+    /// - 13+ HP → Yeni renk 2 seviyesinde (2/1 Game Force) veya kuvvetli destek
     /// </summary>
     public class BasitCevap : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "Basit Cevap";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 100;   // Fallback'ten önce
-
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
+        public int Oncelik => 100;
 
         public bool UygunMu(IhaleDurumu durum)
         {
@@ -44,42 +27,27 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
 
-            // 1. Partner açtı mı?
             if (!durum.PartnerActiMi()) return false;
-
-            // 2. Rakip müdahale etti mi? (Etmediyse basit cevap)
             if (durum.RakipActiMi()) return false;
-
-            // 3. Ben henüz cevap vermedim mi?
             if (durum.KendiTeklifleri.Count > 0) return false;
-
-            // 4. Son teklif partnerin mi?
             if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
 
             return true;
         }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
 
         public string TeklifVer(IhaleDurumu durum)
         {
             var el = durum.AktifOyuncuEli;
             int hp = ElDegerlendirici.HCP(el);
 
-            // Partnerin son teklifi
             string partnerTeklifi = durum.PartnerTeklifleri.LastOrDefault();
             string partnerKozu = TekliftenKozCikar(partnerTeklifi);
             int partnerSeviye = TekliftenSeviyeCikar(partnerTeklifi);
 
             // ─── 0-5 HP → Pas ───
-            if (hp < 6)
-            {
-                return "Pas";
-            }
+            if (hp < 6) return "Pas";
 
-            // ─── 6-9 HP → Basit destek veya yeni renk ───
+            // ─── 6-9 HP → Basit Destek / Yeni Renk ───
             if (hp < 10)
             {
                 // Partner majör açtıysa ve 3+ destek varsa → basit destek
@@ -88,8 +56,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 3)
                     {
-                        string kozSembol = KozSembolu(partnerKozu);
-                        return "2" + kozSembol;
+                        return "2" + KozSembolu(partnerKozu);
                     }
                 }
 
@@ -97,150 +64,98 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 string yeniRenk = YeniRenkBul(el, partnerKozu, 4, "1");
                 if (!string.IsNullOrEmpty(yeniRenk)) return yeniRenk;
 
-                // Yeni renk yoksa → 1NT (dengeli)
-                if (ElDegerlendirici.DengeliEl(el)) return "1NT";
+                // Dengeli/Yarı-Dengeli ise → 1NT (zayıf/orta)
+                if (ElDegerlendirici.DengeliEl(el) || ElDegerlendirici.YariDengeliEl(el))
+                    return "1NT";
 
-                // Son çare: partnerin rengine 2 seviye destek
+                // Son çare
                 if (!string.IsNullOrEmpty(partnerKozu))
-                {
-                    string kozSembol = KozSembolu(partnerKozu);
-                    return "2" + kozSembol;
-                }
+                    return "2" + KozSembolu(partnerKozu);
 
                 return "Pas";
             }
 
+            // ─── 10-15 HP → Invitational / Limit ───
             if (hp < 16)
             {
-                // 1. ÖNCE 4'lü MAJÖR göster
+                // 1. ÖNCE 4'lü MAJÖR göster (SAYC önceliği)
                 if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
                     return "1♠";
                 if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
                     return "1♥";
 
-                // 2. Partnerin majörüne 4+ destek varsa → limit raise
-                if (!string.IsNullOrEmpty(partnerKozu) &&
-                    (partnerKozu == "Maça" || partnerKozu == "Kupa"))
+                // 2. Partnerin majörüne kuvvetli destek (4+ kart) → Limit Raise
+                if (!string.IsNullOrEmpty(partnerKozu) && (partnerKozu == "Maça" || partnerKozu == "Kupa"))
                 {
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 4 && partnerSeviye == 1)
                     {
-                        string kozSembol = KozSembolu(partnerKozu);
-                        return "3" + kozSembol;
+                        return "3" + KozSembolu(partnerKozu);
                     }
                 }
 
-                // 3. Dengeli ise → 2NT (invite)
-                if (ElDegerlendirici.DengeliEl(el)) return "2NT";
+                // 3. Dengeli/Yarı-Dengeli ise → 2NT (Invite)
+                if (ElDegerlendirici.DengeliEl(el) || ElDegerlendirici.YariDengeliEl(el))
+                    return "2NT";
 
-                // 4. 5+ minör varsa → 2 seviyesi
-                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5 && partnerKozu != "Karo")
-                    return "2♦";
-                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5 && partnerKozu != "Sinek")
-                    return "2♣";
+                // 4. 5+ minör varsa → 2 seviyesi (forcing)
+                string minör = YeniRenkBul(el, partnerKozu, 5, "2");
+                if (!string.IsNullOrEmpty(minör)) return minör;
 
-                // 5. Son çare: 2NT
                 return "2NT";
             }
 
-            // ─── 13+ HP → 2/1 Game Force (yeni renk 2 seviyesinde) ───
-            // Öncelik 1: 5+ majör → 2♠ veya 2♥
+            // ─── 16+ HP → 2/1 Game Force ───
+            // 1. 5+ majör öncelikli
             string gfRenk = YeniRenkBul(el, partnerKozu, 5, "2");
             if (!string.IsNullOrEmpty(gfRenk)) return gfRenk;
 
-            // Öncelik 2: 4+ minör → 2♣ veya 2♦
+            // 2. 4+ herhangi bir renk
             gfRenk = YeniRenkBul(el, partnerKozu, 4, "2");
             if (!string.IsNullOrEmpty(gfRenk)) return gfRenk;
 
-            // Öncelik 3: Destek varsa → 3♠/3♥ (forcing raise)
+            // 3. Çok kuvvetli destek → 3 seviyesi forcing
             if (!string.IsNullOrEmpty(partnerKozu))
             {
-                string kozSembol = KozSembolu(partnerKozu);
-                return "3" + kozSembol;
+                return "3" + KozSembolu(partnerKozu);
             }
 
-            // Son çare: 2NT
             return "2NT";
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // YARDIMCI METOTLAR
-        // ═══════════════════════════════════════════════════════════════════
-
-        /// <summary>
-        /// Yeni renk bulur (partnerin rengi hariç).
-        /// Majör öncelikli, sonra minör.
-        /// </summary>
         private string YeniRenkBul(List<Card> el, string partnerKozu, int minUzunluk, string seviye)
         {
-            // Majör öncelikli
             string[] oncelik = { "Maça", "Kupa", "Karo", "Sinek" };
             string[] semboller = { "♠", "♥", "♦", "♣" };
 
             for (int i = 0; i < oncelik.Length; i++)
             {
-                // Partnerin rengi ise atla
                 if (oncelik[i] == partnerKozu) continue;
-
-                int uzunluk = ElDegerlendirici.RenkUzunlugu(el, oncelik[i]);
-                if (uzunluk >= minUzunluk)
+                if (ElDegerlendirici.RenkUzunlugu(el, oncelik[i]) >= minUzunluk)
                 {
                     return seviye + semboller[i];
                 }
             }
-
             return null;
         }
 
-        /// <summary>
-        /// Tekliften kozu çıkarır.
-        /// "1♠" → "Maça"
-        /// </summary>
         private string TekliftenKozCikar(string teklif)
         {
             if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return null;
-
-            char sonKarakter = teklif[teklif.Length - 1];
-            switch (sonKarakter)
-            {
-                case '♠': return "Maça";
-                case '♥': return "Kupa";
-                case '♦': return "Karo";
-                case '♣': return "Sinek";
-                case 'T':
-                case 't': return "NT";
-                default: return null;
-            }
+            char son = teklif[teklif.Length - 1];
+            return son switch { '♠' => "Maça", '♥' => "Kupa", '♦' => "Karo", '♣' => "Sinek", 'T' => "NT", 't' => "NT", _ => null };
         }
 
-        /// <summary>
-        /// Tekliften seviyeyi çıkarır.
-        /// "2♠" → 2
-        /// </summary>
         private int TekliftenSeviyeCikar(string teklif)
         {
             if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return 0;
-
-            string seviyeStr = teklif.Substring(0, teklif.Length - 1);
-            if (int.TryParse(seviyeStr, out int seviye)) return seviye;
+            if (int.TryParse(teklif.Substring(0, teklif.Length - 1), out int s)) return s;
             return 0;
         }
 
-        /// <summary>
-        /// Koz adını sembole çevirir.
-        /// "Maça" → "♠"
-        /// </summary>
         private string KozSembolu(string koz)
         {
-            switch (koz)
-            {
-                case "Maça": return "♠";
-                case "Kupa": return "♥";
-                case "Karo": return "♦";
-                case "Sinek": return "♣";
-                case "NT": return "NT";
-                default: return "?";
-            }
+            return koz switch { "Maça" => "♠", "Kupa" => "♥", "Karo" => "♦", "Sinek" => "♣", "NT" => "NT", _ => "?" };
         }
     }
 }
