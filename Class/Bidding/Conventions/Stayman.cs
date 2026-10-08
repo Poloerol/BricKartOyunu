@@ -1,29 +1,24 @@
-﻿using System;
+using System;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Stayman Konvansiyonu (2 yönlü).
-    /// 
-    /// Rol 1: Partner 1NT açtı, benim 4'lü majörüm var → 2♣ sorarım
-    /// Rol 2: Ben 1NT açtım, partner 2♣ dedi → 2♦/2♥/2♠ cevap veririm
-    /// 
-    /// Öncelik: 10 (BasitCevap'tan önce)
+    /// Stayman Konvansiyonu (SAYC Standard).
+    ///
+    /// Rol 1: Partner 1NT açtı, benim 4'lü majörüm var → 2♣ sorarım.
+    /// Rol 2: Ben 1NT açtım, partner 2♣ dedi → Majörlerimi bildiririm.
+    ///
+    /// Kurallar:
+    /// - Cevapçı: 8+ HP ve en az bir 4'lü majör.
+    /// - Açıcı Cevaplar: 2♠ (4+ Maça), 2♥ (4+ Kupa), 2♦ (Majör yok).
+    /// - Not: 4-4 majör varsa Maça önceliklidir.
     /// </summary>
     public class Stayman : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "Stayman";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 10;
-
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
 
         public bool UygunMu(IhaleDurumu durum)
         {
@@ -33,24 +28,21 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             var el = durum.AktifOyuncuEli;
 
-            // ── ROL 1: Partner 1NT açtı, ben Stayman sorusu soracağım ──
+            // ── ROL 1: Partner 1NT açtı, ben Stayman soracağım ──
             if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
                 && durum.KendiTeklifleri.Count == 0
                 && !durum.RakipActiMi())
             {
-                // 5+ majör varsa → Transfer kullan (Stayman değil)
-                bool besliMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 5;
-                bool besliKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5;
+                // 5+ majör varsa → Transfer konvansiyonu (JacobyTransfer) devreye girer.
+                if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 5 ||
+                    ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5)
+                    return false;
 
-                if (besliMaca || besliKupa) return false;
-
-                // 4'lü majör var mı?
+                // 4'lü majör + 8+ HP → Stayman
                 bool dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4;
                 bool dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4;
 
-                // 4'lü majör + 8+ HP → Stayman
-                if ((dortluMaca || dortluKupa)
-                    && ElDegerlendirici.HCP(el) >= 8)
+                if ((dortluMaca || dortluKupa) && ElDegerlendirici.HCP(el) >= 8)
                 {
                     return true;
                 }
@@ -65,10 +57,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             return false;
         }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
 
         public string TeklifVer(IhaleDurumu durum)
         {
@@ -87,9 +75,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 bool dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4;
                 bool dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4;
 
-                if (dortluMaca) return "2♠";   // 4-4'te Maça öncelikli
+                // Maça önceliklidir
+                if (dortluMaca) return "2♠";
                 if (dortluKupa) return "2♥";
-                return "2♦";   // Majör yok
+
+                // Majör yoksa 2♦
+                return "2♦";
             }
 
             return null;
