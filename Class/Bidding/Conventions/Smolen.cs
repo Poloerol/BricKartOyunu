@@ -1,22 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Smolen Konvansiyonu.
-    /// 
+    /// Smolen Konvansiyonu (SAYC Standard).
+    ///
     /// Kural:
-    /// - Partner 1NT açtı
-    /// - Ben 2♣ (Stayman) dedim
-    /// - Partner 2♦ dedi (4'lü majör YOK)
-    /// - Ben 3♥ derim → "5♠ + 4♥"
-    /// - Ben 3♠ derim → "5♥ + 4♠"
-    /// 
-    /// Amaç: 5-4 majör dağılımını göstermek. Partner NT'de
-    /// doğru majörü seçebilir.
-    /// 
+    /// - Partner 1NT açtı -> Ben 2♣ (Stayman) dedim -> Partner 2♦ (Majör yok) dedi.
+    /// - Ben 3♥ derim → "5♠ + 4♥" ( Majörlerden uzun olanı ters renk ile gösteririm).
+    /// - Ben 3♠ derim → "5♥ + 4♠".
+    ///
+    /// Amaç: 5-4 majör dağılımı olduğunu bildirmek ve partnerin en uygun majörü seçmesini sağlamak.
+    ///
     /// Öncelik: 26
     /// </summary>
     public class Smolen : IKonvansiyon
@@ -49,15 +46,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
-            // 5♠ + 4♥ VEYA 5♥ + 4♠
-            bool besliMacaDortluKupa = (maca == 5 && kupa == 4);
-            bool besliKupaDortluMaca = (kupa == 5 && maca == 4);
+            // 5-4 majör dağılımı kontrolü
+            bool besliMacaDortluKupa = (maca >= 5 && kupa == 4);
+            bool besliKupaDortluMaca = (kupa >= 5 && maca == 4);
 
             if (!besliMacaDortluKupa && !besliKupaDortluMaca) return false;
 
-            // 5. Yeterli puan (game forcing, 8+ HP)
-            int hp = ElDegerlendirici.HCP(el);
-            if (hp < 8) return false;
+            // 5. Puan kontrolü (8+ HP yeterlidir)
+            if (ElDegerlendirici.HCP(el) < 8) return false;
 
             return true;
         }
@@ -68,11 +64,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
-            // 5♠ + 4♥ → 3♥ (yapay, "5♠ var" demek)
-            if (maca == 5 && kupa == 4) return "3♥";
+            // Smolen mantığı: Uzun olan majörü "ters" majör ile bildir.
+            // 5+ Maça + 4 Kupa → 3♥ (SAYC: 3♥ teklifi 5♠'yi gösterir)
+            if (maca >= 5 && kupa == 4) return "3♥";
 
-            // 5♥ + 4♠ → 3♠ (yapay, "5♥ var" demek)
-            if (kupa == 5 && maca == 4) return "3♠";
+            // 5+ Kupa + 4 Maça → 3♠ (SAYC: 3♠ teklifi 5♥'yi gösterir)
+            if (kupa >= 5 && maca == 4) return "3♠";
 
             return "Pas";
         }
