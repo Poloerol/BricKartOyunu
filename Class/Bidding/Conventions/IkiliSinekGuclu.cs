@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,28 +6,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
     /// 2♣ Yapay Güçlü Açılış Konvansiyonu.
-    /// 
+    ///
     /// Kural:
     /// - 22+ HP VEYA
-    /// - 9 tricks (yaklaşık 22+ HP veya çok kuvvetli dağılım)
-    /// 
-    /// Amaç: Çok güçlü elleri tek seferde göstermek.
-    /// 
+    /// - Tek başına 9+ trick alabilecek kadar kuvvetli el (HCP + Dağılım + Quick Tricks)
+    ///
+    /// Amaç: Çok güçlü elleri tek seferde göstermek ve partneriyle slam/grand slam planlamak.
+    ///
     /// Öncelik: 5 (tüm açılışlardan önce kontrol edilir)
-    /// 
-    /// Örnek:
-    ///   El: ♠AKQ54 ♥AKQ3 ♦AK ♣T87  → 22+ HP → "2♣"
-    ///   El: ♠AKQJ54 ♥AK ♦KQ2 ♣A87  → 23 HP → "2♣"
-    ///   El: ♠AKQJ54 ♥AKQ3 ♦KQ2 ♣-  → 23 HP + void → "2♣"
     /// </summary>
     public class IkiliSinekGuclu : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "2♣ Güçlü";
-
         public bool AktifMi { get; set; } = true;
 
         /// <summary>
@@ -35,37 +25,32 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// </summary>
         public int Oncelik => 5;
 
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
-
         public bool UygunMu(IhaleDurumu durum)
         {
             if (durum == null) return false;
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
 
-            // 1. Sadece ilk teklifte geçerli
+            // Sadece ilk teklifte geçerli
             if (!durum.IlkTeklifMi()) return false;
 
             var el = durum.AktifOyuncuEli;
 
-            // 2. HP kontrolü
+            // 1. Saf HP Kontrolü: 22+ HP her zaman 2♣ açar
             int hp = ElDegerlendirici.HCP(el);
-
-            // 22+ HP → 2♣
             if (hp >= 22) return true;
 
-            // 20-21 HP + dengeli → 2NT (bu konvansiyonda değil — StrongNT 20-21 için ayrı)
-            // NOT: Weak NT veya 20-21 için ayrı konvansiyon eklenebilir.
-            // Şimdilik 2NT'yi es geçiyoruz.
+            // 2. Trick Potansiyeli Kontrolü (Yaklaşık 9+ trick)
+            // Modern yaklaşım: Quick Tricks + Dağılım Puanı + HCP ağırlığı
+            double quickTricks = ElDegerlendirici.HizliElSayisi(el);
+            int dagilimPuani = ElDegerlendirici.DagilimPuani(el);
 
-            // 3. 9 tricks kontrolü (basit)
-            //    - 20+ HP + 5-5 dağılım → yaklaşık 9 tricks
-            //    - 19+ HP + 6-4 dağılım → yaklaşık 9 tricks
+            // Kural: Quick Tricks + (Dağılım/2) + (HCP/4) yaklaşık 9'u geçiyorsa
+            // Veya daha basitçe: Quick Tricks >= 7 ve HP >= 19 ise dağılıma bak
             if (hp >= 19)
             {
-                if (YuksekDagilimTrickVarMi(el)) return true;
+                if (quickTricks >= 6.5 || YuksekDagilimTrickVarMi(el))
+                    return true;
             }
 
             return false;
@@ -86,15 +71,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // 5-5 iki renk
             if (sayilar[0] >= 5 && sayilar[1] >= 5) return true;
 
-            // 5-4-4-0
-            if (sayilar[0] == 5 && sayilar[1] == 4 && sayilar[2] == 4) return true;
+            // 5-4-4-0 veya benzeri aşırı dengesiz güçlü eller
+            if (sayilar[0] >= 5 && sayilar[1] >= 4 && sayilar[2] >= 4) return true;
+            if (sayilar[3] == 0 && ElDegerlendirici.HCP(el) >= 20) return true;
 
             return false;
         }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
 
         public string TeklifVer(IhaleDurumu durum)
         {
