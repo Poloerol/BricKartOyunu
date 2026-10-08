@@ -1,19 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Drury Konvansiyonu (Reverse Drury).
-    /// 
+    /// Drury Konvansiyonu (SAYC Standard).
+    ///
     /// Kural:
-    /// - Partner daha önce Pas dedi (3. veya 4. pozisyon)
-    /// - Ben 1♥ veya 1♠ açtım
-    /// - Partner 2♣ der → "Yapay, 3+ majör desteği + 10+ HP"
-    /// 
-    /// Amaç: Pas - 1M açılışlarına yapay 2♣ ile game denemesi.
-    /// 
+    /// - Partner 3. veya 4. pozisyonda 1 majör (1♠ veya 1♥) açtı.
+    /// - Ben 2♣ diyerek "yapay" bir teklif veririm.
+    /// - Bu teklif: 3+ majör desteği ve 10+ HP olduğunu gösterir.
+    ///
+    /// Amaç: İkinci pozisyonda yapılamayan "Limit Raise" veya "Game" denemesini
+    /// 3. veya 4. pozisyonda yapabilmek.
+    ///
     /// Öncelik: 25
     /// </summary>
     public class Drury : IKonvansiyon
@@ -29,31 +30,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
-            // Partner 1♥ veya 1♠ açtı mı?
+            // 1. Partner bir majör açtı mı?
             if (durum.PartnerTeklifleri.Count == 0) return false;
             string partnerSon = durum.PartnerTeklifleri.Last();
             if (partnerSon != "1♥" && partnerSon != "1♠") return false;
 
-            // Partner ilk konuşan mıydı? Yani partnerden önce pas var mı?
+            // 2. Partner 3. veya 4. pozisyonda mı açtı?
+            // Yani partnerden önce en az bir kişi pas geçmiş olmalı.
             var partnerIlkHamle = durum.Gecmis
                 .FirstOrDefault(h => h.Oyuncu == durum.Partner && h.GercekTeklifMi);
             if (partnerIlkHamle == null) return false;
 
-            // Partnerden önce pas var mı? (3. veya 4. pozisyon)
             bool partnerdenOncePasVar = durum.Gecmis.Any(h =>
                 h.Sira < partnerIlkHamle.Sira && h.PasMi);
             if (!partnerdenOncePasVar) return false;
 
-            // Ben henüz konuşmadım
+            // 3. Ben henüz konuşmadım
             if (durum.KendiTeklifleri.Count > 0) return false;
 
-            // Partnerin majöründe 3+ destek var mı?
+            // 4. Partnerin majöründe 3+ destek var mı?
             string partnerKozu = partnerSon == "1♥" ? "Kupa" : "Maça";
-            int destek = ElDegerlendirici.RenkUzunlugu(
-                durum.AktifOyuncuEli, partnerKozu);
+            int destek = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, partnerKozu);
             if (destek < 3) return false;
 
-            // 10+ HP
+            // 5. 10+ HP kontrolü
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
             if (hp < 10) return false;
 
