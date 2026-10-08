@@ -149,6 +149,9 @@
             this.BtnPuppetStayman = new System.Windows.Forms.Button();
             this.BtnGrandSlamSoru = new System.Windows.Forms.Button();
             this.BtnGrandSlamCevap = new System.Windows.Forms.Button();
+            this.BtnPuppet5liKupaCevap = new System.Windows.Forms.Button();
+            this.btnPuppet3Karo4Majorvar = new System.Windows.Forms.Button();
+            this.BtnPuppet3KaroSonrasi = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -871,7 +874,7 @@
             // 
             // BtnTest_Gerber_SoruSorma
             // 
-            this.BtnTest_Gerber_SoruSorma.Location = new System.Drawing.Point(29, 116);
+            this.BtnTest_Gerber_SoruSorma.Location = new System.Drawing.Point(15, 52);
             this.BtnTest_Gerber_SoruSorma.Name = "BtnTest_Gerber_SoruSorma";
             this.BtnTest_Gerber_SoruSorma.Size = new System.Drawing.Size(138, 37);
             this.BtnTest_Gerber_SoruSorma.TabIndex = 8;
@@ -881,7 +884,7 @@
             // 
             // BtnGerberCevapVerme
             // 
-            this.BtnGerberCevapVerme.Location = new System.Drawing.Point(29, 159);
+            this.BtnGerberCevapVerme.Location = new System.Drawing.Point(15, 95);
             this.BtnGerberCevapVerme.Name = "BtnGerberCevapVerme";
             this.BtnGerberCevapVerme.Size = new System.Drawing.Size(138, 37);
             this.BtnGerberCevapVerme.TabIndex = 9;
@@ -891,7 +894,7 @@
             // 
             // BtnGerberNegatif
             // 
-            this.BtnGerberNegatif.Location = new System.Drawing.Point(29, 202);
+            this.BtnGerberNegatif.Location = new System.Drawing.Point(15, 138);
             this.BtnGerberNegatif.Name = "BtnGerberNegatif";
             this.BtnGerberNegatif.Size = new System.Drawing.Size(138, 37);
             this.BtnGerberNegatif.TabIndex = 10;
@@ -901,7 +904,7 @@
             // 
             // BtnJacoby2NTPozitif
             // 
-            this.BtnJacoby2NTPozitif.Location = new System.Drawing.Point(173, 116);
+            this.BtnJacoby2NTPozitif.Location = new System.Drawing.Point(159, 52);
             this.BtnJacoby2NTPozitif.Name = "BtnJacoby2NTPozitif";
             this.BtnJacoby2NTPozitif.Size = new System.Drawing.Size(138, 37);
             this.BtnJacoby2NTPozitif.TabIndex = 11;
@@ -911,7 +914,7 @@
             // 
             // BtnJacoby2NTNegatif3luDestek
             // 
-            this.BtnJacoby2NTNegatif3luDestek.Location = new System.Drawing.Point(173, 159);
+            this.BtnJacoby2NTNegatif3luDestek.Location = new System.Drawing.Point(159, 95);
             this.BtnJacoby2NTNegatif3luDestek.Name = "BtnJacoby2NTNegatif3luDestek";
             this.BtnJacoby2NTNegatif3luDestek.Size = new System.Drawing.Size(138, 37);
             this.BtnJacoby2NTNegatif3luDestek.TabIndex = 12;
@@ -921,7 +924,7 @@
             // 
             // BtnJacoby2NTRakipMudahele
             // 
-            this.BtnJacoby2NTRakipMudahele.Location = new System.Drawing.Point(173, 202);
+            this.BtnJacoby2NTRakipMudahele.Location = new System.Drawing.Point(159, 138);
             this.BtnJacoby2NTRakipMudahele.Name = "BtnJacoby2NTRakipMudahele";
             this.BtnJacoby2NTRakipMudahele.Size = new System.Drawing.Size(138, 37);
             this.BtnJacoby2NTRakipMudahele.TabIndex = 13;
@@ -931,7 +934,7 @@
             // 
             // BtnSplinterMacaSinek
             // 
-            this.BtnSplinterMacaSinek.Location = new System.Drawing.Point(317, 116);
+            this.BtnSplinterMacaSinek.Location = new System.Drawing.Point(303, 52);
             this.BtnSplinterMacaSinek.Name = "BtnSplinterMacaSinek";
             this.BtnSplinterMacaSinek.Size = new System.Drawing.Size(138, 37);
             this.BtnSplinterMacaSinek.TabIndex = 14;
@@ -941,7 +944,7 @@
             // 
             // BtnSplinterKosKupaKisaMaca
             // 
-            this.BtnSplinterKosKupaKisaMaca.Location = new System.Drawing.Point(317, 159);
+            this.BtnSplinterKosKupaKisaMaca.Location = new System.Drawing.Point(303, 95);
             this.BtnSplinterKosKupaKisaMaca.Name = "BtnSplinterKosKupaKisaMaca";
             this.BtnSplinterKosKupaKisaMaca.Size = new System.Drawing.Size(138, 37);
             this.BtnSplinterKosKupaKisaMaca.TabIndex = 15;
@@ -951,7 +954,7 @@
             // 
             // BtnMichaelsRakipMacaActi
             // 
-            this.BtnMichaelsRakipMacaActi.Location = new System.Drawing.Point(29, 267);
+            this.BtnMichaelsRakipMacaActi.Location = new System.Drawing.Point(15, 203);
             this.BtnMichaelsRakipMacaActi.Name = "BtnMichaelsRakipMacaActi";
             this.BtnMichaelsRakipMacaActi.Size = new System.Drawing.Size(138, 37);
             this.BtnMichaelsRakipMacaActi.TabIndex = 16;
@@ -961,7 +964,7 @@
             // 
             // BtnMichaelsRakipKaroActi
             // 
-            this.BtnMichaelsRakipKaroActi.Location = new System.Drawing.Point(29, 310);
+            this.BtnMichaelsRakipKaroActi.Location = new System.Drawing.Point(15, 246);
             this.BtnMichaelsRakipKaroActi.Name = "BtnMichaelsRakipKaroActi";
             this.BtnMichaelsRakipKaroActi.Size = new System.Drawing.Size(138, 37);
             this.BtnMichaelsRakipKaroActi.TabIndex = 17;
@@ -971,7 +974,7 @@
             // 
             // BtnMichaelsNegatif
             // 
-            this.BtnMichaelsNegatif.Location = new System.Drawing.Point(29, 353);
+            this.BtnMichaelsNegatif.Location = new System.Drawing.Point(15, 289);
             this.BtnMichaelsNegatif.Name = "BtnMichaelsNegatif";
             this.BtnMichaelsNegatif.Size = new System.Drawing.Size(138, 37);
             this.BtnMichaelsNegatif.TabIndex = 18;
@@ -981,7 +984,7 @@
             // 
             // BtnTemelMantikYeniRenk
             // 
-            this.BtnTemelMantikYeniRenk.Location = new System.Drawing.Point(173, 267);
+            this.BtnTemelMantikYeniRenk.Location = new System.Drawing.Point(159, 203);
             this.BtnTemelMantikYeniRenk.Name = "BtnTemelMantikYeniRenk";
             this.BtnTemelMantikYeniRenk.Size = new System.Drawing.Size(138, 37);
             this.BtnTemelMantikYeniRenk.TabIndex = 19;
@@ -991,7 +994,7 @@
             // 
             // BtnNTInvite
             // 
-            this.BtnNTInvite.Location = new System.Drawing.Point(173, 310);
+            this.BtnNTInvite.Location = new System.Drawing.Point(159, 246);
             this.BtnNTInvite.Name = "BtnNTInvite";
             this.BtnNTInvite.Size = new System.Drawing.Size(138, 37);
             this.BtnNTInvite.TabIndex = 20;
@@ -1001,7 +1004,7 @@
             // 
             // BtnTemelMantikRakipMudahele
             // 
-            this.BtnTemelMantikRakipMudahele.Location = new System.Drawing.Point(173, 353);
+            this.BtnTemelMantikRakipMudahele.Location = new System.Drawing.Point(159, 289);
             this.BtnTemelMantikRakipMudahele.Name = "BtnTemelMantikRakipMudahele";
             this.BtnTemelMantikRakipMudahele.Size = new System.Drawing.Size(138, 37);
             this.BtnTemelMantikRakipMudahele.TabIndex = 21;
@@ -1011,7 +1014,7 @@
             // 
             // BtnUnusual2NTRakip1Sinek
             // 
-            this.BtnUnusual2NTRakip1Sinek.Location = new System.Drawing.Point(317, 267);
+            this.BtnUnusual2NTRakip1Sinek.Location = new System.Drawing.Point(303, 203);
             this.BtnUnusual2NTRakip1Sinek.Name = "BtnUnusual2NTRakip1Sinek";
             this.BtnUnusual2NTRakip1Sinek.Size = new System.Drawing.Size(138, 37);
             this.BtnUnusual2NTRakip1Sinek.TabIndex = 22;
@@ -1021,7 +1024,7 @@
             // 
             // BtnSupportDouble
             // 
-            this.BtnSupportDouble.Location = new System.Drawing.Point(29, 406);
+            this.BtnSupportDouble.Location = new System.Drawing.Point(15, 342);
             this.BtnSupportDouble.Name = "BtnSupportDouble";
             this.BtnSupportDouble.Size = new System.Drawing.Size(138, 37);
             this.BtnSupportDouble.TabIndex = 23;
@@ -1031,7 +1034,7 @@
             // 
             // BtnResponsiveDouble
             // 
-            this.BtnResponsiveDouble.Location = new System.Drawing.Point(173, 406);
+            this.BtnResponsiveDouble.Location = new System.Drawing.Point(159, 342);
             this.BtnResponsiveDouble.Name = "BtnResponsiveDouble";
             this.BtnResponsiveDouble.Size = new System.Drawing.Size(138, 37);
             this.BtnResponsiveDouble.TabIndex = 24;
@@ -1041,7 +1044,7 @@
             // 
             // BtnUnusual2NTRakip1Karo
             // 
-            this.BtnUnusual2NTRakip1Karo.Location = new System.Drawing.Point(317, 310);
+            this.BtnUnusual2NTRakip1Karo.Location = new System.Drawing.Point(303, 246);
             this.BtnUnusual2NTRakip1Karo.Name = "BtnUnusual2NTRakip1Karo";
             this.BtnUnusual2NTRakip1Karo.Size = new System.Drawing.Size(138, 37);
             this.BtnUnusual2NTRakip1Karo.TabIndex = 25;
@@ -1051,7 +1054,7 @@
             // 
             // BtnUnusual2NTRakip1Kupa
             // 
-            this.BtnUnusual2NTRakip1Kupa.Location = new System.Drawing.Point(317, 353);
+            this.BtnUnusual2NTRakip1Kupa.Location = new System.Drawing.Point(303, 289);
             this.BtnUnusual2NTRakip1Kupa.Name = "BtnUnusual2NTRakip1Kupa";
             this.BtnUnusual2NTRakip1Kupa.Size = new System.Drawing.Size(138, 37);
             this.BtnUnusual2NTRakip1Kupa.TabIndex = 26;
@@ -1061,7 +1064,7 @@
             // 
             // BtnUnusual2NTRakip1Maca
             // 
-            this.BtnUnusual2NTRakip1Maca.Location = new System.Drawing.Point(317, 406);
+            this.BtnUnusual2NTRakip1Maca.Location = new System.Drawing.Point(303, 342);
             this.BtnUnusual2NTRakip1Maca.Name = "BtnUnusual2NTRakip1Maca";
             this.BtnUnusual2NTRakip1Maca.Size = new System.Drawing.Size(138, 37);
             this.BtnUnusual2NTRakip1Maca.TabIndex = 27;
@@ -1071,7 +1074,7 @@
             // 
             // BtnMinorTrasnferSinek
             // 
-            this.BtnMinorTrasnferSinek.Location = new System.Drawing.Point(29, 464);
+            this.BtnMinorTrasnferSinek.Location = new System.Drawing.Point(15, 400);
             this.BtnMinorTrasnferSinek.Name = "BtnMinorTrasnferSinek";
             this.BtnMinorTrasnferSinek.Size = new System.Drawing.Size(138, 37);
             this.BtnMinorTrasnferSinek.TabIndex = 28;
@@ -1081,7 +1084,7 @@
             // 
             // BtnMinorTransferKaro
             // 
-            this.BtnMinorTransferKaro.Location = new System.Drawing.Point(29, 507);
+            this.BtnMinorTransferKaro.Location = new System.Drawing.Point(15, 443);
             this.BtnMinorTransferKaro.Name = "BtnMinorTransferKaro";
             this.BtnMinorTransferKaro.Size = new System.Drawing.Size(138, 37);
             this.BtnMinorTransferKaro.TabIndex = 29;
@@ -1091,7 +1094,7 @@
             // 
             // BtnDrury
             // 
-            this.BtnDrury.Location = new System.Drawing.Point(29, 550);
+            this.BtnDrury.Location = new System.Drawing.Point(15, 486);
             this.BtnDrury.Name = "BtnDrury";
             this.BtnDrury.Size = new System.Drawing.Size(138, 37);
             this.BtnDrury.TabIndex = 30;
@@ -1101,7 +1104,7 @@
             // 
             // BtnSmolen5Maca4Kupa
             // 
-            this.BtnSmolen5Maca4Kupa.Location = new System.Drawing.Point(173, 464);
+            this.BtnSmolen5Maca4Kupa.Location = new System.Drawing.Point(159, 400);
             this.BtnSmolen5Maca4Kupa.Name = "BtnSmolen5Maca4Kupa";
             this.BtnSmolen5Maca4Kupa.Size = new System.Drawing.Size(138, 37);
             this.BtnSmolen5Maca4Kupa.TabIndex = 31;
@@ -1111,7 +1114,7 @@
             // 
             // BtnSmolen5Kupa4Maca
             // 
-            this.BtnSmolen5Kupa4Maca.Location = new System.Drawing.Point(173, 507);
+            this.BtnSmolen5Kupa4Maca.Location = new System.Drawing.Point(159, 443);
             this.BtnSmolen5Kupa4Maca.Name = "BtnSmolen5Kupa4Maca";
             this.BtnSmolen5Kupa4Maca.Size = new System.Drawing.Size(138, 37);
             this.BtnSmolen5Kupa4Maca.TabIndex = 32;
@@ -1121,7 +1124,7 @@
             // 
             // BtnPuppetStayman
             // 
-            this.BtnPuppetStayman.Location = new System.Drawing.Point(317, 464);
+            this.BtnPuppetStayman.Location = new System.Drawing.Point(303, 400);
             this.BtnPuppetStayman.Name = "BtnPuppetStayman";
             this.BtnPuppetStayman.Size = new System.Drawing.Size(138, 37);
             this.BtnPuppetStayman.TabIndex = 33;
@@ -1131,7 +1134,7 @@
             // 
             // BtnGrandSlamSoru
             // 
-            this.BtnGrandSlamSoru.Location = new System.Drawing.Point(317, 507);
+            this.BtnGrandSlamSoru.Location = new System.Drawing.Point(470, 416);
             this.BtnGrandSlamSoru.Name = "BtnGrandSlamSoru";
             this.BtnGrandSlamSoru.Size = new System.Drawing.Size(138, 37);
             this.BtnGrandSlamSoru.TabIndex = 34;
@@ -1141,7 +1144,7 @@
             // 
             // BtnGrandSlamCevap
             // 
-            this.BtnGrandSlamCevap.Location = new System.Drawing.Point(317, 550);
+            this.BtnGrandSlamCevap.Location = new System.Drawing.Point(470, 459);
             this.BtnGrandSlamCevap.Name = "BtnGrandSlamCevap";
             this.BtnGrandSlamCevap.Size = new System.Drawing.Size(138, 37);
             this.BtnGrandSlamCevap.TabIndex = 35;
@@ -1149,11 +1152,44 @@
             this.BtnGrandSlamCevap.UseVisualStyleBackColor = true;
             this.BtnGrandSlamCevap.Click += new System.EventHandler(this.BtnGrandSlamCevap_Click);
             // 
+            // BtnPuppet5liKupaCevap
+            // 
+            this.BtnPuppet5liKupaCevap.Location = new System.Drawing.Point(303, 443);
+            this.BtnPuppet5liKupaCevap.Name = "BtnPuppet5liKupaCevap";
+            this.BtnPuppet5liKupaCevap.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet5liKupaCevap.TabIndex = 36;
+            this.BtnPuppet5liKupaCevap.Text = "TEST 9.2 — Puppet: Açıcı 5\'li ♥ ile ceva";
+            this.BtnPuppet5liKupaCevap.UseVisualStyleBackColor = true;
+            this.BtnPuppet5liKupaCevap.Click += new System.EventHandler(this.BtnPuppet5liKupaCevap_Click);
+            // 
+            // btnPuppet3Karo4Majorvar
+            // 
+            this.btnPuppet3Karo4Majorvar.Location = new System.Drawing.Point(303, 486);
+            this.btnPuppet3Karo4Majorvar.Name = "btnPuppet3Karo4Majorvar";
+            this.btnPuppet3Karo4Majorvar.Size = new System.Drawing.Size(138, 37);
+            this.btnPuppet3Karo4Majorvar.TabIndex = 37;
+            this.btnPuppet3Karo4Majorvar.Text = "TEST 9.3 — Puppet: Açıcı 3♦ (4\'lü majör var)";
+            this.btnPuppet3Karo4Majorvar.UseVisualStyleBackColor = true;
+            this.btnPuppet3Karo4Majorvar.Click += new System.EventHandler(this.btnPuppet3Karo4Majorvar_Click);
+            // 
+            // BtnPuppet3KaroSonrasi
+            // 
+            this.BtnPuppet3KaroSonrasi.Location = new System.Drawing.Point(303, 529);
+            this.BtnPuppet3KaroSonrasi.Name = "BtnPuppet3KaroSonrasi";
+            this.BtnPuppet3KaroSonrasi.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet3KaroSonrasi.TabIndex = 38;
+            this.BtnPuppet3KaroSonrasi.Text = "TEST 9.4 — Puppet: 3♦ sonrası 3♥ (4\'lü ♠ sorusu)";
+            this.BtnPuppet3KaroSonrasi.UseVisualStyleBackColor = true;
+            this.BtnPuppet3KaroSonrasi.Click += new System.EventHandler(this.BtnPuppet3KaroSonrasi_Click);
+            // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1366, 651);
+            this.Controls.Add(this.BtnPuppet3KaroSonrasi);
+            this.Controls.Add(this.btnPuppet3Karo4Majorvar);
+            this.Controls.Add(this.BtnPuppet5liKupaCevap);
             this.Controls.Add(this.BtnGrandSlamCevap);
             this.Controls.Add(this.BtnGrandSlamSoru);
             this.Controls.Add(this.BtnPuppetStayman);
@@ -1328,5 +1364,8 @@
         private System.Windows.Forms.Button BtnPuppetStayman;
         private System.Windows.Forms.Button BtnGrandSlamSoru;
         private System.Windows.Forms.Button BtnGrandSlamCevap;
+        private System.Windows.Forms.Button BtnPuppet5liKupaCevap;
+        private System.Windows.Forms.Button btnPuppet3Karo4Majorvar;
+        private System.Windows.Forms.Button BtnPuppet3KaroSonrasi;
     }
 }

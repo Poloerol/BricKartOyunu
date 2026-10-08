@@ -1546,7 +1546,7 @@ namespace BricKartOyunu
         public static void Test_PuppetStayman()
         {
             Debug.WriteLine("════════════════════════════════════════");
-            Debug.WriteLine("TEST 9.1 — Puppet Stayman (2NT - 3♣)");
+            Debug.WriteLine("TEST 9.1 — Puppet Stayman Soru (2NT - 3♣)");
             Debug.WriteLine("════════════════════════════════════════");
 
             // Partner 2NT açtı, ben 4'lü majör ile 3♣ diyeceğim
@@ -1596,10 +1596,179 @@ namespace BricKartOyunu
             Debug.WriteLine(sonuc == "3♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♣)");
             Debug.WriteLine("════════════════════════════════════════");
         }
+        public static void Test_Puppet_5liKupa()
+        {
+            Debug.WriteLine("════════════════════════════════════════");
+            Debug.WriteLine("TEST 9.2 — Puppet: Açıcı 5'li ♥ ile cevap");
+            Debug.WriteLine("════════════════════════════════════════");
+
+            // Kuzey 2NT açtı, Güney 3♣ sordu, sıra Kuzey'de
+            var kuzeyEli = new List<Card>
+    {
+        // 5'li ♥
+        new Card { Suit = "Kupa", Value = 13 },
+        new Card { Suit = "Kupa", Value = 11 },
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 12 },
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 2♦
+        new Card { Suit = "Karo", Value = 14 },
+        new Card { Suit = "Karo", Value = 6 },
+        // 2♣
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Debug.WriteLine($"Maça: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Maça")}");
+            Debug.WriteLine($"Kupa: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Kupa")}");
+            Debug.WriteLine("Beklenen: 3♥ (5'li ♥ var)");
+            Debug.WriteLine("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Debug.WriteLine($"Motor → {sonuc}");
+            Debug.WriteLine(sonuc == "3♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♥)");
+            Debug.WriteLine("════════════════════════════════════════");
+        }
+        public static void Test_Puppet_4luMajor()
+        {
+            Debug.WriteLine("════════════════════════════════════════");
+            Debug.WriteLine("TEST 9.3 — Puppet: Açıcı 3♦ (4'lü majör var)");
+            Debug.WriteLine("════════════════════════════════════════");
+
+            // Kuzey 2NT açtı, Güney 3♣ sordu, sıra Kuzey'de
+            // Kuzey'in eli: 4'lü ♠ + 4'lü ♥ + 5'li ♦
+            var kuzeyEli = new List<Card>
+    {
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 13 },
+        new Card { Suit = "Maça", Value = 11 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 12 },
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 14 },
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Debug.WriteLine($"Maça: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Maça")}");
+            Debug.WriteLine($"Kupa: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Kupa")}");
+            Debug.WriteLine("Beklenen: 3♦ (4'lü majör var, 5'li yok)");
+            Debug.WriteLine("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Debug.WriteLine($"Motor → {sonuc}");
+            Debug.WriteLine(sonuc == "3♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♦)");
+            Debug.WriteLine("════════════════════════════════════════");
+        }
+        public static void Test_Puppet_2Tur_4luMaca()
+        {
+            Debug.WriteLine("════════════════════════════════════════");
+            Debug.WriteLine("TEST 9.4 — Puppet: 3♦ sonrası 3♥ (4'lü ♠ sorusu)");
+            Debug.WriteLine("════════════════════════════════════════");
+
+            // 2NT - 3♣ - 3♦ - ? (Güney'in sırası)
+            // Güney'in eli: 4'lü ♠ + dengeli, 4'lü ♥ yok
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 14 },
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 12 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 13 },
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♦",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Debug.WriteLine($"Maça: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")}");
+            Debug.WriteLine($"Kupa: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Kupa")}");
+            Debug.WriteLine("Beklenen: 3♥ (4'lü ♠ sorusu)");
+            Debug.WriteLine("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Debug.WriteLine($"Motor → {sonuc}");
+            Debug.WriteLine(sonuc == "3♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♥)");
+            Debug.WriteLine("════════════════════════════════════════");
+        }
         public static void Test_GSF_Soru()
         {
             Debug.WriteLine("════════════════════════════════════════");
-            Debug.WriteLine("TEST 9.2 — Grand Slam Force (Soru)");
+            Debug.WriteLine("TEST 9.3 — Grand Slam Force (Soru)");
             Debug.WriteLine("════════════════════════════════════════");
 
             // Ben Blackwood 4NT dedim, partner 5♠ (2 As) dedi, ben 5NT diyeceğim
@@ -1658,7 +1827,7 @@ namespace BricKartOyunu
         public static void Test_GSF_Cevap()
         {
             Debug.WriteLine("════════════════════════════════════════");
-            Debug.WriteLine("TEST 9.3 — Grand Slam Force (Cevap)");
+            Debug.WriteLine("TEST 9.4 — Grand Slam Force (Cevap)");
             Debug.WriteLine("════════════════════════════════════════");
 
             // Partner 5NT dedi, ben Papaz sayısını söyleyeceğim

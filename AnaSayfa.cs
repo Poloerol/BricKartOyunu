@@ -856,5 +856,20 @@ namespace BricKartOyunu.Forms
         {
             TestRunner.Test_GSF_Cevap();
         }
+
+        private void BtnPuppet5liKupaCevap_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_5liKupa();
+        }
+
+        private void btnPuppet3Karo4Majorvar_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_4luMajor();
+        }
+
+        private void BtnPuppet3KaroSonrasi_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_2Tur_4luMaca();
+        }
     }
 }
