@@ -301,7 +301,6 @@
             this.BtnOtoOyna.Size = new System.Drawing.Size(23, 22);
             this.BtnOtoOyna.Text = "toolStripButton4";
             this.BtnOtoOyna.ToolTipText = "Otomatik Oynama";
-            this.BtnOtoOyna.Click += new System.EventHandler(this.BtnOtoOyna_Click);
             // 
             // BtnClaim
             // 

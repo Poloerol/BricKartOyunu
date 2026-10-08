@@ -2708,10 +2708,73 @@ namespace BricKartOyunu
             Card secilen = null;
             if (!string.IsNullOrEmpty(_buEldeAtakRengi))
             {
-                var ayniRenk = el.Where(c => c.Suit == _buEldeAtakRengi).ToList();
+                var ayniRenk = el.Where(c => c.Suit == _buEldeAtakRengi).OrderBy(c => c.Value).ToList();
                 if (ayniRenk.Count > 0)
                 {
-                    secilen = ayniRenk[_rng.Next(ayniRenk.Count)];
+                    int sira = _buEldeOynananlar.Count + 1;
+
+                    if (sira == 2)
+                    {
+                        // 2. sırada ise rengin en küçüğünü oynar
+                        secilen = ayniRenk.First();
+                    }
+                    else if (sira == 3)
+                    {
+                        // 3. sırada ise rengin en büyüğünü oynar
+                        secilen = ayniRenk.Last();
+                    }
+                    else
+                    {
+                        // 1. veya 4. sırada ise stratejik atım yapar
+                        int enYuksekDeger = 0;
+                        Player enYuksekOyuncu = Player.Guney;
+
+                        foreach (var oynanan in _buEldeOynananlar)
+                        {
+                            if (oynanan.Kart.Suit == _buEldeAtakRengi && oynanan.Kart.Value > enYuksekDeger)
+                            {
+                                enYuksekDeger = oynanan.Kart.Value;
+                                enYuksekOyuncu = oynanan.Oyuncu;
+                            }
+                        }
+
+                        // Ortaklık Kontrolü: En yüksek kart ortağınsa, eli almaya çalışma, en küçüğü at.
+                        bool ortaklik = (oyuncu == Player.Guney && enYuksekOyuncu == Player.Kuzey) ||
+                                        (oyuncu == Player.Kuzey && enYuksekOyuncu == Player.Guney) ||
+                                        (oyuncu == Player.Bati && enYuksekOyuncu == Player.Dogu) ||
+                                        (oyuncu == Player.Dogu && enYuksekOyuncu == Player.Bati);
+
+                        if (ortaklik)
+                        {
+                            secilen = ayniRenk.First();
+                        }
+                        else if (sira == 4)
+                        {
+                            // 4. sırada ise ve elindeki kartlar masadakilerden büyükse,
+                            // eli kazanmak için masadaki en yükseği geçen EN KÜÇÜK kartı oynar.
+                            var kazananlar = ayniRenk.Where(c => c.Value > enYuksekDeger).ToList();
+                            if (kazananlar.Count > 0)
+                            {
+                                secilen = kazananlar.First();
+                            }
+                            else
+                            {
+                                // Kazanamayacaksa en küçüğünü atar
+                                secilen = ayniRenk.First();
+                            }
+                        }
+                        else // 1. sırada ise
+                        {
+                            if (ayniRenk.Last().Value < enYuksekDeger)
+                            {
+                                secilen = ayniRenk.First();
+                            }
+                            else
+                            {
+                                secilen = ayniRenk[_rng.Next(ayniRenk.Count)];
+                            }
+                        }
+                    }
                 }
             }
 
@@ -3022,8 +3085,19 @@ namespace BricKartOyunu
             // Masa yapısını 180 derece döndürerek (N<->S ve E<->W) simetriyi koruyoruz.
             if (deklaran == "Kuzey")
             {
-                ElleriTakasEt(Player.Kuzey); // Kuzey <-> Güney
-                ElleriTakasEt(Player.Dogu);  // Doğu <-> Batı (Simetri için)
+                // Kuzey <-> Güney takası
+                List<Card> tempNS = new List<Card>(guneyEl);
+                guneyEl.Clear();
+                guneyEl.AddRange(kuzeyEl);
+                kuzeyEl.Clear();
+                kuzeyEl.AddRange(tempNS);
+
+                // Doğu <-> Batı takası
+                List<Card> tempEW = new List<Card>(doguEl);
+                doguEl.Clear();
+                doguEl.AddRange(batiEl);
+                batiEl.Clear();
+                batiEl.AddRange(tempEW);
 
                 // Takastan sonra deklaran artık fiziksel olarak Güney'de.
                 _kontratDeklaran = Player.Guney;
@@ -3103,11 +3177,7 @@ namespace BricKartOyunu
             }
         }
 
-        private void BtnOtoOyna_Click(object sender, EventArgs e)
-        {
-
-        }
-
+       
         /// <summary>
         /// Oynanan tüm elleri bir formda gösterir.
         /// Deal Complete formundaki "Oyunu Göster" butonu da bunu çağırır.
