@@ -144,6 +144,8 @@
             this.BtnMinorTrasnferSinek = new System.Windows.Forms.Button();
             this.BtnMinorTransferKaro = new System.Windows.Forms.Button();
             this.BtnDrury = new System.Windows.Forms.Button();
+            this.BtnSmolen5Maca4Kupa = new System.Windows.Forms.Button();
+            this.BtnSmolen5Kupa4Maca = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -1094,11 +1096,33 @@
             this.BtnDrury.UseVisualStyleBackColor = true;
             this.BtnDrury.Click += new System.EventHandler(this.BtnDrury_Click);
             // 
+            // BtnSmolen5Maca4Kupa
+            // 
+            this.BtnSmolen5Maca4Kupa.Location = new System.Drawing.Point(173, 464);
+            this.BtnSmolen5Maca4Kupa.Name = "BtnSmolen5Maca4Kupa";
+            this.BtnSmolen5Maca4Kupa.Size = new System.Drawing.Size(138, 37);
+            this.BtnSmolen5Maca4Kupa.TabIndex = 31;
+            this.BtnSmolen5Maca4Kupa.Text = "TEST 8.1 — Smolen (5♠ + 4♥)";
+            this.BtnSmolen5Maca4Kupa.UseVisualStyleBackColor = true;
+            this.BtnSmolen5Maca4Kupa.Click += new System.EventHandler(this.BtnSmolen5Maca4Kupa_Click);
+            // 
+            // BtnSmolen5Kupa4Maca
+            // 
+            this.BtnSmolen5Kupa4Maca.Location = new System.Drawing.Point(173, 507);
+            this.BtnSmolen5Kupa4Maca.Name = "BtnSmolen5Kupa4Maca";
+            this.BtnSmolen5Kupa4Maca.Size = new System.Drawing.Size(138, 37);
+            this.BtnSmolen5Kupa4Maca.TabIndex = 32;
+            this.BtnSmolen5Kupa4Maca.Text = "TEST 8.2 — Smolen (5♥ + 4♠)";
+            this.BtnSmolen5Kupa4Maca.UseVisualStyleBackColor = true;
+            this.BtnSmolen5Kupa4Maca.Click += new System.EventHandler(this.BtnSmolen5Kupa4Maca_Click);
+            // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1366, 651);
+            this.Controls.Add(this.BtnSmolen5Kupa4Maca);
+            this.Controls.Add(this.BtnSmolen5Maca4Kupa);
             this.Controls.Add(this.BtnDrury);
             this.Controls.Add(this.BtnMinorTransferKaro);
             this.Controls.Add(this.BtnMinorTrasnferSinek);
@@ -1263,5 +1287,7 @@
         private System.Windows.Forms.Button BtnMinorTrasnferSinek;
         private System.Windows.Forms.Button BtnMinorTransferKaro;
         private System.Windows.Forms.Button BtnDrury;
+        private System.Windows.Forms.Button BtnSmolen5Maca4Kupa;
+        private System.Windows.Forms.Button BtnSmolen5Kupa4Maca;
     }
 }

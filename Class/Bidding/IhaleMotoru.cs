@@ -62,6 +62,7 @@ namespace BricKartOyunu.Class.Bidding
 
     new MinorTransfer(),     // ← YENİ (öncelik 24)
     new Drury(),             // ← YENİ (öncelik 25)
+    new Smolen(),           // ← YENİ (öncelik 26)
 
     new Stayman(),
     new JacobyTransfer(),

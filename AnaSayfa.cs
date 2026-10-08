@@ -831,5 +831,15 @@ namespace BricKartOyunu.Forms
         {
             TestRunner.Test_Drury();    
         }
+
+        private void BtnSmolen5Maca4Kupa_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Smolen_5Maca_4Kupa();
+        }
+
+        private void BtnSmolen5Kupa4Maca_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Smolen_5Kupa_4Maca();
+        }
     }
 }

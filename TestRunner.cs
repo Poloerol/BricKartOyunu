@@ -1425,5 +1425,123 @@ namespace BricKartOyunu
             Debug.WriteLine(sonuc == "Dbl" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen Dbl)");
             Debug.WriteLine("════════════════════════════════════════");
         }
+        public static void Test_Smolen_5Maca_4Kupa()
+        {
+            Debug.WriteLine("════════════════════════════════════════");
+            Debug.WriteLine("TEST 8.1 — Smolen (5♠ + 4♥)");
+            Debug.WriteLine("════════════════════════════════════════");
+
+            // Partner 1NT - Ben 2♣ - Partner 2♦ - Ben 3♥
+            var guneyEli = new List<Card>
+    {
+        // 5♠
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 11 }, // J = 1
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 4♥
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 2♦
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        // 2♣
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // Toplam: 3+1+4 = 8 HP
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♦",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Debug.WriteLine($"Maça: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")}");
+            Debug.WriteLine($"Kupa: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Kupa")}");
+            Debug.WriteLine($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Debug.WriteLine("Beklenen: 3♥");
+            Debug.WriteLine("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Debug.WriteLine($"Motor → {sonuc}");
+            Debug.WriteLine(sonuc == "3♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♥)");
+            Debug.WriteLine("════════════════════════════════════════");
+        }
+        public static void Test_Smolen_5Kupa_4Maca()
+        {
+            Debug.WriteLine("════════════════════════════════════════");
+            Debug.WriteLine("TEST 8.2 — Smolen (5♥ + 4♠)");
+            Debug.WriteLine("════════════════════════════════════════");
+
+            // Partner 1NT - Ben 2♣ - Partner 2♦ - Ben 3♠
+            var guneyEli = new List<Card>
+    {
+        // 4♠
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 5♥
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 2♦
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        // 2♣
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // Toplam: 4+3+1 = 8 HP
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♦",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Debug.WriteLine($"Maça: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")}");
+            Debug.WriteLine($"Kupa: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Kupa")}");
+            Debug.WriteLine($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Debug.WriteLine("Beklenen: 3♠");
+            Debug.WriteLine("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Debug.WriteLine($"Motor → {sonuc}");
+            Debug.WriteLine(sonuc == "3♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♠)");
+            Debug.WriteLine("════════════════════════════════════════");
+        }
     }
 }

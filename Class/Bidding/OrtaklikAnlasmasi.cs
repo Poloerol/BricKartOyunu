@@ -82,6 +82,7 @@ namespace BricKartOyunu.Class.Bidding
                 // 1NT cevapları
                 Stayman = true,
                 JacobyTransfer = true,
+                Smolen = true,
 
                 // Slam
                 Blackwood = true,
