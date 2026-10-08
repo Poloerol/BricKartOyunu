@@ -1,38 +1,26 @@
-﻿using System;
+using System;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Jacoby Transfer Konvansiyonu (2 yönlü).
-    /// 
-    /// Rol 1: Partner 1NT açtı, benim 5+ majörüm var → 2♦/2♥ transfer
+    /// Jacoby Transfer Konvansiyonu (SAYC Standard).
+    ///
+    /// Rol 1: Partner 1NT açtı, benim 5+ majörüm var → Transfer yaparım.
     ///   - 2♦ → 5+ Kupa gösterir (partner 2♥ der)
     ///   - 2♥ → 5+ Maça gösterir (partner 2♠ der)
-    /// 
-    /// Rol 2: Ben 1NT açtım, partner 2♦/2♥ transfer dedi → kabul ederim
+    ///
+    /// Rol 2: Ben 1NT açtım, partner 2♦/2♥ transfer dedi → kabul ederim.
     ///   - Partner 2♦ → ben 2♥ derim
     ///   - Partner 2♥ → ben 2♠ derim
-    /// 
-    /// Öncelik: 10 (Stayman ile aynı seviyede)
-    /// 
-    /// NOT: Stayman (4'lü majör) ve Transfer (5+ majör) çakışmaz:
-    /// - 4'lü majör → Stayman (2♣)
-    /// - 5+ majör → Transfer (2♦/2♥)
+    ///
+    /// Öncelik: 15 (Stayman'den sonra, BasitCevap'tan önce)
     /// </summary>
     public class JacobyTransfer : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "Jacoby Transfer";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 15;   // Stayman (10) sonra, BasitCevap (100) önce
-
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
+        public int Oncelik => 15;
 
         public bool UygunMu(IhaleDurumu durum)
         {
@@ -51,15 +39,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
                 int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
-                // 5+ Maça veya 5+ Kupa
-                // Ama 4'lü majörü Stayman ele alır → 5+ olmalı
                 if (macca >= 5 || kupa >= 5)
                 {
-                    // En az 6 HP gerekli (zayıf el bile transfer edebilir)
-                    if (ElDegerlendirici.HCP(el) >= 6)
-                    {
-                        return true;
-                    }
+                    // Zayıf eller bile transfer yapabilir (0+ HP),
+                    // ancak genellikle anlamlı bir el (en az 4-5 HP) aranır.
+                    // Standartta puan sınırı yoktur, 5+ majör yeterlidir.
+                    return true;
                 }
             }
 
@@ -76,10 +61,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return false;
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
-
         public string TeklifVer(IhaleDurumu durum)
         {
             // ── ROL 1: Transfer sorusu ──
@@ -92,11 +73,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
                 // 5+ Maça → 2♥ (Maça transferi)
                 // 5+ Kupa → 2♦ (Kupa transferi)
-                // İkisi de varsa → uzun olanı seç
                 if (macca >= 5 && kupa >= 5)
                 {
-                    if (macca >= kupa) return "2♥";   // Maça transferi
-                    return "2♦";                        // Kupa transferi
+                    return (macca >= kupa) ? "2♥" : "2♦";
                 }
 
                 if (macca >= 5) return "2♥";
