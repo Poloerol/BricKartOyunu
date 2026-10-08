@@ -51,6 +51,8 @@ namespace BricKartOyunu.Class.Bidding
     new Gerber(),
     new CueBid(),
     new Blackwood(),
+    new GrandSlamForce(),     // ← YENİ (öncelik 28)
+
     new Splinter(),
     new Jacoby2NT(),
     new SupportDouble(),
@@ -60,9 +62,10 @@ namespace BricKartOyunu.Class.Bidding
     new ResponsiveDouble(),
     new Unusual2NT(),
 
-    new MinorTransfer(),     // ← YENİ (öncelik 24)
-    new Drury(),             // ← YENİ (öncelik 25)
-    new Smolen(),           // ← YENİ (öncelik 26)
+    new MinorTransfer(),
+    new Drury(),
+    new Smolen(),
+    new PuppetStayman(),      // ← YENİ (öncelik 27)
 
     new Stayman(),
     new JacobyTransfer(),
@@ -511,6 +514,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Blackwood": return _anlasma.Blackwood;
                 case "RKCB": return _anlasma.RKCB;
                 case "Gerber": return _anlasma.Gerber;
+                case "Grand Slam Force": return true;   // ← YENİ (anlaşmada bayrak yok, her zaman aktif)
 
                 // Ortaklık
                 case "Jacoby 2NT": return _anlasma.Jacoby2NT;

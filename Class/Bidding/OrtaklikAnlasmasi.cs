@@ -96,6 +96,7 @@ namespace BricKartOyunu.Class.Bidding
                 CueBid = true,
                 MinorTransfer = true,
                 Drury = true,
+                PuppetStayman = true,
 
                 // Rakip müdahalesi
                 NegativeDouble = true,

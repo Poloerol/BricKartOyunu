@@ -161,6 +161,7 @@
     <Compile Include="Class\Bidding\Conventions\CueBid.cs" />
     <Compile Include="Class\Bidding\Conventions\Drury.cs" />
     <Compile Include="Class\Bidding\Conventions\Gerber.cs" />
+    <Compile Include="Class\Bidding\Conventions\GrandSlamForce.cs" />
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />
     <Compile Include="Class\Bidding\Conventions\Jacoby2NT.cs" />
     <Compile Include="Class\Bidding\Conventions\JacobyTransfer.cs" />
@@ -168,6 +169,7 @@
     <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\NegativeDouble.cs" />
+    <Compile Include="Class\Bidding\Conventions\PuppetStayman.cs" />
     <Compile Include="Class\Bidding\Conventions\ResponsiveDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\Smolen.cs" />
     <Compile Include="Class\Bidding\Conventions\Splinter.cs" />

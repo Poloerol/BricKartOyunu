@@ -841,5 +841,20 @@ namespace BricKartOyunu.Forms
         {
             TestRunner.Test_Smolen_5Kupa_4Maca();
         }
+
+        private void BtnPuppetStayman_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_PuppetStayman();
+        }
+
+        private void BtnGrandSlamSoru_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_GSF_Soru();
+        }
+
+        private void BtnGrandSlamCevap_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_GSF_Cevap();
+        }
     }
 }

@@ -146,6 +146,9 @@
             this.BtnDrury = new System.Windows.Forms.Button();
             this.BtnSmolen5Maca4Kupa = new System.Windows.Forms.Button();
             this.BtnSmolen5Kupa4Maca = new System.Windows.Forms.Button();
+            this.BtnPuppetStayman = new System.Windows.Forms.Button();
+            this.BtnGrandSlamSoru = new System.Windows.Forms.Button();
+            this.BtnGrandSlamCevap = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -1116,11 +1119,44 @@
             this.BtnSmolen5Kupa4Maca.UseVisualStyleBackColor = true;
             this.BtnSmolen5Kupa4Maca.Click += new System.EventHandler(this.BtnSmolen5Kupa4Maca_Click);
             // 
+            // BtnPuppetStayman
+            // 
+            this.BtnPuppetStayman.Location = new System.Drawing.Point(317, 464);
+            this.BtnPuppetStayman.Name = "BtnPuppetStayman";
+            this.BtnPuppetStayman.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppetStayman.TabIndex = 33;
+            this.BtnPuppetStayman.Text = "TEST 9.1 — Puppet Stayman (2NT - 3♣)";
+            this.BtnPuppetStayman.UseVisualStyleBackColor = true;
+            this.BtnPuppetStayman.Click += new System.EventHandler(this.BtnPuppetStayman_Click);
+            // 
+            // BtnGrandSlamSoru
+            // 
+            this.BtnGrandSlamSoru.Location = new System.Drawing.Point(317, 507);
+            this.BtnGrandSlamSoru.Name = "BtnGrandSlamSoru";
+            this.BtnGrandSlamSoru.Size = new System.Drawing.Size(138, 37);
+            this.BtnGrandSlamSoru.TabIndex = 34;
+            this.BtnGrandSlamSoru.Text = "TEST 9.2 — Grand Slam Force (Soru)";
+            this.BtnGrandSlamSoru.UseVisualStyleBackColor = true;
+            this.BtnGrandSlamSoru.Click += new System.EventHandler(this.BtnGrandSlamSoru_Click);
+            // 
+            // BtnGrandSlamCevap
+            // 
+            this.BtnGrandSlamCevap.Location = new System.Drawing.Point(317, 550);
+            this.BtnGrandSlamCevap.Name = "BtnGrandSlamCevap";
+            this.BtnGrandSlamCevap.Size = new System.Drawing.Size(138, 37);
+            this.BtnGrandSlamCevap.TabIndex = 35;
+            this.BtnGrandSlamCevap.Text = "TEST 9.3 — Grand Slam Force (Cevap)";
+            this.BtnGrandSlamCevap.UseVisualStyleBackColor = true;
+            this.BtnGrandSlamCevap.Click += new System.EventHandler(this.BtnGrandSlamCevap_Click);
+            // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1366, 651);
+            this.Controls.Add(this.BtnGrandSlamCevap);
+            this.Controls.Add(this.BtnGrandSlamSoru);
+            this.Controls.Add(this.BtnPuppetStayman);
             this.Controls.Add(this.BtnSmolen5Kupa4Maca);
             this.Controls.Add(this.BtnSmolen5Maca4Kupa);
             this.Controls.Add(this.BtnDrury);
@@ -1289,5 +1325,8 @@
         private System.Windows.Forms.Button BtnDrury;
         private System.Windows.Forms.Button BtnSmolen5Maca4Kupa;
         private System.Windows.Forms.Button BtnSmolen5Kupa4Maca;
+        private System.Windows.Forms.Button BtnPuppetStayman;
+        private System.Windows.Forms.Button BtnGrandSlamSoru;
+        private System.Windows.Forms.Button BtnGrandSlamCevap;
     }
 }
