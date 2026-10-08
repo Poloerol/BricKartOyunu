@@ -1,30 +1,21 @@
-﻿using System;
+using System;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
     /// Minör Açılış Konvansiyonu (1♦ / 1♣).
-    /// 
+    ///
     /// Kural:
     /// - 12-21 HP aralığında
     /// - 5'li majör YOK (BesliMajor uygun değil)
-    /// - Dengeli + 15-17 HP değil (StrongNT uygun değil)
+    /// - Dengeli/Yarı-Dengeli + 15-17 HP değil (StrongNT uygun değil)
     /// - 22+ HP değil (IkiliSinekGuclu uygun değil)
-    /// 
+    ///
     /// Öncelik: 30 (açılış konvansiyonları arasında son)
-    /// 
-    /// Örnek:
-    ///   El: ♠KJ3 ♥Q43 ♦AKQ5 ♣J87  → 3-3-4-3 → "1♦"
-    ///   El: ♠KJ3 ♥Q43 ♦QJ52 ♣AJ8  → 3-3-4-3 → "1♦"
     /// </summary>
     public class MinorAcilis : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "Minör Açılış";
-
         public bool AktifMi { get; set; } = true;
 
         /// <summary>
@@ -32,38 +23,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// </summary>
         public int Oncelik => 30;
 
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
-
         public bool UygunMu(IhaleDurumu durum)
         {
             if (durum == null) return false;
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
 
-            // 1. Sadece ilk teklifte geçerli
+            // Sadece ilk teklifte geçerli
             if (!durum.IlkTeklifMi()) return false;
 
             var el = durum.AktifOyuncuEli;
 
-            // 2. HP kontrolü: 12-21 arası
+            // HP kontrolü: 12-21 arası
             int hp = ElDegerlendirici.HCP(el);
             if (hp < 12 || hp > 21) return false;
 
-            // 3. 5'li majör VARSA BesliMajor önce devreye girer
+            // 5'li majör VARSA BesliMajor önce devreye girer
             if (ElDegerlendirici.BesliMajorVar(el)) return false;
 
-            // 4. Dengeli + 15-17 HP ise StrongNT önce devreye girer
-            if (hp >= 15 && hp <= 17 && ElDegerlendirici.DengeliEl(el)) return false;
+            // Dengeli/Yarı-Dengeli + 15-17 HP ise StrongNT önce devreye girer
+            if (hp >= 15 && hp <= 17 && (ElDegerlendirici.DengeliEl(el) || ElDegerlendirici.YariDengeliEl(el)))
+                return false;
 
-            // 5. Buraya geldiyse: minör aç
             return true;
         }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
 
         public string TeklifVer(IhaleDurumu durum)
         {
@@ -72,16 +55,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
 
-            // Klasik minör açılış kuralı:
-            // - Karo daha uzunsa → 1♦
-            // - Sinek daha uzunsa → 1♣
-            // - Eşit (4-4 veya 3-3) → 1♦ (klasik: karo önce)
-            //   Not: Bazı sistemler 3-3'te Sinek der (better minor).
-            //        Klasik SAYC: 4-4 → 1♦, 3-3 → 1♣.
-            //        Basit tutuyoruz: Karo ≥ Sinek → 1♦.
+            // SAYC Standart:
+            // 4-4 minör → 1♦
+            // 3-3 minör → 1♣
+            // Uzun olan minör tercih edilir.
+            if (karo > sinek) return "1♦";
+            if (sinek > karo) return "1♣";
 
-            if (karo >= sinek) return "1♦";
-            return "1♣";
+            // Eşitlik durumunda: 4-4 ise 1♦, 3-3 ise 1♣
+            return (karo == 4) ? "1♦" : "1♣";
         }
     }
 }
