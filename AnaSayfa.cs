@@ -816,5 +816,20 @@ namespace BricKartOyunu.Forms
         {
             TestRunner.Test_Unusual2NT_1Sinek();
         }
+
+        private void BtnMinorTrasnferSinek_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_MinorTransfer_Sinek();
+        }
+
+        private void BtnMinorTransferKaro_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_MinorTransfer_Karo();   
+        }
+
+        private void BtnDrury_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Drury();    
+        }
     }
 }

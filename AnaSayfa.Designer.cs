@@ -141,6 +141,9 @@
             this.BtnUnusual2NTRakip1Karo = new System.Windows.Forms.Button();
             this.BtnUnusual2NTRakip1Kupa = new System.Windows.Forms.Button();
             this.BtnUnusual2NTRakip1Maca = new System.Windows.Forms.Button();
+            this.BtnMinorTrasnferSinek = new System.Windows.Forms.Button();
+            this.BtnMinorTransferKaro = new System.Windows.Forms.Button();
+            this.BtnDrury = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -735,7 +738,7 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1,
             this.toolStripStatusLabel2});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 559);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 629);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(1366, 22);
             this.statusStrip1.TabIndex = 1;
@@ -1061,11 +1064,44 @@
             this.BtnUnusual2NTRakip1Maca.UseVisualStyleBackColor = true;
             this.BtnUnusual2NTRakip1Maca.Click += new System.EventHandler(this.BtnUnusual2NTRakip1Maca_Click);
             // 
+            // BtnMinorTrasnferSinek
+            // 
+            this.BtnMinorTrasnferSinek.Location = new System.Drawing.Point(29, 464);
+            this.BtnMinorTrasnferSinek.Name = "BtnMinorTrasnferSinek";
+            this.BtnMinorTrasnferSinek.Size = new System.Drawing.Size(138, 37);
+            this.BtnMinorTrasnferSinek.TabIndex = 28;
+            this.BtnMinorTrasnferSinek.Text = "TEST 7.1 — Minor Transfer (Sinek)";
+            this.BtnMinorTrasnferSinek.UseVisualStyleBackColor = true;
+            this.BtnMinorTrasnferSinek.Click += new System.EventHandler(this.BtnMinorTrasnferSinek_Click);
+            // 
+            // BtnMinorTransferKaro
+            // 
+            this.BtnMinorTransferKaro.Location = new System.Drawing.Point(29, 507);
+            this.BtnMinorTransferKaro.Name = "BtnMinorTransferKaro";
+            this.BtnMinorTransferKaro.Size = new System.Drawing.Size(138, 37);
+            this.BtnMinorTransferKaro.TabIndex = 29;
+            this.BtnMinorTransferKaro.Text = "TEST 7.2 — Minor Transfer (Karo)";
+            this.BtnMinorTransferKaro.UseVisualStyleBackColor = true;
+            this.BtnMinorTransferKaro.Click += new System.EventHandler(this.BtnMinorTransferKaro_Click);
+            // 
+            // BtnDrury
+            // 
+            this.BtnDrury.Location = new System.Drawing.Point(29, 550);
+            this.BtnDrury.Name = "BtnDrury";
+            this.BtnDrury.Size = new System.Drawing.Size(138, 37);
+            this.BtnDrury.TabIndex = 30;
+            this.BtnDrury.Text = "TEST 7.3 — Drury (Pas - 1♠ - Pas - 2♣)";
+            this.BtnDrury.UseVisualStyleBackColor = true;
+            this.BtnDrury.Click += new System.EventHandler(this.BtnDrury_Click);
+            // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1366, 581);
+            this.ClientSize = new System.Drawing.Size(1366, 651);
+            this.Controls.Add(this.BtnDrury);
+            this.Controls.Add(this.BtnMinorTransferKaro);
+            this.Controls.Add(this.BtnMinorTrasnferSinek);
             this.Controls.Add(this.BtnUnusual2NTRakip1Maca);
             this.Controls.Add(this.BtnUnusual2NTRakip1Kupa);
             this.Controls.Add(this.BtnUnusual2NTRakip1Karo);
@@ -1224,5 +1260,8 @@
         private System.Windows.Forms.Button BtnUnusual2NTRakip1Karo;
         private System.Windows.Forms.Button BtnUnusual2NTRakip1Kupa;
         private System.Windows.Forms.Button BtnUnusual2NTRakip1Maca;
+        private System.Windows.Forms.Button BtnMinorTrasnferSinek;
+        private System.Windows.Forms.Button BtnMinorTransferKaro;
+        private System.Windows.Forms.Button BtnDrury;
     }
 }

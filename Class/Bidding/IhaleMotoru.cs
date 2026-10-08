@@ -53,12 +53,15 @@ namespace BricKartOyunu.Class.Bidding
     new Blackwood(),
     new Splinter(),
     new Jacoby2NT(),
-    new SupportDouble(),     // ← YENİ (öncelik 18)
+    new SupportDouble(),
 
     new Michaels(),
     new NegativeDouble(),
-    new ResponsiveDouble(),  // ← YENİ (öncelik 22)
-    new Unusual2NT(),        // ← YENİ (öncelik 23)
+    new ResponsiveDouble(),
+    new Unusual2NT(),
+
+    new MinorTransfer(),     // ← YENİ (öncelik 24)
+    new Drury(),             // ← YENİ (öncelik 25)
 
     new Stayman(),
     new JacobyTransfer(),

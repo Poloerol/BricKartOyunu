@@ -93,6 +93,8 @@ namespace BricKartOyunu.Class.Bidding
                 Jacoby2NT = true,        // ← YENİ
                 Splinter = true,         // ← YENİ
                 CueBid = true,
+                MinorTransfer = true,
+                Drury = true,
 
                 // Rakip müdahalesi
                 NegativeDouble = true,

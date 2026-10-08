@@ -159,12 +159,14 @@
     <Compile Include="Class\Bidding\Conventions\BesliMajor.cs" />
     <Compile Include="Class\Bidding\Conventions\Blackwood.cs" />
     <Compile Include="Class\Bidding\Conventions\CueBid.cs" />
+    <Compile Include="Class\Bidding\Conventions\Drury.cs" />
     <Compile Include="Class\Bidding\Conventions\Gerber.cs" />
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />
     <Compile Include="Class\Bidding\Conventions\Jacoby2NT.cs" />
     <Compile Include="Class\Bidding\Conventions\JacobyTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\Michaels.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />
+    <Compile Include="Class\Bidding\Conventions\MinorTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\NegativeDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\ResponsiveDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\Splinter.cs" />
