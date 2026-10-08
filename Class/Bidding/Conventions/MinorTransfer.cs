@@ -1,26 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Minor Transfer Konvansiyonu.
-    /// 
+    /// Minor Transfer Konvansiyonu (SAYC Standart ve Profesyonel Yaklaşım).
+    ///
     /// Kural:
-    /// - Partner 1NT açtı
-    /// - Ben 2♠ derim → "5+ Sinek var, transfer" (partner 3♣ diyecek)
-    /// - Ben 2NT derim → "5+ Karo var, transfer" (partner 3♦ diyecek)
-    /// 
-    /// Amaç: 1NT açılışından sonra minör eli göstermek.
-    /// 
-    /// Öncelik: 24
+    /// - Partner 1NT açtı.
+    /// - 5+ minör el var.
+    /// - Standart SAYC'de 1NT sonrası minörler doğrudan teklif edilmez,
+    ///   ancak bazı modern varyasyonlarda 2♠ Sinek transferi olarak kullanılır.
+    ///
+    /// Dikkat: 2NT asla transfer için kullanılmaz (Slam invite veya dengeli eldir).
     /// </summary>
     public class MinorTransfer : IKonvansiyon
     {
         public string Ad => "Minor Transfer";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 24;
+        public int Oncelik => 25;
 
         public bool UygunMu(IhaleDurumu durum)
         {
@@ -43,26 +42,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             var el = durum.AktifOyuncuEli;
 
-            // 5+ Sinek veya 5+ Karo
+            // Sadece 5+ Sinek için 2♠ transferi desteklenir (SAYC varyasyonu)
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-
-            return sinek >= 5 || karo >= 5;
+            return sinek >= 5;
         }
 
         public string TeklifVer(IhaleDurumu durum)
         {
-            var el = durum.AktifOyuncuEli;
-            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-
-            // Sinek daha uzunsa → 2♠ (Sinek transfer)
-            if (sinek >= 5 && sinek >= karo) return "2♠";
-
-            // Karo → 2NT (Karo transfer)
-            if (karo >= 5) return "2NT";
-
-            return "Pas";
+            // Sinek transferi -> 2♠
+            // (Partner buna 2NT veya 3♣ ile cevap verir)
+            return "2♠";
         }
     }
 }
