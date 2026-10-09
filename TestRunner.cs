@@ -2389,6 +2389,253 @@ namespace BricKartOyunu
             Yaz(sonuc == "6♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♥)");
             Yaz("════════════════════════════════════════");
         }
+
+        public static void Test_Stayman_2Tur_NTInvite()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 11.1 — Stayman 2. tur: 2♦ sonrası 2NT (invite)");
+            Yaz("════════════════════════════════════════");
+
+            // 1NT (Kuzey) - 2♣ (Güney) - 2♦ (Kuzey) - ? (Güney)
+            // Güney: 4'lü ♠ + 4'lü ♥ + 8-9 HP → 2NT invite
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // 2+1+3 = 6 HP... invite için 8-9 lazım
+            // Değiştir: ♦ K yerine ♦ A (4 HP), ♣ 10 yerine ♣ Q (2 HP)
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 3 },
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 2 },
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // 2+1+4+2 = 9 HP ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♦",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz("Beklenen: 2NT (invite)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Stayman_2Tur_NTGame()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 11.2 — Stayman 2. tur: 2♦ sonrası 3NT (game)");
+            Yaz("════════════════════════════════════════");
+
+            // Güney: 4'lü majör + 10+ HP → 3NT
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // 3+2+4+1 = 10 HP ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♦",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz("Beklenen: 3NT (game)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Stayman_2Tur_FitBulundu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 11.3 — Stayman 2. tur: 2♥ sonrası 4♥ (fit + game)");
+            Yaz("════════════════════════════════════════");
+
+            // 1NT (Kuzey) - 2♣ (Güney) - 2♥ (Kuzey) - ? (Güney)
+            // Güney: 4'lü ♥ fit + 10+ HP → 4♥
+            var guneyEli = new List<Card>
+    {
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // 3+1+4+2 = 10 HP ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♥",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"Kupa: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Kupa")}");
+            Yaz("Beklenen: 4♥ (fit + game)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Lebensohl_Basit()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 12.1 — Lebensohl: 1NT - 2♥ - 2NT (zayıf)");
+            Yaz("════════════════════════════════════════");
+
+            // Partner 1NT açtı, rakip 2♥ girdi
+            // Güney: zayıf (0-7 OP), 2NT Lebensohl diyecek
+            var guneyEli = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 4 },
+        new Card { Suit = "Kupa", Value = 2 },
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        new Card { Suit = "Karo", Value = 3 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // ~3 HP, zayıf
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "2♥",  Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz("Beklenen: 2NT (Lebensohl)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -2482,6 +2729,14 @@ namespace BricKartOyunu
 
             Yaz("▶ Test 10.2: Grand Slam Force Cevap");
             Test_GSF_Cevap();
+
+            Yaz("▶ Test 11.1-11.3: Stayman Cevap Sistemi");
+            Test_Stayman_2Tur_NTInvite();
+            Test_Stayman_2Tur_NTGame();
+            Test_Stayman_2Tur_FitBulundu();
+
+            Yaz("▶ Test 12.1: Lebensohl Basit");
+            Test_Lebensohl_Basit();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

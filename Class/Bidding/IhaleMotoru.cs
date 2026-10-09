@@ -66,6 +66,7 @@ namespace BricKartOyunu.Class.Bidding
     new Drury(),
     new Smolen(),
     new PuppetStayman(),      // ← YENİ (öncelik 27)
+    new Lebensohl(),
 
     new Stayman(),
     new JacobyTransfer(),

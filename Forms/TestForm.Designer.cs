@@ -62,6 +62,7 @@
             this.Name = "TestForm";
             this.Text = "TestForm";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
+            this.Load += new System.EventHandler(this.TestForm_Load);
             this.ResumeLayout(false);
 
         }

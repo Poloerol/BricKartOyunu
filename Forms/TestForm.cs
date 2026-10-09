@@ -21,6 +21,7 @@ namespace BricKartOyunu.Forms
         {
             InitializeComponent();
             // Butonlar Designer'da bağlı (btnTestleriCalistir_Click, btnExit_Click)
+            this.ShowInTaskbar = false;
         }
 
         // Designer'da butona çift tıklayınca otomatik oluşur
@@ -109,7 +110,8 @@ namespace BricKartOyunu.Forms
                     Text = "İhale Sistemi Test Sonuçları",
                     Size = new Size(1100, 750),
                     StartPosition = FormStartPosition.CenterScreen,
-                    BackColor = Color.FromArgb(30, 30, 30)
+                    BackColor = Color.FromArgb(30, 30, 30),
+                    ShowInTaskbar = false   // ← YENİ: Görev çubuğunda gösterme
                 };
 
                 _lblOzet = new Label
@@ -195,6 +197,11 @@ namespace BricKartOyunu.Forms
         private void BtnExit_Click_1(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void TestForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

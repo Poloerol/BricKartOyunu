@@ -165,6 +165,7 @@
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />
     <Compile Include="Class\Bidding\Conventions\Jacoby2NT.cs" />
     <Compile Include="Class\Bidding\Conventions\JacobyTransfer.cs" />
+    <Compile Include="Class\Bidding\Conventions\Lebensohl.cs" />
     <Compile Include="Class\Bidding\Conventions\Michaels.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorTransfer.cs" />

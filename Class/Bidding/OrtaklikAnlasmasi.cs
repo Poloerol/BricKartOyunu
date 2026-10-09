@@ -20,7 +20,7 @@ namespace BricKartOyunu.Class.Bidding
         public bool Preempt { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
-        // 1NT CEVAP SİSTEMİ
+        // 1NT/2NT CEVAP SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
 
         public bool Stayman { get; set; } = true;
@@ -55,7 +55,7 @@ namespace BricKartOyunu.Class.Bidding
         public bool NegativeDouble { get; set; } = true;
         public bool SupportDouble { get; set; } = false;
         public bool ResponsiveDouble { get; set; } = false;
-        public bool Lebensohl { get; set; } = false;
+        public bool Lebensohl { get; set; } = true;
         public bool Michaels { get; set; } = true;
         public bool Unusual2NT { get; set; } = true;
 
@@ -78,32 +78,34 @@ namespace BricKartOyunu.Class.Bidding
                 BesliMajor = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
+                Preempt = true,
 
-                // 1NT cevapları
+                // 1NT/2NT cevapları
                 Stayman = true,
                 JacobyTransfer = true,
                 Smolen = true,
+                MinorTransfer = true,
+                PuppetStayman = true,
 
                 // Slam
                 Blackwood = true,
                 RKCB = true,
                 RKCB1430 = true,
-                Gerber = true,          // ← YENİ (varsayılan açık)
+                Gerber = true,
 
                 // Ortaklık
-                Jacoby2NT = true,        // ← YENİ
-                Splinter = true,         // ← YENİ
-                CueBid = true,
-                MinorTransfer = true,
+                Jacoby2NT = true,
+                Splinter = true,
                 Drury = true,
-                PuppetStayman = true,
+                CueBid = true,
 
                 // Rakip müdahalesi
                 NegativeDouble = true,
-                Michaels = true,         // ← YENİ
+                SupportDouble = true,
+                ResponsiveDouble = true,
+                Lebensohl = true,       // ← YENİ
+                Michaels = true,
                 Unusual2NT = true,
-                SupportDouble = true,    // ← YENİ
-                ResponsiveDouble = true, // ← YENİ
 
                 StandartSignal = true
             };
@@ -113,20 +115,40 @@ namespace BricKartOyunu.Class.Bidding
         {
             return new OrtaklikAnlasmasi
             {
+                // Açılışlar
                 BesliMajor = false,
                 StrongNT = false,
                 IkiliSinekGuclu = false,
+                Preempt = false,
+
+                // 1NT cevapları
                 Stayman = true,
                 JacobyTransfer = false,
+                Smolen = false,
+                MinorTransfer = false,
+                PuppetStayman = false,
+
+                // Slam
                 Blackwood = true,
                 RKCB = false,
-                Gerber = false,          // ← YENİ (kapalı)
-                Jacoby2NT = false,       // ← YENİ (kapalı)
-                Splinter = false,        // ← YENİ (kapalı)
+                RKCB1430 = false,
+                Gerber = false,
+
+                // Ortaklık
+                Jacoby2NT = false,
+                Splinter = false,
+                Drury = false,
                 CueBid = false,
+
+                // Rakip müdahalesi
                 NegativeDouble = true,
-                Michaels = false,        // ← YENİ (kapalı)
-                Unusual2NT = false
+                SupportDouble = false,
+                ResponsiveDouble = false,
+                Lebensohl = false,      // ← YENİ (kapalı)
+                Michaels = false,
+                Unusual2NT = false,
+
+                StandartSignal = true
             };
         }
 
@@ -138,13 +160,24 @@ namespace BricKartOyunu.Class.Bidding
             var aktifler = new System.Collections.Generic.List<string>();
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");
+            if (PuppetStayman) aktifler.Add("Puppet");
+            if (Smolen) aktifler.Add("Smolen");
+            if (MinorTransfer) aktifler.Add("Min.Transfer");
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
+            if (Gerber) aktifler.Add("Gerber");
             if (Jacoby2NT) aktifler.Add("Jacoby2NT");
             if (Splinter) aktifler.Add("Splinter");
+            if (Drury) aktifler.Add("Drury");
+            if (CueBid) aktifler.Add("CueBid");
             if (NegativeDouble) aktifler.Add("Neg.Dbl");
+            if (SupportDouble) aktifler.Add("Supp.Dbl");
+            if (ResponsiveDouble) aktifler.Add("Resp.Dbl");
+            if (Lebensohl) aktifler.Add("Lebensohl");
+            if (Michaels) aktifler.Add("Michaels");
+            if (Unusual2NT) aktifler.Add("Unusual2NT");
 
-            return $"Açılış: {acilis}, {nt}, Aktif: {string.Join(", ", aktifler)}";
+            return $"Açılış: {acilis}, {nt}\nAktif: {string.Join(", ", aktifler)}";
         }
 
         // ═══════════════════════════════════════════════════════════════════
