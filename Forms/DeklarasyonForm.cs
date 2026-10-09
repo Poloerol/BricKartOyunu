@@ -947,11 +947,46 @@ namespace BricKartOyunu.Forms
                 // 1. İhale durumunu oluştur
                 var durum = IhaleDurumuOlustur();
 
+                // ═══════════════════════════════════════════════════════════════
+                // 🔹 DEBUG: Durum bilgisi
+                // ═══════════════════════════════════════════════════════════════
+                System.Diagnostics.Debug.WriteLine("════════════════════════════════════════");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] AktifOyuncu: {durum.AktifOyuncu}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] AktifOyuncuEli: {durum.AktifOyuncuEli?.Count ?? 0} kart");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] HCP: {ElDegerlendirici.HCP(durum.AktifOyuncuEli)}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] TP: {ElDegerlendirici.ToplamPuan(durum.AktifOyuncuEli)}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] DengeliMi: {ElDegerlendirici.DengeliEl(durum.AktifOyuncuEli)}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Gecmis.Count: {durum.Gecmis.Count}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] IlkTeklifMi: {durum.IlkTeklifMi()}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] IhaleBittiMi: {durum.IhaleBittiMi()}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Partner: {durum.Partner}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Rakipler: [{string.Join(", ", durum.Rakipler)}]");
+
+                // Geçmiş hamleleri listele
+                if (durum.Gecmis.Count > 0)
+                {
+                    var gecmisStr = string.Join(" | ",
+                        durum.Gecmis.Select(h => $"{h.Oyuncu}:{h.Teklif}"));
+                    System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Gecmis: {gecmisStr}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Gecmis: (boş)");
+                }
+
+                // El dağılımı
+                var sayilar = ElDegerlendirici.RenkSayilari(durum.AktifOyuncuEli);
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AI DEBUG] Dağılım: ♠{sayilar["Maça"]} ♥{sayilar["Kupa"]} ♦{sayilar["Karo"]} ♣{sayilar["Sinek"]}");
+
+                System.Diagnostics.Debug.WriteLine("────────────────────────────────────────");
+
                 // 2. Motor'dan teklif al
                 string teklif = _motor.TeklifVer(durum);
 
                 System.Diagnostics.Debug.WriteLine(
                     $"[AI] {_aktifOyuncu} motor teklifi: {teklif}");
+                System.Diagnostics.Debug.WriteLine("════════════════════════════════════════");
 
                 // 3. Teklifi uygula
                 AIHamlesiniUygula(teklif);

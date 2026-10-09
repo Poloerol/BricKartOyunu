@@ -3358,6 +3358,56 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        public static void Test_BasitCevap_6liDestek()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 16.1 — BasitCevap: 6'lı ♣ desteği");
+            Yaz("════════════════════════════════════════");
+
+            // Aynı el (8 HP, 6'lı ♣)
+            var guneyEli = new List<Card>
+    {
+        new Card { Suit = "Sinek", Value = 14 },
+        new Card { Suit = "Sinek", Value = 13 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 2 },
+        new Card { Suit = "Karo", Value = 8 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♣ Uzunluk: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Sinek")}");
+            Yaz("Beklenen: 2♣ (basit destek, 6-9 HP)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -3476,6 +3526,9 @@ namespace BricKartOyunu
             Test_Lebensohl_Reverse_Zayif();
             Test_Lebensohl_Reverse_Guclu();
             Test_Lebensohl_Reverse_SignOff();
+
+            Yaz("▶ Test 16.1: BasitCevap 6'lı destek");
+            Test_BasitCevap_6liDestek();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

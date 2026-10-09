@@ -118,7 +118,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
                     return "1♥";
 
-                // 2. Partnerin majörüne 4+ destek varsa → limit raise
+                // 2. Partnerin rengine 5+ destek → limit raise (3 seviyesi)
+                if (!string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
+                {
+                    int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+                    if (destek >= 5)
+                    {
+                        string kozSembol = KozSembolu(partnerKozu);
+                        return "3" + kozSembol;  // 3♣, 3♦, 3♥, 3♠
+                    }
+                }
+
+                // 3. Partnerin MAJÖRÜNE 4+ destek → limit raise
                 if (!string.IsNullOrEmpty(partnerKozu) &&
                     (partnerKozu == "Maça" || partnerKozu == "Kupa"))
                 {
@@ -130,16 +141,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
-                // 3. Dengeli ise → 2NT (invite)
+                // 4. Dengeli ise → 2NT (invite)
                 if (ElDegerlendirici.DengeliEl(el)) return "2NT";
 
-                // 4. 5+ minör varsa → 2 seviyesi
+                // 5. Yeni minör varsa → 2 seviyesi
                 if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5 && partnerKozu != "Karo")
                     return "2♦";
                 if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5 && partnerKozu != "Sinek")
                     return "2♣";
 
-                // 5. Son çare: 2NT
+                // 6. Son çare: 2NT
                 return "2NT";
             }
 
