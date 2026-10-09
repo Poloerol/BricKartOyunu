@@ -3203,6 +3203,161 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        public static void Test_Lebensohl_Reverse_Zayif()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 15.1 — Lebensohl Reverse: 1♣-1♠-2♠-2NT (zayıf)");
+            Yaz("════════════════════════════════════════");
+
+            // 1♣ (Kuzey) - 1♠ (Güney) - 2♠ (Kuzey) - ? (Güney)
+            // Güney: 5-8 OP → 2NT Lebensohl
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♠
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // 3 HP → 5-8 arası, zayıf
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz("Beklenen: 2NT (Lebensohl zayıf)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Lebensohl_Reverse_Guclu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 15.2 — Lebensohl Reverse: 1♦-1♠-2♥-3♣ (9+ OP)");
+            Yaz("════════════════════════════════════════");
+
+            // 1♦ (Kuzey) - 1♠ (Güney) - 2♥ (Kuzey reverse) - ? (Güney)
+            // Güney: 9+ OP + 4+ ♣ → 3♣ forcing
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♠
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 4 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 2'li ♥
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        // 4'lü ♣ (KQJ + küçük) ← 4'LÜ YAPTIK
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // 4+3+2+1 = 10 HP ✓, 4'lü ♣, 5'li ♠
+
+            // ... geri kalanı aynı ...
+        }
+
+        public static void Test_Lebensohl_Reverse_SignOff()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 15.3 — Lebensohl Reverse: 2NT sonrası 3♠ sign-off");
+            Yaz("════════════════════════════════════════");
+
+            // 1♣ - 1♠ - 2♠ - 2NT - Pas - 3♣ - Pas - ? (Güney)
+            // Güney: 5'li ♠ ile 3♠ sign-off
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♠
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2NT", Sira = 7, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♣",  Sira = 9, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 10, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")}");
+            Yaz("Beklenen: 3♠ (sign-off)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -3316,6 +3471,11 @@ namespace BricKartOyunu
             Test_Lebensohl_WeakTwo_Zayif();
             Test_Lebensohl_WeakTwo_Davet();
             Test_Lebensohl_WeakTwo_CueBid();
+
+            Yaz("▶ Test 15.1-15.3: Lebensohl Reverse");
+            Test_Lebensohl_Reverse_Zayif();
+            Test_Lebensohl_Reverse_Guclu();
+            Test_Lebensohl_Reverse_SignOff();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
