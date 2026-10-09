@@ -713,204 +713,65 @@ namespace BricKartOyunu.Forms
             };
         }
 
-        private void BtnTest_Gerber_SoruSorma_Click(object sender, EventArgs e)
+        private void BtnTestForm_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_Gerber_SoruSorma();
-        }
-
-        private void BtnGerberCevapVerme_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Gerber_Cevap();
-        }
-
-        private void BtnGerberNegatif_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Gerber_Negatif();
-        }
-
-        private void BtnJacoby2NTPozitif_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Jacoby2NT_Pozitif();    
-        }
-
-        private void BtnJacoby2NTNegatif3luDestek_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Jacoby2NT_Negatif_3luDestek();
-        }
-
-        private void BtnJacoby2NTRakipMudahele_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Jacoby2NT_Negatif_RakipMudahalesi();
-        }
-
-        private void BtnSplinterMacaSinek_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Splinter_Maca_Sinek();
-        }
-
-        private void BtnSplinterKosKupaKisaMaca_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Splinter_Kupa_Maca();
-        }
-
-        private void BtnMichaelsRakipMacaActi_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Michaels_RakipMaca();
-        }
-
-        private void BtnMichaelsRakipKaroActi_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Michaels_RakipKaro();
-        }
-
-        private void BtnMichaelsNegatif_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Michaels_Negatif(); 
-        }
-
-        private void BtnTemelMantikYeniRenk_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_TemelMantik_YeniRenk();
-        }
-
-        private void BtnTemelMantikRakipMudahele_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_TemelMantik_RakipMudahale();
-        }
-
-        private void BtnNTInvite_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_TemelMantik_NTInvite();
-        }
-
-        
-
-        private void BtnSupportDouble_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_SupportDouble();
-        }
-
-        private void BtnResponsiveDouble_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_ResponsiveDouble();
-        }
-
-       
-
-        private void BtnUnusual2NTRakip1Karo_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Unusual2NT_1Karo();
-        }
-
-        private void BtnUnusual2NTRakip1Kupa_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Unusual2NT_1Kupa();
+            var testForm = new TestForm();
+            testForm.ShowDialog();
         }
 
         private void BtnUnusual2NTRakip1Maca_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_Unusual2NT_1Maca();
+
         }
 
-        private void BtnUnusual2NTRakip1Sinek_Click_1(object sender, EventArgs e)
+        private void BtnResponsiveDouble_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_Unusual2NT_1Sinek();
+
         }
 
-        private void BtnMinorTrasnferSinek_Click(object sender, EventArgs e)
+        private void BtnSupportDouble_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_MinorTransfer_Sinek();
+
         }
 
-        private void BtnMinorTransferKaro_Click(object sender, EventArgs e)
+        private void BtnMichaelsNegatif_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_MinorTransfer_Karo();   
+
         }
 
-        private void BtnDrury_Click(object sender, EventArgs e)
+        private void BtnTemelMantikRakipMudahele_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_Drury();    
+
         }
 
-        private void BtnSmolen5Maca4Kupa_Click(object sender, EventArgs e)
+        private void BtnUnusual2NTRakip1Kupa_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_Smolen_5Maca_4Kupa();
+
         }
 
-        private void BtnSmolen5Kupa4Maca_Click(object sender, EventArgs e)
+        private void BtnUnusual2NTRakip1Karo_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_Smolen_5Kupa_4Maca();
+
         }
 
-        private void BtnPuppetStayman_Click(object sender, EventArgs e)
+        private void BtnMichaelsRakipKaroActi_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_PuppetStayman();
+
         }
 
-        private void BtnGrandSlamSoru_Click(object sender, EventArgs e)
+        private void BtnMichaelsRakipMacaActi_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_GSF_Soru();
+
         }
 
-        private void BtnGrandSlamCevap_Click(object sender, EventArgs e)
+        private void BtnTemelMantikYeniRenk_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_GSF_Cevap();
+
         }
 
-        private void BtnPuppet5liKupaCevap_Click(object sender, EventArgs e)
+        private void BtnUnusual2NTRakip1Sinek_Click(object sender, EventArgs e)
         {
-            TestRunner.Test_Puppet_5liKupa();
-        }
 
-        private void btnPuppet3Karo4Majorvar_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_4luMajor();
-        }
-
-        private void BtnPuppet3KaroSonrasi_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_2Tur_4luMaca();
-        }
-
-        private void BtnPuppet4luMacaTutusVar_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_Aşama3_TutuşVar();
-                
-        }
-
-        private void BtnPuppet4luMacaTutusYok_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_Aşama3_TutuşYok();
-        }
-
-        private void BtnPuppetKOntrolGosterme_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_Aşama4_Kontrol();
-        }
-
-        private void BtnPuppet5liKupaSonra4sinekKontrol_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_5liKupa_Kontrol();
-        }
-
-        private void BtnPuppet5liKupaFitYok3NT_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_5liKupa_SignOff();
-        }
-
-        private void BtnPuppet2KeyVard_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_KeyCard_2();
-        }
-
-        private void BtnPuppet3KeyCard_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_KeyCard_3();
-        }
-
-        private void BtnPuppet4KayCard1Q_Click(object sender, EventArgs e)
-        {
-            TestRunner.Test_Puppet_KeyCard_4_1Q();
         }
     }
 }
