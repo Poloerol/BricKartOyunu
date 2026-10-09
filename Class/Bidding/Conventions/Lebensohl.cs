@@ -7,7 +7,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// <summary>
     /// Lebensohl Konvansiyonu (1NT Overcall).
     /// 
-    /// SENARYO: 1NT (Partner) - 2♥/2♠ (Rakip) - ?
+    /// SENARYO: 1NT (Partner) - 2♣/2♦/2♥/2♠ (Rakip) - ?
     /// 
     /// AMAÇ:
     /// 1. Zayıf (0-7 OP) ve davet (8-9 OP) ve kuvvetli (10+ OP) elleri ayırt etmek
@@ -33,10 +33,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.PartnerTeklifleri.Count == 0) return false;
             if (durum.PartnerTeklifleri.LastOrDefault() != "1NT") return false;
 
-            // 2. Rakip 2♥ veya 2♠ ile araya girdi mi?
+            // 2. Rakip 2♣/2♦/2♥/2♠ ile araya girdi mi?
             if (durum.RakipTeklifleri.Count == 0) return false;
             string rakipSon = durum.RakipTeklifleri.LastOrDefault();
-            if (rakipSon != "2♥" && rakipSon != "2♠") return false;
+            if (rakipSon != "2♥" && rakipSon != "2♠" &&
+                rakipSon != "2♣" && rakipSon != "2♦") return false;
 
             // 3. Ben henüz konuşmadım
             if (durum.KendiTeklifleri.Count > 0) return false;
@@ -50,7 +51,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string rakipSon = durum.RakipTeklifleri.LastOrDefault();
             int hp = ElDegerlendirici.HCP(el);
 
-            string rakipKozu = rakipSon == "2♥" ? "Kupa" : "Maça";
+            string rakipKozu = rakipSon == "2♥" ? "Kupa" :
+                               rakipSon == "2♠" ? "Maça" :
+                               rakipSon == "2♣" ? "Sinek" : "Karo";
 
             // ═══════════════════════════════════════════════════════════════
             // DURUM 1: İlk cevabım
@@ -62,6 +65,108 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 bool durdurucuVar = ElDegerlendirici.StopperVar(el, rakipKozu);
                 bool besliMaca = maca >= 5;
                 bool besliKupa = kupa >= 5;
+
+                // ───────────────────────────────────────────────────────────
+                // ALT DURUM: Rakip 2♣
+                // ───────────────────────────────────────────────────────────
+                if (rakipSon == "2♣")
+                {
+                    // Texas transfer (6+ majör)
+                    if (maca >= 6 && hp >= 10) return "4♥";
+                    if (kupa >= 6 && hp >= 10) return "4♦";
+
+                    // 5'li majör + 10+ OP (forcing)
+                    if (hp >= 10)
+                    {
+                        if (besliMaca) return "3♠";
+                        if (besliKupa) return "3♥";
+                    }
+
+                    // 0-7 OP
+                    if (hp <= 7)
+                    {
+                        if (besliKupa) return "2♥";
+                        if (besliMaca) return "2♠";
+                        if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5) return "2♦";
+                        return "2NT";
+                    }
+
+                    // 8-9 OP davet
+                    if (hp >= 8 && hp <= 9)
+                    {
+                        if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 6) return "3♦";
+                        return "3♦";
+                    }
+
+                    // 10+ OP kuvvetli
+                    if (hp >= 10)
+                    {
+                        bool dortluMaca = maca >= 4;
+                        bool dortluKupa = kupa >= 4;
+
+                        if (durdurucuVar && !dortluMaca && !dortluKupa)
+                            return "3NT";
+
+                        if (!durdurucuVar)
+                            return "3♣";  // Cue-bid Stayman
+
+                        return "3NT";
+                    }
+
+                    return "2NT";
+                }
+
+                // ───────────────────────────────────────────────────────────
+                // ALT DURUM: Rakip 2♦
+                // ───────────────────────────────────────────────────────────
+                if (rakipSon == "2♦")
+                {
+                    // Texas transfer
+                    if (maca >= 6 && hp >= 10) return "4♥";
+                    if (kupa >= 6 && hp >= 10) return "4♦";
+
+                    // 5'li majör + 10+ OP
+                    if (hp >= 10)
+                    {
+                        if (besliMaca) return "3♠";
+                        if (besliKupa) return "3♥";
+                    }
+
+                    // 0-7 OP
+                    if (hp <= 7)
+                    {
+                        if (besliKupa) return "2♥";
+                        if (besliMaca) return "2♠";
+                        return "2NT";
+                    }
+
+                    // 8-9 OP davet
+                    if (hp >= 8 && hp <= 9)
+                    {
+                        return "3♣";
+                    }
+
+                    // 10+ OP kuvvetli
+                    if (hp >= 10)
+                    {
+                        bool dortluMaca = maca >= 4;
+                        bool dortluKupa = kupa >= 4;
+
+                        if (durdurucuVar && !dortluMaca && !dortluKupa)
+                            return "3NT";
+
+                        if (!durdurucuVar)
+                            return "3♦";  // Cue-bid Stayman
+
+                        return "3NT";
+                    }
+
+                    return "2NT";
+                }
+
+                // ───────────────────────────────────────────────────────────
+                // ALT DURUM: Rakip 2♥ veya 2♠ (eski kod)
+                // ───────────────────────────────────────────────────────────
 
                 // Texas transfer (6+ majör)
                 if (maca >= 6 && hp >= 10) return "4♥";
@@ -123,6 +228,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
                     if (rakipSon == "2♥" && maca >= 5) return "3♠";
                     if (rakipSon == "2♠" && kupa >= 5) return "3♥";
+                    if (rakipSon == "2♣" && (maca >= 5 || kupa >= 5))
+                        return maca >= 5 ? "3♠" : "3♥";
+                    if (rakipSon == "2♦" && (maca >= 5 || kupa >= 5))
+                        return maca >= 5 ? "3♠" : "3♥";
+
                     if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 6) return "3♦";
                     return "Pas";
                 }
@@ -134,6 +244,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
                     if (rakipSon == "2♥" && maca >= 5) return "3♠";
                     if (rakipSon == "2♠" && kupa >= 5) return "3♥";
+                    if (rakipSon == "2♣" && (maca >= 5 || kupa >= 5))
+                        return maca >= 5 ? "3♠" : "3♥";
+                    if (rakipSon == "2♦" && (maca >= 5 || kupa >= 5))
+                        return maca >= 5 ? "3♠" : "3♥";
+
                     return "3NT";
                 }
 
@@ -149,6 +264,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     {
                         if (rakipSon == "2♥" && maca >= 4) return "3♥";
                         if (rakipSon == "2♠" && kupa >= 4) return "3♠";
+                        if (rakipSon == "2♣" && (maca >= 4 || kupa >= 4))
+                            return maca >= 4 ? "3♠" : "3♥";
+                        if (rakipSon == "2♦" && (maca >= 4 || kupa >= 4))
+                            return maca >= 4 ? "3♠" : "3♥";
                     }
 
                     return "3NT";

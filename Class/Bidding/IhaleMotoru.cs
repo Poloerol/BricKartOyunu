@@ -66,6 +66,7 @@ namespace BricKartOyunu.Class.Bidding
     new Drury(),
     new Smolen(),
     new PuppetStayman(),      // ← YENİ (öncelik 27)
+    new Lebensohl_WeakTwo(),   // ← YENİ (öncelik 7)
     new Lebensohl(),
 
     new Stayman(),
@@ -528,6 +529,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Negative Double": return _anlasma.NegativeDouble;
                 case "Support Double": return _anlasma.SupportDouble;
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
+                case "Lebensohl (Zayıf 2)": return _anlasma.Lebensohl;
                 case "Lebensohl": return _anlasma.Lebensohl;
                 case "Michaels": return _anlasma.Michaels;
                 case "Unusual 2NT": return _anlasma.Unusual2NT;
