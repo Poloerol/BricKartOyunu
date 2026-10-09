@@ -30,7 +30,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     {
         public string Ad => "Puppet Stayman";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 27;
+        public int Oncelik => 13;
 
         public bool UygunMu(IhaleDurumu durum)
         {
@@ -82,11 +82,56 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             // ─────────────────────────────────────────────────────
-            // DURUM 4: Partner 3♥/3♠ dedi (5'li majör), ben (3♣ soran) cevap vereceğim
+            // DURUM 4: Ben 3♣ sormuştum, partner 3♥/3♠ (5'li majör) dedi
+            // ⚠️ Sadece tek turlu senaryo için
             // ─────────────────────────────────────────────────────
             if ((durum.SonGercekTeklif == "3♥" || durum.SonGercekTeklif == "3♠") &&
                 durum.SonGercekTeklifSahibi == durum.Partner &&
-                durum.KendiTeklifleri.Contains("3♣"))
+                durum.KendiTeklifleri.Contains("3♣") &&
+                !durum.KendiTeklifleri.Contains("3♥") &&
+                !durum.KendiTeklifleri.Contains("3♠"))
+            {
+                return true;   // ← SADECE BU!
+            }
+
+            // ─────────────────────────────────────────────────────
+            // DURUM 5: Partner 3♥/3♠ (Aşama 3) — Açıcı cevap veriyor
+            // Senaryo: 2NT - 3♣ - 3♦ - 3♥ (partner "4'lü ♠ var mı?" sordu)
+            //          Ben 2NT açan olarak 3♠ (tutuş var) veya 3NT (yok) diyeceğim
+            // ─────────────────────────────────────────────────────
+            if (durum.SonGercekTeklifSahibi == durum.Partner &&
+                durum.KendiTeklifleri.Contains("2NT") &&
+                durum.KendiTeklifleri.Contains("3♦"))
+            {
+                // Partner 3♥ veya 3♠ dedi mi?
+                if (durum.SonGercekTeklif == "3♥" || durum.SonGercekTeklif == "3♠")
+                    return true;
+            }
+
+            // ─────────────────────────────────────────────────────
+            // DURUM 6: Partner 3♠/4♥ (Aşama 4) — Cevapçı kontrol gösterecek
+            // Senaryo: 2NT - 3♣ - 3♦ - 3♥ (partner "4'lü ♠ var mı?" sordu)
+            //          Ben 3♠ (tutuş var) dedim
+            //          Şimdi partner kontrol gösterecek
+            // ─────────────────────────────────────────────────────
+            if (durum.SonGercekTeklifSahibi == durum.Partner &&
+                durum.KendiTeklifleri.Contains("3♣") &&
+                durum.KendiTeklifleri.Contains("3♥"))  // veya 3♠
+            {
+                // Partner 3♠ (benim 3♥'ye cevap) veya 4♥ (benim 3♠'ye cevap) dedi mi?
+                if ((durum.KendiTeklifleri.Contains("3♥") && durum.SonGercekTeklif == "3♠") ||
+                    (durum.KendiTeklifleri.Contains("3♠") && durum.SonGercekTeklif == "4♥"))
+                    return true;
+            }
+
+            // ─────────────────────────────────────────────────────
+            // DURUM 7: Partner 4♣ dedi (6 Key-Card sorusu), ben cevap vereceğim
+            // Senaryo: 2NT - 3♣ - 3♦ - 4♣ - ?
+            // ─────────────────────────────────────────────────────
+            if (durum.SonGercekTeklif == "4♣" &&
+                durum.SonGercekTeklifSahibi == durum.Partner &&
+                durum.KendiTeklifleri.Contains("2NT") &&
+                durum.KendiTeklifleri.Contains("3♦"))
             {
                 return true;
             }
@@ -159,20 +204,38 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ─────────────────────────────────────────────────────
             // DURUM 4: Ben 3♣ sormuştum, partner 3♥/3♠ (5'li majör) dedi
+            // ⚠️ Sadece tek turlu senaryo için
             // ─────────────────────────────────────────────────────
             if ((durum.SonGercekTeklif == "3♥" || durum.SonGercekTeklif == "3♠") &&
                 durum.SonGercekTeklifSahibi == durum.Partner &&
-                durum.KendiTeklifleri.Contains("3♣"))
+                durum.KendiTeklifleri.Contains("3♣") &&
+                !durum.KendiTeklifleri.Contains("3♥") &&
+                !durum.KendiTeklifleri.Contains("3♠"))
             {
                 // "Okunan majörde" fit var mı?
                 string okunan = durum.SonGercekTeklif == "3♥" ? "Kupa" : "Maça";
                 int fit = ElDegerlendirici.RenkUzunlugu(el, okunan);
 
-                // Fit VAR (3+ kart) → 4 seviyesinde destek
+                // Fit VAR (3+ kart) → kontrol göster
                 if (fit >= 3)
                 {
-                    // Kontrol göstermek için 4♣/4♦ (basit yaklaşım)
-                    // Ama şimdilik sadece 4 seviyesi destek diyelim
+                    // Önce ♣ kontrolü var mı?
+                    if (PapazVeyaAsVarMi(el, "Sinek"))
+                        return "4♣";
+
+                    // Sonra ♦ kontrolü var mı?
+                    if (PapazVeyaAsVarMi(el, "Karo"))
+                        return "4♦";
+
+                    // Okunan ♠ ise ♥ kontrolüne bak
+                    if (okunan == "Maça" && PapazVeyaAsVarMi(el, "Kupa"))
+                        return "4♥";
+
+                    // Okunan ♥ ise ♠ kontrolüne bak
+                    if (okunan == "Kupa" && PapazVeyaAsVarMi(el, "Maça"))
+                        return "4♠";
+
+                    // Hiç kontrol yok → sign-off
                     return okunan == "Kupa" ? "4♥" : "4♠";
                 }
 
@@ -180,7 +243,119 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "3NT";
             }
 
+            // ─────────────────────────────────────────────────────
+            // DURUM 5: Partner 3♥/3♠ (Aşama 3) — Açıcı cevap veriyor
+            // ─────────────────────────────────────────────────────
+            if (durum.SonGercekTeklifSahibi == durum.Partner &&
+                durum.KendiTeklifleri.Contains("2NT") &&
+                durum.KendiTeklifleri.Contains("3♦") &&
+                (durum.SonGercekTeklif == "3♥" || durum.SonGercekTeklif == "3♠"))
+            {
+                // Partner 3♥ dedi → "4'lü ♠ var mı?" soruyor
+                if (durum.SonGercekTeklif == "3♥")
+                {
+                    // Bende 4'lü ♠ var mı?
+                    if (maca == 4)
+                        return "3♠";  // Tutuş VAR
+                    else
+                        return "3NT"; // Tutuş YOK
+                }
+
+                // Partner 3♠ dedi → "4'lü ♥ var mı?" soruyor
+                if (durum.SonGercekTeklif == "3♠")
+                {
+                    // Bende 4'lü ♥ var mı?
+                    if (kupa == 4)
+                        return "4♥";  // Tutuş VAR
+                    else
+                        return "3NT"; // Tutuş YOK
+                }
+            }
+
+            // ─────────────────────────────────────────────────────
+            // DURUM 6: Partner 3♠/4♥ (Aşama 4) — Ben kontrol göstereceğim
+            // ─────────────────────────────────────────────────────
+            if (durum.SonGercekTeklifSahibi == durum.Partner &&
+                ((durum.KendiTeklifleri.Contains("3♥") && durum.SonGercekTeklif == "3♠") ||
+                 (durum.KendiTeklifleri.Contains("3♠") && durum.SonGercekTeklif == "4♥")))
+            {
+                // Okunan renk hangisi?
+                string okunanRenk = durum.KendiTeklifleri.Contains("3♥") ? "Maça" : "Kupa";
+
+                // Önce ♣ kontrolü var mı?
+                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 1 &&
+                    (ElDegerlendirici.AsSayisi(el.Where(c => c.Suit == "Sinek").ToList()) > 0 ||
+                     ElDegerlendirici.PapazVar(el, "Sinek")))
+                    return "4♣";
+
+                // Sonra ♦ kontrolü var mı?
+                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 1 &&
+                    (ElDegerlendirici.AsSayisi(el.Where(c => c.Suit == "Karo").ToList()) > 0 ||
+                     ElDegerlendirici.PapazVar(el, "Karo")))
+                    return "4♦";
+
+                // Sonra ♥ kontrolü var mı? (eğer okunan ♠ ise)
+                if (okunanRenk == "Maça" &&
+                    (ElDegerlendirici.AsSayisi(el.Where(c => c.Suit == "Kupa").ToList()) > 0 ||
+                     ElDegerlendirici.PapazVar(el, "Kupa")))
+                    return "4♥";
+
+                // Hiç kontrol yoksa → RKCB
+                return "4NT";
+            }
+
+            // ─────────────────────────────────────────────────────
+            // DURUM 7: Partner 4♣ dedi (6 Key-Card sorusu), ben cevap veriyorum
+            // ─────────────────────────────────────────────────────
+            if (durum.SonGercekTeklif == "4♣" &&
+                durum.SonGercekTeklifSahibi == durum.Partner &&
+                durum.KendiTeklifleri.Contains("2NT") &&
+                durum.KendiTeklifleri.Contains("3♦"))
+            {
+                // 6 Key-Card = 4 As + 2 majör K
+                int asSayisi = ElDegerlendirici.AsSayisi(el);
+                int majörPapazSayisi = 0;
+                if (ElDegerlendirici.PapazVar(el, "Maça")) majörPapazSayisi++;
+                if (ElDegerlendirici.PapazVar(el, "Kupa")) majörPapazSayisi++;
+
+                int keyCardSayisi = asSayisi + majörPapazSayisi;
+
+                // Majör Dam sayısı (♠ Q + ♥ Q)
+                int majörDamSayisi = 0;
+                if (ElDegerlendirici.KizVar(el, "Maça")) majörDamSayisi++;
+                if (ElDegerlendirici.KizVar(el, "Kupa")) majörDamSayisi++;
+
+                switch (keyCardSayisi)
+                {
+                    case 0:
+                    case 1:
+                        return "4♦";  // 0-1 Key-Card (nadir)
+                    case 2:
+                        return "4♦";  // 2 Key-Card
+                    case 3:
+                        return "4♠";  // 3 Key-Card
+                    case 4:
+                        // 4 Key-Card → Dam sayısına göre
+                        if (majörDamSayisi >= 2) return "5♦";  // 4 + 2 Q
+                        if (majörDamSayisi == 1) return "5♣";  // 4 + 1 Q
+                        return "4NT";  // 4 Key-Card (Dam yok)
+                    case 5:
+                        return "5♦";  // 5 Key-Card (nadir)
+                    case 6:
+                        return "5♦";  // 6 Key-Card (nadir)
+                    default:
+                        return "4♦";
+                }
+            }
+
             return "Pas";
+        }
+        /// <summary>
+        /// Belirtilen renkte Papaz veya As var mı?
+        /// </summary>
+        private bool PapazVeyaAsVarMi(List<Card> el, string renk)
+        {
+            return el.Any(c => c.Suit == renk && (c.Value == 14 || c.Value == 13));
         }
     }
 }

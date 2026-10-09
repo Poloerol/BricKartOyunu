@@ -871,5 +871,46 @@ namespace BricKartOyunu.Forms
         {
             TestRunner.Test_Puppet_2Tur_4luMaca();
         }
+
+        private void BtnPuppet4luMacaTutusVar_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_Aşama3_TutuşVar();
+                
+        }
+
+        private void BtnPuppet4luMacaTutusYok_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_Aşama3_TutuşYok();
+        }
+
+        private void BtnPuppetKOntrolGosterme_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_Aşama4_Kontrol();
+        }
+
+        private void BtnPuppet5liKupaSonra4sinekKontrol_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_5liKupa_Kontrol();
+        }
+
+        private void BtnPuppet5liKupaFitYok3NT_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_5liKupa_SignOff();
+        }
+
+        private void BtnPuppet2KeyVard_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_KeyCard_2();
+        }
+
+        private void BtnPuppet3KeyCard_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_KeyCard_3();
+        }
+
+        private void BtnPuppet4KayCard1Q_Click(object sender, EventArgs e)
+        {
+            TestRunner.Test_Puppet_KeyCard_4_1Q();
+        }
     }
 }

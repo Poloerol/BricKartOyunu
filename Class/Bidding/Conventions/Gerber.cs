@@ -25,6 +25,21 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public bool UygunMu(IhaleDurumu durum)
         {
+            // ═══════════════════════════════════════════════════════════════
+            // Puppet Stayman YOLUNDAN GELİNDİYSE GERBER DEVRE DIŞI
+            // ═══════════════════════════════════════════════════════════════
+            // Eğer ihalede "3♣" (Puppet Stayman sorusu) geçtiyse, bu bir
+            // Puppet Stayman sekansıdır, Gerber değil.
+            // Gerber sadece doğrudan NT - 4♣ için geçerlidir.
+            bool puppetSekansinda =
+                (durum.KendiTeklifleri.Contains("3♣") ||
+                 durum.PartnerTeklifleri.Contains("3♣"));
+
+            if (puppetSekansinda)
+            {
+                return false;  // Puppet Stayman sekansı, Gerber devre dışı
+            }
+
             if (durum == null) return false;
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;

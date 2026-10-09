@@ -152,6 +152,14 @@
             this.BtnPuppet5liKupaCevap = new System.Windows.Forms.Button();
             this.btnPuppet3Karo4Majorvar = new System.Windows.Forms.Button();
             this.BtnPuppet3KaroSonrasi = new System.Windows.Forms.Button();
+            this.BtnPuppet4luMacaTutusVar = new System.Windows.Forms.Button();
+            this.BtnPuppet4luMacaTutusYok = new System.Windows.Forms.Button();
+            this.BtnPuppetKOntrolGosterme = new System.Windows.Forms.Button();
+            this.BtnPuppet5liKupaSonra4sinekKontrol = new System.Windows.Forms.Button();
+            this.BtnPuppet5liKupaFitYok3NT = new System.Windows.Forms.Button();
+            this.BtnPuppet2KeyVard = new System.Windows.Forms.Button();
+            this.BtnPuppet3KeyCard = new System.Windows.Forms.Button();
+            this.BtnPuppet4KayCard1Q = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -1124,7 +1132,7 @@
             // 
             // BtnPuppetStayman
             // 
-            this.BtnPuppetStayman.Location = new System.Drawing.Point(303, 400);
+            this.BtnPuppetStayman.Location = new System.Drawing.Point(15, 539);
             this.BtnPuppetStayman.Name = "BtnPuppetStayman";
             this.BtnPuppetStayman.Size = new System.Drawing.Size(138, 37);
             this.BtnPuppetStayman.TabIndex = 33;
@@ -1134,7 +1142,7 @@
             // 
             // BtnGrandSlamSoru
             // 
-            this.BtnGrandSlamSoru.Location = new System.Drawing.Point(470, 416);
+            this.BtnGrandSlamSoru.Location = new System.Drawing.Point(464, 342);
             this.BtnGrandSlamSoru.Name = "BtnGrandSlamSoru";
             this.BtnGrandSlamSoru.Size = new System.Drawing.Size(138, 37);
             this.BtnGrandSlamSoru.TabIndex = 34;
@@ -1144,7 +1152,7 @@
             // 
             // BtnGrandSlamCevap
             // 
-            this.BtnGrandSlamCevap.Location = new System.Drawing.Point(470, 459);
+            this.BtnGrandSlamCevap.Location = new System.Drawing.Point(464, 385);
             this.BtnGrandSlamCevap.Name = "BtnGrandSlamCevap";
             this.BtnGrandSlamCevap.Size = new System.Drawing.Size(138, 37);
             this.BtnGrandSlamCevap.TabIndex = 35;
@@ -1154,7 +1162,7 @@
             // 
             // BtnPuppet5liKupaCevap
             // 
-            this.BtnPuppet5liKupaCevap.Location = new System.Drawing.Point(303, 443);
+            this.BtnPuppet5liKupaCevap.Location = new System.Drawing.Point(12, 582);
             this.BtnPuppet5liKupaCevap.Name = "BtnPuppet5liKupaCevap";
             this.BtnPuppet5liKupaCevap.Size = new System.Drawing.Size(138, 37);
             this.BtnPuppet5liKupaCevap.TabIndex = 36;
@@ -1164,7 +1172,7 @@
             // 
             // btnPuppet3Karo4Majorvar
             // 
-            this.btnPuppet3Karo4Majorvar.Location = new System.Drawing.Point(303, 486);
+            this.btnPuppet3Karo4Majorvar.Location = new System.Drawing.Point(159, 539);
             this.btnPuppet3Karo4Majorvar.Name = "btnPuppet3Karo4Majorvar";
             this.btnPuppet3Karo4Majorvar.Size = new System.Drawing.Size(138, 37);
             this.btnPuppet3Karo4Majorvar.TabIndex = 37;
@@ -1174,7 +1182,7 @@
             // 
             // BtnPuppet3KaroSonrasi
             // 
-            this.BtnPuppet3KaroSonrasi.Location = new System.Drawing.Point(303, 529);
+            this.BtnPuppet3KaroSonrasi.Location = new System.Drawing.Point(156, 582);
             this.BtnPuppet3KaroSonrasi.Name = "BtnPuppet3KaroSonrasi";
             this.BtnPuppet3KaroSonrasi.Size = new System.Drawing.Size(138, 37);
             this.BtnPuppet3KaroSonrasi.TabIndex = 38;
@@ -1182,11 +1190,99 @@
             this.BtnPuppet3KaroSonrasi.UseVisualStyleBackColor = true;
             this.BtnPuppet3KaroSonrasi.Click += new System.EventHandler(this.BtnPuppet3KaroSonrasi_Click);
             // 
+            // BtnPuppet4luMacaTutusVar
+            // 
+            this.BtnPuppet4luMacaTutusVar.Location = new System.Drawing.Point(303, 400);
+            this.BtnPuppet4luMacaTutusVar.Name = "BtnPuppet4luMacaTutusVar";
+            this.BtnPuppet4luMacaTutusVar.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet4luMacaTutusVar.TabIndex = 39;
+            this.BtnPuppet4luMacaTutusVar.Text = "TEST 9.5 — Puppet Aşama 3: 4\'lü ♠ tutuş VAR";
+            this.BtnPuppet4luMacaTutusVar.UseVisualStyleBackColor = true;
+            this.BtnPuppet4luMacaTutusVar.Click += new System.EventHandler(this.BtnPuppet4luMacaTutusVar_Click);
+            // 
+            // BtnPuppet4luMacaTutusYok
+            // 
+            this.BtnPuppet4luMacaTutusYok.Location = new System.Drawing.Point(303, 443);
+            this.BtnPuppet4luMacaTutusYok.Name = "BtnPuppet4luMacaTutusYok";
+            this.BtnPuppet4luMacaTutusYok.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet4luMacaTutusYok.TabIndex = 40;
+            this.BtnPuppet4luMacaTutusYok.Text = "TEST 9.6 — Puppet Aşama 3: 4\'lü ♠ tutuş YOK";
+            this.BtnPuppet4luMacaTutusYok.UseVisualStyleBackColor = true;
+            this.BtnPuppet4luMacaTutusYok.Click += new System.EventHandler(this.BtnPuppet4luMacaTutusYok_Click);
+            // 
+            // BtnPuppetKOntrolGosterme
+            // 
+            this.BtnPuppetKOntrolGosterme.Location = new System.Drawing.Point(303, 486);
+            this.BtnPuppetKOntrolGosterme.Name = "BtnPuppetKOntrolGosterme";
+            this.BtnPuppetKOntrolGosterme.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppetKOntrolGosterme.TabIndex = 41;
+            this.BtnPuppetKOntrolGosterme.Text = "TEST 9.7 — Puppet Aşama 4: Kontrol gösterme";
+            this.BtnPuppetKOntrolGosterme.UseVisualStyleBackColor = true;
+            this.BtnPuppetKOntrolGosterme.Click += new System.EventHandler(this.BtnPuppetKOntrolGosterme_Click);
+            // 
+            // BtnPuppet5liKupaSonra4sinekKontrol
+            // 
+            this.BtnPuppet5liKupaSonra4sinekKontrol.Location = new System.Drawing.Point(303, 539);
+            this.BtnPuppet5liKupaSonra4sinekKontrol.Name = "BtnPuppet5liKupaSonra4sinekKontrol";
+            this.BtnPuppet5liKupaSonra4sinekKontrol.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet5liKupaSonra4sinekKontrol.TabIndex = 42;
+            this.BtnPuppet5liKupaSonra4sinekKontrol.Text = "TEST 9.8 — Puppet 5\'li ♥ sonrası 4♣ (♣ kontrol)";
+            this.BtnPuppet5liKupaSonra4sinekKontrol.UseVisualStyleBackColor = true;
+            this.BtnPuppet5liKupaSonra4sinekKontrol.Click += new System.EventHandler(this.BtnPuppet5liKupaSonra4sinekKontrol_Click);
+            // 
+            // BtnPuppet5liKupaFitYok3NT
+            // 
+            this.BtnPuppet5liKupaFitYok3NT.Location = new System.Drawing.Point(303, 582);
+            this.BtnPuppet5liKupaFitYok3NT.Name = "BtnPuppet5liKupaFitYok3NT";
+            this.BtnPuppet5liKupaFitYok3NT.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet5liKupaFitYok3NT.TabIndex = 43;
+            this.BtnPuppet5liKupaFitYok3NT.Text = "TEST 9.9 — Puppet 5\'li ♥ sonrası 3NT (fit yok)";
+            this.BtnPuppet5liKupaFitYok3NT.UseVisualStyleBackColor = true;
+            this.BtnPuppet5liKupaFitYok3NT.Click += new System.EventHandler(this.BtnPuppet5liKupaFitYok3NT_Click);
+            // 
+            // BtnPuppet2KeyVard
+            // 
+            this.BtnPuppet2KeyVard.Location = new System.Drawing.Point(447, 486);
+            this.BtnPuppet2KeyVard.Name = "BtnPuppet2KeyVard";
+            this.BtnPuppet2KeyVard.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet2KeyVard.TabIndex = 44;
+            this.BtnPuppet2KeyVard.Text = "TEST 9.10 — Puppet Key-Card: 2 Key-Card\"";
+            this.BtnPuppet2KeyVard.UseVisualStyleBackColor = true;
+            this.BtnPuppet2KeyVard.Click += new System.EventHandler(this.BtnPuppet2KeyVard_Click);
+            // 
+            // BtnPuppet3KeyCard
+            // 
+            this.BtnPuppet3KeyCard.Location = new System.Drawing.Point(447, 539);
+            this.BtnPuppet3KeyCard.Name = "BtnPuppet3KeyCard";
+            this.BtnPuppet3KeyCard.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet3KeyCard.TabIndex = 45;
+            this.BtnPuppet3KeyCard.Text = "TEST 9.11 — Puppet Key-Card: 3 Key-Card\"";
+            this.BtnPuppet3KeyCard.UseVisualStyleBackColor = true;
+            this.BtnPuppet3KeyCard.Click += new System.EventHandler(this.BtnPuppet3KeyCard_Click);
+            // 
+            // BtnPuppet4KayCard1Q
+            // 
+            this.BtnPuppet4KayCard1Q.Location = new System.Drawing.Point(447, 582);
+            this.BtnPuppet4KayCard1Q.Name = "BtnPuppet4KayCard1Q";
+            this.BtnPuppet4KayCard1Q.Size = new System.Drawing.Size(138, 37);
+            this.BtnPuppet4KayCard1Q.TabIndex = 46;
+            this.BtnPuppet4KayCard1Q.Text = "TEST 9.12 — Puppet Key-Card: 4 Key-Card + 1 Q";
+            this.BtnPuppet4KayCard1Q.UseVisualStyleBackColor = true;
+            this.BtnPuppet4KayCard1Q.Click += new System.EventHandler(this.BtnPuppet4KayCard1Q_Click);
+            // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1366, 651);
+            this.Controls.Add(this.BtnPuppet4KayCard1Q);
+            this.Controls.Add(this.BtnPuppet3KeyCard);
+            this.Controls.Add(this.BtnPuppet2KeyVard);
+            this.Controls.Add(this.BtnPuppet5liKupaFitYok3NT);
+            this.Controls.Add(this.BtnPuppet5liKupaSonra4sinekKontrol);
+            this.Controls.Add(this.BtnPuppetKOntrolGosterme);
+            this.Controls.Add(this.BtnPuppet4luMacaTutusYok);
+            this.Controls.Add(this.BtnPuppet4luMacaTutusVar);
             this.Controls.Add(this.BtnPuppet3KaroSonrasi);
             this.Controls.Add(this.btnPuppet3Karo4Majorvar);
             this.Controls.Add(this.BtnPuppet5liKupaCevap);
@@ -1367,5 +1463,13 @@
         private System.Windows.Forms.Button BtnPuppet5liKupaCevap;
         private System.Windows.Forms.Button btnPuppet3Karo4Majorvar;
         private System.Windows.Forms.Button BtnPuppet3KaroSonrasi;
+        private System.Windows.Forms.Button BtnPuppet4luMacaTutusVar;
+        private System.Windows.Forms.Button BtnPuppet4luMacaTutusYok;
+        private System.Windows.Forms.Button BtnPuppetKOntrolGosterme;
+        private System.Windows.Forms.Button BtnPuppet5liKupaSonra4sinekKontrol;
+        private System.Windows.Forms.Button BtnPuppet5liKupaFitYok3NT;
+        private System.Windows.Forms.Button BtnPuppet2KeyVard;
+        private System.Windows.Forms.Button BtnPuppet3KeyCard;
+        private System.Windows.Forms.Button BtnPuppet4KayCard1Q;
     }
 }
