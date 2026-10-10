@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -9,30 +10,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// 
     /// Kural:
     /// - 22+ HP VEYA
-    /// - 9 tricks (yaklaşık 22+ HP veya çok kuvvetli dağılım)
+    /// - 19+ HP + 9 hızlı löve
     /// 
     /// Amaç: Çok güçlü elleri tek seferde göstermek.
     /// 
-    /// Öncelik: 5 (tüm açılışlardan önce kontrol edilir)
-    /// 
-    /// Örnek:
-    ///   El: ♠AKQ54 ♥AKQ3 ♦AK ♣T87  → 22+ HP → "2♣"
-    ///   El: ♠AKQJ54 ♥AK ♦KQ2 ♣A87  → 23 HP → "2♣"
-    ///   El: ♠AKQJ54 ♥AKQ3 ♦KQ2 ♣-  → 23 HP + void → "2♣"
+    /// Öncelik: 5
     /// </summary>
     public class IkiliSinekGuclu : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "2♣ Güçlü";
-
         public bool AktifMi { get; set; } = true;
-
-        /// <summary>
-        /// Öncelik 5 — tüm açılışlardan önce kontrol edilir.
-        /// </summary>
         public int Oncelik => 5;
 
         // ═══════════════════════════════════════════════════════════════════
@@ -45,51 +32,82 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
 
-            // 1. Sadece ilk teklifte geçerli
+            // Sadece ilk teklifte geçerli
             if (!durum.IlkTeklifMi()) return false;
 
             var el = durum.AktifOyuncuEli;
 
-            // 2. HP kontrolü
-            int hp = ElDegerlendirici.HCP(el);
-
             // 22+ HP → 2♣
+            int hp = ElDegerlendirici.HCP(el);
             if (hp >= 22) return true;
 
-            // 20-21 HP + dengeli → 2NT (bu konvansiyonda değil — StrongNT 20-21 için ayrı)
-            // NOT: Weak NT veya 20-21 için ayrı konvansiyon eklenebilir.
-            // Şimdilik 2NT'yi es geçiyoruz.
-
-            // 3. 9 tricks kontrolü (basit)
-            //    - 20+ HP + 5-5 dağılım → yaklaşık 9 tricks
-            //    - 19+ HP + 6-4 dağılım → yaklaşık 9 tricks
+            // 19+ HP + 9 hızlı löve → 2♣
             if (hp >= 19)
             {
-                if (YuksekDagilimTrickVarMi(el)) return true;
+                int tricks = HizliLoveSayisi(el);
+                if (tricks >= 9) return true;
             }
 
             return false;
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // HIZLI LÖVE SAYISI
+        // ═══════════════════════════════════════════════════════════════════
+
         /// <summary>
-        /// Elin dağılımı "trick üretici" mi?
-        /// 5-5, 6-4, 6-5, 5-4-4-0, vs.
+        /// Hızlı löve sayısını hesaplar.
+        /// 
+        /// Kural:
+        /// - Her renkte A = 1 löve
+        /// - Her renkte K = 1 löve (A yoksa)
+        /// - Her renkte Q = 1 löve (A ve K yoksa, 3+ kart)
+        /// - 6+ kart uzun renk = +2 löve
+        /// - 7+ kart uzun renk = +1 löve (ek)
+        /// 
+        /// Örnek:
+        ///   ♠ AKQ54 ♥AKQ3 ♦AK ♣T87 → 7 hızlı löve (A K Q × 2 + A K)
+        ///   ♠ AK ♥AQ8632 ♦A ♣Q1086 → 5 hızlı löve (A K + A Q + A)
         /// </summary>
-        private bool YuksekDagilimTrickVarMi(List<Card> el)
+        private int HizliLoveSayisi(List<Card> el)
         {
+            int tricks = 0;
+
+            // Her renkte A K Q kontrolü
+            foreach (var renk in KozYardimcisi.TumRenkler)
+            {
+                var renkKartlari = el
+                    .Where(c => c.Suit == renk)
+                    .OrderByDescending(c => c.Value)
+                    .ToList();
+
+                if (renkKartlari.Count == 0) continue;
+
+                // A = 1 löve
+                if (renkKartlari[0].Value == 14)
+                {
+                    tricks++;
+                }
+                // K = 1 löve (A yoksa)
+                else if (renkKartlari[0].Value == 13)
+                {
+                    tricks++;
+                }
+                // Q = 1 löve (A ve K yoksa, 3+ kart)
+                else if (renkKartlari.Count >= 3 && renkKartlari[0].Value == 12)
+                {
+                    tricks++;
+                }
+            }
+
+            // Uzun renk löve bonusu
             var sayilar = ElDegerlendirici.RenkSayilari(el)
                 .Values.OrderByDescending(x => x).ToArray();
 
-            // 6-4 veya daha uzun iki renk
-            if (sayilar[0] >= 6 && sayilar[1] >= 4) return true;
+            if (sayilar[0] >= 6) tricks += 2;
+            if (sayilar[0] >= 7) tricks += 1;
 
-            // 5-5 iki renk
-            if (sayilar[0] >= 5 && sayilar[1] >= 5) return true;
-
-            // 5-4-4-0
-            if (sayilar[0] == 5 && sayilar[1] == 4 && sayilar[2] == 4) return true;
-
-            return false;
+            return tricks;
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -98,7 +116,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public string TeklifVer(IhaleDurumu durum)
         {
-            // 2♣ yapay güçlü açılış
             return "2♣";
         }
     }

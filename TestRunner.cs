@@ -3566,6 +3566,48 @@ new IhaleHamlesi
 
             Yaz("════════════════════════════════════════");
         }
+
+        public static void Test_IkiliSinekGuclu_Dogru()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 18.1 - 2♣ açılışı — 19 HP + 6-4 dağılım");
+            Yaz("════════════════════════════════════════");
+
+            var doguEli = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 14 },  // A
+        new Card { Suit = "Maça", Value = 13 },  // K
+        new Card { Suit = "Kupa", Value = 14 },  // A
+        new Card { Suit = "Kupa", Value = 12 },  // Q
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Kupa", Value = 2 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Karo", Value = 14 },  // A
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Dogu,
+                AktifOyuncuEli = doguEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(doguEli)}");
+            Yaz("Beklenen: 1♥ (2♣ DEĞİL)");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc != "2♣" ? "✅ DOĞRU" : "❌ YANLIŞ");
+            Yaz("════════════════════════════════════════");
+        }
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -3693,6 +3735,9 @@ new IhaleHamlesi
 
             Yaz("▶ Test 17.1: Konvansiyon Öncelik Çakışmaları");
             Test_OncelikCakismalari();
+
+            Yaz("▶ TEST 18.1 - 2♣ açılışı — 19 HP + 6-4 dağılım");
+            Test_IkiliSinekGuclu_Dogru();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
