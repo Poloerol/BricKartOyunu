@@ -539,6 +539,12 @@ namespace BricKartOyunu.Forms
                 _bids.RemoveAt(_bids.Count - 1);
             }
 
+            // 3b. _ihaleHamleleri'nden de son elemanı çıkar
+            if (_ihaleHamleleri.Count > 0)
+            {
+                _ihaleHamleleri.RemoveAt(_ihaleHamleleri.Count - 1);
+            }
+
             // 4. İleri almak için sakla
             _ileriAlinanHamleler.Add((silinenOyuncu, silinenTeklif));
 
@@ -1004,6 +1010,10 @@ namespace BricKartOyunu.Forms
         /// <summary>
         /// AI teklifini uygular (Pas, teklif, kontr, vs.).
         /// </summary>
+        /// <summary>
+        /// AI teklifini uygular (Pas, teklif, kontr, vs.).
+        /// KozYardimcisi kullanarak parse eder (1NT dahil).
+        /// </summary>
         private void AIHamlesiniUygula(string teklif)
         {
             if (string.IsNullOrEmpty(teklif)) teklif = "Pas";
@@ -1017,7 +1027,6 @@ namespace BricKartOyunu.Forms
                 EkleIhaleGecmisi(_aktifOyuncu, "Pas");
                 _ustUstePasSayisi++;
 
-                // İhale bitti mi?
                 if (IhaleBittiMi())
                 {
                     IhaleyiSonlandir();
@@ -1045,45 +1054,42 @@ namespace BricKartOyunu.Forms
                 return;
             }
 
-            // Gerçek teklif — parse et
-            // Örnek: "1♠", "3NT", "4♥"
-            if (teklif.Length >= 2)
+            // ─── GERÇEK TEKLİF ───────────────────────────────────────────────
+            // KozYardimcisi kullanarak parse et (1NT dahil)
+            int seviye = KozYardimcisi.TekliftenSeviyeCikar(teklif);
+            string koz = KozYardimcisi.TekliftenKozCikar(teklif);
+
+            if (seviye == 0 || string.IsNullOrEmpty(koz))
             {
-                // Koz ve seviye
-                char sonKarakter = teklif[teklif.Length - 1];
-                string seviyeStr = teklif.Substring(0, teklif.Length - 1);
-
-                int seviye;
-                if (!int.TryParse(seviyeStr, out seviye))
-                {
-                    // Parse edilemedi — Pas yap
-                    EkleIhaleGecmisi(_aktifOyuncu, "Pas");
-                    _ustUstePasSayisi++;
-                    if (IhaleBittiMi()) { IhaleyiSonlandir(); return; }
-                    SonrakiOyuncuyaGec();
-                    return;
-                }
-
-                // Kontrat bilgilerini güncelle
-                _sonKontratTeklifi = teklif;
-                _sonKontratVeren = _aktifOyuncu;
-                _kontratKozu = sonKarakter.ToString();
-
-                // Grid indeksini hesapla (görsel için)
-                _sonTeklifIndex = TeklifGridIndexHesapla(teklif);
-
-                // ListView'a ekle
-                EkleIhaleGecmisi(_aktifOyuncu, teklif);
-
-                // Pas sayacını sıfırla
-                _ustUstePasSayisi = 0;
-
-                // Grid'i yenile
-                panelGrid?.Invalidate();
-
-                // Sonraki oyuncuya geç
+                // Parse edilemedi — Pas yap
+                System.Diagnostics.Debug.WriteLine(
+                    $"[AI] HATA: '{teklif}' parse edilemedi, Pas yapılıyor.");
+                EkleIhaleGecmisi(_aktifOyuncu, "Pas");
+                _ustUstePasSayisi++;
+                if (IhaleBittiMi()) { IhaleyiSonlandir(); return; }
                 SonrakiOyuncuyaGec();
+                return;
             }
+
+            // Kontrat bilgilerini güncelle
+            _sonKontratTeklifi = teklif;
+            _sonKontratVeren = _aktifOyuncu;
+            _kontratKozu = KozYardimcisi.KozSembolu(koz);
+
+            // Grid indeksini hesapla
+            _sonTeklifIndex = TeklifGridIndexHesapla(teklif);
+
+            // ListView'a ekle
+            EkleIhaleGecmisi(_aktifOyuncu, teklif);
+
+            // Pas sayacını sıfırla
+            _ustUstePasSayisi = 0;
+
+            // Grid'i yenile
+            panelGrid?.Invalidate();
+
+            // Sonraki oyuncuya geç
+            SonrakiOyuncuyaGec();
         }
 
         /// <summary>

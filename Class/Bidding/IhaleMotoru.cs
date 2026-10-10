@@ -42,38 +42,46 @@ namespace BricKartOyunu.Class.Bidding
             _anlasma = anlasma ?? OrtaklikAnlasmasi.Varsayilan();
 
             _konvansiyonlar = new List<IKonvansiyon>
-            {
-                new IkiliSinekGuclu(),
-                new BesliMajor(),
-                new StrongNT(),
-                new MinorAcilis(),
+{
+    // ─── AÇILIŞLAR ───────────────────────────────────────────────
+    new IkiliSinekGuclu(),      // 5  — 22+ HP yapay 2♣
+    new Lebensohl_Reverse(),    // 6  — Reverse üzerine Lebensohl
+    new Lebensohl_WeakTwo(),    // 7  — Zayıf 2'ye karşı Lebensohl
+    new Lebensohl(),            // 8  — 1NT overcall Lebensohl
 
-                new Gerber(),
-                new CueBid(),
-                new Blackwood(),
-                new GrandSlamForce(),
+    // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
+    new BesliMajor(),           // 10 — 5'li majör
+    new Stayman(),              // 10 — 1NT Stayman
+    new StrongNT(),             // 20 — 15-17 dengeli
+    new MinorAcilis(),          // 30 — minör açılış
 
-                new Splinter(),
-                new Jacoby2NT(),
-                new SupportDouble(),
+    // ─── SLAM ────────────────────────────────────────────────────
+    new Gerber(),               // 13 — 4♣ As sorusu (NT)
+    new CueBid(),               // 14 — kontrol gösterme
+    new Blackwood(),            // 15 — 4NT As sorusu
+    new GrandSlamForce(),       // 28 — 5NT Papaz sorma
 
-                new Michaels(),
-                new NegativeDouble(),
-                new ResponsiveDouble(),
-                new Unusual2NT(),
+    // ─── ORTAKLIK ────────────────────────────────────────────────
+    new Splinter(),             // 16 — kısa renk
+    new Jacoby2NT(),            // 17 — majör desteği (13+ HP)
+    new SupportDouble(),        // 18 — 3'lü destek
+    new Drury(),                // 25 — Pas-1M-2♣
 
-                new MinorTransfer(),
-                new Drury(),
-                new Smolen(),
-                new PuppetStayman(),
-                new Lebensohl_Reverse(),
-                new Lebensohl_WeakTwo(),
-                new Lebensohl(),
+    // ─── RAKİP MÜDAHALESİ ────────────────────────────────────────
+    new Michaels(),             // 19 — iki renk
+    new NegativeDouble(),       // 20 — negatif kontr
+    new ResponsiveDouble(),     // 22 — rakip anlaştı
+    new Unusual2NT(),           // 23 — iki minör
 
-                new Stayman(),
-                new JacobyTransfer(),
-                new BasitCevap(),
-            };
+    // ─── 1NT/2NT CEVAPLARI ───────────────────────────────────────
+    new JacobyTransfer(),       // 15 — majör transfer
+    new MinorTransfer(),        // 24 — minör transfer
+    new Smolen(),               // 26 — 5-4 majör
+    new PuppetStayman(),        // 27 — 2NT Stayman
+
+    // ─── FALLBACK ────────────────────────────────────────────────
+    new BasitCevap(),           // 100 — basit cevap
+};
 
             // Anlaşmaya göre aktif/pasif ayarla
             AnlasmayiUygula();

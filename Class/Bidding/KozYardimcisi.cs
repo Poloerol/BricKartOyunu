@@ -25,6 +25,10 @@ namespace BricKartOyunu.Class.Bidding
         {
             if (string.IsNullOrEmpty(teklif)) return null;
 
+            // NT özel durumu: "1NT", "3NT", vs.
+            if (teklif.EndsWith("NT"))
+                return "NT";
+
             char sonKarakter = teklif[teklif.Length - 1];
             switch (sonKarakter)
             {
@@ -41,13 +45,25 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Tekliften seviyeyi çıkarır.
         /// "1♠" → 1
+        /// "1NT" → 1
         /// "3NT" → 3
         /// </summary>
         public static int TekliftenSeviyeCikar(string teklif)
         {
             if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return 0;
 
-            string seviyeStr = teklif.Substring(0, teklif.Length - 1);
+            string seviyeStr;
+
+            // NT özel durumu: "1NT" → "1"
+            if (teklif.EndsWith("NT"))
+            {
+                seviyeStr = teklif.Substring(0, teklif.Length - 2);
+            }
+            else
+            {
+                seviyeStr = teklif.Substring(0, teklif.Length - 1);
+            }
+
             if (int.TryParse(seviyeStr, out int seviye)) return seviye;
             return 0;
         }

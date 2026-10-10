@@ -4,6 +4,7 @@ using BricKartOyunu.Class.Bidding.Conventions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 
 namespace BricKartOyunu
@@ -3408,6 +3409,163 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        public static void Test_OncelikSirasi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 17.1 - Konvansiyon Öncelik Sırası");
+            Yaz("════════════════════════════════════════");
+
+            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            var motor = new IhaleMotoru(anlasma);
+
+            var aktifler = motor.AktifKonvansiyonlar();
+
+            Yaz("Aktif Konvansiyonlar (Oncelik sırasına göre):");
+            Yaz("────────────────────────────────────────");
+
+            // Her konvansiyonun Oncelik değerini al
+            // (Motor'daki _konvansiyonlar private, o yüzden yansıma kullanacağız)
+            var tip = typeof(IhaleMotoru);
+            var alan = tip.GetField("_konvansiyonlar",
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance);
+
+            if (alan == null)
+            {
+                Yaz("❌ _konvansiyonlar alanı bulunamadı!");
+                return;
+            }
+
+            var konvansiyonlar = (List<IKonvansiyon>)alan.GetValue(motor);
+
+            foreach (var k in konvansiyonlar.Where(x => x.AktifMi).OrderBy(x => x.Oncelik))
+            {
+                Yaz($"  [{k.Oncelik,3}] {k.Ad}");
+            }
+
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_OncelikCakismalari()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 17.2 Öncelik Çakışmaları");
+            Yaz("════════════════════════════════════════");
+
+            // ═══════════════════════════════════════════════════════════════
+            // ÇAKIŞMA 1: 1NT - Gerber vs Stayman
+            // ═══════════════════════════════════════════════════════════════
+            Yaz("─── ÇAKIŞMA 1: 1NT - 4'lü majör + 16 HP ───");
+            var el1 = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 14 },  // A
+new Card { Suit = "Maça", Value = 13 },  // K
+new Card { Suit = "Maça", Value = 12 },  // Q
+new Card { Suit = "Maça", Value = 5 },   // ← 4'lü ♠
+new Card { Suit = "Kupa", Value = 13 },  // K
+new Card { Suit = "Kupa", Value = 12 },  // Q
+new Card { Suit = "Kupa", Value = 11 },  // J
+new Card { Suit = "Kupa", Value = 3 },   // ← 4'lü ♥
+new Card { Suit = "Karo", Value = 14 },  // A
+new Card { Suit = "Karo", Value = 5 },
+new Card { Suit = "Karo", Value = 4 },
+new Card { Suit = "Sinek", Value = 9 },
+new Card { Suit = "Sinek", Value = 3 },
+    };
+            var gecmis1 = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+            var durum1 = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el1,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis1,
+            };
+            var motor1 = new IhaleMotoru(durum1.Anlasma);
+            Yaz($"Motor → {motor1.TeklifVer(durum1)}");
+
+            // ═══════════════════════════════════════════════════════════════
+            // ÇAKIŞMA 2: Rakip 1♠ - Michaels vs NegativeDouble
+            // ═══════════════════════════════════════════════════════════════
+            Yaz("─── ÇAKIŞMA 2: Rakip 1♠ + 5♥+5♦ ───");
+            var el2 = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Kupa", Value = 14 },
+        new Card { Suit = "Kupa", Value = 13 },
+        new Card { Suit = "Kupa", Value = 11 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Karo", Value = 14 },
+        new Card { Suit = "Karo", Value = 12 },
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 5 },
+        new Card { Suit = "Karo", Value = 2 },
+        new Card { Suit = "Sinek", Value = 7 },
+    };
+            var gecmis2 = new List<IhaleHamlesi>
+{
+    new IhaleHamlesi
+{
+    Oyuncu = Player.Bati,  // ← DOĞRU (rakip)
+    Teklif = "1♠",
+    Sira = 1,
+    GecerliMi = true
+},
+new IhaleHamlesi
+{
+    Oyuncu = Player.Kuzey,  // ← DOĞRU (partner)
+    Teklif = "Pas",
+    Sira = 2,
+    GecerliMi = true
+},
+};
+            var durum2 = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el2,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis2,
+            };
+            var motor2 = new IhaleMotoru(durum2.Anlasma);
+            Yaz($"Motor → {motor2.TeklifVer(durum2)}");
+
+            // ═══════════════════════════════════════════════════════════════
+            // ÇAKIŞMA 3: 1NT - StrongNT vs BesliMajor
+            // ═══════════════════════════════════════════════════════════════
+            Yaz("─── ÇAKIŞMA 3: 15 HP dengeli + 5'li ♠ ───");
+            var el3 = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 14 }, // A
+        new Card { Suit = "Maça", Value = 13 }, // K
+        new Card { Suit = "Maça", Value = 12 }, // Q
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 3 },
+        new Card { Suit = "Kupa", Value = 14 }, // A
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Karo", Value = 12 }, // Q
+        new Card { Suit = "Karo", Value = 11 }, // J
+        new Card { Suit = "Karo", Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 9 },
+    };
+            var durum3 = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el3,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+            var motor3 = new IhaleMotoru(durum3.Anlasma);
+            Yaz($"Motor → {motor3.TeklifVer(durum3)}");
+
+            Yaz("════════════════════════════════════════");
+        }
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -3529,6 +3687,12 @@ namespace BricKartOyunu
 
             Yaz("▶ Test 16.1: BasitCevap 6'lı destek");
             Test_BasitCevap_6liDestek();
+
+            Yaz("▶ Test 17.1: Konvansiyon Öncelik Sırası");
+            Test_OncelikSirasi();
+
+            Yaz("▶ Test 17.1: Konvansiyon Öncelik Çakışmaları");
+            Test_OncelikCakismalari();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
