@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -19,8 +20,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   Rakip 1♠ → 2NT = 5♦ + 5♣
     /// 
     /// NOT: Bu konvansiyon, klasik Michaels ile ÇAKIŞMAZ.
-    ///      Michaels = rakip rengine göre MAJÖR bazlı iki renk gösterir.
-    ///      Unusual 2NT = rakip rengine göre EN KÜÇÜK iki rengi gösterir.
     /// 
     /// Öncelik: 23
     /// </summary>
@@ -47,7 +46,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.KendiTeklifleri.Count > 0) return false;
 
             // Rakip rengini çıkar
-            string rakipKozu = TekliftenKozCikar(rakipSon);
+            string rakipKozu = KozYardimcisi.TekliftenKozCikar(rakipSon);
             if (string.IsNullOrEmpty(rakipKozu)) return false;
 
             // Rakip rengi hariç, kalan 3 renkten EN KÜÇÜK İKİSİNİ bul
@@ -71,22 +70,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public string TeklifVer(IhaleDurumu durum)
         {
             return "2NT";
-        }
-
-        private string TekliftenKozCikar(string teklif)
-        {
-            if (string.IsNullOrEmpty(teklif)) return null;
-            char sonKarakter = teklif[teklif.Length - 1];
-            switch (sonKarakter)
-            {
-                case '♠': return "Maça";
-                case '♥': return "Kupa";
-                case '♦': return "Karo";
-                case '♣': return "Sinek";
-                case 'T':
-                case 't': return "NT";
-                default: return null;
-            }
         }
     }
 }

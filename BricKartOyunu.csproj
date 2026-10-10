@@ -185,6 +185,7 @@
     <Compile Include="Class\Bidding\IhaleHamlesi.cs" />
     <Compile Include="Class\Bidding\IhaleMotoru.cs" />
     <Compile Include="Class\Bidding\IKonvansiyon.cs" />
+    <Compile Include="Class\Bidding\KozYardimcisi.cs" />
     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />

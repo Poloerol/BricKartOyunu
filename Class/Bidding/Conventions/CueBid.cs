@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -64,7 +65,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (hp < 15) return false;
 
             // 6. Bu elde daha önce cue bid yapılmış mı?
-            //    (Yani KendiTeklifleri içinde zaten bir cue bid var mı?)
             if (DahaOnceCueBidYapildiMi(durum, koz)) return false;
 
             // 7. Kontrolü olan bir yan renk var mı?
@@ -97,7 +97,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (seviye < 4) seviye = 4;
 
             // Rengi sembole çevir
-            string sembol = KozSembolu(kontrolRengi);
+            string sembol = KozYardimcisi.KozSembolu(kontrolRengi);
             return $"{seviye}{sembol}";
         }
 
@@ -123,9 +123,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     h.Koz != koz &&
                     h.Koz != "NT")
                 {
-                    // Ve bu renk cue bid için uygun mu?
-                    // (Yani partnerin gösterdiği bir renk değil, yeni bir renk)
-                    // Basit kontrol: Bu renk daha önce "doğal" olarak teklif edilmiş mi?
+                    // Bu renk daha önce "doğal" olarak teklif edilmiş mi?
                     bool dogalTeklif = durum.Gecmis.Any(gg =>
                         gg.GercekTeklifMi &&
                         gg.Koz == h.Koz &&
@@ -176,13 +174,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         /// <summary>
         /// Bu renk daha önce (cue bid dışı) teklif edilmiş mi?
-        /// Eğer partner zaten bu rengi doğal olarak teklif ettiyse, cue bid anlamsız.
         /// </summary>
         private bool BuRenkDahaOnceTeklifEdildiMi(
             IhaleDurumu durum, string renk, string koz)
         {
-            // Bu renk daha önce (1-2 seviyesinde) teklif edildiyse ve 
-            // şu an 4 seviyesinde cue bid yapılacaksa → zaten bilinen bir renk, atla
             bool dogalTeklifVar = durum.Gecmis.Any(h =>
                 h.GercekTeklifMi &&
                 h.Koz == renk &&
@@ -190,22 +185,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 h.Seviye <= 2);
 
             return dogalTeklifVar;
-        }
-
-        /// <summary>
-        /// Renk adını sembole çevirir.
-        /// </summary>
-        private string KozSembolu(string koz)
-        {
-            switch (koz)
-            {
-                case "Maça": return "♠";
-                case "Kupa": return "♥";
-                case "Karo": return "♦";
-                case "Sinek": return "♣";
-                case "NT": return "NT";
-                default: return "?";
-            }
         }
     }
 }

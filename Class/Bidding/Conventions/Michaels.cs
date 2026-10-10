@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -18,7 +19,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   Rakip 1♦ → 2♦ = 5+ Maça + 5+ Kupa (her iki majör)
     ///   Rakip 1♣ → 2♣ = 5+ Maça + 5+ Kupa (her iki majör)
     /// 
-    /// Öncelik: 21 (NegativeDouble 20 sonrası)
+    /// Öncelik: 19
     /// </summary>
     public class Michaels : IKonvansiyon
     {
@@ -42,7 +43,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Biz henüz konuşmadık
             if (durum.KendiTeklifleri.Count > 0) return false;
 
-            string rakipKoz = TekliftenKozCikar(rakipSon);
+            string rakipKoz = KozYardimcisi.TekliftenKozCikar(rakipSon);
             if (string.IsNullOrEmpty(rakipKoz)) return false;
 
             var el = durum.AktifOyuncuEli;
@@ -70,37 +71,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public string TeklifVer(IhaleDurumu durum)
         {
             string rakipSon = durum.RakipTeklifleri.Last();
-            string rakipKoz = TekliftenKozCikar(rakipSon);
-            string sembol = KozSembolu(rakipKoz);
+            string rakipKoz = KozYardimcisi.TekliftenKozCikar(rakipSon);
+            string sembol = KozYardimcisi.KozSembolu(rakipKoz);
 
             // Cue bid: rakip rengini 2 seviyesinde teklif et
             return $"2{sembol}";
-        }
-
-        private string TekliftenKozCikar(string teklif)
-        {
-            if (string.IsNullOrEmpty(teklif)) return null;
-            char son = teklif[teklif.Length - 1];
-            switch (son)
-            {
-                case '♠': return "Maça";
-                case '♥': return "Kupa";
-                case '♦': return "Karo";
-                case '♣': return "Sinek";
-                default: return null;
-            }
-        }
-
-        private string KozSembolu(string renk)
-        {
-            switch (renk)
-            {
-                case "Maça": return "♠";
-                case "Kupa": return "♥";
-                case "Karo": return "♦";
-                case "Sinek": return "♣";
-                default: return "?";
-            }
         }
     }
 }

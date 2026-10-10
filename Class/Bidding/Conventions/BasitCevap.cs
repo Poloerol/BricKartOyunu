@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -16,13 +17,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// - 13+ HP → Yeni renk 2 seviyesinde (2/1 game force)
     /// 
     /// Öncelik: 100 (fallback'ten önce)
-    /// 
-    /// Örnek:
-    ///   Partner: 1♠
-    ///   Ben: 6-9 HP + 3+ Maça → 2♠
-    ///   Ben: 6-9 HP + 5+ Kupa → 2♥ (yeni renk)
-    ///   Ben: 10-12 HP dengeli → 2NT
-    ///   Ben: 13+ HP + 5+ Kupa → 2♥ (2/1 GF)
     /// </summary>
     public class BasitCevap : IKonvansiyon
     {
@@ -32,7 +26,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public string Ad => "Basit Cevap";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 100;   // Fallback'ten önce
+        public int Oncelik => 100;
 
         // ═══════════════════════════════════════════════════════════════════
         // UYGUNLUK KONTROLÜ
@@ -70,8 +64,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Partnerin son teklifi
             string partnerTeklifi = durum.PartnerTeklifleri.LastOrDefault();
-            string partnerKozu = TekliftenKozCikar(partnerTeklifi);
-            int partnerSeviye = TekliftenSeviyeCikar(partnerTeklifi);
+            string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerTeklifi);
+            int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerTeklifi);
 
             // ─── 0-5 HP → Pas ───
             if (hp < 6)
@@ -88,7 +82,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 3)
                     {
-                        string kozSembol = KozSembolu(partnerKozu);
+                        string kozSembol = KozYardimcisi.KozSembolu(partnerKozu);
                         return "2" + kozSembol;
                     }
                 }
@@ -103,13 +97,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // Son çare: partnerin rengine 2 seviye destek
                 if (!string.IsNullOrEmpty(partnerKozu))
                 {
-                    string kozSembol = KozSembolu(partnerKozu);
+                    string kozSembol = KozYardimcisi.KozSembolu(partnerKozu);
                     return "2" + kozSembol;
                 }
 
                 return "Pas";
             }
 
+            // ─── 10-15 HP → 2NT, limit raise veya yeni renk ───
             if (hp < 16)
             {
                 // 1. ÖNCE 4'lü MAJÖR göster
@@ -124,8 +119,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 5)
                     {
-                        string kozSembol = KozSembolu(partnerKozu);
-                        return "3" + kozSembol;  // 3♣, 3♦, 3♥, 3♠
+                        string kozSembol = KozYardimcisi.KozSembolu(partnerKozu);
+                        return "3" + kozSembol;
                     }
                 }
 
@@ -136,7 +131,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 4 && partnerSeviye == 1)
                     {
-                        string kozSembol = KozSembolu(partnerKozu);
+                        string kozSembol = KozYardimcisi.KozSembolu(partnerKozu);
                         return "3" + kozSembol;
                     }
                 }
@@ -154,7 +149,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "2NT";
             }
 
-            // ─── 13+ HP → 2/1 Game Force (yeni renk 2 seviyesinde) ───
+            // ─── 16+ HP → 2/1 Game Force (yeni renk 2 seviyesinde) ───
             // Öncelik 1: 5+ majör → 2♠ veya 2♥
             string gfRenk = YeniRenkBul(el, partnerKozu, 5, "2");
             if (!string.IsNullOrEmpty(gfRenk)) return gfRenk;
@@ -166,7 +161,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Öncelik 3: Destek varsa → 3♠/3♥ (forcing raise)
             if (!string.IsNullOrEmpty(partnerKozu))
             {
-                string kozSembol = KozSembolu(partnerKozu);
+                string kozSembol = KozYardimcisi.KozSembolu(partnerKozu);
                 return "3" + kozSembol;
             }
 
@@ -201,57 +196,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Tekliften kozu çıkarır.
-        /// "1♠" → "Maça"
-        /// </summary>
-        private string TekliftenKozCikar(string teklif)
-        {
-            if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return null;
-
-            char sonKarakter = teklif[teklif.Length - 1];
-            switch (sonKarakter)
-            {
-                case '♠': return "Maça";
-                case '♥': return "Kupa";
-                case '♦': return "Karo";
-                case '♣': return "Sinek";
-                case 'T':
-                case 't': return "NT";
-                default: return null;
-            }
-        }
-
-        /// <summary>
-        /// Tekliften seviyeyi çıkarır.
-        /// "2♠" → 2
-        /// </summary>
-        private int TekliftenSeviyeCikar(string teklif)
-        {
-            if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return 0;
-
-            string seviyeStr = teklif.Substring(0, teklif.Length - 1);
-            if (int.TryParse(seviyeStr, out int seviye)) return seviye;
-            return 0;
-        }
-
-        /// <summary>
-        /// Koz adını sembole çevirir.
-        /// "Maça" → "♠"
-        /// </summary>
-        private string KozSembolu(string koz)
-        {
-            switch (koz)
-            {
-                case "Maça": return "♠";
-                case "Kupa": return "♥";
-                case "Karo": return "♦";
-                case "Sinek": return "♣";
-                case "NT": return "NT";
-                default: return "?";
-            }
         }
     }
 }

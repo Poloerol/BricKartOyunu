@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -18,7 +19,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   1♥ - 4♣ = Sinek'te singleton/void + Kupa desteği
     ///   1♥ - 4♦ = Karo'da singleton/void + Kupa desteği
     /// 
-    /// Öncelik: 17
+    /// Öncelik: 16
     /// </summary>
     public class Splinter : IKonvansiyon
     {
@@ -39,7 +40,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (durum.KendiTeklifleri.Count > 0) return false;
             bool rakipGercekTeklifVerdi = durum.Gecmis.Any(h =>
-    durum.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi);
+                durum.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi);
             if (rakipGercekTeklifVerdi) return false;
 
             string koz = partnerSon == "1♠" ? "Maça" : "Kupa";
@@ -80,23 +81,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     else if (kv.Key == "Maça") seviye = 3;  // 1♥ - 3♠
                     else seviye = 4;                         // 1♥ - 4♣/4♦
 
-                    return $"{seviye}{KozSembolu(kv.Key)}";
+                    return $"{seviye}{KozYardimcisi.KozSembolu(kv.Key)}";
                 }
             }
 
             return "Pas";
-        }
-
-        private string KozSembolu(string renk)
-        {
-            switch (renk)
-            {
-                case "Maça": return "♠";
-                case "Kupa": return "♥";
-                case "Karo": return "♦";
-                case "Sinek": return "♣";
-                default: return "?";
-            }
         }
     }
 }

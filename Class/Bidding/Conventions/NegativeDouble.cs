@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -61,7 +62,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (hp < 8) return false;
 
             // 6. Rakip rengini çıkar
-            string rakipKozu = TekliftenKozCikar(sonRakipTeklifi);
+            string rakipKozu = KozYardimcisi.TekliftenKozCikar(sonRakipTeklifi);
             if (string.IsNullOrEmpty(rakipKozu)) return false;
 
             // ═══════════════════════════════════════════════════════════════
@@ -73,10 +74,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (macaUzun >= 5 && kupaUzun >= 5) return false;
 
             // 7. Gösteremediğimiz majör var mı?
-            //    Rakip Maça açtıysa → Kupa göstermek isteriz (4'lü)
-            //    Rakip Kupa açtıysa → Maça göstermek isteriz (4'lü)
-            //    Rakip minör açtıysa → 4'lü Maça VEYA 4'lü Kupa göstermek isteriz
-
             int dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
@@ -107,30 +104,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             // Negatif Kontr → Dbl
             return "Dbl";
-        }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // YARDIMCI
-        // ═══════════════════════════════════════════════════════════════════
-
-        /// <summary>
-        /// Tekliften kozu çıkarır.
-        /// </summary>
-        private string TekliftenKozCikar(string teklif)
-        {
-            if (string.IsNullOrEmpty(teklif)) return null;
-
-            char sonKarakter = teklif[teklif.Length - 1];
-            switch (sonKarakter)
-            {
-                case '♠': return "Maça";
-                case '♥': return "Kupa";
-                case '♦': return "Karo";
-                case '♣': return "Sinek";
-                case 'T':
-                case 't': return "NT";
-                default: return null;
-            }
         }
     }
 }

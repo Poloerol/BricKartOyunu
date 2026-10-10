@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
@@ -57,8 +58,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (seviye != 2) return false;
 
             // 2 teklif önce (yani benim konuşma sıramdan önce) partner Pas demiş mi?
-            // Aslında: Rakip 1X - Partner Pas - Rakip 2X formatına bakıyoruz.
-            // Bu formatta "Rakip 1X - Partner Pas" olması gerekiyor.
             var oncekiTeklif = sonTeklifler[sonTeklifler.Count - 2];
             if (oncekiTeklif.Oyuncu != durum.Partner) return false;
             if (!oncekiTeklif.PasMi) return false;
@@ -73,8 +72,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (ilkSeviye != 1) return false;
 
             // Aynı rakip rengi mi desteklendi?
-            string ilkKoz = TekliftenKozCikar(ilkTeklif.Teklif);
-            string sonKoz = TekliftenKozCikar(sonTeklif.Teklif);
+            string ilkKoz = KozYardimcisi.TekliftenKozCikar(ilkTeklif.Teklif);
+            string sonKoz = KozYardimcisi.TekliftenKozCikar(sonTeklif.Teklif);
             if (ilkKoz != sonKoz) return false;
 
             // 2. Ben henüz konuşmadım
@@ -88,7 +87,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 4. En az iki tane 4+ kart rengi (rakip kozu hariç)
             int dortluRenkSayisi = 0;
-            foreach (var renk in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+            foreach (var renk in KozYardimcisi.TumRenkler)
             {
                 if (renk == ilkKoz) continue;
                 if (ElDegerlendirici.RenkUzunlugu(el, renk) >= 4)
@@ -101,22 +100,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public string TeklifVer(IhaleDurumu durum)
         {
             return "Dbl";
-        }
-
-        private string TekliftenKozCikar(string teklif)
-        {
-            if (string.IsNullOrEmpty(teklif)) return null;
-            char sonKarakter = teklif[teklif.Length - 1];
-            switch (sonKarakter)
-            {
-                case '♠': return "Maça";
-                case '♥': return "Kupa";
-                case '♦': return "Karo";
-                case '♣': return "Sinek";
-                case 'T':
-                case 't': return "NT";
-                default: return null;
-            }
         }
     }
 }
