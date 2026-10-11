@@ -30,6 +30,18 @@ namespace BricKartOyunu.Class.Bidding
         public bool MinorTransfer { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
+        // 1NT REBID SONRASI SİSTEM (1X - 1Y - 1NT)
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool TwoWayCheckback { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
+        // XYZ KONVANSİYONU (1X - 1Y - 1Z sonrası)
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool XYZ { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
         // SLAM KONVANSİYONLARI
         // ═══════════════════════════════════════════════════════════════════
 
@@ -87,6 +99,12 @@ namespace BricKartOyunu.Class.Bidding
                 MinorTransfer = true,
                 PuppetStayman = true,
 
+                // 1NT rebid sonrası
+                TwoWayCheckback = true,
+
+                // XYZ (1X-1Y-1Z)
+                XYZ = true,
+
                 // Slam
                 Blackwood = true,
                 RKCB = true,
@@ -103,7 +121,7 @@ namespace BricKartOyunu.Class.Bidding
                 NegativeDouble = true,
                 SupportDouble = true,
                 ResponsiveDouble = true,
-                Lebensohl = true,       // ← YENİ
+                Lebensohl = true,
                 Michaels = true,
                 Unusual2NT = true,
 
@@ -128,6 +146,12 @@ namespace BricKartOyunu.Class.Bidding
                 MinorTransfer = false,
                 PuppetStayman = false,
 
+                // 1NT rebid sonrası
+                TwoWayCheckback = false,
+
+                // XYZ
+                XYZ = false,
+
                 // Slam
                 Blackwood = true,
                 RKCB = false,
@@ -144,7 +168,7 @@ namespace BricKartOyunu.Class.Bidding
                 NegativeDouble = true,
                 SupportDouble = false,
                 ResponsiveDouble = false,
-                Lebensohl = false,      // ← YENİ (kapalı)
+                Lebensohl = false,
                 Michaels = false,
                 Unusual2NT = false,
 
@@ -163,6 +187,8 @@ namespace BricKartOyunu.Class.Bidding
             if (PuppetStayman) aktifler.Add("Puppet");
             if (Smolen) aktifler.Add("Smolen");
             if (MinorTransfer) aktifler.Add("Min.Transfer");
+            if (TwoWayCheckback) aktifler.Add("2-Way Checkback");
+            if (XYZ) aktifler.Add("XYZ");
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
             if (Gerber) aktifler.Add("Gerber");

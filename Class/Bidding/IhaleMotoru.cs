@@ -42,46 +42,40 @@ namespace BricKartOyunu.Class.Bidding
             _anlasma = anlasma ?? OrtaklikAnlasmasi.Varsayilan();
 
             _konvansiyonlar = new List<IKonvansiyon>
-{
-    // ─── AÇILIŞLAR ───────────────────────────────────────────────
-    new IkiliSinekGuclu(),      // 5  — 22+ HP yapay 2♣
-    new Lebensohl_Reverse(),    // 6  — Reverse üzerine Lebensohl
-    new Lebensohl_WeakTwo(),    // 7  — Zayıf 2'ye karşı Lebensohl
-    new Lebensohl(),            // 8  — 1NT overcall Lebensohl
+            {
+                // ─── AÇILIŞLAR ───────────────────────────────────────────────
+                new IkiliSinekGuclu(),      // 5  — 22+ HP yapay 2♣
+                new Lebensohl_Reverse(),    // 6  — Reverse üzerine Lebensohl
+                new Lebensohl_WeakTwo(),    // 7  — Zayıf 2'ye karşı Lebensohl
+                new Lebensohl(),            // 8  — 1NT overcall Lebensohl
 
-    // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
-    new BesliMajor(),           // 10 — 5'li majör
-    new Stayman(),              // 10 — 1NT Stayman
-    new StrongNT(),             // 20 — 15-17 dengeli
-    new MinorAcilis(),          // 30 — minör açılış
+                // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
+                new BesliMajor(),           // 10 — 5'li majör
+                new Stayman(),              // 10 — 1NT Stayman
+                new Gerber(),               // 13 — 4♣ As sorusu (NT)
+                new PuppetStayman(),        // 13 — 2NT Stayman
+                new CueBid(),               // 14 — kontrol gösterme
+                new Blackwood(),            // 15 — 4NT As sorusu
+                new JacobyTransfer(),       // 15 — majör transfer
+                new Splinter(),             // 16 — kısa renk
+                new Jacoby2NT(),            // 17 — majör desteği (13+ HP)
+                new SupportDouble(),        // 18 — 3'lü destek
+                new Michaels(),             // 19 — iki renk
+                new StrongNT(),             // 20 — 15-17 dengeli
+                new NegativeDouble(),       // 20 — negatif kontr
+                new ResponsiveDouble(),     // 22 — rakip anlaştı
+                new Unusual2NT(),           // 23 — iki minör
+                new XYZ(),                  // 24 — 1X-1Y-1Z sonrası yapay 2♣/2♦
+                new MinorTransfer(),        // 24 — minör transfer
+                new Drury(),                // 25 — Pas-1M-2♣
+                new TwoWayCheckback(),      // 25 — 1X-1Y-1NT sonrası yapay 2♣/2♦
+                new Smolen(),               // 26 — 5-4 majör
+                new GrandSlamForce(),       // 28 — 5NT Papaz sorma
+                new MinorAcilis(),          // 30 — minör açılış
 
-    // ─── SLAM ────────────────────────────────────────────────────
-    new Gerber(),               // 13 — 4♣ As sorusu (NT)
-    new CueBid(),               // 14 — kontrol gösterme
-    new Blackwood(),            // 15 — 4NT As sorusu
-    new GrandSlamForce(),       // 28 — 5NT Papaz sorma
-
-    // ─── ORTAKLIK ────────────────────────────────────────────────
-    new Splinter(),             // 16 — kısa renk
-    new Jacoby2NT(),            // 17 — majör desteği (13+ HP)
-    new SupportDouble(),        // 18 — 3'lü destek
-    new Drury(),                // 25 — Pas-1M-2♣
-
-    // ─── RAKİP MÜDAHALESİ ────────────────────────────────────────
-    new Michaels(),             // 19 — iki renk
-    new NegativeDouble(),       // 20 — negatif kontr
-    new ResponsiveDouble(),     // 22 — rakip anlaştı
-    new Unusual2NT(),           // 23 — iki minör
-
-    // ─── 1NT/2NT CEVAPLARI ───────────────────────────────────────
-    new JacobyTransfer(),       // 15 — majör transfer
-    new MinorTransfer(),        // 24 — minör transfer
-    new Smolen(),               // 26 — 5-4 majör
-    new PuppetStayman(),        // 27 — 2NT Stayman
-
-    // ─── FALLBACK ────────────────────────────────────────────────
-    new BasitCevap(),           // 100 — basit cevap
-};
+                // ─── FALLBACK ────────────────────────────────────────────────
+                new BasitCevap(),           // 100 — basit cevap
+            };
 
             // Anlaşmaya göre aktif/pasif ayarla
             AnlasmayiUygula();
@@ -232,45 +226,6 @@ namespace BricKartOyunu.Class.Bidding
                     if (destek >= 3 && hp >= 6)
                     {
                         return DestekTeklifi(durum, partnerKozu, hp);
-                    }
-                }
-            }
-            // ═══════════════════════════════════════════════════════════════════
-            // 6. FORCING DURUM KONTROLÜ — partner yeni renk söylediyse cevap ZORUNLU
-            // ═══════════════════════════════════════════════════════════════════
-            if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count > 0)
-            {
-                var partnerTeklifleri = durum.PartnerTeklifleri;
-                if (partnerTeklifleri.Count > 0)
-                {
-                    string sonPartner = partnerTeklifleri.Last();
-
-                    // Partner yeni renk mi söyledi? (Kendi ilk teklifimden farklı bir renk)
-                    string partnerKozu = KozYardimcisi.TekliftenKozCikar(sonPartner);
-                    string benimIlkTeklifim = durum.KendiTeklifleri.FirstOrDefault();
-                    string benimKozum = KozYardimcisi.TekliftenKozCikar(benimIlkTeklifim);
-
-                    bool partnerYeniRenk = !string.IsNullOrEmpty(partnerKozu)
-                                           && partnerKozu != "NT"
-                                           && partnerKozu != benimKozum;
-
-                    if (partnerYeniRenk)
-                    {
-                        // Partner'in rengine destek?
-                        int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
-                        if (destek >= 3)
-                            return DestekTeklifi(durum, partnerKozu, hp);
-
-                        // Dengeli + yeterli puan → NT
-                        if (dengeli && hp >= 12 && hp <= 14) return "2NT";
-                        if (dengeli && hp >= 15 && hp <= 17) return "3NT";
-
-                        // Minör varsa göster
-                        if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4) return "2♦";
-                        if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4) return "2♣";
-
-                        // 18+ HP ise en azından 2NT (forcing)
-                        if (hp >= 18) return "2NT";
                     }
                 }
             }
@@ -478,6 +433,12 @@ namespace BricKartOyunu.Class.Bidding
                 case "Puppet Stayman": return _anlasma.PuppetStayman;
                 case "Smolen": return _anlasma.Smolen;
                 case "Minor Transfer": return _anlasma.MinorTransfer;
+
+                // 1NT rebid sonrası
+                case "İki Yönlü Checkback": return _anlasma.TwoWayCheckback;
+
+                // XYZ (1X-1Y-1Z)
+                case "XYZ (X-Y-Z)": return _anlasma.XYZ;
 
                 // Slam
                 case "Blackwood": return _anlasma.Blackwood;
