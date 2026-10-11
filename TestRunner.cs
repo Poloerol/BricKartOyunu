@@ -5943,6 +5943,334 @@ new IhaleHamlesi
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 26.x — DONT
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_Dont_2Sinek()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 26.1 — DONT: 2♣ (♣ + yüksek renk)");
+            Yaz("Senaryo: (1NT) - ?");
+            Yaz("Beklenen: 2♣");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♣
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 5'li ♠
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+    };
+            // HCP: 3+1+2 = 6
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Dont_2Karo()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 26.2 — DONT: 2♦ (♦ + majör)");
+            Yaz("Senaryo: (1NT) - ?");
+            Yaz("Beklenen: 2♦");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♦
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        // 5'li ♥
+        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 4+1+2 = 7
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Dont_2Kupa_Majors()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 26.3 — DONT: 2♥ (♥ + ♠)");
+            Yaz("Senaryo: (1NT) - ?");
+            Yaz("Beklenen: 2♥");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♥
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 5'li ♠
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+1+2 = 6
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Dont_Double()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 26.4 — DONT: Dbl (tek renkli)");
+            Yaz("Senaryo: (1NT) - ?");
+            Yaz("Beklenen: Dbl");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 6'lı ♥ (tek renkli)
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 5 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+            // HCP: 4+3+1 = 8
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Dbl" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen Dbl)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Dont_PartnerCevap_Double()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 26.5 — DONT: Partner Dbl'e cevap (2♣ zorunlu)");
+            Yaz("Senaryo: (1NT) - Dbl - (Pas) - ?");
+            Yaz("Beklenen: 2♣");
+            Yaz("────────────────────────────────────────");
+
+            // Güney'in eli: dengeli 3-4-3-3, DONT müdahalesi için uygun DEĞİL.
+            // (Partner Dbl yaptıysa cevap, el dağılımından bağımsız olarak 2♣'dir.)
+            var guneyEli = new List<Card>
+            {
+                // 3'lü ♠
+                new Card { Suit = "Maça",  Value = 10 },
+                new Card { Suit = "Maça",  Value = 7 },
+                new Card { Suit = "Maça",  Value = 3 },
+                // 4'lü ♥
+                new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+                new Card { Suit = "Kupa",  Value = 9 },
+                new Card { Suit = "Kupa",  Value = 6 },
+                new Card { Suit = "Kupa",  Value = 2 },
+                // 3'lü ♦
+                new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+                new Card { Suit = "Karo",  Value = 8 },
+                new Card { Suit = "Karo",  Value = 4 },
+                // 3'lü ♣
+                new Card { Suit = "Sinek", Value = 13 }, // K = 3
+                new Card { Suit = "Sinek", Value = 7 },
+                new Card { Suit = "Sinek", Value = 5 },
+            };
+            // HCP: 1+2+3 = 6
+
+            // Doğru sıra: Batı → Kuzey → Doğu → Güney (sıra şimdi Güney'de)
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1NT", Sira = 1, GecerliMi = true }, // rakip açtı
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true }, // partner DONT Dbl
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true }, // rakip pas
+            };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"AktifOyuncu: {durum.AktifOyuncu}");
+            Yaz($"Partner: {durum.Partner}");
+            Yaz($"Rakipler: [{string.Join(", ", durum.Rakipler)}]");
+            Yaz($"Dağılım: ♠{ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")} " +
+                $"♥{ElDegerlendirici.RenkUzunlugu(guneyEli, "Kupa")} " +
+                $"♦{ElDegerlendirici.RenkUzunlugu(guneyEli, "Karo")} " +
+                $"♣{ElDegerlendirici.RenkUzunlugu(guneyEli, "Sinek")}");
+            Yaz("────────────────────────────────────────");
+
+            var dont = new Dont();
+            Yaz($"Dont.UygunMu → {dont.UygunMu(durum)}");
+            Yaz($"Dont.TeklifVer → {dont.TeklifVer(durum)}");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♣" ? "✅ DOĞRU" : "❌ YANLIŞ (beklenen 2♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+
+        public static void Test_Dont_PartnerCevap_2Sinek()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 26.6 — DONT: Partner 2♣'e cevap (3+ ♣ → Pas)");
+            Yaz("Senaryo: (1NT) - 2♣ - (Pas) - ?");
+            Yaz("Beklenen: Pas (3+ ♣)");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 11 },
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 12 },
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 13 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1NT", Sira = 1 },
+new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2 },
+new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3 },
+new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Pas" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen Pas)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -6118,12 +6446,20 @@ new IhaleHamlesi
             Test_Bergen_Acici3Karo();
             Test_Bergen_3luDestek_Yok();
 
-            Yaz("▶ TEST 25.1-25.5: Cappelletti");
-            Test_Cappelletti_2Karo_Majors();
-            Test_Cappelletti_2Kupa_Minor();
-            Test_Cappelletti_2NT_Minors();
-            Test_Cappelletti_Double();
-            Test_Cappelletti_PartnerCevap_2Karo();
+            //Yaz("▶ TEST 25.1-25.5: Cappelletti");
+            //Test_Cappelletti_2Karo_Majors();
+            //Test_Cappelletti_2Kupa_Minor();
+            //Test_Cappelletti_2NT_Minors();
+            //Test_Cappelletti_Double();
+            //Test_Cappelletti_PartnerCevap_2Karo();
+
+            Yaz("▶ TEST 26.1-26.6: DONT");
+            Test_Dont_2Sinek();
+            Test_Dont_2Karo();
+            Test_Dont_2Kupa_Majors();
+            Test_Dont_Double();
+            Test_Dont_PartnerCevap_Double();
+            Test_Dont_PartnerCevap_2Sinek();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

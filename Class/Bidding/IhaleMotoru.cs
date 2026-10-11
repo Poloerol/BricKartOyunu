@@ -54,6 +54,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Stayman(),              // 10 — 1NT Stayman
                 new BergenRaises(),         // 12 — Bergen Raises
                 new Cappelletti(),          // 12 — 1NT'ye müdahale (Gerber'den önce)
+                new Dont(),                 // 12 — DONT (1NT'ye müdahale)
                 new Gerber(),               // 13 — 4♣ As sorusu (NT)
                 new PuppetStayman(),        // 13 — 2NT Stayman
                 new CueBid(),               // 14 — kontrol gösterme
@@ -448,7 +449,6 @@ namespace BricKartOyunu.Class.Bidding
                 // Slam
                 case "Blackwood": return _anlasma.Blackwood;
                 case "RKCB": return _anlasma.RKCB;
-                case "Bergen Raises": return true;
                 case "Gerber": return _anlasma.Gerber;
                 case "Grand Slam Force": return true;
 
@@ -458,9 +458,10 @@ namespace BricKartOyunu.Class.Bidding
                 case "Drury": return _anlasma.Drury;
                 case "Reverse Drury": return _anlasma.ReverseDrury;
                 case "Cue Bid": return _anlasma.CueBid;
-                case "Trial Bid": return true;   // Her zaman aktif
-                case "3. Renk Forsingi": return true;
-                case "4. Renk Forsingi": return true;
+                case "Bergen Raises": return _anlasma.BergenRaises;
+                case "Trial Bid": return _anlasma.TrialBid;
+                case "3. Renk Forsingi": return _anlasma.ThirdSuitForcing;
+                case "4. Renk Forsingi": return _anlasma.FourthSuitForcing;
 
                 // Rakip müdahalesi
                 case "Negative Double": return _anlasma.NegativeDouble;
@@ -470,8 +471,11 @@ namespace BricKartOyunu.Class.Bidding
                 case "Lebensohl (Zayıf 2)": return _anlasma.Lebensohl;
                 case "Lebensohl": return _anlasma.Lebensohl;
                 case "Michaels": return _anlasma.Michaels;
-                case "Cappelletti": return true;
                 case "Unusual 2NT": return _anlasma.Unusual2NT;
+
+                // 1NT müdahale sistemi (Cappelletti ve DONT aynı anda aktif olamaz)
+                case "Cappelletti": return _anlasma.Cappelletti;
+                case "DONT": return _anlasma.Dont;
 
                 default:
                     return true;

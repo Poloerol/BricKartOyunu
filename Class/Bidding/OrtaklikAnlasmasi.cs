@@ -91,6 +91,17 @@ namespace BricKartOyunu.Class.Bidding
         public bool Unusual2NT { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // 1NT MÜDAHALE SİSTEMİ (rakip 1NT açtığında)
+        // ═══════════════════════════════════════════════════════════════════
+        // NOT: Cappelletti ve DONT aynı senaryoda tetiklenir.
+        // Aynı anda SADECE BİRİ aktif olmalıdır.
+        // Varsayılan: DONT aktif, Cappelletti pasif.
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool Cappelletti { get; set; } = false;
+        public bool Dont { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
         // İŞARETLEŞME (SIGNALS)
         // ═══════════════════════════════════════════════════════════════════
 
@@ -130,7 +141,9 @@ namespace BricKartOyunu.Class.Bidding
                 ThirdSuitForcing = true,
                 FourthSuitForcing = true,
 
-
+                // 1NT müdahale sistemi — aynı anda sadece biri aktif
+                Cappelletti = false,    // VEYA true
+                Dont = true,
 
                 // Slam
                 Blackwood = true,
@@ -205,6 +218,11 @@ namespace BricKartOyunu.Class.Bidding
                 Michaels = false,
                 Unusual2NT = false,
 
+                // 1NT müdahale sistemi
+                Cappelletti = false,
+                Dont = false,
+
+
                 StandartSignal = true
             };
         }
@@ -237,6 +255,8 @@ namespace BricKartOyunu.Class.Bidding
             if (ResponsiveDouble) aktifler.Add("Resp.Dbl");
             if (Lebensohl) aktifler.Add("Lebensohl");
             if (Michaels) aktifler.Add("Michaels");
+            if (Cappelletti) aktifler.Add("Cappelletti");
+            if (Dont) aktifler.Add("DONT");
             if (Unusual2NT) aktifler.Add("Unusual2NT");
 
             return $"Açılış: {acilis}, {nt}\nAktif: {string.Join(", ", aktifler)}";
