@@ -59,6 +59,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
                 new BesliMajor(),           // 5'li majör
+                new ForcingNT(),            // 11 — Forcing NT (1♥/1♠ sonrası 1NT)
                 new Stayman(),              // 1NT Stayman
                 new BergenRaises(),         // Bergen Raises
                 new Cappelletti(),          // 1NT'ye müdahale (Gerber'den önce)
@@ -458,6 +459,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Preempt": return _anlasma.Preempt;
 
                 // 1NT Cevapları
+                case "Forcing NT": return _anlasma.ForcingNT;
                 case "Stayman": return _anlasma.Stayman;
                 case "Jacoby Transfer": return _anlasma.JacobyTransfer;
                 case "Puppet Stayman": return _anlasma.PuppetStayman;

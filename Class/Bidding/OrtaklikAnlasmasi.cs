@@ -20,6 +20,12 @@ namespace BricKartOyunu.Class.Bidding
         public bool Preempt { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // 2/1 SİSTEMİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool ForcingNT { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
         // 1NT/2NT CEVAP SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
 
@@ -118,6 +124,7 @@ namespace BricKartOyunu.Class.Bidding
             {
                 // Açılışlar
                 BesliMajor = true,
+                ForcingNT = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
                 Preempt = true,
@@ -175,6 +182,7 @@ namespace BricKartOyunu.Class.Bidding
             {
                 // Açılışlar
                 BesliMajor = false,
+                ForcingNT = false,
                 StrongNT = false,
                 IkiliSinekGuclu = false,
                 Preempt = false,
@@ -233,6 +241,7 @@ namespace BricKartOyunu.Class.Bidding
             string nt = StrongNT ? "Strong NT (15-17)" : "Weak NT (12-14)";
 
             var aktifler = new System.Collections.Generic.List<string>();
+            if (ForcingNT) aktifler.Add("Forcing NT");
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");
             if (PuppetStayman) aktifler.Add("Puppet");

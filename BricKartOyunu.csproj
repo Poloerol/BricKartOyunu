@@ -164,6 +164,7 @@
     <Compile Include="Class\Bidding\Conventions\Dont.cs" />
     <Compile Include="Class\Bidding\Conventions\DopiRopi.cs" />
     <Compile Include="Class\Bidding\Conventions\Drury.cs" />
+    <Compile Include="Class\Bidding\Conventions\ForcingNT.cs" />
     <Compile Include="Class\Bidding\Conventions\FourthSuitForcing.cs" />
     <Compile Include="Class\Bidding\Conventions\Gerber.cs" />
     <Compile Include="Class\Bidding\Conventions\GrandSlamForce.cs" />
