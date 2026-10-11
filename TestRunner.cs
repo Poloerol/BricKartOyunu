@@ -80,7 +80,7 @@ namespace BricKartOyunu
             {
                 AktifOyuncu = Player.Guney,
                 AktifOyuncuEli = guneyEli,
-                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Anlasma = CappellettiAnlasmasi(),
                 Gecmis = gecmis,
             };
 
@@ -122,7 +122,13 @@ namespace BricKartOyunu
 
             Yaz("════════════════════════════════════════");
         }
-
+        private static OrtaklikAnlasmasi CappellettiAnlasmasi()
+        {
+            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            anlasma.Cappelletti = true;
+            anlasma.Dont = false;   // ikisi aynı anda aktif olamaz
+            return anlasma;
+        }
         public static void Test_Gerber_Cevap()
         {
             Yaz("════════════════════════════════════════");
@@ -5652,7 +5658,7 @@ new IhaleHamlesi
             {
                 AktifOyuncu = Player.Guney,
                 AktifOyuncuEli = guneyEli,
-                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Anlasma = CappellettiAnlasmasi(),
                 Gecmis = gecmis,
             };
 
@@ -5721,7 +5727,7 @@ new IhaleHamlesi
             {
                 AktifOyuncu = Player.Guney,
                 AktifOyuncuEli = guneyEli,
-                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Anlasma = CappellettiAnlasmasi(),
                 Gecmis = gecmis,
             };
 
@@ -5790,7 +5796,7 @@ new IhaleHamlesi
             {
                 AktifOyuncu = Player.Guney,
                 AktifOyuncuEli = guneyEli,
-                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Anlasma = CappellettiAnlasmasi(),
                 Gecmis = gecmis,
             };
 
@@ -5877,7 +5883,7 @@ new IhaleHamlesi
             {
                 AktifOyuncu = Player.Guney,
                 AktifOyuncuEli = guneyEli,
-                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Anlasma = CappellettiAnlasmasi(),
                 Gecmis = gecmis,
             };
 
@@ -5931,7 +5937,7 @@ new IhaleHamlesi
             {
                 AktifOyuncu = Player.Kuzey,
                 AktifOyuncuEli = kuzeyEli,
-                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Anlasma = CappellettiAnlasmasi(),
                 Gecmis = gecmis,
             };
 
@@ -6271,6 +6277,170 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 27.x — DOPI / ROPI
+        // TestRunner sınıfının içine yapıştırın (using System.Linq gerekir).
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>Tek renkten kart listesi üretir: K("Maça", 13, 12, 7)</summary>
+        private static IEnumerable<Card> K(string renk, params int[] degerler)
+        {
+            return degerler.Select(d => new Card { Suit = renk, Value = d });
+        }
+
+        /// <summary>
+        /// Kurulum: Güney 1M açar, Kuzey 3M (limit raise), Güney 4NT (Blackwood),
+        /// Batı müdahale eder, sıra Kuzey'de (cevap veren).
+        /// </summary>
+        private static IhaleDurumu DopiDurumuKur(List<Card> kuzeyEli, string acilis, string mudahale)
+        {
+            string destek = "3" + acilis.Substring(1);
+
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = acilis,   Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas",    Sira = 2, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = destek,   Sira = 3, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas",    Sira = 4, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT",    Sira = 5, GecerliMi = true }, // Blackwood
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = mudahale, Sira = 6, GecerliMi = true }, // müdahale
+            };
+
+            return new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+        }
+
+        private static void DopiTestCalistir(
+            string baslik, string senaryo, string beklenen,
+            List<Card> el, string acilis, string mudahale)
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz(baslik);
+            Yaz($"Senaryo: {senaryo}");
+            Yaz($"Beklenen: {beklenen}");
+            Yaz("────────────────────────────────────────");
+
+            var durum = DopiDurumuKur(el, acilis, mudahale);
+
+            int asSayisi = el.Count(c => c.Value == 14);
+            Yaz($"As sayısı: {asSayisi}");
+
+            var konv = new DopiRopi();
+            Yaz($"DopiRopi.UygunMu → {konv.UygunMu(durum)}");
+            Yaz($"DopiRopi.TeklifVer → {konv.TeklifVer(durum)}");
+            Yaz("────────────────────────────────────────");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            motor.HatalardaFirlat = true;
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == beklenen ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen {beklenen})");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Dopi_SifirAnahtarKart()
+        {
+            // ♠ koz, anahtar kart: 0 (As yok, ♠K yok)
+            var el = K("Maça", 9, 7, 5, 3).Concat(K("Kupa", 12, 8, 6))
+                     .Concat(K("Karo", 11, 9, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            DopiTestCalistir("TEST 27.1 — DOPI: 0 anahtar kart → Dbl",
+                "1♠ - 3♠ - 4NT - (5♦) - ?", "Dbl", el, "1♠", "5♦");
+        }
+
+        public static void Test_Dopi_BirAnahtarKart()
+        {
+            // ♠ koz, anahtar kart: 1 (♦A)
+            var el = K("Maça", 9, 7, 5, 3).Concat(K("Kupa", 12, 8, 6))
+                     .Concat(K("Karo", 14, 9, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            DopiTestCalistir("TEST 27.2 — DOPI: 1 anahtar kart → Pas",
+                "1♠ - 3♠ - 4NT - (5♦) - ?", "Pas", el, "1♠", "5♦");
+        }
+
+        public static void Test_Dopi_IkiKart_KizYok()
+        {
+            // ♠ koz, anahtar kart: 2 (♠K, ♥A), ♠ kızı YOK → müdahaleden sonraki ilk teklif: 5♥
+            var el = K("Maça", 13, 9, 7, 3).Concat(K("Kupa", 14, 8, 6))
+                     .Concat(K("Karo", 9, 5, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            DopiTestCalistir("TEST 27.3 — DOPI: 2 anahtar kart, kız yok → 5♥",
+                "1♠ - 3♠ - 4NT - (5♦) - ?", "5♥", el, "1♠", "5♦");
+        }
+
+        public static void Test_Dopi_IkiKart_KizVar()
+        {
+            // ♠ koz, anahtar kart: 2 (♠K, ♥A), ♠ kızı VAR → ikinci teklif: 5♠
+            var el = K("Maça", 13, 12, 7, 3).Concat(K("Kupa", 14, 8, 6))
+                     .Concat(K("Karo", 9, 5, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            DopiTestCalistir("TEST 27.4 — DOPI: 2 anahtar kart + kız → 5♠",
+                "1♠ - 3♠ - 4NT - (5♦) - ?", "5♠", el, "1♠", "5♦");
+        }
+
+        public static void Test_Ropi_SifirAnahtarKart()
+        {
+            // ♠ koz, rakip 4NT'ye kontr verdi, anahtar kart: 0 → Rdbl
+            var el = K("Maça", 9, 7, 5, 3).Concat(K("Kupa", 12, 8, 6))
+                     .Concat(K("Karo", 11, 9, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            DopiTestCalistir("TEST 27.5 — ROPI: 0 anahtar kart → Rdbl",
+                "1♠ - 3♠ - 4NT - (Dbl) - ?", "Rdbl", el, "1♠", "Dbl");
+        }
+
+        public static void Test_Ropi_BirAnahtarKart()
+        {
+            // ♠ koz, rakip kontr, anahtar kart: 1 → Pas
+            var el = K("Maça", 9, 7, 5, 3).Concat(K("Kupa", 12, 8, 6))
+                     .Concat(K("Karo", 14, 9, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            DopiTestCalistir("TEST 27.6 — ROPI: 1 anahtar kart → Pas",
+                "1♠ - 3♠ - 4NT - (Dbl) - ?", "Pas", el, "1♠", "Dbl");
+        }
+
+        public static void Test_Dopi_Negatif_YuksekMudahale()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 27.7 — DOPI Negatif: koz ♥, rakip 5♠ (koz üstü)");
+            Yaz("Senaryo: 1♥ - 3♥ - 4NT - (5♠) - ?");
+            Yaz("Beklenen: DopiRopi.UygunMu → False (DEPO gerekir)");
+            Yaz("────────────────────────────────────────");
+
+            var el = K("Maça", 9, 7, 5).Concat(K("Kupa", 12, 8, 6, 3))
+                     .Concat(K("Karo", 14, 9, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            var durum = DopiDurumuKur(el, "1♥", "5♠");
+            bool uygun = new DopiRopi().UygunMu(durum);
+
+            Yaz($"DopiRopi.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU" : "❌ YANLIŞ (beklenen False)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Dopi_Negatif_Muddahalesiz()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 27.8 — DOPI Negatif: müdahale yok (Pas)");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - (Pas) - ?");
+            Yaz("Beklenen: DopiRopi.UygunMu → False (normal Blackwood)");
+            Yaz("────────────────────────────────────────");
+
+            var el = K("Maça", 9, 7, 5, 3).Concat(K("Kupa", 12, 8, 6))
+                     .Concat(K("Karo", 14, 9, 4)).Concat(K("Sinek", 10, 6, 2)).ToList();
+
+            var durum = DopiDurumuKur(el, "1♠", "Pas");
+            bool uygun = new DopiRopi().UygunMu(durum);
+
+            Yaz($"DopiRopi.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU" : "❌ YANLIŞ (beklenen False)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -6446,12 +6616,12 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Bergen_Acici3Karo();
             Test_Bergen_3luDestek_Yok();
 
-            //Yaz("▶ TEST 25.1-25.5: Cappelletti");
-            //Test_Cappelletti_2Karo_Majors();
-            //Test_Cappelletti_2Kupa_Minor();
-            //Test_Cappelletti_2NT_Minors();
-            //Test_Cappelletti_Double();
-            //Test_Cappelletti_PartnerCevap_2Karo();
+            Yaz("▶ TEST 25.1-25.5: Cappelletti");
+            Test_Cappelletti_2Karo_Majors();
+            Test_Cappelletti_2Kupa_Minor();
+            Test_Cappelletti_2NT_Minors();
+            Test_Cappelletti_Double();
+            Test_Cappelletti_PartnerCevap_2Karo();
 
             Yaz("▶ TEST 26.1-26.6: DONT");
             Test_Dont_2Sinek();
@@ -6460,6 +6630,20 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Dont_Double();
             Test_Dont_PartnerCevap_Double();
             Test_Dont_PartnerCevap_2Sinek();
+
+            // ─── TumTestleriCalistir() içine, Test 26.6'dan sonra ekleyin: ───
+            //
+            Yaz("▶ TEST 27.1-27.8: DOPI / ROPI");
+            Test_Dopi_SifirAnahtarKart();
+            Test_Dopi_BirAnahtarKart();
+            Test_Dopi_IkiKart_KizYok();
+            Test_Dopi_IkiKart_KizVar();
+            Test_Ropi_SifirAnahtarKart();
+            Test_Ropi_BirAnahtarKart();
+            Test_Dopi_Negatif_YuksekMudahale();
+            Test_Dopi_Negatif_Muddahalesiz();
+
+
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

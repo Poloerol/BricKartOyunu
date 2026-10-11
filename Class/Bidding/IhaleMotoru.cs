@@ -29,6 +29,14 @@ namespace BricKartOyunu.Class.Bidding
         private readonly List<IKonvansiyon> _konvansiyonlar;
         private readonly OrtaklikAnlasmasi _anlasma;
 
+        /// <summary>
+        /// true ise konvansiyonlardaki istisnalar yutulmaz, yeniden fırlatılır.
+        /// Testlerde açın: gizli hatalar (ör. boş listede Last()) sessizce
+        /// TemelMantik'e düşüp yanlış teklife dönüşmesin.
+        /// Üretimde false kalmalı (oyun çökmesin).
+        /// </summary>
+        public bool HatalardaFirlat { get; set; } = false;
+
         // ═══════════════════════════════════════════════════════════════════
         // CONSTRUCTOR
         // ═══════════════════════════════════════════════════════════════════
@@ -44,43 +52,44 @@ namespace BricKartOyunu.Class.Bidding
             _konvansiyonlar = new List<IKonvansiyon>
             {
                 // ─── AÇILIŞLAR ───────────────────────────────────────────────
-                new IkiliSinekGuclu(),      // 5  — 22+ HP yapay 2♣
-                new Lebensohl_Reverse(),    // 6  — Reverse üzerine Lebensohl
-                new Lebensohl_WeakTwo(),    // 7  — Zayıf 2'ye karşı Lebensohl
-                new Lebensohl(),            // 8  — 1NT overcall Lebensohl
+                new IkiliSinekGuclu(),      // 22+ HP yapay 2♣
+                new Lebensohl_Reverse(),    // Reverse üzerine Lebensohl
+                new Lebensohl_WeakTwo(),    // Zayıf 2'ye karşı Lebensohl
+                new Lebensohl(),            // 1NT overcall Lebensohl
 
                 // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
-                new BesliMajor(),           // 10 — 5'li majör
-                new Stayman(),              // 10 — 1NT Stayman
-                new BergenRaises(),         // 12 — Bergen Raises
-                new Cappelletti(),          // 12 — 1NT'ye müdahale (Gerber'den önce)
-                new Dont(),                 // 12 — DONT (1NT'ye müdahale)
-                new Gerber(),               // 13 — 4♣ As sorusu (NT)
-                new PuppetStayman(),        // 13 — 2NT Stayman
-                new CueBid(),               // 14 — kontrol gösterme
-                new Blackwood(),            // 15 — 4NT As sorusu
-                new JacobyTransfer(),       // 15 — majör transfer
-                new Splinter(),             // 16 — kısa renk
-                new Jacoby2NT(),            // 17 — majör desteği (13+ HP)
-                new SupportDouble(),        // 18 — 3'lü destek
-                new Michaels(),             // 19 — iki renk
-                new StrongNT(),             // 20 — 15-17 dengeli
-                new NegativeDouble(),       // 20 — negatif kontr
-                new ResponsiveDouble(),     // 22 — rakip anlaştı
-                new Unusual2NT(),           // 23 — iki minör
-                new XYZ(),                  // 24 — 1X-1Y-1Z sonrası yapay 2♣/2♦
-                new MinorTransfer(),        // 24 — minör transfer
-                new Drury(),                // 25 — Pas-1M-2♣
-                new TwoWayCheckback(),      // 25 — 1X-1Y-1NT sonrası yapay 2♣/2♦
-                new Smolen(),               // 26 — 5-4 majör
-                new TrialBid(),             // 27 — 1M-2M sonrası yardım sınaması
-                new ThirdSuitForcing(),     // 27 — 3. Renk Forsingi
-                new GrandSlamForce(),       // 28 — 5NT Papaz sorma
-                new FourthSuitForcing(),      // 29 — 4. Renk Forsingi (2 seviye)
-                new MinorAcilis(),          // 30 — minör açılış
+                new BesliMajor(),           // 5'li majör
+                new Stayman(),              // 1NT Stayman
+                new BergenRaises(),         // Bergen Raises
+                new Cappelletti(),          // 1NT'ye müdahale (Gerber'den önce)
+                new Dont(),                 // DONT (1NT'ye müdahale)
+                new Gerber(),               // 4♣ As sorusu (NT)
+                new PuppetStayman(),        // 2NT Stayman
+                new CueBid(),               // kontrol gösterme
+                new Blackwood(),            // 4NT As sorusu
+                new DopiRopi(),             // Blackwood müdahalesi: Dbl/Rdbl = 0|3, Pas = 1|4
+                new JacobyTransfer(),       // majör transfer
+                new Splinter(),             // kısa renk
+                new Jacoby2NT(),            // majör desteği (13+ HP)
+                new SupportDouble(),        // 3'lü destek
+                new Michaels(),             // iki renk
+                new StrongNT(),             // 15-17 dengeli
+                new NegativeDouble(),       // negatif kontr
+                new ResponsiveDouble(),     // rakip anlaştı
+                new Unusual2NT(),           // iki minör
+                new XYZ(),                  // 1X-1Y-1Z sonrası yapay 2♣/2♦
+                new MinorTransfer(),        // minör transfer
+                new Drury(),                // Pas-1M-2♣
+                new TwoWayCheckback(),      // 1X-1Y-1NT sonrası yapay 2♣/2♦
+                new Smolen(),               // 5-4 majör
+                new TrialBid(),             // 1M-2M sonrası yardım sınaması
+                new ThirdSuitForcing(),     // 3. Renk Forsingi
+                new GrandSlamForce(),       // 5NT Papaz sorma
+                new FourthSuitForcing(),      // 4. Renk Forsingi (2 seviye)
+                new MinorAcilis(),          // minör açılış
 
                 // ─── FALLBACK ────────────────────────────────────────────────
-                new BasitCevap(),           // 100 — basit cevap
+                new BasitCevap(),           // basit cevap
             };
 
             // Anlaşmaya göre aktif/pasif ayarla
@@ -115,30 +124,35 @@ namespace BricKartOyunu.Class.Bidding
                 return "Pas";
             }
 
-            // Konvansiyonları dene
-            var aktifler = _konvansiyonlar
-                .Where(k => k.AktifMi)
-                .OrderBy(k => k.Oncelik)
-                .ToList();
-
-            foreach (var k in aktifler)
+            // Konvansiyonları dene (öncelik sırasına göre)
+            foreach (var k in AktifSirali())
             {
                 try
                 {
-                    if (k.UygunMu(durum))
+                    if (!k.UygunMu(durum)) continue;
+
+                    string teklif = k.TeklifVer(durum);
+
+                    // null → "bu konvansiyon bu eli aslında yönetmiyor", sıradakine geç.
+                    // "Pas" ise meşru bir tekliftir ve burada biter.
+                    if (teklif == null)
                     {
-                        string teklif = k.TeklifVer(durum);
-
                         System.Diagnostics.Debug.WriteLine(
-                            $"[IhaleMotoru] {k.Ad} uygulandı → {teklif}");
-
-                        return teklif;
+                            $"[IhaleMotoru] {k.Ad} uygun dedi ama teklif vermedi (null), sıradakine geçiliyor.");
+                        continue;
                     }
+
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[IhaleMotoru] {k.Ad} uygulandı → {teklif}");
+
+                    return teklif;
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine(
-                        $"[IhaleMotoru] {k.Ad} hatası: {ex.Message}");
+                        $"[IhaleMotoru] {k.Ad} hatası: {ex}");
+
+                    if (HatalardaFirlat) throw;
                 }
             }
 
@@ -415,6 +429,16 @@ namespace BricKartOyunu.Class.Bidding
             {
                 k.AktifMi = AnlasmayaGoreAktifMi(k.Ad);
             }
+
+            // Cappelletti ve DONT aynı anda aktif olamaz (ikisi de 1NT'ye müdahale eder).
+            var cappelletti = _konvansiyonlar.FirstOrDefault(k => k.Ad == "Cappelletti");
+            var dont = _konvansiyonlar.FirstOrDefault(k => k.Ad == "DONT");
+            if (cappelletti != null && dont != null && cappelletti.AktifMi && dont.AktifMi)
+            {
+                dont.AktifMi = false;
+                System.Diagnostics.Debug.WriteLine(
+                    "[IhaleMotoru] UYARI: Cappelletti ve DONT birlikte aktifti, DONT kapatıldı.");
+            }
         }
 
         /// <summary>
@@ -518,6 +542,81 @@ namespace BricKartOyunu.Class.Bidding
         {
             return _konvansiyonlar
                 .Select(k => k.Ad)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Aktif konvansiyonları öncelik sırasına göre döndürür.
+        /// Eşit önceliklerde kayıt (constructor) sırası belirleyicidir.
+        /// </summary>
+        private List<IKonvansiyon> AktifSirali()
+        {
+            return _konvansiyonlar
+                .Where(k => k.AktifMi)
+                .OrderBy(k => k.Oncelik)
+                .ThenBy(k => _konvansiyonlar.IndexOf(k))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Verilen durumda UygunMu() == true dönen TÜM aktif konvansiyonlar (öncelik sırasıyla).
+        /// Birden fazla varsa çakışma vardır; ilk sıradaki kazanır.
+        /// </summary>
+        public List<IKonvansiyon> UygunKonvansiyonlar(IhaleDurumu durum)
+        {
+            var sonuc = new List<IKonvansiyon>();
+            if (durum == null) return sonuc;
+
+            foreach (var k in AktifSirali())
+            {
+                try
+                {
+                    if (k.UygunMu(durum)) sonuc.Add(k);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[IhaleMotoru] {k.Ad} UygunMu hatası: {ex}");
+
+                    if (HatalardaFirlat) throw;
+                }
+            }
+            return sonuc;
+        }
+
+        /// <summary>
+        /// Çakışma raporu: bu durumda hangi konvansiyonlar uygun, hangisi kazanır.
+        /// Testlerde Yaz(motor.CakismaRaporu(durum)) ile kullanın.
+        /// </summary>
+        public string CakismaRaporu(IhaleDurumu durum)
+        {
+            var uygunlar = UygunKonvansiyonlar(durum);
+            if (uygunlar.Count == 0)
+                return "Uygun konvansiyon yok → TemelMantik";
+
+            string baslik = uygunlar.Count > 1
+                ? $"ÇAKIŞMA: {uygunlar.Count} konvansiyon uygun (ilk satır kazanır)"
+                : "Tek konvansiyon uygun";
+
+            var satirlar = uygunlar.Select((k, i) =>
+                $"{(i == 0 ? "▶" : " ")} [{k.Oncelik,3}] {k.Ad}");
+
+            return baslik + Environment.NewLine
+                 + string.Join(Environment.NewLine, satirlar);
+        }
+
+        /// <summary>
+        /// Aynı öncelik numarasını paylaşan aktif konvansiyon grupları.
+        /// Sıra bu durumda yalnızca kayıt sırasına bağlıdır.
+        /// </summary>
+        public List<string> OncelikCakismalari()
+        {
+            return _konvansiyonlar
+                .Where(k => k.AktifMi)
+                .GroupBy(k => k.Oncelik)
+                .Where(g => g.Count() > 1)
+                .OrderBy(g => g.Key)
+                .Select(g => $"[{g.Key}] " + string.Join(", ", g.Select(k => k.Ad)))
                 .ToList();
         }
 
