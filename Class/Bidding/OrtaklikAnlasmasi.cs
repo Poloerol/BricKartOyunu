@@ -46,6 +46,7 @@ namespace BricKartOyunu.Class.Bidding
         // ═══════════════════════════════════════════════════════════════════
 
         public bool TrialBid { get; set; } = true;
+        public bool ThirdSuitForcing { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
         // SLAM KONVANSİYONLARI
@@ -110,8 +111,10 @@ namespace BricKartOyunu.Class.Bidding
 
                 // XYZ (1X-1Y-1Z)
                 XYZ = true,
+
                 // TrialBid 
                 TrialBid = true,
+                ThirdSuitForcing = true,
 
 
 
@@ -164,6 +167,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 // TrialBid
                 TrialBid = false,
+                ThirdSuitForcing = false,
 
                 // Slam
                 Blackwood = true,
@@ -203,6 +207,7 @@ namespace BricKartOyunu.Class.Bidding
             if (TwoWayCheckback) aktifler.Add("2-Way Checkback");
             if (XYZ) aktifler.Add("XYZ");
             if (TrialBid) aktifler.Add("Trial Bid");
+            if (ThirdSuitForcing) aktifler.Add("3. Renk Forsingi");
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
             if (Gerber) aktifler.Add("Gerber");

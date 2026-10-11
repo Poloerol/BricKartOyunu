@@ -71,6 +71,7 @@ namespace BricKartOyunu.Class.Bidding
                 new TwoWayCheckback(),      // 25 — 1X-1Y-1NT sonrası yapay 2♣/2♦
                 new Smolen(),               // 26 — 5-4 majör
                 new TrialBid(),             // 27 — 1M-2M sonrası yardım sınaması
+                new ThirdSuitForcing(),     // 27 — 3. Renk Forsingi
                 new GrandSlamForce(),       // 28 — 5NT Papaz sorma
                 new MinorAcilis(),          // 30 — minör açılış
 
@@ -454,6 +455,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Reverse Drury": return _anlasma.ReverseDrury;
                 case "Cue Bid": return _anlasma.CueBid;
                 case "Trial Bid": return true;   // Her zaman aktif
+                case "3. Renk Forsingi": return true;
 
                 // Rakip müdahalesi
                 case "Negative Double": return _anlasma.NegativeDouble;
