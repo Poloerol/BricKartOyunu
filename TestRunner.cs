@@ -7052,6 +7052,369 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 30.x — Reverse
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_Reverse_Basit()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 30.1 — Reverse: 1♣ - 1♠ - 2♦");
+            Yaz("Beklenen: 2♦ (Reverse)");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 5'li ♣
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 4'lü ♦ (Reverse rengi)
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 1'li ♠
+        new Card { Suit = "Maça", Value = 10 },
+    };
+            // HCP: 4+3+4+1+2 = 14 → 16 için artır
+            kuzeyEli = new List<Card>
+    {
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        new Card { Suit = "Maça", Value = 10 },
+    };
+            // HCP: 4+3+4+2+3 = 16 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(kuzeyEli)}");
+            Yaz($"♣: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Sinek")}, ♦: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Karo")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Reverse_Minimum()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 30.2 — Reverse: 15 HP ile yapılmaz");
+            Yaz("Beklenen: Reverse DEĞİL");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 5'li ♣
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 4'lü ♦
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 1'li ♠
+        new Card { Suit = "Maça", Value = 10 },
+    };
+            // HCP: 3+1+2+4 = 10 → 15 için artır
+            kuzeyEli = new List<Card>
+    {
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+    };
+            // HCP: 3+1+4+2+3+2 = 15 → Reverse için 16 gerekli
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            // Reverse tetiklenmemeli
+            var reverse = new Reverse { AktifMi = true };
+            bool uygun = reverse.UygunMu(durum);
+            Yaz($"Reverse.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Reverse_Degil_Normal()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 30.3 — Reverse DEĞİL: 1♥ - 1♠ - 2♣");
+            Yaz("Beklenen: Reverse tetiklenmez (♥ > ♣)");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 5'li ♥
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 4'lü ♣
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 1'li ♠
+        new Card { Suit = "Maça", Value = 9 },
+    };
+            // HCP: 4+2+3+1 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            // Reverse tetiklenmemeli (♥ > ♣)
+            var reverse = new Reverse { AktifMi = true };
+            bool uygun = reverse.UygunMu(durum);
+            Yaz($"Reverse.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Reverse_Degil_1NT()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 30.4 — Reverse DEĞİL: 1♠ - 1NT - 2♥");
+            Yaz("Beklenen: Reverse tetiklenmez (Forcing NT sonrası)");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 5'li ♠
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        // 1'li ♣
+        new Card { Suit = "Sinek", Value = 9 },
+    };
+            // HCP: 4+3+2+1 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1NT", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            // Reverse tetiklenmemeli (1NT cevabı)
+            var reverse = new Reverse { AktifMi = true };
+            bool uygun = reverse.UygunMu(durum);
+            Yaz($"Reverse.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Reverse_CevapciFit()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 30.5 — Reverse sonrası cevapçı fit gösterir");
+            Yaz("Senaryo: 1♣ - 1♠ - 2♦ - ?");
+            Yaz("Beklenen: 3♣ veya 4♣ (fit)");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        // 3'lü ♣ (fit)
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 3 },
+    };
+            // HCP: 4+2+1 = 7
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♦",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            bool dogru = (sonuc == "3♣" || sonuc == "4♣");
+            Yaz(dogru ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♣ veya 4♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Reverse_Degil_AyniRenk()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 30.6 — Reverse DEĞİL: Aynı renk tekrarı");
+            Yaz("Senaryo: 1♣ - 1♠ - 2♣");
+            Yaz("Beklenen: Reverse tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 6'lı ♣
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        // 2'li ♥
+        new Card { Suit = "Kupa", Value = 12 },
+        new Card { Suit = "Kupa", Value = 5 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 11 },
+        new Card { Suit = "Karo", Value = 5 },
+    };
+            // HCP: 4+3+1+2 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♣",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            // Reverse tetiklenmemeli (aynı renk)
+            var reverse = new Reverse { AktifMi = true };
+            bool uygun = reverse.UygunMu(durum);
+            Yaz($"Reverse.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -7267,6 +7630,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Inverted_3Sinek_Zayif();
             Test_Inverted_2Karo_Guclu();
             Test_Inverted_MajorVarsaTetiklenmez();
+
+            Yaz("▶ TEST 30.1-30.6: Reverse");
+            Test_Reverse_Basit();
+            Test_Reverse_Minimum();
+            Test_Reverse_Degil_Normal();
+            Test_Reverse_Degil_1NT();
+            Test_Reverse_CevapciFit();
+            Test_Reverse_Degil_AyniRenk();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

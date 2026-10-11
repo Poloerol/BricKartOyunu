@@ -87,9 +87,10 @@ namespace BricKartOyunu.Class.Bidding
                 new TrialBid(),             // 1M-2M sonrası yardım sınaması
                 new ThirdSuitForcing(),     // 3. Renk Forsingi
                 new GrandSlamForce(),       // 5NT Papaz sorma
-                new FourthSuitForcing(),      // 4. Renk Forsingi (2 seviye)
+                new Reverse(),              // 31 — Reverse
+                new FourthSuitForcing(),    // 4. Renk Forsingi (2 seviye)
                 new MinorAcilis(),          // minör açılış
-
+                
                 // ─── FALLBACK ────────────────────────────────────────────────
                 new BasitCevap(),           // basit cevap
             };
@@ -490,6 +491,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Trial Bid": return _anlasma.TrialBid;
                 case "3. Renk Forsingi": return _anlasma.ThirdSuitForcing;
                 case "4. Renk Forsingi": return _anlasma.FourthSuitForcing;
+                case "Reverse": return _anlasma.Reverse;
 
                 // Rakip müdahalesi
                 case "Negative Double": return _anlasma.NegativeDouble;

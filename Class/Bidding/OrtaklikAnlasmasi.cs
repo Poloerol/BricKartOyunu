@@ -20,6 +20,11 @@ namespace BricKartOyunu.Class.Bidding
         public bool Preempt { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // SİSTEM — REVERSE
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool Reverse { get; set; } = true;
+        // ═══════════════════════════════════════════════════════════════════
         // 2/1 SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
 
@@ -170,6 +175,7 @@ namespace BricKartOyunu.Class.Bidding
                 Splinter = true,
                 Drury = true,
                 CueBid = true,
+                Reverse = true,
 
                 // Rakip müdahalesi
                 NegativeDouble = true,
@@ -225,6 +231,7 @@ namespace BricKartOyunu.Class.Bidding
                 Splinter = false,
                 Drury = false,
                 CueBid = false,
+                Reverse = false,
 
                 // Rakip müdahalesi
                 NegativeDouble = true,
@@ -249,6 +256,7 @@ namespace BricKartOyunu.Class.Bidding
             string nt = StrongNT ? "Strong NT (15-17)" : "Weak NT (12-14)";
 
             var aktifler = new System.Collections.Generic.List<string>();
+            if (Reverse) aktifler.Add("Reverse");
             if (InvertedMinors) aktifler.Add("Inverted Minors");
             if (ForcingNT) aktifler.Add("Forcing NT");
             if (Stayman) aktifler.Add("Stayman");
