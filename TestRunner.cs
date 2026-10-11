@@ -5216,6 +5216,365 @@ new IhaleHamlesi
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 24.x — Bergen Raises
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_Bergen_3Sinek_Zayif()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 24.1 — Bergen: 3♣ (zayıf, 7-10 HP, 4'lü destek)");
+            Yaz("Senaryo: 1♥ - ?");
+            Yaz("Beklenen: 3♣");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♥ (destek)
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 2+1+3 = 6 → 7-10 arasına çıkar
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 2+3+2 = 7 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Kupa")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Bergen_3Karo_Davet()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 24.2 — Bergen: 3♦ (davet, 11-12 HP, 4'lü destek)");
+            Yaz("Senaryo: 1♠ - ?");
+            Yaz("Beklenen: 3♦");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♠ (destek)
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 2 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 2+4+3 = 9 → 11-12 için artır
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 3 },
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 2 },
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 3+4+4 = 11 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Bergen_3Major_Preemptive()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 24.3 — Bergen: 3♥ (preemptive, 0-6 HP, 4'lü destek)");
+            Yaz("Senaryo: 1♥ - ?");
+            Yaz("Beklenen: 3♥");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♥ (destek)
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 2 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 0
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Kupa")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Bergen_4Major_Preemptive()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 24.4 — Bergen: 4♠ (preemptive, 0-6 HP, 5'li destek)");
+            Yaz("Senaryo: 1♠ - ?");
+            Yaz("Beklenen: 4♠");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♠ (destek)
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 3 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 2'li ♥
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 2 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 0
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Bergen_Acici3Karo()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 24.5 — Bergen: Açıcının 3♦ sorusu (3♣ sonrası)");
+            Yaz("Senaryo: 1♥ - 3♣ - ?");
+            Yaz("Beklenen: 3♦ (yapay soru)");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 5'li ♥
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 4 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+1+2 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♣", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Bergen_3luDestek_Yok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 24.6 — Bergen: 3'lü destek ile Bergen DEĞİL");
+            Yaz("Senaryo: 1♥ - ? (3'lü ♥, 10 HP)");
+            Yaz("Beklenen: Bergen tetiklenmez (BasitCevap veya TemelMantik)");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 3'lü ♥ (destek)
+        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 2 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 2+3 = 5
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            // Bergen tetiklenmemeli (3'lü destek)
+            var bergen = new BergenRaises { AktifMi = true };
+            bool bergenUygun = bergen.UygunMu(durum);
+            Yaz($"Bergen.UygunMu → {bergenUygun}");
+
+            // Motor başka bir konvansiyon döndürmeli
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -5382,6 +5741,14 @@ new IhaleHamlesi
             Test_4SF_AciciDestek();
             Test_4SF_AciciNT();
             Test_4SF_XYZCakismasiYok();
+
+            Yaz("▶ TEST 24.1-24.6: Bergen Raises");
+            Test_Bergen_3Sinek_Zayif();
+            Test_Bergen_3Karo_Davet();
+            Test_Bergen_3Major_Preemptive();
+            Test_Bergen_4Major_Preemptive();
+            Test_Bergen_Acici3Karo();
+            Test_Bergen_3luDestek_Yok();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

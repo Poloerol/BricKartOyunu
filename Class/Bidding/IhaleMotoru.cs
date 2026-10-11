@@ -52,6 +52,7 @@ namespace BricKartOyunu.Class.Bidding
                 // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
                 new BesliMajor(),           // 10 — 5'li majör
                 new Stayman(),              // 10 — 1NT Stayman
+                new BergenRaises(),         // 12 — Bergen Raises
                 new Gerber(),               // 13 — 4♣ As sorusu (NT)
                 new PuppetStayman(),        // 13 — 2NT Stayman
                 new CueBid(),               // 14 — kontrol gösterme
@@ -446,6 +447,7 @@ namespace BricKartOyunu.Class.Bidding
                 // Slam
                 case "Blackwood": return _anlasma.Blackwood;
                 case "RKCB": return _anlasma.RKCB;
+                case "Bergen Raises": return true;
                 case "Gerber": return _anlasma.Gerber;
                 case "Grand Slam Force": return true;
 

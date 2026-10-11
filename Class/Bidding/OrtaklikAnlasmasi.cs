@@ -30,6 +30,12 @@ namespace BricKartOyunu.Class.Bidding
         public bool MinorTransfer { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
+        // ORTAKLIK — MAJÖR DESTEK SİSTEMİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool BergenRaises { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
         // 1NT REBID SONRASI SİSTEM (1X - 1Y - 1NT)
         // ═══════════════════════════════════════════════════════════════════
 
@@ -107,6 +113,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 // 1NT/2NT cevapları
                 Stayman = true,
+                BergenRaises = true,
                 JacobyTransfer = true,
                 Smolen = true,
                 MinorTransfer = true,
@@ -161,6 +168,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 // 1NT cevapları
                 Stayman = true,
+                BergenRaises = false,
                 JacobyTransfer = false,
                 Smolen = false,
                 MinorTransfer = false,
