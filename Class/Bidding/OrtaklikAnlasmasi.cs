@@ -42,6 +42,12 @@ namespace BricKartOyunu.Class.Bidding
         public bool XYZ { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // ORTAKLIK — DESTEK SONRASI DENEME
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool TrialBid { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
         // SLAM KONVANSİYONLARI
         // ═══════════════════════════════════════════════════════════════════
 
@@ -104,6 +110,10 @@ namespace BricKartOyunu.Class.Bidding
 
                 // XYZ (1X-1Y-1Z)
                 XYZ = true,
+                // TrialBid 
+                TrialBid = true,
+
+
 
                 // Slam
                 Blackwood = true,
@@ -152,6 +162,9 @@ namespace BricKartOyunu.Class.Bidding
                 // XYZ
                 XYZ = false,
 
+                // TrialBid
+                TrialBid = false,
+
                 // Slam
                 Blackwood = true,
                 RKCB = false,
@@ -189,6 +202,7 @@ namespace BricKartOyunu.Class.Bidding
             if (MinorTransfer) aktifler.Add("Min.Transfer");
             if (TwoWayCheckback) aktifler.Add("2-Way Checkback");
             if (XYZ) aktifler.Add("XYZ");
+            if (TrialBid) aktifler.Add("Trial Bid");
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
             if (Gerber) aktifler.Add("Gerber");
