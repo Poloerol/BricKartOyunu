@@ -4930,6 +4930,292 @@ new IhaleHamlesi
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 23.x — 4. Renk Forsingi (Fourth Suit Forcing)
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_4SF_BasitBaslatma()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 23.1 — 4SF: Cevapçı başlatıyor");
+            Yaz("Senaryo: 1♦ - 1♥ - 2♣ - ?");
+            Yaz("Beklenen: 2♠ (4. Renk Forsingi)");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♥
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 3+1+4 = 8 → 11 için artır
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 2 },
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+1+2+3 = 10 → hâlâ düşük, bir onör daha
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 2 },
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+1+3+2 = 10 → 11 için ♦ Q ekleyelim
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 2 },
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+1+3+2+1 = 11 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♣", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_4SF_AciciDestek()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 23.2 — 4SF: Açıcı 3'lü ♥ desteği gösteriyor");
+            Yaz("Senaryo: 1♦ - 1♥ - 2♣ - 2♠ - ?");
+            Yaz("Beklenen: 2♥ veya 3♥ (3'lü ♥ desteği)");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 4'lü ♠ (4SF rengi)
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♥ (destek)
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 5'li ♦
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        // 1'li ♣
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+    };
+            // HCP: 4+3+1+2 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♣", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♠", Sira = 7, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Kupa")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            bool dogru = (sonuc == "2♥" || sonuc == "3♥");
+            Yaz(dogru ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♥ veya 3♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_4SF_AciciNT()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 23.3 — 4SF: Açıcı 2NT/3NT (stopper var)");
+            Yaz("Senaryo: 1♦ - 1♥ - 2♣ - 2♠ - ?");
+            Yaz("Beklenen: 2NT veya 3NT (♠'de stopper var)");
+            Yaz("────────────────────────────────────────");
+            var kuzeyEli = new List<Card>
+    {
+        // 3'lü ♠ (stopper: A)
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 2'li ♥ (destek YOK)
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        // 5'li ♦
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 5 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+1+3+2 = 13 → dengeli, 2NT diyebilir
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♣", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♠", Sira = 7, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Kupa")}");
+            Yaz($"♠ Stopper: {ElDegerlendirici.StopperVar(kuzeyEli, "Maça")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            bool dogru = (sonuc == "2NT" || sonuc == "3NT");
+            Yaz(dogru ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT veya 3NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_4SF_XYZCakismasiYok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 23.4 — 4SF: XYZ ile çakışma yok (1 seviyesi)");
+            Yaz("Senaryo: 1♦ - 1♥ - 1♠ - ?");
+            Yaz("Beklenen: 4SF DEĞİL, XYZ veya başka konvansiyon devrede");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        new Card { Suit = "Kupa", Value = 14 },
+        new Card { Suit = "Kupa", Value = 11 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 3 },
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 2 },
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        new Card { Suit = "Sinek", Value = 12 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+1+2 = 7 → zayıf el
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            // 4SF tetiklenmemeli
+            var fsf = new FourthSuitForcing { AktifMi = true };
+            bool fsfUygun = fsf.UygunMu(durum);
+            Yaz($"4SF.UygunMu → {fsfUygun}");
+            Yaz(!fsfUygun ? "✅ DOĞRU (4SF tetiklenmedi)" : "❌ YANLIŞ (4SF tetiklendi!)");
+
+            // Motor başka bir konvansiyon döndürmeli
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -5090,6 +5376,12 @@ new IhaleHamlesi
             Test_TSF_AciciDestek();
             Test_TSF_AciciDigerMajor();
             Test_TSF_AciciNT();
+
+            Yaz("▶ TEST 23.1-23.4: 4. Renk Forsingi");
+            Test_4SF_BasitBaslatma();
+            Test_4SF_AciciDestek();
+            Test_4SF_AciciNT();
+            Test_4SF_XYZCakismasiYok();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

@@ -73,6 +73,7 @@ namespace BricKartOyunu.Class.Bidding
                 new TrialBid(),             // 27 — 1M-2M sonrası yardım sınaması
                 new ThirdSuitForcing(),     // 27 — 3. Renk Forsingi
                 new GrandSlamForce(),       // 28 — 5NT Papaz sorma
+                new FourthSuitForcing(),      // 29 — 4. Renk Forsingi (2 seviye)
                 new MinorAcilis(),          // 30 — minör açılış
 
                 // ─── FALLBACK ────────────────────────────────────────────────
@@ -456,6 +457,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Cue Bid": return _anlasma.CueBid;
                 case "Trial Bid": return true;   // Her zaman aktif
                 case "3. Renk Forsingi": return true;
+                case "4. Renk Forsingi": return true;
 
                 // Rakip müdahalesi
                 case "Negative Double": return _anlasma.NegativeDouble;

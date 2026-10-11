@@ -160,6 +160,7 @@
     <Compile Include="Class\Bidding\Conventions\Blackwood.cs" />
     <Compile Include="Class\Bidding\Conventions\CueBid.cs" />
     <Compile Include="Class\Bidding\Conventions\Drury.cs" />
+    <Compile Include="Class\Bidding\Conventions\FourthSuitForcing.cs" />
     <Compile Include="Class\Bidding\Conventions\Gerber.cs" />
     <Compile Include="Class\Bidding\Conventions\GrandSlamForce.cs" />
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />

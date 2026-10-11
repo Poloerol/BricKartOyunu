@@ -49,6 +49,12 @@ namespace BricKartOyunu.Class.Bidding
         public bool ThirdSuitForcing { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // ORTAKLIK — 4. RENK FORSİNGİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool FourthSuitForcing { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
         // SLAM KONVANSİYONLARI
         // ═══════════════════════════════════════════════════════════════════
 
@@ -115,6 +121,7 @@ namespace BricKartOyunu.Class.Bidding
                 // TrialBid 
                 TrialBid = true,
                 ThirdSuitForcing = true,
+                FourthSuitForcing = true,
 
 
 
@@ -168,6 +175,7 @@ namespace BricKartOyunu.Class.Bidding
                 // TrialBid
                 TrialBid = false,
                 ThirdSuitForcing = false,
+                FourthSuitForcing = false,
 
                 // Slam
                 Blackwood = true,
@@ -208,6 +216,7 @@ namespace BricKartOyunu.Class.Bidding
             if (XYZ) aktifler.Add("XYZ");
             if (TrialBid) aktifler.Add("Trial Bid");
             if (ThirdSuitForcing) aktifler.Add("3. Renk Forsingi");
+            if (FourthSuitForcing) aktifler.Add("4. Renk Forsingi");
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
             if (Gerber) aktifler.Add("Gerber");
