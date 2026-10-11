@@ -53,6 +53,7 @@ namespace BricKartOyunu.Class.Bidding
                 new BesliMajor(),           // 10 — 5'li majör
                 new Stayman(),              // 10 — 1NT Stayman
                 new BergenRaises(),         // 12 — Bergen Raises
+                new Cappelletti(),          // 12 — 1NT'ye müdahale (Gerber'den önce)
                 new Gerber(),               // 13 — 4♣ As sorusu (NT)
                 new PuppetStayman(),        // 13 — 2NT Stayman
                 new CueBid(),               // 14 — kontrol gösterme
@@ -469,6 +470,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Lebensohl (Zayıf 2)": return _anlasma.Lebensohl;
                 case "Lebensohl": return _anlasma.Lebensohl;
                 case "Michaels": return _anlasma.Michaels;
+                case "Cappelletti": return true;
                 case "Unusual 2NT": return _anlasma.Unusual2NT;
 
                 default:
