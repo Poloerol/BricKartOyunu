@@ -178,6 +178,7 @@
     <Compile Include="Class\Bidding\Conventions\Michaels.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorTransfer.cs" />
+    <Compile Include="Class\Bidding\Conventions\MultiLandy.cs" />
     <Compile Include="Class\Bidding\Conventions\NegativeDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\PuppetStayman.cs" />
     <Compile Include="Class\Bidding\Conventions\ResponsiveDouble.cs" />

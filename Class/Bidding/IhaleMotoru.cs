@@ -65,6 +65,7 @@ namespace BricKartOyunu.Class.Bidding
                 new BergenRaises(),         // Bergen Raises
                 new Cappelletti(),          // 1NT'ye müdahale (Gerber'den önce)
                 new Dont(),                 // DONT (1NT'ye müdahale)
+                new MultiLandy(),           // 12 — Multi-Landy
                 new Gerber(),               // 4♣ As sorusu (NT)
                 new PuppetStayman(),        // 2NT Stayman
                 new CueBid(),               // kontrol gösterme
@@ -506,6 +507,7 @@ namespace BricKartOyunu.Class.Bidding
                 // 1NT müdahale sistemi (Cappelletti ve DONT aynı anda aktif olamaz)
                 case "Cappelletti": return _anlasma.Cappelletti;
                 case "DONT": return _anlasma.Dont;
+                case "Multi-Landy": return _anlasma.MultiLandy;
 
                 default:
                     return true;

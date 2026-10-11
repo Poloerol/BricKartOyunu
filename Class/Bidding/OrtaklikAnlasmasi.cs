@@ -45,6 +45,7 @@ namespace BricKartOyunu.Class.Bidding
         // ═══════════════════════════════════════════════════════════════════
 
         public bool BergenRaises { get; set; } = true;
+        public bool MultiLandy { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // MİNÖR DESTEK SİSTEMİ
@@ -163,6 +164,7 @@ namespace BricKartOyunu.Class.Bidding
                 // 1NT müdahale sistemi — aynı anda sadece biri aktif
                 Cappelletti = false,    // VEYA true
                 Dont = true,
+                MultiLandy = false,   // Varsayılan: kapalı (Cappelletti açık)
 
                 // Slam
                 Blackwood = true,
@@ -244,7 +246,7 @@ namespace BricKartOyunu.Class.Bidding
                 // 1NT müdahale sistemi
                 Cappelletti = false,
                 Dont = false,
-
+                MultiLandy = false,
 
                 StandartSignal = true
             };
@@ -283,6 +285,7 @@ namespace BricKartOyunu.Class.Bidding
             if (Michaels) aktifler.Add("Michaels");
             if (Cappelletti) aktifler.Add("Cappelletti");
             if (Dont) aktifler.Add("DONT");
+            if (MultiLandy) aktifler.Add("Multi-Landy");
             if (Unusual2NT) aktifler.Add("Unusual2NT");
 
             return $"Açılış: {acilis}, {nt}\nAktif: {string.Join(", ", aktifler)}";

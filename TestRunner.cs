@@ -129,6 +129,15 @@ namespace BricKartOyunu
             anlasma.Dont = false;   // ikisi aynı anda aktif olamaz
             return anlasma;
         }
+
+        private static OrtaklikAnlasmasi MultiLandyAnlasmasi()
+        {
+            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            anlasma.Cappelletti = false;
+            anlasma.MultiLandy = true;
+            anlasma.Dont = false;   // ikisi aynı anda aktif olamaz
+            return anlasma;
+        }
         public static void Test_Gerber_Cevap()
         {
             Yaz("════════════════════════════════════════");
@@ -7415,6 +7424,327 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 31.x — Multi-Landy
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_MultiLandy_2Sinek_Majors()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 31.1 — Multi-Landy: 2♣ (majörler)");
+            Yaz("Beklenen: 2♣");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+{
+    // 5'li ♠
+    new Card { Suit = "Maça", Value = 13 }, // K = 3
+    new Card { Suit = "Maça", Value = 11 }, // J = 1
+    new Card { Suit = "Maça", Value = 9 },
+    new Card { Suit = "Maça", Value = 6 },
+    new Card { Suit = "Maça", Value = 3 },
+    // 5'li ♥
+    new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+    new Card { Suit = "Kupa", Value = 10 },
+    new Card { Suit = "Kupa", Value = 7 },
+    new Card { Suit = "Kupa", Value = 5 },
+    new Card { Suit = "Kupa", Value = 2 },
+    // 3'lü ♦
+    new Card { Suit = "Karo", Value = 13 }, // K = 3  ← YENİ
+    new Card { Suit = "Karo", Value = 6 },
+    new Card { Suit = "Karo", Value = 3 },
+};
+            // HCP: 3+1+2+3 = 9 ✓ (8+ oldu)
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = MultiLandyAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_MultiLandy_2Karo_TekMajor()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 31.2 — Multi-Landy: 2♦ (tek majör)");
+            Yaz("Beklenen: 2♦");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 6'lı ♠
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 11 }, // J = 1
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 4 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 5 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+1+2 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = MultiLandyAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_MultiLandy_2Kupa_Minor()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 31.3 — Multi-Landy: 2♥ (♥ + minör)");
+            Yaz("Beklenen: 2♥");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♥
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 11 }, // J = 1
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 5'li ♦
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 5 },
+        new Card { Suit = "Karo", Value = 2 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 3 },
+    };
+            // HCP: 4+1+3+2 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = MultiLandyAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_MultiLandy_2NT_Minors()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 31.4 — Multi-Landy: 2NT (minörler)");
+            Yaz("Beklenen: 2NT");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♣
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 5'li ♦
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 10 },
+        new Card { Suit = "Karo", Value = 7 },
+        new Card { Suit = "Karo", Value = 5 },
+        new Card { Suit = "Karo", Value = 2 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 12 }, // Q = 2
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 3 },
+    };
+            // HCP: 4+1+3+2 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = MultiLandyAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_MultiLandy_PartnerCevap()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 31.5 — Multi-Landy: Partner 2♣'e cevap");
+            Yaz("Senaryo: (1NT) - 2♣ - (Pas) - ?");
+            Yaz("Beklenen: 2♥/2♠/2♦");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 11 },
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 12 },
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 13 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = MultiLandyAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            bool dogru = (sonuc == "2♥" || sonuc == "2♠" || sonuc == "2♦");
+            Yaz(dogru ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♥/2♠/2♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_MultiLandy_Dbl_Ceza()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 31.6 — Multi-Landy: Dbl (ceza, 16+ HP)");
+            Yaz("Beklenen: Dbl");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 4'lü ♠
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 9 },
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 3 },
+        // 4'lü ♥
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 4 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+2+4 = 13 → 16 için artır
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Maça", Value = 14 }, // A = 4
+        new Card { Suit = "Maça", Value = 13 }, // K = 3
+        new Card { Suit = "Maça", Value = 6 },
+        new Card { Suit = "Maça", Value = 3 },
+        new Card { Suit = "Kupa", Value = 14 }, // A = 4
+        new Card { Suit = "Kupa", Value = 10 },
+        new Card { Suit = "Kupa", Value = 7 },
+        new Card { Suit = "Kupa", Value = 2 },
+        new Card { Suit = "Karo", Value = 13 }, // K = 3
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+4+3+2 = 16 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = MultiLandyAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Dbl" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen Dbl)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -7638,6 +7968,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Reverse_Degil_1NT();
             Test_Reverse_CevapciFit();
             Test_Reverse_Degil_AyniRenk();
+
+            Yaz("▶ TEST 31.1-31.6: Multi-Landy");
+            Test_MultiLandy_2Sinek_Majors();
+            Test_MultiLandy_2Karo_TekMajor();
+            Test_MultiLandy_2Kupa_Minor();
+            Test_MultiLandy_2NT_Minors();
+            Test_MultiLandy_PartnerCevap();
+            Test_MultiLandy_Dbl_Ceza();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
