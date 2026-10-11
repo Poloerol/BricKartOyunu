@@ -42,6 +42,12 @@ namespace BricKartOyunu.Class.Bidding
         public bool BergenRaises { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // MİNÖR DESTEK SİSTEMİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool InvertedMinors { get; set; } = true;
+
+        // ═══════════════════════════════════════════════════════════════════
         // 1NT REBID SONRASI SİSTEM (1X - 1Y - 1NT)
         // ═══════════════════════════════════════════════════════════════════
 
@@ -124,6 +130,7 @@ namespace BricKartOyunu.Class.Bidding
             {
                 // Açılışlar
                 BesliMajor = true,
+                InvertedMinors = true,
                 ForcingNT = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
@@ -182,6 +189,7 @@ namespace BricKartOyunu.Class.Bidding
             {
                 // Açılışlar
                 BesliMajor = false,
+                InvertedMinors = false,
                 ForcingNT = false,
                 StrongNT = false,
                 IkiliSinekGuclu = false,
@@ -241,6 +249,7 @@ namespace BricKartOyunu.Class.Bidding
             string nt = StrongNT ? "Strong NT (15-17)" : "Weak NT (12-14)";
 
             var aktifler = new System.Collections.Generic.List<string>();
+            if (InvertedMinors) aktifler.Add("Inverted Minors");
             if (ForcingNT) aktifler.Add("Forcing NT");
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");

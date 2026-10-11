@@ -6824,6 +6824,234 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 29.x — Inverted Minors
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_Inverted_2Sinek_Guclu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 29.1 — Inverted: 1♣ - 2♣ (10+ HP, Forcing)");
+            Yaz("Beklenen: 2♣");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♣ (destek)
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 3'lü ♠ (4'lü majör YOK)
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 11 },
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 6 },
+    };
+            // HCP: 3+1+1+2 = 7 → 10+ için artır
+            guneyEli = new List<Card>
+    {
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 6 },
+    };
+            // HCP: 4+1+3+2 = 10 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♣: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Sinek")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Inverted_3Sinek_Zayif()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 29.2 — Inverted: 1♣ - 3♣ (0-7 HP, Preemptive)");
+            Yaz("Beklenen: 3♣");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♣ (destek)
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 4 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 3'lü ♠
+        new Card { Suit = "Maça", Value = 8 },
+        new Card { Suit = "Maça", Value = 5 },
+        new Card { Suit = "Maça", Value = 2 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 9 },
+        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 3 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 4 },
+    };
+            // HCP: 1
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Inverted_2Karo_Guclu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 29.3 — Inverted: 1♦ - 2♦ (10+ HP, Forcing)");
+            Yaz("Beklenen: 2♦");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♦ (destek)
+        new Card { Suit = "Karo", Value = 14 }, // A = 4
+        new Card { Suit = "Karo", Value = 11 }, // J = 1
+        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 3 },
+        // 3'lü ♠ (4'lü majör YOK)
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        new Card { Suit = "Maça", Value = 4 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        // 2'li ♣
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 6 },
+    };
+            // HCP: 4+1+3+2 = 10 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
+            Yaz($"♦: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Karo")}");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Inverted_MajorVarsaTetiklenmez()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 29.4 — Inverted: 4'lü majör varsa tetiklenmez");
+            Yaz("Senaryo: 1♣ - ? (4'lü ♥, 5'li ♣)");
+            Yaz("Beklenen: Inverted tetiklenmez (1♥ öncelikli)");
+            Yaz("────────────────────────────────────────");
+
+            var guneyEli = new List<Card>
+    {
+        // 5'li ♣
+        new Card { Suit = "Sinek", Value = 14 }, // A = 4
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+        // 4'lü ♥ (majör var!)
+        new Card { Suit = "Kupa", Value = 13 }, // K = 3
+        new Card { Suit = "Kupa", Value = 8 },
+        new Card { Suit = "Kupa", Value = 5 },
+        new Card { Suit = "Kupa", Value = 2 },
+        // 2'li ♠
+        new Card { Suit = "Maça", Value = 10 },
+        new Card { Suit = "Maça", Value = 7 },
+        // 2'li ♦
+        new Card { Suit = "Karo", Value = 12 }, // Q = 2
+        new Card { Suit = "Karo", Value = 6 },
+    };
+            // HCP: 4+1+3+2 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = guneyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            // Inverted tetiklenmemeli (4'lü ♥ var)
+            var inverted = new InvertedMinors { AktifMi = true };
+            bool uygun = inverted.UygunMu(durum);
+            Yaz($"Inverted.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -7034,6 +7262,11 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_FNT_Acici2Sinek();
             Test_FNT_Acici4M();
 
+            Yaz("▶ TEST 29.1-29.4: Inverted Minors");
+            Test_Inverted_2Sinek_Guclu();
+            Test_Inverted_3Sinek_Zayif();
+            Test_Inverted_2Karo_Guclu();
+            Test_Inverted_MajorVarsaTetiklenmez();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

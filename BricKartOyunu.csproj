@@ -169,6 +169,7 @@
     <Compile Include="Class\Bidding\Conventions\Gerber.cs" />
     <Compile Include="Class\Bidding\Conventions\GrandSlamForce.cs" />
     <Compile Include="Class\Bidding\Conventions\IkiliSinekGuclu.cs" />
+    <Compile Include="Class\Bidding\Conventions\InvertedMinors.cs" />
     <Compile Include="Class\Bidding\Conventions\Jacoby2NT.cs" />
     <Compile Include="Class\Bidding\Conventions\JacobyTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\Lebensohl.cs" />
