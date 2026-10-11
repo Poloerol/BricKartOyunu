@@ -1881,7 +1881,93 @@ namespace BricKartOyunu
             }
         }
 
+        /// <summary>
+        /// İki oyuncunun ellerini KENDİ ARALARINDA takas eder (Güney'e dokunmaz).
+        /// ElleriTakasEt'ten farklı olarak Güney'i karıştırmaz.
+        /// </summary>
+        public void ElleriKendiAralarindaTakasEt(Player a, Player b)
+        {
+            var elA = OyuncuEli(a);
+            var elB = OyuncuEli(b);
+            if (elA == null || elB == null) return;
 
+            var gecici = new List<Card>(elA);
+            elA.Clear();
+            elA.AddRange(elB);
+            elB.Clear();
+            elB.AddRange(gecici);
+        }
+
+        /// <summary>
+        /// İhale Kuzey'de kaldığında çağrılır.
+        /// N↔S ve E↔W elleri takas edilir. Sonuç:
+        ///   - Güney (insan) eski Kuzey elini oynar → Deklaran
+        ///   - Kuzey dummy olur (eski Güney eli)
+        ///   - Doğu↔Batı döner → ihalede söylenen renk pozisyonu kaymaz
+        ///   - Batı (eski Doğu eli) açılış kartını oynar
+        /// </summary>
+        public void DeklarasyonElDegisiminiUygula()
+        {
+            ElleriKendiAralarindaTakasEt(Player.Kuzey, Player.Guney);
+            ElleriKendiAralarindaTakasEt(Player.Dogu, Player.Bati);
+
+            System.Diagnostics.Debug.WriteLine(
+                "[ElDegisimi] N↔S ve E↔W takas edildi.");
+        }
+
+        /// <summary>
+        /// Briç kuralı: Sadece dummy açıktır. İnsan (Güney) kendi elini her zaman
+        /// görür (açık). Deklaran Güney değilse kapalı kalır. Diğer defans oyuncusu
+        /// kapalıdır.
+        /// 
+        /// Açık gösterilecekler:
+        ///   - Güney (insan) → her zaman
+        ///   - Dummy (deklaranın ortağı)
+        /// Kapalı gösterilecekler:
+        ///   - Deklaran (Güney değilse)
+        ///   - Diğer defans oyuncusu
+        /// </summary>
+        private void DeklaranVeDummyGoster()
+        {
+            KartYerlesimiHazirla();
+
+            Image backImg = GetBackImage();
+
+            // 1) Önce hepsini kapat
+            for (int i = 0; i < 13; i++)
+            {
+                if (kuzeyKartlar[i] != null) kuzeyKartlar[i].Image = backImg;
+                if (guneyKartlar[i] != null) guneyKartlar[i].Image = backImg;
+                if (batiKartlar[i] != null) batiKartlar[i].Image = backImg;
+                if (doguKartlar[i] != null) doguKartlar[i].Image = backImg;
+            }
+
+            // 2) Güney (insan) — her zaman açık
+            BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
+
+            // 3) Dummy açık
+            Player dummy = IhaleDurumu.PartnerBul(_kontratDeklaran);
+            if (dummy != Player.Guney)   // Güney zaten açık
+            {
+                switch (dummy)
+                {
+                    case Player.Kuzey:
+                        BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
+                        break;
+                    case Player.Bati:
+                        BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY());
+                        break;
+                    case Player.Dogu:
+                        BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY());
+                        break;
+                }
+            }
+
+            // 4) Deklaran Güney değilse → kapalı kalır (yukarıda hepsi zaten kapatıldı).
+            //    Ekstra bir şey yapmaya gerek yok.
+
+            SetupPlayerBadges();
+        }
         private void HepsiniGoster()
         {
             KartYerlesimiHazirla();
@@ -3013,35 +3099,35 @@ namespace BricKartOyunu
         /// </summary>
         public void IhaleTamamlandiBaslat(string kontrat, string deklaran, string solRakip)
         {
-            _oyunAsamasi = OyunAsamasi.Oyun;   // ← EKLE
+            _oyunAsamasi = OyunAsamasi.Oyun;
             _kontrat = kontrat;
             _kontratDeklaran = OyuncuyaCevir(deklaran);
-            _declarer = _kontratDeklaran;               // Deklaran belirlendi
+            _declarer = _kontratDeklaran;
             _atakYapacakOyuncu = OyuncuyaCevir(solRakip);
+
+            // 🔹 İhale bitti → açılışı yapacak oyuncu = "dealer"
+            _dealer = _atakYapacakOyuncu;
 
             // Oyun başlangıcında sıra atak yapacak oyuncuda
             activePlayer = _atakYapacakOyuncu;
 
-            // 🔹 YENİ: Kontrat ve deklaran bilgisini panele yansıt
             OyunBilgiPaneliniGuncelle();
 
-            // Görsel: aktif oyuncu insan oyuncu değilse, onun elini gösterme
-            // (Kullanıcı isterse BtnGuney ile açabilir)
+            // 🔹 Deklaran ve dummy açık, rakipler kapalı (Briç kuralı)
             this.SuspendLayout();
             try
             {
-                SadeceGuneyiGoster();
+                DeklaranVeDummyGoster();
             }
             finally
             {
                 this.ResumeLayout(true);
             }
-            // 🔹 İhale bittiğinde sıra AI'da ise otomatik oynat
+
             if (activePlayer != _humanPlayer)
             {
                 AITetikle();
             }
-
 
             UpdatePlayerBadges();
         }

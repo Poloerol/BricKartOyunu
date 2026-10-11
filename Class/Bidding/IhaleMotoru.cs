@@ -235,6 +235,45 @@ namespace BricKartOyunu.Class.Bidding
                     }
                 }
             }
+            // ═══════════════════════════════════════════════════════════════════
+            // 6. FORCING DURUM KONTROLÜ — partner yeni renk söylediyse cevap ZORUNLU
+            // ═══════════════════════════════════════════════════════════════════
+            if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count > 0)
+            {
+                var partnerTeklifleri = durum.PartnerTeklifleri;
+                if (partnerTeklifleri.Count > 0)
+                {
+                    string sonPartner = partnerTeklifleri.Last();
+
+                    // Partner yeni renk mi söyledi? (Kendi ilk teklifimden farklı bir renk)
+                    string partnerKozu = KozYardimcisi.TekliftenKozCikar(sonPartner);
+                    string benimIlkTeklifim = durum.KendiTeklifleri.FirstOrDefault();
+                    string benimKozum = KozYardimcisi.TekliftenKozCikar(benimIlkTeklifim);
+
+                    bool partnerYeniRenk = !string.IsNullOrEmpty(partnerKozu)
+                                           && partnerKozu != "NT"
+                                           && partnerKozu != benimKozum;
+
+                    if (partnerYeniRenk)
+                    {
+                        // Partner'in rengine destek?
+                        int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+                        if (destek >= 3)
+                            return DestekTeklifi(durum, partnerKozu, hp);
+
+                        // Dengeli + yeterli puan → NT
+                        if (dengeli && hp >= 12 && hp <= 14) return "2NT";
+                        if (dengeli && hp >= 15 && hp <= 17) return "3NT";
+
+                        // Minör varsa göster
+                        if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4) return "2♦";
+                        if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4) return "2♣";
+
+                        // 18+ HP ise en azından 2NT (forcing)
+                        if (hp >= 18) return "2NT";
+                    }
+                }
+            }
 
             return "Pas";
         }

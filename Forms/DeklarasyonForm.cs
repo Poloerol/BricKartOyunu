@@ -248,7 +248,7 @@ namespace BricKartOyunu.Forms
 
         private void TurkcelestirButonlar()
         {
-           if (btnInterpret != null) btnInterpret.Text = "İhale Analizi";
+            if (btnInterpret != null) btnInterpret.Text = "İhale Analizi";
             if (btnFlowcharts != null) btnFlowcharts.Text = "Akış Şeması";
             if (btnHint != null) btnHint.Text = "İpucu";
             if (btnPass != null) btnPass.Text = "Pas";
@@ -319,8 +319,6 @@ namespace BricKartOyunu.Forms
                     g.DrawRectangle(outerPen, 0, 0, NumW + SutunSayisi * HucreW, SatirSayisi * HucreH);
             }
         }
-
-        
 
         private static int OyuncuSutunIndex(string oyuncu)
         {
@@ -421,7 +419,7 @@ namespace BricKartOyunu.Forms
         }
 
         // --- Buton Tıklama Olayları ---
-        
+
         private void BtnInterpret_Click(object sender, EventArgs e)
         {
             // İhale Analizi mantığı
@@ -480,6 +478,7 @@ namespace BricKartOyunu.Forms
 
             SonrakiOyuncuyaGec();
         }
+
         private bool IhaleBittiMi()
         {
             // Açılışta herkes pas dediyse (4 Pas)
@@ -496,6 +495,7 @@ namespace BricKartOyunu.Forms
 
             return false;
         }
+
         /// <summary>
         /// Son yapılan teklifi/pası/kontru geri alır.
         /// Hem ListView hem grid panelinin görünümünü doğru state'e döndürür.
@@ -676,24 +676,59 @@ namespace BricKartOyunu.Forms
             UpdateBiddingButtonsState();
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // 🔹 İHALE SONLANDIRMA — GÜNCELLENDİ
+        // ═══════════════════════════════════════════════════════════════════
+        // Deklaran Kuzey ise: bilgi mesajı göster → Tamam → N↔S ve E↔W
+        // el değişimi uygula. Böylece insan (Güney) deklaran olur, Kuzey
+        // dummy olur, Batı açılış kartını oynar.
+        // ═══════════════════════════════════════════════════════════════════
         private void IhaleyiSonlandir()
         {
             if (string.IsNullOrEmpty(_sonKontratTeklifi))
             {
-                MessageBox.Show("Tüm oyuncular Pas geçti. El oynanmadan kapatılıyor.", "İhale Bitti", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Tüm oyuncular Pas geçti. El oynanmadan kapatılıyor.",
+                    "İhale Bitti", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 _bricOyna?.DortPasSonrasiYeniEliBaslat();
                 IzinliKapat();
                 return;
             }
 
             string deklaran = DeklaraniBul(_sonKontratVeren, _kontratKozu);
-            string solRakip = SolRakipBul(deklaran);
+            bool elDegisimiYapildi = false;
+
+            // ═══════════════════════════════════════════════════════════════
+            // 🔹 SADECE Deklaran Kuzey ise: bilgi mesajı → Tamam → takas
+            // ═══════════════════════════════════════════════════════════════
+            if (deklaran == "Kuzey")
+            {
+                MessageBox.Show(
+                    "Kontrat Kuzey'de kaldı.\n\n" +
+                    "El değişimi yapılacak:\n" +
+                    "•  Kuzey ile Güney elleri yer değiştirecek\n" +
+                    "•  Doğu ile Batı elleri yer değiştirecek\n\n" +
+                    "Böylece siz (Güney) deklaran olacak, Kuzey dummy olacak\n" +
+                    "ve Batı ilk kartını oynayacaktır.",
+                    "El Değişimi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                _bricOyna?.DeklarasyonElDegisiminiUygula();
+                elDegisimiYapildi = true;
+
+                System.Diagnostics.Debug.WriteLine(
+                    "[IhaleyiSonlandir] Deklaran Kuzey → el değişimi uygulandı.");
+            }
+
+            // Takas sonrası gerçek deklaran ve sol rakip (açılış yapacak oyuncu)
+            string gercekDeklaran = elDegisimiYapildi ? "Guney" : deklaran;
+            string solRakip = SolRakipBul(gercekDeklaran);
 
             // İhale geçmişini ve başlayan oyuncuyu BricOyna'ya kaydet
             _bricOyna?.IhaleGecmisiniKaydet(_bids, OyuncuSirasi[_baslangicSutunu]);
 
             // Oynatma ekranına bilgileri aktar
-            _bricOyna?.IhaleTamamlandiBaslat(_sonKontratTeklifi, deklaran, solRakip);
+            _bricOyna?.IhaleTamamlandiBaslat(_sonKontratTeklifi, gercekDeklaran, solRakip);
 
             IzinliKapat();
         }
@@ -752,6 +787,7 @@ namespace BricKartOyunu.Forms
                 default: return oyuncu;
             }
         }
+
         private void PanelGrid_MouseClick(object sender, MouseEventArgs e)
         {
             int lx = e.X - NumW;
@@ -783,6 +819,7 @@ namespace BricKartOyunu.Forms
             // 🔹 YENİ: İlk teklif yapıldı, geri alınabilir hale geldi
             _bricOyna?.GeriAlButonunuAktifEt();
         }
+
         /// <summary>
         /// Deklarasyon butonlarının aktiflik/pasiflik durumlarını kontrol eder.
         /// </summary>
@@ -790,7 +827,6 @@ namespace BricKartOyunu.Forms
         {
             UpdateBiddingButtonsState();
         }
-        // DeklarasyonForm.cs içinde
 
         private void UpdateBiddingButtonsState()
         {
@@ -1009,9 +1045,6 @@ namespace BricKartOyunu.Forms
 
         /// <summary>
         /// AI teklifini uygular (Pas, teklif, kontr, vs.).
-        /// </summary>
-        /// <summary>
-        /// AI teklifini uygular (Pas, teklif, kontr, vs.).
         /// KozYardimcisi kullanarak parse eder (1NT dahil).
         /// </summary>
         private void AIHamlesiniUygula(string teklif)
@@ -1106,10 +1139,6 @@ namespace BricKartOyunu.Forms
                 ZonEW = false,   // TODO: BricOyna'dan al
                 AktifOyuncuEli = _bricOyna?.GetOyuncuEli(OyuncuyaCevir(_aktifOyuncu))
             };
-
-            // Basit geçmiş aktarımı — sıra numarası ve oyuncu ataması yapılamıyor
-            // (Bu yüzden motor "ilk teklif" sanabilir.)
-            // Şimdilik idare ediyoruz.
 
             durum.Gecmis = new List<IhaleHamlesi>(_ihaleHamleleri);
             return durum;
