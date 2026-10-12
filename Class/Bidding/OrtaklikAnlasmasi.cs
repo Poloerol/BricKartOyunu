@@ -20,6 +20,12 @@ namespace BricKartOyunu.Class.Bidding
         public bool Preempt { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // AÇILIŞ SİSTEMİ — GÜÇLÜ MAJÖR AÇILIŞLARI
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool Namyats { get; set; } = false;   // 4♣ = güçlü ♥, 4♦ = güçlü ♠
+
+        // ═══════════════════════════════════════════════════════════════════
         // SİSTEM — REVERSE
         // ═══════════════════════════════════════════════════════════════════
 
@@ -142,6 +148,7 @@ namespace BricKartOyunu.Class.Bidding
                 IkiliSinekGuclu = true,
                 ZayifIki = true,      // ← EKLE
                 Preempt = true,
+                Namyats = false,    // Varsayılan: kapalı (Preempt ile çakışmasın)
 
                 // 1NT/2NT cevapları
                 Stayman = true,
@@ -259,9 +266,14 @@ namespace BricKartOyunu.Class.Bidding
             string nt = StrongNT ? "Strong NT (15-17)" : "Weak NT (12-14)";
 
             var aktifler = new System.Collections.Generic.List<string>();
-            if (Reverse) aktifler.Add("Reverse");
-            if (InvertedMinors) aktifler.Add("Inverted Minors");
-            if (ForcingNT) aktifler.Add("Forcing NT");
+
+            // ─── AÇILIŞLAR ───────────────────────────────────────────────
+            if (IkiliSinekGuclu) aktifler.Add("2♣ Güçlü");
+            if (ZayifIki) aktifler.Add("Zayıf İki");
+            if (Preempt) aktifler.Add("Preempt");
+            if (Namyats) aktifler.Add("Namyats");
+
+            // ─── 1NT / 2NT CEVAPLARI ─────────────────────────────────────
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");
             if (PuppetStayman) aktifler.Add("Puppet");
@@ -269,25 +281,43 @@ namespace BricKartOyunu.Class.Bidding
             if (MinorTransfer) aktifler.Add("Min.Transfer");
             if (TwoWayCheckback) aktifler.Add("2-Way Checkback");
             if (XYZ) aktifler.Add("XYZ");
+
+            // ─── ORTAKLIK — DESTEK ve DENEME ────────────────────────────
+            if (ForcingNT) aktifler.Add("Forcing NT");
+            if (InvertedMinors) aktifler.Add("Inverted Minors");
+            if (Jacoby2NT) aktifler.Add("Jacoby2NT");
+            if (Splinter) aktifler.Add("Splinter");
+            if (BergenRaises) aktifler.Add("Bergen Raises");
             if (TrialBid) aktifler.Add("Trial Bid");
             if (ThirdSuitForcing) aktifler.Add("3. Renk Forsingi");
             if (FourthSuitForcing) aktifler.Add("4. Renk Forsingi");
+            if (Reverse) aktifler.Add("Reverse");
+            if (Drury) aktifler.Add("Drury");
+            if (ReverseDrury) aktifler.Add("Reverse Drury");
+            if (CueBid) aktifler.Add("Cue Bid");
+
+            // ─── SLAM KONVANSİYONLARI ────────────────────────────────────
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
+            if (RKCB1430) aktifler.Add("RKCB 1430");
             if (Gerber) aktifler.Add("Gerber");
-            if (Jacoby2NT) aktifler.Add("Jacoby2NT");
-            if (Splinter) aktifler.Add("Splinter");
-            if (Drury) aktifler.Add("Drury");
-            if (CueBid) aktifler.Add("CueBid");
+
+            // ─── RAKİP MÜDAHALESİ ────────────────────────────────────────
             if (NegativeDouble) aktifler.Add("Neg.Dbl");
             if (SupportDouble) aktifler.Add("Supp.Dbl");
             if (ResponsiveDouble) aktifler.Add("Resp.Dbl");
             if (Lebensohl) aktifler.Add("Lebensohl");
             if (Michaels) aktifler.Add("Michaels");
+            if (Unusual2NT) aktifler.Add("Unusual2NT");
+
+            // ─── 1NT MÜDAHALE SİSTEMİ (sadece biri aktif) ────────────────
             if (Cappelletti) aktifler.Add("Cappelletti");
             if (Dont) aktifler.Add("DONT");
             if (MultiLandy) aktifler.Add("Multi-Landy");
-            if (Unusual2NT) aktifler.Add("Unusual2NT");
+
+            // ─── İŞARETLEŞME ─────────────────────────────────────────────
+            if (UDCA) aktifler.Add("UDCA");
+            else if (StandartSignal) aktifler.Add("Standart Signal");
 
             return $"Açılış: {acilis}, {nt}\nAktif: {string.Join(", ", aktifler)}";
         }

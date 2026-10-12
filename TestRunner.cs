@@ -8296,6 +8296,274 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 34.x — Namyats (Güçlü Majör Açılışları)
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static OrtaklikAnlasmasi NamyatsAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.Namyats = true;
+            a.Preempt = true;   // 3 seviyesi preempt hâlâ aktif
+            return a;
+        }
+
+        public static void Test_Namyats_4Sinek_GucluKupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 34.1 — Namyats: 4♣ (güçlü ♥, 8'li ♥)");
+            Yaz("Beklenen: 4♣");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        // 8'li ♥ (sağlam)
+        new Card { Suit = "Kupa",  Value = 14 }, // A = 4
+        new Card { Suit = "Kupa",  Value = 13 }, // K = 3
+        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 4 },
+        // 2'li ♠
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 6 },
+    };
+            // HCP: 4+3+1+2 = 10 ✓ (Namyats aralığı 10-15)
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var n = new Namyats { AktifMi = true };
+            Yaz($"Namyats.UygunMu → {n.UygunMu(durum)}");
+            if (n.UygunMu(durum))
+                Yaz($"Namyats.TeklifVer → {n.TeklifVer(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Namyats_4Karo_GucluMaca()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 34.2 — Namyats: 4♦ (güçlü ♠, 8'li ♠)");
+            Yaz("Beklenen: 4♦");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        // 8'li ♠ (sağlam)
+        new Card { Suit = "Maça",  Value = 14 }, // A = 4
+        new Card { Suit = "Maça",  Value = 13 }, // K = 3
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Maça",  Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 4 },
+        // 2'li ♥
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+    };
+            // HCP: 4+3+2 = 9... biraz artıralım
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A = 4
+        new Card { Suit = "Maça",  Value = 13 }, // K = 3
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 11 }, // J = 1
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Maça",  Value = 2 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+    };
+            // HCP: 4+3+2+1 = 10 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Maça")}");
+
+            var n = new Namyats { AktifMi = true };
+            Yaz($"Namyats.UygunMu → {n.UygunMu(durum)}");
+            if (n.UygunMu(durum))
+                Yaz($"Namyats.TeklifVer → {n.TeklifVer(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Namyats_Negatif_ZayifEl()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 34.3 — Namyats Negatif: 5 HP (çok zayıf)");
+            Yaz("Beklenen: Namyats tetiklenmez (Preempt alır)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 13 }, // K = 3
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 2 },   // 7'li ♥
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 3+2 = 5 → Namyats aralığı dışı
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var n = new Namyats { AktifMi = true };
+            bool uygun = n.UygunMu(durum);
+            Yaz($"Namyats.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Namyats_PreemptCakismasiYok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 34.4 — Namyats + Preempt: 8'li ♣ (Namyats almalı mı?)");
+            Yaz("Beklenen: 8'li minör → Preempt (Namyats değil)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        // 8'li ♣
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+        new Card { Suit = "Sinek", Value = 2 },
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 8 },
+    };
+            // HCP: 2+1 = 3 → Namyats aralığı dışı (10-15)
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♣ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
+
+            var n = new Namyats { AktifMi = true };
+            bool uygun = n.UygunMu(durum);
+            Yaz($"Namyats.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (Namyats tetiklenmedi)" : "❌ YANLIŞ");
+
+            // Motor Preempt veya 3♣ demeli (Namyats 4♣ DEĞİL)
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc != "4♣" ? "✅ DOĞRU (4♣ Namyats'a ait, doğru değil)"
+                               : "❌ YANLIŞ (Namyats yanlış tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Namyats_Negatif_KisaRenk()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 34.5 — Namyats Negatif: 6'lı ♥ (8+ lazım)");
+            Yaz("Beklenen: Namyats tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 14 }, // A = 4
+        new Card { Suit = "Kupa",  Value = 13 }, // K = 3
+        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },   // sadece 6'lı
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 4+3+1+2 = 10, ama ♥ sadece 6'lı
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var n = new Namyats { AktifMi = true };
+            bool uygun = n.UygunMu(durum);
+            Yaz($"Namyats.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -8543,6 +8811,13 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Preempt_4Karo();
             Test_Preempt_Negatif_GucluEl();
             Test_Preempt_Negatif_KisaRenk();
+
+            Yaz("▶ TEST 34.1-34.5: Namyats");
+            Test_Namyats_4Sinek_GucluKupa();
+            Test_Namyats_4Karo_GucluMaca();
+            Test_Namyats_Negatif_ZayifEl();
+            Test_Namyats_PreemptCakismasiYok();
+            Test_Namyats_Negatif_KisaRenk();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

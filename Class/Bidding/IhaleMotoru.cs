@@ -54,6 +54,7 @@ namespace BricKartOyunu.Class.Bidding
                 // ─── AÇILIŞLAR ───────────────────────────────────────────────
                 new IkiliSinekGuclu(),      // 22+ HP yapay 2♣
                 new ZayifIki(),             // 2♦/2♥/2♠ zayıf açılışlar (6'lı, 5-11 HP)
+                new Namyats(),              // ← YENİ: 4♣/4♦ güçlü majör (öncelik 7)
                 new Preempt(),              // ← YENİ: 3♣/3♦/3♥/3♠, 4♣/4♦ (7+ kart, 0-9 HP)  
                 new Lebensohl_Reverse(),    // Reverse üzerine Lebensohl
                 new Lebensohl_WeakTwo(),    // Zayıf 2'ye karşı Lebensohl
@@ -462,6 +463,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "2♣ Güçlü": return _anlasma.IkiliSinekGuclu;
                 case "Zayıf İki": return _anlasma.ZayifIki;
                 case "Preempt": return _anlasma.Preempt;
+                case "Namyats": return _anlasma.Namyats;   // ← YENİ
 
                 // 1NT Cevapları
                 case "Inverted Minors": return _anlasma.InvertedMinors;

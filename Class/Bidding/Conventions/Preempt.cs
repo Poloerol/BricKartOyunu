@@ -38,7 +38,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public bool UygunMu(IhaleDurumu durum)
         {
-            // Sadece açılış (geçmiş boş)
             if (durum == null || durum.Gecmis == null || durum.Gecmis.Count > 0)
                 return false;
 
@@ -47,13 +46,28 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
 
-            // Preempt için zayıf el: 0-9 HP
-            // 22+ HP → 2♣ Güçlü'ye bırak
             if (hp > 9) return false;
             if (hp >= 22) return false;
 
-            // 7+ kartlı bir renk var mı?
-            return YediArtıRenkVarMi(durum.AktifOyuncuEli);
+            if (!YediArtıRenkVarMi(durum.AktifOyuncuEli))
+                return false;
+
+            // Namyats aktifse, 8'li minör + Namyats HP aralığı (10-15) → Namyats'a bırak
+            if (durum.Anlasma != null && durum.Anlasma.Namyats)
+            {
+                int karo = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Karo");
+                int sinek = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Sinek");
+
+                // Sadece Namyats'ın alacağı ellerde çekil (10-15 HP)
+                if (hp >= 10 && hp <= 15)
+                {
+                    if (karo >= 8) return false;
+                    if (sinek >= 8) return false;
+                }
+                // hp < 10 → Preempt alır (zayıf 8'li minör)
+            }
+
+            return true;
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -65,13 +79,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var el = durum.AktifOyuncuEli;
             if (el == null) return "Pas";
 
+            bool namyatsAktif = durum.Anlasma != null && durum.Anlasma.Namyats;
+
             // ─── 8'li minör renk → 4 seviyesi ─────────────────────────
-            // (4♥/4♠ bu sınıfta yok — Namyats ayrı konvansiyon)
-            if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 8) return "4♦";
-            if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 8) return "4♣";
+            // (Namyats aktifse, 4♣/4♦ Namyats'a bırakılır)
+            if (!namyatsAktif)
+            {
+                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 8) return "4♦";
+                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 8) return "4♣";
+            }
 
             // ─── 7'li renk → 3 seviyesi ───────────────────────────────
-            // Majörler önce (♠ > ♥ > ♦ > ♣)
             if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 7) return "3♠";
             if (ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 7) return "3♥";
             if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 7) return "3♦";
