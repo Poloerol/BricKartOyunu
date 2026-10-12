@@ -8023,6 +8023,279 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 33.x — Preempt (Bozucu Açılışlar)
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static OrtaklikAnlasmasi PreemptAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.Preempt = true;
+            return a;
+        }
+
+        public static void Test_Preempt_3Maca()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 33.1 — Preempt: 3♠ (7'li ♠, 5 HP)");
+            Yaz("Beklenen: 3♠");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K = 3
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 4 },
+        new Card { Suit = "Maça",  Value = 2 },   // 7'li ♠
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+2 = 5 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = PreemptAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Maça")}");
+
+            var p = new Preempt { AktifMi = true };
+            Yaz($"Preempt.UygunMu → {p.UygunMu(durum)}");
+            if (p.UygunMu(durum))
+                Yaz($"Preempt.TeklifVer → {p.TeklifVer(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Preempt_3Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 33.2 — Preempt: 3♥ (7'li ♥, 6 HP)");
+            Yaz("Beklenen: 3♥");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 2 },   // 7'li ♥
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 2+1+3 = 6 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = PreemptAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Preempt_3Sinek()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 33.3 — Preempt: 3♣ (7'li ♣, 4 HP)");
+            Yaz("Beklenen: 3♣");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Sinek", Value = 13 }, // K = 3
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 4 },
+        new Card { Suit = "Sinek", Value = 2 },   // 7'li ♣
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 11 }, // J = 1
+        new Card { Suit = "Karo",  Value = 5 },
+    };
+            // HCP: 3+1 = 4 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = PreemptAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♣ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Preempt_4Karo()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 33.4 — Preempt: 4♦ (8'li ♦, 7 HP)");
+            Yaz("Beklenen: 4♦");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Karo",  Value = 14 }, // A = 4
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 2 },   // 8'li ♦
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q = 2
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 }, // J = 1
+    };
+            // HCP: 4+2+1 = 7 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = PreemptAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♦ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Karo")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Preempt_Negatif_GucluEl()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 33.5 — Preempt Negatif: 15 HP (çok güçlü)");
+            Yaz("Beklenen: Preempt tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A = 4
+        new Card { Suit = "Maça",  Value = 13 }, // K = 3
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },   // 7'li ♠ ama çok güçlü
+        new Card { Suit = "Kupa",  Value = 14 }, // A = 4
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Sinek", Value = 9 },
+    };
+            // HCP: 4+3+2+4+2 = 15
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = PreemptAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+
+            var p = new Preempt { AktifMi = true };
+            bool uygun = p.UygunMu(durum);
+            Yaz($"Preempt.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Preempt_Negatif_KisaRenk()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 33.6 — Preempt Negatif: 5'li renk");
+            Yaz("Beklenen: Preempt tetiklenmez (7+ lazım)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K = 3
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },   // sadece 5'li
+        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 3+2+1+2 = 8, ♠ 5'li, ♥ 4'lü
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = PreemptAnlasmasi(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Maça")}");
+
+            var p = new Preempt { AktifMi = true };
+            bool uygun = p.UygunMu(durum);
+            Yaz($"Preempt.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -8262,6 +8535,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_ZayifIki_Negatif_YuksekHP();
             Test_ZayifIki_Negatif_5liRenk();
             Test_ZayifIki_Negatif_GecmisVar();
+
+            Yaz("▶ TEST 33.1-33.6: Preempt");
+            Test_Preempt_3Maca();
+            Test_Preempt_3Kupa();
+            Test_Preempt_3Sinek();
+            Test_Preempt_4Karo();
+            Test_Preempt_Negatif_GucluEl();
+            Test_Preempt_Negatif_KisaRenk();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

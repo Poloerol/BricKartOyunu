@@ -53,7 +53,8 @@ namespace BricKartOyunu.Class.Bidding
             {
                 // ─── AÇILIŞLAR ───────────────────────────────────────────────
                 new IkiliSinekGuclu(),      // 22+ HP yapay 2♣
-                new ZayifIki(),             // ← YENİ: 2♦/2♥/2♠ zayıf açılışlar
+                new ZayifIki(),             // 2♦/2♥/2♠ zayıf açılışlar (6'lı, 5-11 HP)
+                new Preempt(),              // ← YENİ: 3♣/3♦/3♥/3♠, 4♣/4♦ (7+ kart, 0-9 HP)  
                 new Lebensohl_Reverse(),    // Reverse üzerine Lebensohl
                 new Lebensohl_WeakTwo(),    // Zayıf 2'ye karşı Lebensohl
                 new Lebensohl(),            // 1NT overcall Lebensohl

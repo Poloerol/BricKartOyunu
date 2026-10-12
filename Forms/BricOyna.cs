@@ -1952,6 +1952,10 @@ namespace BricKartOyunu
                 switch (dummy)
                 {
                     case Player.Kuzey:
+                        // Kuzey dummy ise AI özelliği kapatılır (Sadece deklarasyon sırasında AI'dır)
+                        // Not: BricOyna'da AI kontrolü AITetikle/AIOyna içinde activePlayer kontrolü ile yapılır.
+                        // Dummy oyuncunun sırası gelmeyeceği için zaten AIOyna çağrılmayacaktır.
+                        // Ancak görsel olarak veya diğer mantıklar için dummy olduğunu belirtmek gerekebilir.
                         BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
                         break;
                     case Player.Bati:

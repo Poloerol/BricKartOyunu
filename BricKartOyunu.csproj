@@ -180,6 +180,7 @@
     <Compile Include="Class\Bidding\Conventions\MinorTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\MultiLandy.cs" />
     <Compile Include="Class\Bidding\Conventions\NegativeDouble.cs" />
+    <Compile Include="Class\Bidding\Conventions\Preempt.cs" />
     <Compile Include="Class\Bidding\Conventions\PuppetStayman.cs" />
     <Compile Include="Class\Bidding\Conventions\ResponsiveDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\Reverse.cs" />
@@ -192,6 +193,7 @@
     <Compile Include="Class\Bidding\Conventions\TrialBid.cs" />
     <Compile Include="Class\Bidding\Conventions\TwoWayCheckback.cs" />
     <Compile Include="Class\Bidding\Conventions\Unusual2NT.cs" />
+    <Compile Include="Class\Bidding\Conventions\ZayifIki.cs" />
     <Compile Include="Class\Bidding\Conventions\XYZ.cs" />
     <Compile Include="Class\Bidding\ElDegerlendirici.cs" />
     <Compile Include="Class\Bidding\IhaleDurumu.cs" />
