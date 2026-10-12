@@ -72,6 +72,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Gerber(),               // 4♣ As sorusu (NT)
                 new PuppetStayman(),        // 2NT Stayman
                 new CueBid(),               // kontrol gösterme
+                new KozQSorusu(),           // ← YENİ: 5NT koz Q sorusu
                 new Kickback(),             // ← YENİ: 4♠/4♥/4♦ kilit kart sorması
                 new ExclusionBlackwood(),   // ← YENİ: Şikan gösteren 4NT (5♣/5♦/5♥/5♠)
                 new RKCB(),                 // ← YENİ: 4NT kilit kart (1430/0314)
@@ -484,6 +485,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "XYZ (X-Y-Z)": return _anlasma.XYZ;
 
                 // Slam
+                case "Koz Q Sorusu": return _anlasma.RKCB;   // RKCB ile aynı anlaşma
                 case "Kickback": return _anlasma.RKCB;   // RKCB ile aynı anlaşma
                 case "Exclusion Blackwood": return _anlasma.RKCB;   // RKCB ile aynı anlaşma
                 case "Blackwood": return _anlasma.Blackwood;

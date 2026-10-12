@@ -10243,6 +10243,341 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 39.x — Koz Q Sorusu
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static OrtaklikAnlasmasi KozQAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.RKCB = true;
+            a.RKCB1430 = true;
+            a.Blackwood = false;
+            return a;
+        }
+
+        public static void Test_KozQ_Soruluyor()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 39.1 — Koz Q Sorusu: 5NT soruluyor");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - ?");
+            Yaz("Beklenen: 5NT (Koz Q sorusu)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "5♥",  Sira = 7, GecerliMi = true }, // 2, Q yok
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = KozQAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_KozQ_Cevap_QYok_SinekK()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 39.2 — Koz Q Cevabı: Q yok, ♣K var → 6♣");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - 5NT - Pas - ?");
+            Yaz("Beklenen: 6♣ (Q yok, ♣K var)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♠Q yok, ♣K var
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // ♣K
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "5♥",  Sira = 7, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5NT", Sira = 9, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 10, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KozQAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♠Q var: {ElDegerlendirici.KizVar(el, "Maça")}");
+            Yaz($"♣K var: {ElDegerlendirici.PapazVar(el, "Sinek")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "6♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_KozQ_Cevap_QVar_YanKYok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 39.3 — Koz Q Cevabı: Q var, yan K yok → 6NT");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - 5NT - Pas - ?");
+            Yaz("Beklenen: 6NT (Q var, yan K yok)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♠Q var, yan K yok (sadece As'lar var)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 12 }, // ♠Q
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 14 }, // A
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "5♥",  Sira = 7, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5NT", Sira = 9, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 10, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KozQAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♠Q var: {ElDegerlendirici.KizVar(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "6NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_KozQ_Cevap_QVar_YanKVar()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 39.4 — Koz Q Cevabı: Q var + yan K var → 7♠");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - 5NT - Pas - ?");
+            Yaz("Beklenen: 7♠ (Q var + yan K var)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♠Q var, ♣K var
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 12 }, // ♠Q
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // ♣K
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "5♥",  Sira = 7, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5NT", Sira = 9, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 10, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KozQAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "7♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 7♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_KozQ_Kickback_Sonrasi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 39.5 — Koz Q Sorusu: Kickback sonrası");
+            Yaz("Senaryo: 1♥ - 3♥ - 4♠ (Kickback) - 5♦ - Pas - ?");
+            Yaz("Beklenen: 5NT (Koz Q sorusu)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♥",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♠",  Sira = 5, GecerliMi = true }, // Kickback
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "5♦",  Sira = 7, GecerliMi = true }, // 2, Q yok
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = KozQAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_KozQ_Negatif_MuddahaleYok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 39.6 — Koz Q Negatif: RKCB/Kickback yok");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - ?");
+            Yaz("Beklenen: KozQ tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 },
+        new Card { Suit = "Maça",  Value = 13 },
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 13 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = KozQAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var kq = new KozQSorusu { AktifMi = true };
+            bool uygun = kq.UygunMu(durum);
+            Yaz($"KozQSorusu.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -10538,6 +10873,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Kickback_Sinek_Koz();
             Test_Kickback_Negatif_MacaKoz();
             Test_Kickback_0314_Kupa();
+
+            Yaz("▶ TEST 39.1-39.6: Koz Q Sorusu");
+            Test_KozQ_Soruluyor();
+            Test_KozQ_Cevap_QYok_SinekK();
+            Test_KozQ_Cevap_QVar_YanKYok();
+            Test_KozQ_Cevap_QVar_YanKVar();
+            Test_KozQ_Kickback_Sonrasi();
+            Test_KozQ_Negatif_MuddahaleYok();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

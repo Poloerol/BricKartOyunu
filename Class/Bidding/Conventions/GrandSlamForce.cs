@@ -30,6 +30,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public bool UygunMu(IhaleDurumu durum)
         {
             if (durum == null) return false;
+
+            // ═══════════════════════════════════════════════════════════════
+            // KRİTİK: Geçmişte RKCB/Kickback cevabı varsa GSF değil, Koz Q
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.Gecmis != null)
+            {
+                // 5♣/5♦/5♥/5♠ RKCB cevabı var mı?
+                bool rkcbCevapVar = durum.Gecmis.Any(h =>
+                    h.GercekTeklifMi &&
+                    (h.Teklif == "5♣" || h.Teklif == "5♦" ||
+                     h.Teklif == "5♥" || h.Teklif == "5♠"));
+
+                // 4NT veya Kickback (4♠/4♥/4♦) var mı?
+                bool rkcbSoruVar = durum.Gecmis.Any(h =>
+                    h.GercekTeklifMi &&
+                    (h.Teklif == "4NT" || h.Teklif == "4♠" ||
+                     h.Teklif == "4♥" || h.Teklif == "4♦"));
+
+                // İkisi de varsa → Koz Q sekansı, GSF devre dışı
+                if (rkcbCevapVar && rkcbSoruVar)
+                    return false;
+            }
+
+            if (durum == null) return false;
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
