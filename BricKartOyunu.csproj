@@ -160,6 +160,7 @@
     <Compile Include="Class\Bidding\Conventions\BesliMajor.cs" />
     <Compile Include="Class\Bidding\Conventions\Blackwood.cs" />
     <Compile Include="Class\Bidding\Conventions\Cappelletti.cs" />
+    <Compile Include="Class\Bidding\Conventions\Kickback.cs" />
     <Compile Include="Class\Bidding\Conventions\CueBid.cs" />
     <Compile Include="Class\Bidding\Conventions\Dont.cs" />
     <Compile Include="Class\Bidding\Conventions\DopiRopi.cs" />

@@ -9816,6 +9816,433 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 38.x — Kickback
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static OrtaklikAnlasmasi KickbackAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.RKCB = true;
+            a.RKCB1430 = true;
+            a.Blackwood = false;
+            return a;
+        }
+
+        public static void Test_Kickback_1Kilit_Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.1 — Kickback: ♥ koz, 4♠ sorusu, 1 kilit → 5♣");
+            Yaz("Senaryo: 1♥ - 3♥ - Pas - 4♠ (Kickback) - Pas");
+            Yaz("Beklenen: 5♣ (1/4 → 2. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♥ koz, 1 kilit kart (♦A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // ♦A
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KickbackAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Kupa")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Kickback_0Kilit_Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.2 — Kickback: ♥ koz, 0 kilit → 4NT");
+            Yaz("Senaryo: 1♥ - 3♥ - Pas - 4♠ (Kickback) - Pas");
+            Yaz("Beklenen: 4NT (0/3 → 1. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♥ koz, 0 kilit kart (♥K yok, As yok)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KickbackAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Kickback_2Kilit_QYok_Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.3 — Kickback: ♥ koz, 2 kilit, Q yok → 5♦");
+            Yaz("Senaryo: 1♥ - 3♥ - Pas - 4♠ (Kickback) - Pas");
+            Yaz("Beklenen: 5♦ (2, Q yok → 3. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♥ koz, 2 kilit (♠A + ♦A), ♥Q yok
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // ♠A
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // ♦A
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KickbackAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Kickback_2Kilit_QVar_Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.4 — Kickback: ♥ koz, 2 kilit + Q → 5♥");
+            Yaz("Senaryo: 1♥ - 3♥ - Pas - 4♠ (Kickback) - Pas");
+            Yaz("Beklenen: 5♥ (2 + Q → 4. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♥ koz, 2 kilit (♠A + ♦A), ♥Q var
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // ♠A
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 }, // ♥Q
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // ♦A
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KickbackAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Kickback_Karo_Koz()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.5 — Kickback: ♦ koz, 4♥ sorusu, 0 kilit → 4♠");
+            Yaz("Senaryo: 1♦ - 3♦ - Pas - 4♥ (Kickback) - Pas");
+            Yaz("Beklenen: 4♠ (0/3 → 1. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♦ koz, 0 kilit (♦K yok, As yok)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Sinek", Value = 11 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♦", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♥", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KickbackAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Kickback_Sinek_Koz()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.6 — Kickback: ♣ koz, 4♦ sorusu, 3 kilit → 4♥");
+            Yaz("Senaryo: 1♣ - 3♣ - Pas - 4♦ (Kickback) - Pas");
+            Yaz("Beklenen: 4♥ (0/3 → 1. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♣ koz, 3 kilit (♣K + ♥A + ♦A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // ♥A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 14 }, // ♦A
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 13 }, // ♣K (koz K)
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♣", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♦", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = KickbackAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Kickback_Negatif_MacaKoz()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.7 — Kickback Negatif: ♠ koz (RKCB kullanılır)");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - ? (♠ koz)");
+            Yaz("Beklenen: Kickback tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 },
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 14 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = KickbackAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var kb = new Kickback { AktifMi = true };
+            bool uygun = kb.UygunMu(durum);
+            Yaz($"Kickback.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (♠ koz, Kickback değil)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Kickback_0314_Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 38.8 — Kickback 0314: ♥ koz, 4♠, 1 kilit → 4NT");
+            Yaz("Senaryo: 1♥ - 3♥ - Pas - 4♠ - Pas (0314)");
+            Yaz("Beklenen: 4NT (1/4 → 1. kademe, 0314)");
+            Yaz("────────────────────────────────────────");
+
+            // ♥ koz, 1 kilit (♦A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // ♦A
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            anlasma.RKCB = true;
+            anlasma.RKCB1430 = false;   // 0314
+            anlasma.Blackwood = false;
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = anlasma,
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Sistem: 0314");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -10101,6 +10528,16 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Exclusion_SikanYok();
             Test_Exclusion_1Kademe_5Sinek();
             Test_Exclusion_0314_5Karo_1Kilit();
+
+            Yaz("▶ TEST 38.1-38.8: Kickback");
+            Test_Kickback_1Kilit_Kupa();
+            Test_Kickback_0Kilit_Kupa();
+            Test_Kickback_2Kilit_QYok_Kupa();
+            Test_Kickback_2Kilit_QVar_Kupa();
+            Test_Kickback_Karo_Koz();
+            Test_Kickback_Sinek_Koz();
+            Test_Kickback_Negatif_MacaKoz();
+            Test_Kickback_0314_Kupa();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
