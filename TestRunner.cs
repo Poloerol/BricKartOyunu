@@ -8564,6 +8564,310 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 35.x — Namyats Cevapları
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_NamyatsCevap_SignOff()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 35.1 — Namyats Cevap: Sign-off (0-7 HP)");
+            Yaz("Senaryo: Partner 4♣ (güçlü ♥), sıra bizde");
+            Yaz("Beklenen: 4♥ (oynamak için)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },   // 3'lü ♥
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 0 → sign-off
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_NamyatsCevap_AraAdim()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 35.2 — Namyats Cevap: Ara adım (slam ilgisi)");
+            Yaz("Senaryo: Partner 4♣ (güçlü ♥), sıra bizde");
+            Yaz("Beklenen: 4♦ (ara adım)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 7 },   // 2'li ♥
+        new Card { Suit = "Maça",  Value = 14 }, // A = 4
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 13 }, // K = 3
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+        new Card { Suit = "Maça",  Value = 3 },
+    };
+            // HCP: 4+3+2 = 9 → 8+ HP, 3 As yok → ara adım
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"As: {ElDegerlendirici.AsSayisi(el)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_NamyatsCevap_Blackwood()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 35.3 — Namyats Cevap: Blackwood (3+ As)");
+            Yaz("Senaryo: Partner 4♣ (güçlü ♥), sıra bizde");
+            Yaz("Beklenen: 4NT");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 7 },   // 2'li ♥
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 14 }, // A
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 4 },
+    };
+            // 3 As → Blackwood
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"As: {ElDegerlendirici.AsSayisi(el)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_NamyatsCevap_SignOff_Maca()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 35.4 — Namyats Cevap: 4♦ açılışına sign-off");
+            Yaz("Senaryo: Partner 4♦ (güçlü ♠), sıra bizde");
+            Yaz("Beklenen: 4♠ (oynamak için)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },   // 3'lü ♠
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 0 → sign-off
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "4♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_NamyatsCevap_AraAdimSonrasi_Aciyor()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 35.5 — Namyats: Ara adım sonrası açıcı cevabı");
+            Yaz("Senaryo: 4♣ - Pas - 4♦ - Pas - ? (açıcı)");
+            Yaz("Beklenen: 4♥ veya 5♣/5♦/5NT");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        // Açıcının eli (8'li ♥)
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 11 }, // J
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 9 },
+    };
+
+            // Geçmiş: 4♣ (Güney) - Pas (Batı) - 4♦ (Kuzey) - Pas (Doğu)
+            // Sıra: Güney (açıcı)
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4♦", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            // Önce UygunMu kontrolü
+            var n = new Namyats { AktifMi = true };
+            Yaz($"Namyats.UygunMu → {n.UygunMu(durum)}");
+            if (n.UygunMu(durum))
+                Yaz($"Namyats.TeklifVer → {n.TeklifVer(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            bool dogru = (sonuc == "4♥" || sonuc == "5♣" || sonuc == "5♦" || sonuc == "5NT");
+            Yaz(dogru ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 4♥/5♣/5♦/5NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_NamyatsCevap_Negatif_AcilisDegil()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 35.6 — Namyats Cevap Negatif: açılış değil");
+            Yaz("Senaryo: Rakip 1♥ açtı, sıra bizde");
+            Yaz("Beklenen: Namyats tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♥", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = NamyatsAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var n = new Namyats { AktifMi = true };
+            bool uygun = n.UygunMu(durum);
+            Yaz($"Namyats.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -8818,6 +9122,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Namyats_Negatif_ZayifEl();
             Test_Namyats_PreemptCakismasiYok();
             Test_Namyats_Negatif_KisaRenk();
+
+            Yaz("▶ TEST 35.1-35.6: Namyats Cevapları");
+            Test_NamyatsCevap_SignOff();
+            Test_NamyatsCevap_AraAdim();
+            Test_NamyatsCevap_Blackwood();
+            Test_NamyatsCevap_SignOff_Maca();
+            Test_NamyatsCevap_AraAdimSonrasi_Aciyor();
+            Test_NamyatsCevap_Negatif_AcilisDegil();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
