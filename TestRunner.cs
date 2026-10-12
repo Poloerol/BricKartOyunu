@@ -8929,7 +8929,458 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 36.x — Roman Key Card Blackwood (RKCB 1430)
+        // ═══════════════════════════════════════════════════════════════════
 
+        private static OrtaklikAnlasmasi RKCBAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.RKCB = true;
+            a.RKCB1430 = true;
+            a.Blackwood = false;  // Çakışmasın
+            return a;
+        }
+
+        public static void Test_RKCB_1KilitKart()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.1 — RKCB: 1 kilit kart → 5♣");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - ? (koz ♠)");
+            Yaz("Beklenen: 5♣");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, 1 kilit kart (♠K), koz Q yok
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K (koz K = kilit kart)
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = RKCBAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Maça")}");
+            Yaz($"Koz Q: {ElDegerlendirici.KizVar(el, "Maça")}");
+
+            var rkcb = new RKCB { AktifMi = true };
+            Yaz($"RKCB.UygunMu → {rkcb.UygunMu(durum)}");
+            if (rkcb.UygunMu(durum))
+                Yaz($"RKCB.TeklifVer → {rkcb.TeklifVer(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_RKCB_0KilitKart()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.2 — RKCB: 0 kilit kart → 5♦");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - ? (koz ♠)");
+            Yaz("Beklenen: 5♦");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, 0 kilit kart (As yok, ♠K yok)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = RKCBAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_RKCB_2KilitKart_QYok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.3 — RKCB: 2 kilit kart, koz Q yok → 5♥");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - ? (koz ♠)");
+            Yaz("Beklenen: 5♥");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, 2 kilit kart (♦A + ♥A), ♠Q yok
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A (kilit kart)
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 14 }, // A (kilit kart)
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = RKCBAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Maça")}");
+            Yaz($"Koz Q: {ElDegerlendirici.KizVar(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_RKCB_2KilitKart_QVar()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.4 — RKCB: 2 kilit kart + koz Q → 5♠");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - ? (koz ♠)");
+            Yaz("Beklenen: 5♠");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, 2 kilit kart (♦A + ♥A), ♠Q var
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 12 }, // Q (koz Q)
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A (kilit kart)
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 14 }, // A (kilit kart)
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = RKCBAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Maça")}");
+            Yaz($"Koz Q: {ElDegerlendirici.KizVar(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_RKCB_3KilitKart()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.5 — RKCB: 3 kilit kart → 5♦");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - ? (koz ♠)");
+            Yaz("Beklenen: 5♦");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, 3 kilit kart (♠K + ♥A + ♦A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K (koz K = kilit kart)
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = RKCBAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_RKCB_4KilitKart()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.6 — RKCB: 4 kilit kart → 5♣");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - ? (koz ♠)");
+            Yaz("Beklenen: 5♣");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, 4 kilit kart (♠K + ♥A + ♦A + ♣A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K (koz K)
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 14 }, // A
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = RKCBAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+
+            // ─── DEBUG: Hangi konvansiyonlar uygun? ────────────────────────
+            Yaz("─── Uygun konvansiyonlar ───");
+            Yaz(motor.CakismaRaporu(durum));
+            Yaz("────────────────────────────────────────");
+            // ───────────────────────────────────────────────────────────────
+
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♣)");
+            Yaz("════════════════════════════════════════");
+        }
+        public static void Test_RKCB_0314_1KilitKart()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.7 — RKCB 0314: 1 kilit kart → 5♦");
+            Yaz("Senaryo: 1♠ - 3♠ - 4NT - ? (0314 sistemi)");
+            Yaz("Beklenen: 5♦");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K (koz K = kilit kart)
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            anlasma.RKCB = true;
+            anlasma.RKCB1430 = false;   // 0314
+            anlasma.Blackwood = false;
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = anlasma,
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Sistem: 0314 (RKCB1430 = false)");
+            Yaz($"Kilit kart: {ElDegerlendirici.KilitKartSayisi(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_RKCB_Negatif_NTKoz()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 36.8 — RKCB Negatif: NT kozu");
+            Yaz("Senaryo: 1NT - 4NT (NT koz, klasik Blackwood)");
+            Yaz("Beklenen: RKCB tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 },
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 14 },
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 13 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4NT", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = RKCBAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"AnlasilanKoz: {durum.AnlasilanKoz() ?? "null"}");
+
+            var rkcb = new RKCB { AktifMi = true };
+            bool uygun = rkcb.UygunMu(durum);
+            Yaz($"RKCB.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (NT kozu, RKCB değil)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
 
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
@@ -9196,6 +9647,16 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_NamyatsCevap_SignOff_Maca();
             Test_NamyatsCevap_AraAdimSonrasi_Aciyor();
             Test_NamyatsCevap_Negatif_AcilisDegil();
+
+            Yaz("▶ TEST 36.1-36.8: RKCB (1430/0314)");
+            Test_RKCB_1KilitKart();
+            Test_RKCB_0KilitKart();
+            Test_RKCB_2KilitKart_QYok();
+            Test_RKCB_2KilitKart_QVar();
+            Test_RKCB_3KilitKart();
+            Test_RKCB_4KilitKart();
+            Test_RKCB_0314_1KilitKart();
+            Test_RKCB_Negatif_NTKoz();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

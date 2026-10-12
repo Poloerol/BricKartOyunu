@@ -43,6 +43,20 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public bool UygunMu(IhaleDurumu durum)
         {
             if (durum == null) return false;
+
+            // ═══════════════════════════════════════════════════════════════
+            // KRİTİK: Partner 4NT dediyse → RKCB/Blackwood sekansıdır
+            // CueBid devre dışı
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.SonGercekTeklif == "4NT" &&
+                durum.SonGercekTeklifSahibi == durum.Partner)
+                return false;
+
+            // Ayrıca kendi tekliflerimizde 4NT varsa da devre dışı
+            if (durum.KendiTeklifleri.Contains("4NT"))
+                return false;
+
+            if (durum == null) return false;
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
 

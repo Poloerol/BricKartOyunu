@@ -72,6 +72,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Gerber(),               // 4♣ As sorusu (NT)
                 new PuppetStayman(),        // 2NT Stayman
                 new CueBid(),               // kontrol gösterme
+                new RKCB(),                 // ← YENİ: 4NT kilit kart (1430/0314)
                 new Blackwood(),            // 4NT As sorusu
                 new DopiRopi(),             // Blackwood müdahalesi: Dbl/Rdbl = 0|3, Pas = 1|4
                 new JacobyTransfer(),       // majör transfer
