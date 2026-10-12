@@ -299,6 +299,69 @@ namespace BricKartOyunu
 
             Yaz("════════════════════════════════════════");
         }
+
+        public static void Test_Gerber_3As()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 1.4 — Gerber Cevap: 3 As");
+            Yaz("Beklenen: 4NT");
+            Yaz("────────────────────────────────────────");
+
+            var kuzeyEli = new List<Card>
+    {
+        // 3 As
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4♣",  Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"AsSayisi: {ElDegerlendirici.AsSayisi(kuzeyEli)}");
+
+            var gerber = new Gerber();
+            gerber.AktifMi = true;
+
+            bool uygun = gerber.UygunMu(durum);
+            Yaz($"Gerber.UygunMu → {uygun}");
+
+            if (uygun)
+            {
+                string teklif = gerber.TeklifVer(durum);
+                Yaz($"Gerber.TeklifVer → {teklif}");
+                Yaz(teklif == "4NT" ? "✅ BEKLENEN: 4NT" : $"❌ BEKLENEN: 4NT, GELEN: {teklif}");
+            }
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string motorTeklif = motor.TeklifVer(durum);
+            Yaz($"IhaleMotoru.TeklifVer → {motorTeklif}");
+            Yaz(motorTeklif == "4NT" ? "✅ MOTOR: 4NT" : $"❌ MOTOR: 4NT beklendi, gelen {motorTeklif}");
+            Yaz("════════════════════════════════════════");
+        }
         public static void Test_Jacoby2NT_Pozitif()
         {
             Yaz("════════════════════════════════════════");
@@ -8881,6 +8944,9 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
 
             Yaz("▶ Test 1.3: Gerber Negatif");
             Test_Gerber_Negatif();
+
+            Yaz("▶ Test 1.4: Gerber 3 As");
+            Test_Gerber_3As();
 
             Yaz("▶ Test 2.1: Jacoby 2NT Pozitif");
             Test_Jacoby2NT_Pozitif();
