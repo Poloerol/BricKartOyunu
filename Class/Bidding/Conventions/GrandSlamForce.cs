@@ -25,7 +25,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     {
         public string Ad => "Grand Slam Force";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 28;
+        public int Oncelik => 26;
 
         public bool UygunMu(IhaleDurumu durum)
         {

@@ -9382,6 +9382,440 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 37.x — Exclusion Blackwood
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static OrtaklikAnlasmasi ExclusionAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.RKCB = true;
+            a.RKCB1430 = true;
+            a.Blackwood = false;
+            return a;
+        }
+
+        public static void Test_Exclusion_5Karo_0Kilit()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.1 — Exclusion: 5♦ (♦ void), 0 kilit → 5♥");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - 5♦ (♦ void) - Pas");
+            Yaz("Beklenen: 5♥");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♦ void, 0 kilit kart
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // ♦ void, ♠K yok, ♥/♣ As yok → 0 kilit kart
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5♦", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = ExclusionAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♦ void: {ElDegerlendirici.RenkUzunlugu(el, "Karo") == 0}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Exclusion_5Karo_3Kilit()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.2 — Exclusion: 5♦ (♦ void), 3 kilit → 5♥");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - 5♦ (♦ void) - Pas");
+            Yaz("Beklenen: 5♥ (0/3 → 1. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♦ void, 3 kilit kart (♠K + ♥A + ♣A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // ♠K (koz K)
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // ♥A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 14 }, // ♣A
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5♦", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = ExclusionAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Exclusion_5Karo_1Kilit()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.3 — Exclusion: 5♦ (♦ void), 1 kilit → 5♠");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - 5♦ (♦ void) - Pas");
+            Yaz("Beklenen: 5♠ (1/4 → 2. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♦ void, 1 kilit kart (sadece ♥A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // ♥A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5♦", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = ExclusionAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Exclusion_5Karo_2Kilit_QYok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.4 — Exclusion: 5♦ (♦ void), 2 kilit, Q yok → 5NT");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - 5♦ (♦ void) - Pas");
+            Yaz("Beklenen: 5NT (2, Q yok → 3. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♦ void, 2 kilit kart (♥A + ♣A), ♠Q yok
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // ♥A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 14 }, // ♣A
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5♦", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = ExclusionAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Exclusion_5Karo_2Kilit_QVar()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.5 — Exclusion: 5♦ (♦ void), 2 kilit + Q → 6♣");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - 5♦ (♦ void) - Pas");
+            Yaz("Beklenen: 6♣ (2 + Q → 4. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♦ void, 2 kilit kart (♥A + ♣A), ♠Q var
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 12 }, // ♠Q (koz Q)
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // ♥A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 14 }, // ♣A
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5♦", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = ExclusionAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "6♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♣)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Exclusion_SikanYok()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.6 — Exclusion Negatif: Şikan yok");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - ? (♦'da şikan yok)");
+            Yaz("Beklenen: Exclusion tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            // ♦'da şikan yok (♦ kartı var) → Exclusion olmamalı
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 },
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 10 }, // ♦ kartı VAR
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Sinek", Value = 14 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = ExclusionAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♦ uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Karo")}");
+
+            var excl = new ExclusionBlackwood { AktifMi = true };
+            bool uygun = excl.UygunMu(durum);
+            Yaz($"ExclusionBlackwood.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Exclusion_1Kademe_5Sinek()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.7 — Exclusion: 5♣ (♣ void), 3 kilit → 5♦");
+            Yaz("Senaryo: 1♥ - 3♥ - Pas - 5♣ (♣ void) - Pas");
+            Yaz("Beklenen: 5♦ (0/3 → 1. kademe)");
+            Yaz("────────────────────────────────────────");
+
+            // ♥ koz, ♣ void, 3 kilit kart (♥K + ♠A + ♦A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // ♠A
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 13 }, // ♥K (koz K)
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // ♦A
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 2 },
+        new Card { Suit = "Maça",  Value = 3 },
+    };
+            // ♣ void, ♥K + ♠A + ♦A = 3 kilit kart
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5♣", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = ExclusionAnlasmasi(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♣ void: {ElDegerlendirici.RenkUzunlugu(el, "Sinek") == 0}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Exclusion_0314_5Karo_1Kilit()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 37.8 — Exclusion 0314: 5♦ (♦ void), 1 kilit → 5♥");
+            Yaz("Senaryo: 1♠ - 3♠ - Pas - 5♦ - Pas (0314)");
+            Yaz("Beklenen: 5♥ (1/4 → 1. kademe, 0314)");
+            Yaz("────────────────────────────────────────");
+
+            // ♠ koz, ♦ void, 1 kilit kart (♥A)
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // ♥A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 11 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5♦", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+    };
+
+            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            anlasma.RKCB = true;
+            anlasma.RKCB1430 = false;   // 0314
+            anlasma.Blackwood = false;
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = anlasma,
+                Gecmis = gecmis,
+            };
+
+            Yaz($"Sistem: 0314 (RKCB1430 = false)");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "5♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -9657,6 +10091,16 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_RKCB_4KilitKart();
             Test_RKCB_0314_1KilitKart();
             Test_RKCB_Negatif_NTKoz();
+
+            Yaz("▶ TEST 37.1-37.8: Exclusion Blackwood");
+            Test_Exclusion_5Karo_0Kilit();
+            Test_Exclusion_5Karo_3Kilit();
+            Test_Exclusion_5Karo_1Kilit();
+            Test_Exclusion_5Karo_2Kilit_QYok();
+            Test_Exclusion_5Karo_2Kilit_QVar();
+            Test_Exclusion_SikanYok();
+            Test_Exclusion_1Kademe_5Sinek();
+            Test_Exclusion_0314_5Karo_1Kilit();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
