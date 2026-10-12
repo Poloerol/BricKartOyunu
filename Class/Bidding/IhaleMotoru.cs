@@ -50,58 +50,62 @@ namespace BricKartOyunu.Class.Bidding
             _anlasma = anlasma ?? OrtaklikAnlasmasi.Varsayilan();
 
             _konvansiyonlar = new List<IKonvansiyon>
-            {
-                // ─── AÇILIŞLAR ───────────────────────────────────────────────
-                new IkiliSinekGuclu(),      // 22+ HP yapay 2♣
-                new ZayifIki(),             // 2♦/2♥/2♠ zayıf açılışlar (6'lı, 5-11 HP)
-                new Namyats(),              // ← YENİ: 4♣/4♦ güçlü majör (öncelik 7)
-                new Preempt(),              // ← YENİ: 3♣/3♦/3♥/3♠, 4♣/4♦ (7+ kart, 0-9 HP)  
-                new Lebensohl_Reverse(),    // Reverse üzerine Lebensohl
-                new Lebensohl_WeakTwo(),    // Zayıf 2'ye karşı Lebensohl
-                new Lebensohl(),            // 1NT overcall Lebensohl
+{
+    // ─── AÇILIŞLAR ───────────────────────────────────────────────
+    new IkiliSinekGuclu(),      // 22+ HP yapay 2♣
+    new ZayifIki(),             // 2♦/2♥/2♠ zayıf açılışlar (6'lı, 5-11 HP)
+    new Multi2D(),              // 7 — Multi 2♦ (6'lı majör, ZayifIki'ye alternatif)
+    new Namyats(),              // 4♣/4♦ güçlü majör (öncelik 7)
+    new Preempt(),              // 3♣/3♦/3♥/3♠, 4♣/4♦ (7+ kart, 0-9 HP)
+    new Lebensohl_Reverse(),    // Reverse üzerine Lebensohl
+    new Lebensohl_WeakTwo(),    // Zayıf 2'ye karşı Lebensohl
+    new Lebensohl(),            // 1NT overcall Lebensohl
 
-                // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
-                new BesliMajor(),           // 5'li majör
-                new InvertedMinors(),       // 10 — Inverted Minors
-                new ForcingNT(),            // 11 — Forcing NT (1♥/1♠ sonrası 1NT)
-                new Stayman(),              // 1NT Stayman
-                new BergenRaises(),         // Bergen Raises
-                new Cappelletti(),          // 1NT'ye müdahale (Gerber'den önce)
-                new Dont(),                 // DONT (1NT'ye müdahale)
-                new MultiLandy(),           // 12 — Multi-Landy
-                new Gerber(),               // 4♣ As sorusu (NT)
-                new PuppetStayman(),        // 2NT Stayman
-                new CueBid(),               // kontrol gösterme
-                new KozQSorusu(),           // ← YENİ: 5NT koz Q sorusu
-                new Kickback(),             // ← YENİ: 4♠/4♥/4♦ kilit kart sorması
-                new ExclusionBlackwood(),   // ← YENİ: Şikan gösteren 4NT (5♣/5♦/5♥/5♠)
-                new RKCB(),                 // ← YENİ: 4NT kilit kart (1430/0314)
-                new Blackwood(),            // 4NT As sorusu
-                new DopiRopi(),             // Blackwood müdahalesi: Dbl/Rdbl = 0|3, Pas = 1|4
-                new JacobyTransfer(),       // majör transfer
-                new Splinter(),             // kısa renk
-                new Jacoby2NT(),            // majör desteği (13+ HP)
-                new SupportDouble(),        // 3'lü destek
-                new Michaels(),             // iki renk
-                new StrongNT(),             // 15-17 dengeli
-                new NegativeDouble(),       // negatif kontr
-                new ResponsiveDouble(),     // rakip anlaştı
-                new Unusual2NT(),           // iki minör
-                new XYZ(),                  // 1X-1Y-1Z sonrası yapay 2♣/2♦
-                new MinorTransfer(),        // minör transfer
-                new Drury(),                // Pas-1M-2♣
-                new TwoWayCheckback(),      // 1X-1Y-1NT sonrası yapay 2♣/2♦
-                new Smolen(),               // 5-4 majör
-                new TrialBid(),             // 1M-2M sonrası yardım sınaması
-                new ThirdSuitForcing(),     // 3. Renk Forsingi
-                new GrandSlamForce(),       // 5NT Papaz sorma
-                new Reverse(),              // 31 — Reverse
-                new FourthSuitForcing(),    // 4. Renk Forsingi (2 seviye)
-                new MinorAcilis(),          // minör açılış
-                
-                // ─── FALLBACK ────────────────────────────────────────────────
-                new BasitCevap(),           // basit cevap
-            };
+    // ─── MAJÖR/MİNÖR AÇILIŞLARI ──────────────────────────────────
+    new BesliMajor(),           // 5'li majör
+    new InvertedMinors(),       // 10 — Inverted Minors
+    new ForcingNT(),            // 11 — Forcing NT (1♥/1♠ sonrası 1NT)
+    new Stayman(),              // 1NT Stayman
+    new BergenRaises(),         // Bergen Raises
+    new Cappelletti(),          // 1NT'ye müdahale (Gerber'den önce)
+    new Dont(),                 // DONT (1NT'ye müdahale)
+    new MultiLandy(),           // 12 — Multi-Landy
+    new Gerber(),               // 4♣ As sorusu (NT)
+    new PuppetStayman(),        // 2NT Stayman
+    new CueBid(),               // kontrol gösterme
+    new KozQSorusu(),           // 5NT koz Q sorusu
+    new Kickback(),             // 4♠/4♥/4♦ kilit kart sorması
+    new ExclusionBlackwood(),   // Şikan gösteren 4NT (5♣/5♦/5♥/5♠)
+    new RKCB(),                 // 4NT kilit kart (1430/0314)
+    new Blackwood(),            // 4NT As sorusu
+    new DopiRopi(),             // Blackwood müdahalesi: Dbl/Rdbl = 0|3, Pas = 1|4
+    new JacobyTransfer(),       // majör transfer
+    new Splinter(),             // kısa renk
+    new Jacoby2NT(),            // majör desteği (13+ HP)
+    new SupportDouble(),        // 3'lü destek
+    new Michaels(),             // iki renk
+    new StrongNT(),             // 15-17 dengeli
+    new NegativeDouble(),       // negatif kontr
+    new ResponsiveDouble(),     // rakip anlaştı
+    new Unusual2NT(),           // iki minör
+    new XYZ(),                  // 1X-1Y-1Z sonrası yapay 2♣/2♦
+    new MinorTransfer(),        // minör transfer
+    new Serious3NT(),           // ← YENİ: 13 — Ciddi slam ilgisi (Rodwell), CueBid'den önce
+    new NonSerious3NT(),        // ← YENİ: 24 — Frivolous 3NT (minimum el)
+    new Drury(),                // Pas-1M-2♣
+    new TwoWayCheckback(),      // 1X-1Y-1NT sonrası yapay 2♣/2♦
+    new PickASlam(),            // 5NT Pick-a-Slam (öncelik 25)
+    new Smolen(),               // 5-4 majör
+    new TrialBid(),             // 1M-2M sonrası yardım sınaması
+    new ThirdSuitForcing(),     // 3. Renk Forsingi
+    new GrandSlamForce(),       // 5NT Papaz sorma
+    new Reverse(),              // 31 — Reverse
+    new FourthSuitForcing(),    // 4. Renk Forsingi (2 seviye)
+    new MinorAcilis(),          // minör açılış
+
+    // ─── FALLBACK ────────────────────────────────────────────────
+    new BasitCevap(),           // basit cevap
+};
 
             // Anlaşmaya göre aktif/pasif ayarla
             AnlasmayiUygula();
@@ -120,61 +124,29 @@ namespace BricKartOyunu.Class.Bidding
         /// </summary>
         public string TeklifVer(IhaleDurumu durum)
         {
-            if (durum == null)
+            if (durum == null) return "Pas";
+
+            foreach (var konvansiyon in _konvansiyonlar.OrderBy(k => k.Oncelik))
             {
-                System.Diagnostics.Debug.WriteLine(
-                    "[IhaleMotoru] HATA: durum null!");
-                return "Pas";
+                if (!konvansiyon.AktifMi) continue;
+                if (!konvansiyon.UygunMu(durum)) continue;
+
+                string teklif = konvansiyon.TeklifVer(durum);
+                if (!string.IsNullOrEmpty(teklif)) return teklif;
             }
 
-            // İhale bitti mi?
-            if (durum.IhaleBittiMi())
+            // Hiçbir konvansiyon uymadı → doğal müdahale (TemelMantik katman 4).
+            // Rakip açtı, biz henüz konuşmadık → 5+ kartlı rengimizle müdahale.
+            var el = durum.AktifOyuncuEli;
+            if (el != null && el.Count == 13 &&
+                durum.RakipActiMi() &&
+                !durum.Gecmis.Any(h => h.Oyuncu == durum.AktifOyuncu && h.GercekTeklifMi))
             {
-                System.Diagnostics.Debug.WriteLine(
-                    "[IhaleMotoru] İhale bitti, Pas dönüyor.");
-                return "Pas";
+                return RakipAcilisinaMudahale(durum, el, ElDegerlendirici.HCP(el));
             }
 
-            // Konvansiyonları dene (öncelik sırasına göre)
-            foreach (var k in AktifSirali())
-            {
-                try
-                {
-                    if (!k.UygunMu(durum)) continue;
-
-                    string teklif = k.TeklifVer(durum);
-
-                    // null → "bu konvansiyon bu eli aslında yönetmiyor", sıradakine geç.
-                    // "Pas" ise meşru bir tekliftir ve burada biter.
-                    if (teklif == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[IhaleMotoru] {k.Ad} uygun dedi ama teklif vermedi (null), sıradakine geçiliyor.");
-                        continue;
-                    }
-
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[IhaleMotoru] {k.Ad} uygulandı → {teklif}");
-
-                    return teklif;
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[IhaleMotoru] {k.Ad} hatası: {ex}");
-
-                    if (HatalardaFirlat) throw;
-                }
-            }
-
-            // Hiçbiri uymadı → temel mantık
-            string fallback = TemelMantik(durum);
-            System.Diagnostics.Debug.WriteLine(
-                $"[IhaleMotoru] Temel mantık → {fallback}");
-
-            return fallback;
+            return "Pas";
         }
-
         // ═══════════════════════════════════════════════════════════════════
         // TEMEL MANTIK (FALLBACK) — GÜÇLENDİRİLMİŞ
         // ═══════════════════════════════════════════════════════════════════
@@ -345,17 +317,44 @@ namespace BricKartOyunu.Class.Bidding
         {
             if (hp < 8) return "Pas";
 
-            string sonRakipTeklifi = durum.RakipTeklifleri.Last();
-            string rakipKozu = KozYardimcisi.TekliftenKozCikar(sonRakipTeklifi);
+            // Partner zaten gerçek bir teklif verdiyse bu doğal müdahale değil
+            if (durum.Gecmis.Any(h => h.GercekTeklifMi && h.Oyuncu == durum.Partner))
+                return "Pas";
 
-            if (rakipKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 5)
-                return "1♠";
-            if (rakipKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5)
-                return "1♥";
-            if (rakipKozu != "Karo" && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5)
-                return "2♦";
-            if (rakipKozu != "Sinek" && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5)
-                return "2♣";
+            // Rakibin SON GERÇEK teklifi (Pas'lar atlanır)
+            var sonRakip = durum.Gecmis
+                .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
+                .LastOrDefault();
+            if (sonRakip == null || string.IsNullOrEmpty(sonRakip.Teklif)) return "Pas";
+
+            string rakipKozu = KozYardimcisi.TekliftenKozCikar(sonRakip.Teklif);
+            if (string.IsNullOrEmpty(rakipKozu) || rakipKozu == "NT") return "Pas";   // 1NT'yi Cappelletti/DONT yönetir
+
+            // Sadece 1 seviyesindeki açılışlara doğal müdahale
+            if (!char.IsDigit(sonRakip.Teklif[0]) || sonRakip.Teklif[0] != '1') return "Pas";
+
+            // Renk sırası: Sinek < Karo < Kupa < Maça
+            var sira = new Dictionary<string, int>
+            {
+                { "Sinek", 0 }, { "Karo", 1 }, { "Kupa", 2 }, { "Maça", 3 }
+            };
+            if (!sira.ContainsKey(rakipKozu)) return "Pas";
+
+            // 5+ kartlı adaylar: önce en uzun, eşitse daha yüksek renk
+            var adaylar = sira.Keys
+                .Where(r => r != rakipKozu && ElDegerlendirici.RenkUzunlugu(el, r) >= 5)
+                .OrderByDescending(r => ElDegerlendirici.RenkUzunlugu(el, r))
+                .ThenByDescending(r => sira[r])
+                .ToList();
+
+            foreach (var renk in adaylar)
+            {
+                // Rakibin renginden yüksekse 1 seviyesi, değilse 2 seviyesi
+                int seviye = sira[renk] > sira[rakipKozu] ? 1 : 2;
+
+                if (seviye == 1 && hp >= 8) return "1" + KozYardimcisi.KozSembolu(renk);
+                if (seviye == 2 && hp >= 11) return "2" + KozYardimcisi.KozSembolu(renk);
+            }
 
             return "Pas";
         }
@@ -465,7 +464,8 @@ namespace BricKartOyunu.Class.Bidding
                 case "Strong NT": return _anlasma.StrongNT;
                 case "Weak NT": return !_anlasma.StrongNT;
                 case "2♣ Güçlü": return _anlasma.IkiliSinekGuclu;
-                case "Zayıf İki": return _anlasma.ZayifIki;
+                case "Zayıf İki": return _anlasma.ZayifIki && !_anlasma.Multi2D;   // Multi açıksa 2♦ artık Multi
+                case "Multi 2♦": return _anlasma.Multi2D;
                 case "Preempt": return _anlasma.Preempt;
                 case "Namyats": return _anlasma.Namyats;   // ← YENİ
 
@@ -491,6 +491,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Blackwood": return _anlasma.Blackwood;
                 case "RKCB": return _anlasma.RKCB;
                 case "Gerber": return _anlasma.Gerber;
+                case "Pick-a-Slam": return _anlasma.RKCB;   // RKCB ile aynı anlaşma
                 case "Grand Slam Force": return true;
 
                 // Ortaklık

@@ -18,6 +18,7 @@ namespace BricKartOyunu.Class.Bidding
         public bool IkiliSinekGuclu { get; set; } = true;
         public bool ZayifIki { get; set; } = false;
         public bool Preempt { get; set; } = true;
+        public bool Multi2D { get; set; } = false;   // 2♦ = 6'lı ♥ veya ♠ (açıkken Zayıf İki devre dışı)
 
         // ═══════════════════════════════════════════════════════════════════
         // AÇILIŞ SİSTEMİ — GÜÇLÜ MAJÖR AÇILIŞLARI
@@ -84,6 +85,8 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool FourthSuitForcing { get; set; } = true;
 
+
+
         // ═══════════════════════════════════════════════════════════════════
         // SLAM KONVANSİYONLARI
         // ═══════════════════════════════════════════════════════════════════
@@ -102,6 +105,12 @@ namespace BricKartOyunu.Class.Bidding
         public bool Drury { get; set; } = false;
         public bool ReverseDrury { get; set; } = false;
         public bool CueBid { get; set; } = true;
+        public bool Serious3NT { get; set; } = true;
+        public bool NonSerious3NT { get; set; } = false;  // Alternatif versiyon
+        /// <summary>
+        /// Last Train: 4. seviyede son kontrol sorusu (opsiyonel).
+        /// </summary>
+        public bool LastTrain { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // RAKİP MÜDAHALESİ
@@ -147,6 +156,7 @@ namespace BricKartOyunu.Class.Bidding
                 StrongNT = true,
                 IkiliSinekGuclu = true,
                 ZayifIki = true,      // ← EKLE
+                Multi2D = false,      // Varsayılan: kapalı (açılırsa Zayıf İki'nin yerini alır)
                 Preempt = true,
                 Namyats = false,    // Varsayılan: kapalı (Preempt ile çakışmasın)
 
@@ -173,6 +183,10 @@ namespace BricKartOyunu.Class.Bidding
                 Cappelletti = false,    // VEYA true
                 Dont = true,
                 MultiLandy = false,   // Varsayılan: kapalı (Cappelletti açık)
+
+                // ─── Slam ilgisi göstergeleri ─────────────────────────
+                Serious3NT = true,      // Varsayılan: Serious 3NT aktif
+                NonSerious3NT = false,  // Non-Serious kullanılmıyor
 
                 // Slam
                 Blackwood = true,
@@ -269,7 +283,8 @@ namespace BricKartOyunu.Class.Bidding
 
             // ─── AÇILIŞLAR ───────────────────────────────────────────────
             if (IkiliSinekGuclu) aktifler.Add("2♣ Güçlü");
-            if (ZayifIki) aktifler.Add("Zayıf İki");
+            if (ZayifIki && !Multi2D) aktifler.Add("Zayıf İki");   // Multi açıkken Zayıf İki devre dışı
+            if (Multi2D) aktifler.Add("Multi 2♦");
             if (Preempt) aktifler.Add("Preempt");
             if (Namyats) aktifler.Add("Namyats");
 
