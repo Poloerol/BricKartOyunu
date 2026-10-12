@@ -130,6 +130,13 @@ namespace BricKartOyunu
             return anlasma;
         }
 
+        private static OrtaklikAnlasmasi ZayifIkiAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.ZayifIki = true;
+            return a;
+        }
+
         private static OrtaklikAnlasmasi MultiLandyAnlasmasi()
         {
             var anlasma = OrtaklikAnlasmasi.Varsayilan();
@@ -3053,7 +3060,7 @@ namespace BricKartOyunu
         public static void Test_Lebensohl_WeakTwo_Zayif()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 14.1 — Lebensohl Zayıf 2: 2♥ - Dbl - 2NT (zayıf)");
+            Yaz("TEST 14.1 — Lebensohl Zayıf İki: 2♥ - Dbl - 2NT (zayıf)");
             Yaz("════════════════════════════════════════");
 
             // Rakip 2♥, partner DBL, ben 0-6 OP → 2NT Lebensohl
@@ -3103,7 +3110,7 @@ namespace BricKartOyunu
         public static void Test_Lebensohl_WeakTwo_Davet()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 14.2 — Lebensohl Zayıf 2: 2♥ - Dbl - 3♦ (davet)");
+            Yaz("TEST 14.2 — Lebensohl Zayıf İki: 2♥ - Dbl - 3♦ (davet)");
             Yaz("════════════════════════════════════════");
 
             // Rakip 2♥, partner DBL, ben 7-11 OP + 6'lı ♦ → 3♦ davet
@@ -3154,7 +3161,7 @@ namespace BricKartOyunu
         public static void Test_Lebensohl_WeakTwo_CueBid()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 14.3 — Lebensohl Zayıf 2: 2♥ - Dbl - 3♥ (Cue-bid 12+ OP)");
+            Yaz("TEST 14.3 — Lebensohl Zayıf İki: 2♥ - Dbl - 3♥ (Cue-bid 12+ OP)");
             Yaz("════════════════════════════════════════");
 
             // Rakip 2♥, partner DBL, ben 12+ OP + 4'lü ♠ → 3♥ Cue-bid
@@ -7745,6 +7752,277 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 32.x — Zayıf İki
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_ZayifIki_Maca()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 32.1 — Zayıf İki: 2♠ (6'lı ♠, 8 HP)");
+            Yaz("Beklenen: 2♠");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A = 4
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+2+2 = 8 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Maça")}");
+
+            var w2b = new ZayifIki { AktifMi = true };
+            Yaz($"ZayifIki.UygunMu → {w2b.UygunMu(durum)}");
+            if (w2b.UygunMu(durum))
+                Yaz($"ZayifIki.TeklifVer → {w2b.TeklifVer(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_ZayifIki_Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 32.2 — Zayıf İki: 2♥ (6'lı ♥, 9 HP)");
+            Yaz("Beklenen: 2♥");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 14 }, // A = 4
+        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 4+1+2+2 = 9 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_ZayifIki_Karo()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 32.3 — Zayıf İki: 2♦ (6'lı ♦, 8 HP)");
+            Yaz("Beklenen: 2♦");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Karo",  Value = 13 }, // K = 3
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 3+2+1+2 = 8 ✓
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♦ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Karo")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_ZayifIki_Negatif_YuksekHP()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 32.4 — Zayıf İki Negatif: 15 HP (çok güçlü)");
+            Yaz("Beklenen: 2♠ DEĞİL (normal açılış)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A = 4
+        new Card { Suit = "Maça",  Value = 13 }, // K = 3
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A = 4
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 4+3+2+4+2 = 15 → Weak 2-Bid aralığının dışında
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+
+            var w2b = new ZayifIki { AktifMi = true };
+            bool uygun = w2b.UygunMu(durum);
+            Yaz($"ZayifIki.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_ZayifIki_Negatif_5liRenk()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 32.5 — Zayıf İki Negatif: 5'li renk");
+            Yaz("Beklenen: 2♠ DEĞİL (6'lı değil)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K = 3
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },   // sadece 5'li!
+        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 3+2+1+2 = 8, ama ♠ sadece 5'li
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = new List<IhaleHamlesi>(),
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Maça")}");
+
+            var w2b = new ZayifIki { AktifMi = true };
+            bool uygun = w2b.UygunMu(durum);
+            Yaz($"ZayifIki.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_ZayifIki_Negatif_GecmisVar()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 32.6 — Zayıf İki Negatif: açılış değil");
+            Yaz("Senaryo: Rakip 1♥ açtı, sıra bizde");
+            Yaz("Beklenen: Zayıf İki tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A = 4
+        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q = 2
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♥", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(el, "Maça")}");
+
+            var w2b = new ZayifIki { AktifMi = true };
+            bool uygun = w2b.UygunMu(durum);
+            Yaz($"ZayifIki.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (tetiklenmedi — açılış değil)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
@@ -7854,7 +8132,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Lebensohl_Rakip2Club();
             Test_Lebensohl_Rakip2Diamond();
 
-            Yaz("▶ Test 14.1-14.3: Lebensohl Zayıf 2");
+            Yaz("▶ Test 14.1-14.3: Lebensohl Zayıf İki");
             Test_Lebensohl_WeakTwo_Zayif();
             Test_Lebensohl_WeakTwo_Davet();
             Test_Lebensohl_WeakTwo_CueBid();
@@ -7976,6 +8254,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_MultiLandy_2NT_Minors();
             Test_MultiLandy_PartnerCevap();
             Test_MultiLandy_Dbl_Ceza();
+
+            Yaz("▶ TEST 32.1-32.6: Zayıf İki");
+            Test_ZayifIki_Maca();
+            Test_ZayifIki_Kupa();
+            Test_ZayifIki_Karo();
+            Test_ZayifIki_Negatif_YuksekHP();
+            Test_ZayifIki_Negatif_5liRenk();
+            Test_ZayifIki_Negatif_GecmisVar();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

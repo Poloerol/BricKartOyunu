@@ -140,6 +140,7 @@ namespace BricKartOyunu.Class.Bidding
                 ForcingNT = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
+                ZayifIki = true,      // ← EKLE
                 Preempt = true,
 
                 // 1NT/2NT cevapları
