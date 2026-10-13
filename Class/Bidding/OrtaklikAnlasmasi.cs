@@ -117,6 +117,7 @@ namespace BricKartOyunu.Class.Bidding
         // ═══════════════════════════════════════════════════════════════════
 
         public bool NegativeDouble { get; set; } = true;
+        public bool TakeoutDouble { get; set; } = true;
         public bool SupportDouble { get; set; } = false;
         public bool ResponsiveDouble { get; set; } = false;
         public bool Lebensohl { get; set; } = true;
@@ -203,6 +204,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 // Rakip müdahalesi
                 NegativeDouble = true,
+                TakeoutDouble = true,
                 SupportDouble = true,
                 ResponsiveDouble = true,
                 Lebensohl = true,
@@ -259,6 +261,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 // Rakip müdahalesi
                 NegativeDouble = true,
+                TakeoutDouble = false,
                 SupportDouble = false,
                 ResponsiveDouble = false,
                 Lebensohl = false,
@@ -319,6 +322,7 @@ namespace BricKartOyunu.Class.Bidding
 
             // ─── RAKİP MÜDAHALESİ ────────────────────────────────────────
             if (NegativeDouble) aktifler.Add("Neg.Dbl");
+            if (TakeoutDouble) aktifler.Add("Takeout Dbl");
             if (SupportDouble) aktifler.Add("Supp.Dbl");
             if (ResponsiveDouble) aktifler.Add("Resp.Dbl");
             if (Lebensohl) aktifler.Add("Lebensohl");

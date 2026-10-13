@@ -11467,7 +11467,1385 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
                     MultiHamle(Player.Dogu, "2♦", 2),
                 });
         }
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 43.x — Takeout Double
+        // ═══════════════════════════════════════════════════════════════════
 
+        public static void Test_TakeoutDouble_Kontra_Maca()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.1 — Takeout Double Kontra (rakip 1♠ açtı)");
+            Yaz("Beklenen: Dbl");
+            Yaz("────────────────────────────────────────");
+
+            // 12 HP, 1'li ♠ (kısalık), diğer renklerde 4-4-4
+            var el = new List<Card>
+    {
+        // 1'li ♠
+        new Card { Suit = "Maça",  Value = 5 },
+        // 4'lü ♥ (K)
+        new Card { Suit = "Kupa",  Value = 13 },
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        // 4'lü ♦ (A)
+        new Card { Suit = "Karo",  Value = 14 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 2 },
+        // 4'lü ♣ (A Q)
+        new Card { Suit = "Sinek", Value = 14 },
+        new Card { Suit = "Sinek", Value = 12 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3 + 4 + 4+2 = 13 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♠", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠: {ElDegerlendirici.RenkUzunlugu(el, "Maça")}, " +
+                $"♥: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}, " +
+                $"♦: {ElDegerlendirici.RenkUzunlugu(el, "Karo")}, " +
+                $"♣: {ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
+
+            var td = new TakeoutDouble { AktifMi = true };
+            Yaz($"TakeoutDouble.UygunMu → {td.UygunMu(durum)}");
+            if (td.UygunMu(durum))
+                Yaz($"TakeoutDouble.TeklifVer → {td.TeklifVer(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Dbl" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen Dbl)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Kontra_Kupa()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.2 — Takeout Double Kontra (rakip 1♥ açtı)");
+            Yaz("Beklenen: Dbl");
+            Yaz("────────────────────────────────────────");
+
+            // 1'li ♥ (kısalık), 4-4-4 dağılım, 13 HP
+            var el = new List<Card>
+    {
+        // 4'lü ♠ (A Q)
+        new Card { Suit = "Maça",  Value = 14 },
+        new Card { Suit = "Maça",  Value = 12 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        // 1'li ♥
+        new Card { Suit = "Kupa",  Value = 5 },
+        // 4'lü ♦ (K J)
+        new Card { Suit = "Karo",  Value = 13 },
+        new Card { Suit = "Karo",  Value = 11 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 2 },
+        // 4'lü ♣ (K)
+        new Card { Suit = "Sinek", Value = 13 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 4+2+3+1+3 = 13 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♥", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")} (kısa olmalı)");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Dbl" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen Dbl)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Kontra_KisaRakipRengi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.3 — Takeout Dbl: rakip renginde 0 kart (şikan)");
+            Yaz("Beklenen: Dbl (5'li yan renk olsa bile)");
+            Yaz("────────────────────────────────────────");
+
+            // Rakip 1♠ açtı, bizim elimizde ♠ YOK (void), 5'li ♥ var, 12 HP
+            var el = new List<Card>
+    {
+        // 0 ♠ (şikan)
+        // 5'li ♥
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        // 4'lü ♦
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 2 },
+        // 4'lü ♣
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+2+4 = 9 → 12'ye çıkarmak için biraz değiştirelim
+            el = new List<Card>
+    {
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 4+3+4+2 = 13 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♠", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠: {ElDegerlendirici.RenkUzunlugu(el, "Maça")} (şikan)");
+            Yaz($"♥: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")} (5'li)");
+
+            var td = new TakeoutDouble { AktifMi = true };
+            Yaz($"TakeoutDouble.UygunMu → {td.UygunMu(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Dbl" ? "✅ DOĞRU (şikan varsa 5'li yan renk olsa bile Dbl)"
+                               : $"❌ YANLIŞ (beklenen Dbl)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Kontra_Guclu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.4 — Takeout Double: 17+ HP güçlü el");
+            Yaz("Beklenen: Dbl (5'li yan renk olsa bile)");
+            Yaz("────────────────────────────────────────");
+
+            // 17 HP, 5'li ♥, rakip 1♠ açtı, ♠ 2'li
+            var el = new List<Card>
+    {
+        // 2'li ♠
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 3 },
+        // 5'li ♥
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+            // HCP: 4+3+2+4+2 = 15 → 17 için artır
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+            // HCP: 4+3+2+4+3+2 = 18 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♠", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Dbl" ? "✅ DOĞRU (17+ güçlü, 5'li renk olsa da Dbl)"
+                               : $"❌ YANLIŞ (beklenen Dbl)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Kontra_RakipKaro()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.5 — Takeout Double Kontra (rakip 1♦ açtı)");
+            Yaz("Beklenen: Dbl (her iki majör destekli)");
+            Yaz("────────────────────────────────────────");
+
+            // 4'lü ♠ + 4'lü ♥, 13 HP, 2'li ♦
+            var el = new List<Card>
+    {
+        // 4'lü ♠ (K Q)
+        new Card { Suit = "Maça",  Value = 13 },
+        new Card { Suit = "Maça",  Value = 12 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        // 4'lü ♥ (A)
+        new Card { Suit = "Kupa",  Value = 14 },
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        // 2'li ♦
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 4 },
+        // 3'lü ♣ (A)
+        new Card { Suit = "Sinek", Value = 14 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+2+4+4 = 13 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♦", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♦: {ElDegerlendirici.RenkUzunlugu(el, "Karo")} (kısa olmalı)");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Dbl" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen Dbl)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // KONTRA NEGATİFLERİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_TakeoutDouble_Negatif_YetersizHP()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.6 — Takeout Dbl Negatif: 9 HP (yetersiz)");
+            Yaz("Beklenen: TakeoutDouble tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 11 }, // J
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+            // HCP: 2+1 = 3... daha yükseğe çıkaralım
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Sinek", Value = 11 }, // J
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+            // HCP: 3+2+1 = 6... 9 için:
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 5 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 5 },
+        new Card { Suit = "Sinek", Value = 2 },
+    };
+            // HCP: 4+2+3 = 9 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♠", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+
+            var td = new TakeoutDouble { AktifMi = true };
+            bool uygun = td.UygunMu(durum);
+            Yaz($"TakeoutDouble.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (yetersiz HP)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Negatif_RakipRengiUzun()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.7 — Takeout Dbl Negatif: rakip renginde 3+ kart");
+            Yaz("Beklenen: TakeoutDouble tetiklenmez");
+            Yaz("────────────────────────────────────────");
+
+            // Rakip 1♠ açtı, bizim elimizde 4'lü ♠ var → Takeout Dbl uygun değil
+            var el = new List<Card>
+    {
+        // 4'lü ♠
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 5 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 11 }, // J
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 6 },
+    };
+            // HCP: 4+3+2+1 = 10
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♠", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠: {ElDegerlendirici.RenkUzunlugu(el, "Maça")} (3+ ise Dbl olmaz)");
+
+            var td = new TakeoutDouble { AktifMi = true };
+            bool uygun = td.UygunMu(durum);
+            Yaz($"TakeoutDouble.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (rakip rengi uzun)" : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Negatif_5liYanRenk()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.8 — Takeout Dbl Negatif: 5'li yan renk + orta HP");
+            Yaz("Beklenen: TakeoutDouble tetiklenmez (doğal müdahale)");
+            Yaz("────────────────────────────────────────");
+
+            // 5'li ♥ + 13 HP, rakip 1♠ açtı, ♠ 2'li
+            var el = new List<Card>
+    {
+        // 2'li ♠
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 4 },
+        // 5'li ♥
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 2 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 11 }, // J
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+2+3+1 = 10 → 13 yapalım
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 11 }, // J
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+3+1 = 11... 13 için:
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+3+2 = 12 → 13 için biraz daha
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 2 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+4+2 = 13 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1♠", Sira = 1, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")} (5'li)");
+
+            var td = new TakeoutDouble { AktifMi = true };
+            bool uygun = td.UygunMu(durum);
+            Yaz($"TakeoutDouble.UygunMu → {uygun}");
+            Yaz(!uygun ? "✅ DOĞRU (doğal müdahale tercih edilir)"
+                       : "❌ YANLIŞ (tetiklendi)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CEVAP: 3NT
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_TakeoutDouble_Cevap_3NT()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.9 — Takeout Dbl Cevap: 3NT (13+ HP, dengeli, durdurucu)");
+            Yaz("Senaryo: 1♠ - Dbl - Pas - ?");
+            Yaz("Beklenen: 3NT");
+            Yaz("────────────────────────────────────────");
+
+            // 13 HP dengeli, 4'lü ♠ durdurucu, yan majör yok
+            var el = new List<Card>
+    {
+        // 4'lü ♠ (A K)
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 11 }, // J
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+2+1 = 10 → 13 için artır
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 11 }, // J
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+2+2+1 = 12 → 13 için:
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 11 }, // J
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+3+2+1+3 = 13 ✓, dengeli 4-3-3-3
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(el)}");
+            Yaz($"♠ durdurucu: {ElDegerlendirici.StopperVar(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Cevap_3NT_YanMajorVar()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.10 — Takeout Cevap: 3NT DEĞİL (4'lü yan majör var)");
+            Yaz("Beklenen: 2♠ cue-bid (12+)");
+            Yaz("────────────────────────────────────────");
+
+            // 4'lü ♥ var → 3NT yerine cue-bid
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 10 },
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 9 },
+    };
+            // HCP: 4+3+2+2 = 11 → 12 için:
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 11 }, // J
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 9 },
+    };
+            // HCP: 4+3+1+2+3 = 13 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")} (4'lü)");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♠" ? "✅ DOĞRU (cue-bid)"
+                              : $"❌ YANLIŞ (beklenen 2♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CEVAP: CUE-BID (12+ HP)
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_TakeoutDouble_Cevap_CueBid()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.11 — Takeout Cevap: Cue-bid (12+ HP)");
+            Yaz("Senaryo: 1♥ - Dbl - Pas - ?");
+            Yaz("Beklenen: 2♥ (cue-bid)");
+            Yaz("────────────────────────────────────────");
+
+            // 12 HP, dengeli değil, 4'lü ♠ yok
+            var el = new List<Card>
+    {
+        // 3'lü ♠
+        new Card { Suit = "Maça",  Value = 11 }, // J
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        // 4'lü ♥ (rakip rengi)
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 6 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 1+4+3+3 = 11 → 12 için biraz
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 12 }, // Q
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 4 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 2+4+3+3 = 12 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♥",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥ (rakip rengi): {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♥" ? "✅ DOĞRU (cue-bid)"
+                              : $"❌ YANLIŞ (beklenen 2♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Cevap_CueBid_15HP()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.12 — Takeout Cevap: Cue-bid (15+ HP)");
+            Yaz("Senaryo: 1♦ - Dbl - Pas - ?");
+            Yaz("Beklenen: 2♦ (cue-bid)");
+            Yaz("────────────────────────────────────────");
+
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 2 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 11 }, // J
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+4+1+3+2 = 14 → 15 için biraz
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 2 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 11 }, // J
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+4+1+3+2 = 14... hmm
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 8 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 2 },
+        new Card { Suit = "Kupa",  Value = 14 }, // A
+        new Card { Suit = "Kupa",  Value = 11 }, // J
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 4+4+1+3+3+2 = 17 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♦",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♦" ? "✅ DOĞRU (cue-bid)"
+                              : $"❌ YANLIŞ (beklenen 2♦)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CEVAP: DAVET (9-11 HP)
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_TakeoutDouble_Cevap_Davet()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.13 — Takeout Cevap: Davet (9-11 HP, atlayarak)");
+            Yaz("Senaryo: 1♠ - Dbl - Pas - ?");
+            Yaz("Beklenen: 3♥ (davet)");
+            Yaz("────────────────────────────────────────");
+
+            // 10 HP, 4'lü ♥, atlayarak davet
+            var el = new List<Card>
+    {
+        // 3'lü ♠
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        // 4'lü ♥ (davet edilecek)
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 12 }, // Q
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 11 }, // J
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+2+1 = 6... 10 için:
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+3+2 = 8... 
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 10 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 2 },
+        new Card { Suit = "Karo",  Value = 14 }, // A
+        new Card { Suit = "Karo",  Value = 8 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 12 }, // Q
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+4+2 = 9 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "3♥" ? "✅ DOĞRU (davet)"
+                              : $"❌ YANLIŞ (beklenen 3♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Cevap_Davet_2NT()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.14 — Takeout Cevap: 2NT davet (9-11 HP dengeli)");
+            Yaz("Senaryo: 1♠ - Dbl - Pas - ?");
+            Yaz("Beklenen: 2NT");
+            Yaz("────────────────────────────────────────");
+
+            // 10 HP dengeli, ♠ durdurucu var, yan majör yok
+            var el = new List<Card>
+    {
+        // 4'lü ♠ (Q J)
+        new Card { Suit = "Maça",  Value = 12 }, // Q
+        new Card { Suit = "Maça",  Value = 11 }, // J
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        // 3'lü ♥
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        // 3'lü ♦
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        // 3'lü ♣
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 2+1+3 = 6... 
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 12 }, // Q
+        new Card { Suit = "Maça",  Value = 11 }, // J
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 13 }, // K
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 13 }, // K
+        new Card { Suit = "Sinek", Value = 7 },
+        new Card { Suit = "Sinek", Value = 4 },
+    };
+            // HCP: 2+1+3+3 = 9 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(el)}");
+            Yaz($"♠ durdurucu: {ElDegerlendirici.StopperVar(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Cevap_1NT()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.15 — Takeout Cevap: 1NT (6-8 HP dengeli + durdurucu)");
+            Yaz("Senaryo: 1♠ - Dbl - Pas - ?");
+            Yaz("Beklenen: 1NT");
+            Yaz("────────────────────────────────────────");
+
+            // 7 HP dengeli, ♠ durdurucu
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 12 }, // Q
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 11 }, // J
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 2+1 = 3... yükseltelim
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 6 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 11 }, // J
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3+2+1 = 6 ✓
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(el)}");
+            Yaz($"♠ durdurucu: {ElDegerlendirici.StopperVar(el, "Maça")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "1NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 1NT)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CEVAP: ZAYIF (0-8 HP)
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_TakeoutDouble_Cevap_Zayif_EnIyiRenk()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.16 — Takeout Cevap: Zayıf (4 HP) → en iyi renk");
+            Yaz("Senaryo: 1♠ - Dbl - Pas - ?");
+            Yaz("Beklenen: 2♥ (en iyi yan majör)");
+            Yaz("────────────────────────────────────────");
+
+            // 4 HP, 5'li ♥ → en iyi renk ♥, 2 seviyesinde
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 11 }, // J
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 1 = 1... 4 için:
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 12 }, // Q
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 11 }, // J
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 2+1 = 3... 4-5 arası iyi
+            el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 13 }, // K
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 7 },
+        new Card { Suit = "Kupa",  Value = 5 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 10 },
+        new Card { Suit = "Karo",  Value = 6 },
+        new Card { Suit = "Karo",  Value = 3 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+        new Card { Suit = "Sinek", Value = 3 },
+    };
+            // HCP: 3 = 3, biraz düşük ama test için uygun (0-8 aralığında)
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♥: {ElDegerlendirici.RenkUzunlugu(el, "Kupa")} (5'li)");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "2♥" ? "✅ DOĞRU (en iyi yan majör)"
+                              : $"❌ YANLIŞ (beklenen 2♥)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Cevap_Zayif_EnUcuzSeviye()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.17 — Takeout Cevap: Zayıf, en ucuz seviye");
+            Yaz("Senaryo: 1♥ - Dbl - Pas - ?");
+            Yaz("Beklenen: 1♠ (en ucuz, çünkü ♠ > ♥ sıralı)");
+            Yaz("────────────────────────────────────────");
+
+            // 5 HP, 5'li ♠, rakip 1♥ → ♠ 1 seviyesinde (Sira(♠) > Sira(♥))
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 8 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 8 },
+        new Card { Suit = "Sinek", Value = 5 },
+    };
+            // HCP: 3 = 3
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♥",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"♠: {ElDegerlendirici.RenkUzunlugu(el, "Maça")} (5'li)");
+            Yaz($"♥ (rakip): {ElDegerlendirici.RenkUzunlugu(el, "Kupa")}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "1♠" ? "✅ DOĞRU (1 seviyesi, çünkü ♠ > ♥)"
+                              : $"❌ YANLIŞ (beklenen 1♠)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CEVAP: CEZA PASI
+        // ═══════════════════════════════════════════════════════════════════
+
+        public static void Test_TakeoutDouble_Cevap_CezaPasi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.18 — Takeout Cevap: Ceza pası (5+ ♠ + 3 üst onör)");
+            Yaz("Senaryo: 1♠ - Dbl - Pas - ?");
+            Yaz("Beklenen: Pas (ceza)");
+            Yaz("────────────────────────────────────────");
+
+            // 5'li ♠, 3 üst onör (A K Q), ceza pası
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 14 }, // A
+        new Card { Suit = "Maça",  Value = 13 }, // K
+        new Card { Suit = "Maça",  Value = 12 }, // Q
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+    };
+            // HCP: 4+3+2 = 9
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♠: {ElDegerlendirici.RenkUzunlugu(el, "Maça")} (5+)");
+            Yaz($"♠ üst onör sayısı (A K Q J 10): " +
+                $"{el.Count(c => c.Suit == "Maça" && c.Value >= 10)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Pas" ? "✅ DOĞRU (ceza pası)"
+                               : $"❌ YANLIŞ (beklenen Pas)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_TakeoutDouble_Cevap_CezaPasi_YetersizOnör()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 43.19 — Takeout Cevap: 5'li ♠ ama sadece 1 üst onör");
+            Yaz("Beklenen: Pas DEĞİL (cevap vermeli)");
+            Yaz("────────────────────────────────────────");
+
+            // 5'li ♠, sadece 1 üst onör (Q) → ceza pası değil, normal cevap
+            var el = new List<Card>
+    {
+        new Card { Suit = "Maça",  Value = 12 }, // Q
+        new Card { Suit = "Maça",  Value = 9 },
+        new Card { Suit = "Maça",  Value = 7 },
+        new Card { Suit = "Maça",  Value = 5 },
+        new Card { Suit = "Maça",  Value = 3 },
+        new Card { Suit = "Kupa",  Value = 9 },
+        new Card { Suit = "Kupa",  Value = 6 },
+        new Card { Suit = "Kupa",  Value = 3 },
+        new Card { Suit = "Karo",  Value = 9 },
+        new Card { Suit = "Karo",  Value = 7 },
+        new Card { Suit = "Karo",  Value = 4 },
+        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 6 },
+    };
+            // HCP: 2 = 2
+
+            var gecmis = new List<IhaleHamlesi>
+    {
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Dbl", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+    };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"♠ üst onör sayısı: " +
+                $"{el.Count(c => c.Suit == "Maça" && c.Value >= 10)} (yetersiz)");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc != "Pas" ? "✅ DOĞRU (ceza pası değil)"
+                               : "❌ YANLIŞ (Pas döndü, cevap vermeli)");
+            Yaz("════════════════════════════════════════");
+        }
 
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
@@ -11803,6 +13181,30 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Multi2D_Acici_2NT_MaksimumKupa();
             Test_Multi2D_Negatif_RakipMudahalesi();
             Test_Multi2D_Negatif_RakipActi();
+
+            // ═══════════════════════════════════════════════════════════════════
+            // TEST 43.x — Takeout Double
+            // ═══════════════════════════════════════════════════════════════════
+            Yaz("▶ TEST 43.1-43.19: Takeout Double");
+            Test_TakeoutDouble_Kontra_Maca();
+            Test_TakeoutDouble_Kontra_Kupa();
+            Test_TakeoutDouble_Kontra_KisaRakipRengi();
+            Test_TakeoutDouble_Kontra_Guclu();
+            Test_TakeoutDouble_Kontra_RakipKaro();
+            Test_TakeoutDouble_Negatif_YetersizHP();
+            Test_TakeoutDouble_Negatif_RakipRengiUzun();
+            Test_TakeoutDouble_Negatif_5liYanRenk();
+            Test_TakeoutDouble_Cevap_3NT();
+            Test_TakeoutDouble_Cevap_3NT_YanMajorVar();
+            Test_TakeoutDouble_Cevap_CueBid();
+            Test_TakeoutDouble_Cevap_CueBid_15HP();
+            Test_TakeoutDouble_Cevap_Davet();
+            Test_TakeoutDouble_Cevap_Davet_2NT();
+            Test_TakeoutDouble_Cevap_1NT();
+            Test_TakeoutDouble_Cevap_Zayif_EnIyiRenk();
+            Test_TakeoutDouble_Cevap_Zayif_EnUcuzSeviye();
+            Test_TakeoutDouble_Cevap_CezaPasi();
+            Test_TakeoutDouble_Cevap_CezaPasi_YetersizOnör();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

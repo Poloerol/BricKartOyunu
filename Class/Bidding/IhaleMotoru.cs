@@ -88,6 +88,7 @@ namespace BricKartOyunu.Class.Bidding
     new NegativeDouble(),       // negatif kontr
     new ResponsiveDouble(),     // rakip anlaştı
     new Unusual2NT(),           // iki minör
+    new TakeoutDouble(),        // çağrı kontrası + cevapları
     new XYZ(),                  // 1X-1Y-1Z sonrası yapay 2♣/2♦
     new MinorTransfer(),        // minör transfer
     new Serious3NT(),           // ← YENİ: 13 — Ciddi slam ilgisi (Rodwell), CueBid'den önce
@@ -508,6 +509,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 // Rakip müdahalesi
                 case "Negative Double": return _anlasma.NegativeDouble;
+                case "Takeout Double": return _anlasma.TakeoutDouble;
                 case "Support Double": return _anlasma.SupportDouble;
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
                 case "Lebensohl (Reverse)": return _anlasma.Lebensohl;
