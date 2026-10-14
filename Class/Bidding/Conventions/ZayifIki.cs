@@ -22,7 +22,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public bool UygunMu(IhaleDurumu durum)
         {
-            if (durum == null || durum.Gecmis == null || durum.Gecmis.Count > 0)
+            // IlkTeklifMi: boş geçmiş VEYA yalnızca paslar (3./4. koltuk zayıf iki)
+            if (durum == null || !durum.IlkTeklifMi())
                 return false;
 
             if (durum.AktifOyuncuEli == null || durum.AktifOyuncuEli.Count != 13)

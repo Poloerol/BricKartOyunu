@@ -6041,32 +6041,33 @@ new IhaleHamlesi
             Yaz("Beklenen: 2♣");
             Yaz("────────────────────────────────────────");
 
+            // Direct seat → min 9 HP (DONT HP eşiği, 2026-10-14)
             var guneyEli = new List<Card>
-    {
-        // 5'li ♣
-        new Card { Suit = "Sinek", Value = 13 }, // K = 3
-        new Card { Suit = "Sinek", Value = 11 }, // J = 1
-        new Card { Suit = "Sinek", Value = 9 },
-        new Card { Suit = "Sinek", Value = 6 },
-        new Card { Suit = "Sinek", Value = 3 },
-        // 5'li ♠
-        new Card { Suit = "Maça", Value = 12 }, // Q = 2
-        new Card { Suit = "Maça", Value = 10 },
-        new Card { Suit = "Maça", Value = 7 },
-        new Card { Suit = "Maça", Value = 5 },
-        new Card { Suit = "Maça", Value = 2 },
-        // 3'lü ♦
-        new Card { Suit = "Karo", Value = 9 },
-        new Card { Suit = "Karo", Value = 6 },
-        new Card { Suit = "Karo", Value = 3 },
-    };
-            // HCP: 3+1+2 = 6
+            {
+                // 5'li ♣  (K J = 4)
+                new Card { Suit = "Sinek", Value = 13 }, // K = 3
+                new Card { Suit = "Sinek", Value = 11 }, // J = 1
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 6 },
+                new Card { Suit = "Sinek", Value = 3 },
+                // 5'li ♠  (A Q = 6)
+                new Card { Suit = "Maça", Value = 14 }, // A = 4
+                new Card { Suit = "Maça", Value = 12 }, // Q = 2
+                new Card { Suit = "Maça", Value = 7 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Maça", Value = 2 },
+                // 3'lü ♦
+                new Card { Suit = "Karo", Value = 9 },
+                new Card { Suit = "Karo", Value = 6 },
+                new Card { Suit = "Karo", Value = 3 },
+            };
+            // HCP: 3+1+4+2 = 10  (≥ 9 direct)
 
             var gecmis = new List<IhaleHamlesi>
-    {
-        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
-    };
+            {
+                new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+            };
 
             var durum = new IhaleDurumu
             {
@@ -6092,32 +6093,33 @@ new IhaleHamlesi
             Yaz("Beklenen: 2♦");
             Yaz("────────────────────────────────────────");
 
+            // Direct seat → min 9 HP
             var guneyEli = new List<Card>
-    {
-        // 5'li ♦
-        new Card { Suit = "Karo", Value = 14 }, // A = 4
-        new Card { Suit = "Karo", Value = 11 }, // J = 1
-        new Card { Suit = "Karo", Value = 9 },
-        new Card { Suit = "Karo", Value = 6 },
-        new Card { Suit = "Karo", Value = 3 },
-        // 5'li ♥
-        new Card { Suit = "Kupa", Value = 12 }, // Q = 2
-        new Card { Suit = "Kupa", Value = 10 },
-        new Card { Suit = "Kupa", Value = 7 },
-        new Card { Suit = "Kupa", Value = 5 },
-        new Card { Suit = "Kupa", Value = 2 },
-        // 3'lü ♣
-        new Card { Suit = "Sinek", Value = 9 },
-        new Card { Suit = "Sinek", Value = 6 },
-        new Card { Suit = "Sinek", Value = 3 },
-    };
-            // HCP: 4+1+2 = 7
+            {
+                // 5'li ♦  (A K = 7)
+                new Card { Suit = "Karo", Value = 14 }, // A = 4
+                new Card { Suit = "Karo", Value = 13 }, // K = 3
+                new Card { Suit = "Karo", Value = 9 },
+                new Card { Suit = "Karo", Value = 6 },
+                new Card { Suit = "Karo", Value = 3 },
+                // 5'li ♥  (Q = 2)
+                new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+                new Card { Suit = "Kupa", Value = 10 },
+                new Card { Suit = "Kupa", Value = 7 },
+                new Card { Suit = "Kupa", Value = 5 },
+                new Card { Suit = "Kupa", Value = 2 },
+                // 3'lü ♣
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 6 },
+                new Card { Suit = "Sinek", Value = 3 },
+            };
+            // HCP: 4+3+2 = 9  (≥ 9 direct)
 
             var gecmis = new List<IhaleHamlesi>
-    {
-        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
-    };
+            {
+                new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+            };
 
             var durum = new IhaleDurumu
             {
@@ -6127,6 +6129,7 @@ new IhaleHamlesi
                 Gecmis = gecmis,
             };
 
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
@@ -6142,32 +6145,33 @@ new IhaleHamlesi
             Yaz("Beklenen: 2♥");
             Yaz("────────────────────────────────────────");
 
+            // Direct seat → min 9 HP
             var guneyEli = new List<Card>
-    {
-        // 5'li ♥
-        new Card { Suit = "Kupa", Value = 13 }, // K = 3
-        new Card { Suit = "Kupa", Value = 11 }, // J = 1
-        new Card { Suit = "Kupa", Value = 9 },
-        new Card { Suit = "Kupa", Value = 6 },
-        new Card { Suit = "Kupa", Value = 3 },
-        // 5'li ♠
-        new Card { Suit = "Maça", Value = 12 }, // Q = 2
-        new Card { Suit = "Maça", Value = 10 },
-        new Card { Suit = "Maça", Value = 7 },
-        new Card { Suit = "Maça", Value = 5 },
-        new Card { Suit = "Maça", Value = 2 },
-        // 3'lü ♣
-        new Card { Suit = "Sinek", Value = 9 },
-        new Card { Suit = "Sinek", Value = 6 },
-        new Card { Suit = "Sinek", Value = 3 },
-    };
-            // HCP: 3+1+2 = 6
+            {
+                // 5'li ♥  (K J = 4)
+                new Card { Suit = "Kupa", Value = 13 }, // K = 3
+                new Card { Suit = "Kupa", Value = 11 }, // J = 1
+                new Card { Suit = "Kupa", Value = 9 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Kupa", Value = 3 },
+                // 5'li ♠  (A Q = 6)
+                new Card { Suit = "Maça", Value = 14 }, // A = 4
+                new Card { Suit = "Maça", Value = 12 }, // Q = 2
+                new Card { Suit = "Maça", Value = 7 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Maça", Value = 2 },
+                // 3'lü ♣
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 6 },
+                new Card { Suit = "Sinek", Value = 3 },
+            };
+            // HCP: 3+1+4+2 = 10  (≥ 9 direct)
 
             var gecmis = new List<IhaleHamlesi>
-    {
-        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
-    };
+            {
+                new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+            };
 
             var durum = new IhaleDurumu
             {
@@ -6177,6 +6181,7 @@ new IhaleHamlesi
                 Gecmis = gecmis,
             };
 
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
@@ -6192,33 +6197,34 @@ new IhaleHamlesi
             Yaz("Beklenen: Dbl");
             Yaz("────────────────────────────────────────");
 
+            // Direct seat → min 9 HP; 6'lı tek renk → Dbl
             var guneyEli = new List<Card>
-    {
-        // 6'lı ♥ (tek renkli)
-        new Card { Suit = "Kupa", Value = 14 }, // A = 4
-        new Card { Suit = "Kupa", Value = 13 }, // K = 3
-        new Card { Suit = "Kupa", Value = 11 }, // J = 1
-        new Card { Suit = "Kupa", Value = 9 },
-        new Card { Suit = "Kupa", Value = 6 },
-        new Card { Suit = "Kupa", Value = 3 },
-        // 3'lü ♠
-        new Card { Suit = "Maça", Value = 10 },
-        new Card { Suit = "Maça", Value = 7 },
-        new Card { Suit = "Maça", Value = 4 },
-        // 2'li ♦
-        new Card { Suit = "Karo", Value = 9 },
-        new Card { Suit = "Karo", Value = 5 },
-        // 2'li ♣
-        new Card { Suit = "Sinek", Value = 8 },
-        new Card { Suit = "Sinek", Value = 2 },
-    };
-            // HCP: 4+3+1 = 8
+            {
+                // 6'lı ♥ (A K Q = 9)
+                new Card { Suit = "Kupa", Value = 14 }, // A = 4
+                new Card { Suit = "Kupa", Value = 13 }, // K = 3
+                new Card { Suit = "Kupa", Value = 12 }, // Q = 2
+                new Card { Suit = "Kupa", Value = 9 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Kupa", Value = 3 },
+                // 3'lü ♠
+                new Card { Suit = "Maça", Value = 10 },
+                new Card { Suit = "Maça", Value = 7 },
+                new Card { Suit = "Maça", Value = 4 },
+                // 2'li ♦
+                new Card { Suit = "Karo", Value = 9 },
+                new Card { Suit = "Karo", Value = 5 },
+                // 2'li ♣
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 2 },
+            };
+            // HCP: 4+3+2 = 9  (≥ 9 direct)
 
             var gecmis = new List<IhaleHamlesi>
-    {
-        new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
-    };
+            {
+                new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "1NT", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+            };
 
             var durum = new IhaleDurumu
             {
@@ -6228,6 +6234,7 @@ new IhaleHamlesi
                 Gecmis = gecmis,
             };
 
+            Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
@@ -12850,6 +12857,70 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         /// <summary>
         /// Tüm testleri sırayla çalıştırır.
         /// </summary>
+
+        /// <summary>
+        /// Regresyon: 6 HP + 4-4 majör, balancing seat → Pas (eski hatalı 2♥ senaryosu).
+        /// Auction: Batı Pas / Kuzey Pas / Doğu 1NT / Güney Pas / Batı Pas / Kuzey ?
+        /// </summary>
+        public static void Test_Dont_Balancing_ZayifEl_Pas()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 26.7 — DONT: Balancing 6 HP → Pas (regresyon)");
+            Yaz("Senaryo: Pas - Pas - 1NT - Pas - Pas - ?");
+            Yaz("Beklenen: Pas (6 HP, eşiğin altında)");
+            Yaz("────────────────────────────────────────");
+
+            // Orijinal hata eli: ♠10853 ♥QJ83 ♦1093 ♣K6 ≈ 6 HP, 4-4 majör
+            var kuzeyEli = new List<Card>
+            {
+                new Card { Suit = "Maça",  Value = 10 },
+                new Card { Suit = "Maça",  Value = 8 },
+                new Card { Suit = "Maça",  Value = 5 },
+                new Card { Suit = "Maça",  Value = 3 },
+                new Card { Suit = "Kupa",  Value = 12 }, // Q = 2
+                new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+                new Card { Suit = "Kupa",  Value = 8 },
+                new Card { Suit = "Kupa",  Value = 3 },
+                new Card { Suit = "Karo",  Value = 10 },
+                new Card { Suit = "Karo",  Value = 9 },
+                new Card { Suit = "Karo",  Value = 3 },
+                new Card { Suit = "Sinek", Value = 13 }, // K = 3
+                new Card { Suit = "Sinek", Value = 6 },
+            };
+            // HCP: 2+1+3 = 6
+
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "1NT", Sira = 3, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "Pas", Sira = 4, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 5, GecerliMi = true },
+            };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            Yaz($"HCP: {ElDegerlendirici.HCP(kuzeyEli)}");
+            Yaz($"UstUstePasSayisi: {durum.UstUstePasSayisi} (balancing={durum.UstUstePasSayisi >= 2})");
+            Yaz($"♠{ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Maça")} ♥{ElDegerlendirici.RenkUzunlugu(kuzeyEli, "Kupa")}");
+
+            var dont = new Dont();
+            Yaz($"Dont.UygunMu → {dont.UygunMu(durum)}");
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "Pas" ? "✅ DOĞRU (zayıf balancing eli Pas)" : $"❌ YANLIŞ (beklenen Pas, gelen {sonuc})");
+            Yaz("════════════════════════════════════════");
+        }
+
+
         public static void TumTestleriCalistir()
         {
             Yaz("▶ Test 1.1: Gerber Soru Sorma");
@@ -13032,13 +13103,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Cappelletti_Double();
             Test_Cappelletti_PartnerCevap_2Karo();
 
-            Yaz("▶ TEST 26.1-26.6: DONT");
+            Yaz("▶ TEST 26.1-26.7: DONT");
             Test_Dont_2Sinek();
             Test_Dont_2Karo();
             Test_Dont_2Kupa_Majors();
             Test_Dont_Double();
             Test_Dont_PartnerCevap_Double();
             Test_Dont_PartnerCevap_2Sinek();
+            Test_Dont_Balancing_ZayifEl_Pas();
 
             // ─── TumTestleriCalistir() içine, Test 26.6'dan sonra ekleyin: ───
             //

@@ -357,13 +357,13 @@ namespace BricKartOyunu
             public Image Alt { get; set; }   // Basılı (Checked=true)
             public Image Ust { get; set; }   // Basılmamış (Checked=false)
         }
-        
-        
-                
+
+
+
         /// <summary>
         /// Basılı / basılmamış resim çiftini tutar.
         /// </summary>
-               private void BricOyna_Resize(object sender, EventArgs e)
+        private void BricOyna_Resize(object sender, EventArgs e)
         {
             this.SuspendLayout();
             try
@@ -1260,13 +1260,24 @@ namespace BricKartOyunu
                 doguKartlar[i].BringToFront();
             }
 
-            // 2. KUZEY KARTLARI (İlklendirme)
+            // 2. KUZEY KARTLARI (İlklendirme + dummy tıklama)
             for (int i = 0; i < 13; i++)
             {
                 if (kuzeyKartlar[i] == null)
                 {
-                    kuzeyKartlar[i] = new PictureBox { Width = _kartGenislik, Height = _kartYukseklik, SizeMode = PictureBoxSizeMode.StretchImage, BorderStyle = BorderStyle.FixedSingle };
+                    kuzeyKartlar[i] = new PictureBox
+                    {
+                        Width = _kartGenislik,
+                        Height = _kartYukseklik,
+                        SizeMode = PictureBoxSizeMode.StretchImage,
+                        BorderStyle = BorderStyle.FixedSingle,
+                        Cursor = Cursors.Hand
+                    };
                     this.Controls.Add(kuzeyKartlar[i]);
+
+                    // Deklaran Güney iken dummy (Kuzey) kartları tıklanabilir
+                    int kartIndex = i;
+                    kuzeyKartlar[i].Click += (s, ev) => KuzeyKartTiklandi(kartIndex);
                 }
             }
 
@@ -1681,7 +1692,7 @@ namespace BricKartOyunu
                 $"[PlayZone] Aktif oyuncu: {activePlayer}");
 
             // Sıra AI'da mı? Otomatik oynat
-            if (activePlayer != _humanPlayer)
+            if (!InsanKontrolundeMi(activePlayer))
             {
                 AITetikle();
             }
@@ -2437,45 +2448,87 @@ namespace BricKartOyunu
         /// Kullanıcı Güney'in elindeki bir karta tıkladığında çalışır.
         /// Kartı elden kaldırır ve masaya (playZonePanel içine) yerleştirir.
         /// </summary>
+        /// <summary>
+        /// Bu oyuncunun kartlarını insan mı seçer?
+        /// Güney her zaman; deklaran Güney ise dummy (Kuzey) de insan kontrolünde.
+        /// </summary>
+        private bool InsanKontrolundeMi(Player oyuncu)
+        {
+            if (oyuncu == _humanPlayer) return true;
+
+            if (_oyunAsamasi == OyunAsamasi.Oyun &&
+                _kontratDeklaran == Player.Guney)
+            {
+                Player dummy = IhaleDurumu.PartnerBul(_kontratDeklaran);
+                if (oyuncu == dummy) return true;
+            }
+            return false;
+        }
+
         private void GuneyKartTiklandi(int kartIndex)
         {
             System.Diagnostics.Debug.WriteLine(
-        $"[GuneyKartTiklandi] Çağrıldı — index: {kartIndex}, " +
-        $"aktif: {activePlayer}, aşama: {_oyunAsamasi}");
+                $"[GuneyKartTiklandi] index: {kartIndex}, aktif: {activePlayer}, aşama: {_oyunAsamasi}");
 
-            // 1. Aşama kontrolü
-            if (_oyunAsamasi != OyunAsamasi.Oyun)
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+
+            // Kendi elinden oynama: sıra Güney'de olmalı
+            if (activePlayer != Player.Guney)
             {
                 System.Diagnostics.Debug.WriteLine(
-                    $"[BricOyna] Kart tıklaması reddedildi — aşama: {_oyunAsamasi}");
+                    $"[GuneyKartTiklandi] Sıra Güney'de değil — aktif: {activePlayer}");
                 return;
             }
 
-            // 2. Sıra kontrolü
-            if (activePlayer != _humanPlayer)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[BricOyna] Sıra sizde değil — aktif: {activePlayer}");
-                return;
-            }
-
-            // 3. Index kontrolü
             if (kartIndex < 0 || kartIndex >= guneyKartlar.Length) return;
 
-            // 4. Kart kontrolü
             var pb = guneyKartlar[kartIndex];
             if (pb == null || !pb.Visible) return;
 
             if (!(pb.Tag is Card card))
             {
                 System.Diagnostics.Debug.WriteLine(
-                    $"[BricOyna] Güney kart #{kartIndex} tıklandı ama Tag'de Card nesnesi yok.");
+                    $"[GuneyKartTiklandi] Tag'de Card yok (#{kartIndex}).");
                 return;
             }
 
-            // 5. Kartı oyna (merkezi metot üzerinden)
             KartOyna(Player.Guney, card, pb.Image);
+        }
 
+        /// <summary>
+        /// Dummy (Kuzey) kartına tıklama.
+        /// Deklaran Güney iken sıra dummy'deyken insan Kuzey elinden oynar.
+        /// </summary>
+        private void KuzeyKartTiklandi(int kartIndex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[KuzeyKartTiklandi] index: {kartIndex}, aktif: {activePlayer}, " +
+                $"deklaran: {_kontratDeklaran}, aşama: {_oyunAsamasi}");
+
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+
+            // Sadece deklaran Güney + sıra Kuzey (dummy)
+            if (_kontratDeklaran != Player.Guney) return;
+            if (activePlayer != Player.Kuzey)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KuzeyKartTiklandi] Sıra dummy'de değil — aktif: {activePlayer}");
+                return;
+            }
+
+            if (kartIndex < 0 || kartIndex >= kuzeyKartlar.Length) return;
+
+            var pb = kuzeyKartlar[kartIndex];
+            if (pb == null || !pb.Visible) return;
+
+            if (!(pb.Tag is Card card))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KuzeyKartTiklandi] Tag'de Card yok (#{kartIndex}).");
+                return;
+            }
+
+            KartOyna(Player.Kuzey, card, pb.Image);
         }
 
         /// <summary>
@@ -2594,7 +2647,7 @@ namespace BricKartOyunu
             activePlayer = SonrakiOyuncu(activePlayer);
 
             // Sıra AI'da mı? Otomatik oynat
-            if (activePlayer != _humanPlayer)
+            if (!InsanKontrolundeMi(activePlayer))
             {
                 AITetikle();
             }
@@ -2697,10 +2750,11 @@ namespace BricKartOyunu
                 $"[AITetikle] Çağrıldı — aktif: {activePlayer}, aşama: {_oyunAsamasi}, " +
                 $"insan: {_humanPlayer}");
 
-            if (activePlayer == _humanPlayer)
+            // İnsan veya dummy (deklaran Güney iken Kuzey) → AI yok
+            if (InsanKontrolundeMi(activePlayer))
             {
                 System.Diagnostics.Debug.WriteLine(
-                    "[AITetikle] Aktif oyuncu insan, çıkılıyor.");
+                    $"[AITetikle] {activePlayer} insan kontrolünde, AI yok.");
                 return;
             }
 
@@ -2725,14 +2779,14 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine(
                     $"[AITetikle] AIOyna çağrılacak: {oynayacak}");
 
-                if (oynayacak != _humanPlayer)
+                if (!InsanKontrolundeMi(oynayacak))
                 {
                     AIOyna(oynayacak);
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine(
-                        "[AITetikle] Ama aktif oyuncu insan, AIOyna çağrılmıyor.");
+                        $"[AITetikle] {oynayacak} insan kontrolünde, AIOyna yok.");
                 }
             };
 
@@ -2773,10 +2827,10 @@ namespace BricKartOyunu
                     "[AIOyna] Aşama Oyun değil, çıkılıyor.");
                 return;
             }
-            if (oyuncu == _humanPlayer)
+            if (InsanKontrolundeMi(oyuncu))
             {
                 System.Diagnostics.Debug.WriteLine(
-                    "[AIOyna] Oyuncu insan, çıkılıyor.");
+                    $"[AIOyna] {oyuncu} insan kontrolünde, çıkılıyor.");
                 return;
             }
             if (activePlayer != oyuncu)
@@ -3128,7 +3182,7 @@ namespace BricKartOyunu
                 this.ResumeLayout(true);
             }
 
-            if (activePlayer != _humanPlayer)
+            if (!InsanKontrolundeMi(activePlayer))
             {
                 AITetikle();
             }

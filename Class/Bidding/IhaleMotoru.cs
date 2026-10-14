@@ -133,20 +133,18 @@ namespace BricKartOyunu.Class.Bidding
                 if (!konvansiyon.UygunMu(durum)) continue;
 
                 string teklif = konvansiyon.TeklifVer(durum);
-                if (!string.IsNullOrEmpty(teklif)) return teklif;
+                // UygunMu == true ise dönen teklif geçerlidir (Pas dahil).
+                // ROPI: 1 anahtar → Pas; Multi düzeltme → Pas vb.
+                // null/boş = konvansiyon bu durumda teklif üretemedi → sonrakine geç.
+                if (!string.IsNullOrEmpty(teklif))
+                    return teklif;
             }
 
-            // Hiçbir konvansiyon uymadı → doğal müdahale (TemelMantik katman 4).
-            // Rakip açtı, biz henüz konuşmadık → 5+ kartlı rengimizle müdahale.
-            var el = durum.AktifOyuncuEli;
-            if (el != null && el.Count == 13 &&
-                durum.RakipActiMi() &&
-                !durum.Gecmis.Any(h => h.Oyuncu == durum.AktifOyuncu && h.GercekTeklifMi))
-            {
-                return RakipAcilisinaMudahale(durum, el, ElDegerlendirici.HCP(el));
-            }
-
-            return "Pas";
+            // Hiçbir konvansiyon uymadı → temel mantık.
+            // TemelMantik katmanları:
+            //   1) açılış  2) partner cevabı  3) destek
+            //   4) rakip müdahalesi  5) orta/geç fallback
+            return TemelMantik(durum);
         }
         // ═══════════════════════════════════════════════════════════════════
         // TEMEL MANTIK (FALLBACK) — GÜÇLENDİRİLMİŞ
@@ -373,10 +371,10 @@ namespace BricKartOyunu.Class.Bidding
             if (macca >= 5) return "1♠";
             if (kupa >= 5) return "1♥";
 
+            // 1♦ = her zaman 4+ karo (3'lü karo ile 1♦ açılmaz)
             if (karo >= 4 && karo >= sinek) return "1♦";
             if (sinek >= 3) return "1♣";
-            if (karo >= 3) return "1♦";
-
+            // 4+ karo yok, 3+ sinek yok — yine 1♣ (better minor / zorunlu minör)
             return "1♣";
         }
 

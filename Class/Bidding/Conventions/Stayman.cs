@@ -25,6 +25,44 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public int Oncelik => 11;   // Gerber'den (13) ÖNCE
 
         // ═══════════════════════════════════════════════════════════════════
+        // YARDIMCILAR (Pas'lar sayılmaz — yalnızca GERÇEK teklifler)
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static List<string> Gercek(IhaleDurumu d, Player p)
+        {
+            return d.Gecmis.Where(h => h.Oyuncu == p && h.GercekTeklifMi)
+                           .Select(h => h.Teklif).ToList();
+        }
+
+        /// <summary>
+        /// ROL 4: Ben 1NT açtım, Stayman'a 2♦/2♥/2♠ ile cevap verdim,
+        /// ortak ikinci turda DAVET etti (2NT veya cevabımın majörüne 3 seviye raise).
+        /// </summary>
+        private static bool Rol4Davet(IhaleDurumu durum, out string davet)
+        {
+            davet = null;
+            var benim = Gercek(durum, durum.AktifOyuncu);
+            var ortak = Gercek(durum, durum.Partner);
+            if (benim.Count != 2 || ortak.Count != 2) return false;
+            if (benim[0] != "1NT" || ortak[0] != "2♣") return false;
+
+            string cevabim = benim[1];
+            if (cevabim != "2♦" && cevabim != "2♥" && cevabim != "2♠") return false;
+
+            // Son gerçek teklif ortağın daveti olmalı (rakip araya girmediyse)
+            if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
+
+            string y = ortak[1];
+            if (y == "2NT") { davet = y; return true; }
+            if ((cevabim == "2♥" && y == "3♥") || (cevabim == "2♠" && y == "3♠"))
+            {
+                davet = y;
+                return true;
+            }
+            return false;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
         // UYGUNLUK KONTROLÜ
         // ═══════════════════════════════════════════════════════════════════
 
@@ -40,8 +78,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ═══════════════════════════════════════════════════════════════
             // ROL 1: Partner 1NT açtı, ben Stayman sorusu soracağım
             // ═══════════════════════════════════════════════════════════════
-            if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
-                && durum.KendiTeklifleri.Count == 0
+            if (Gercek(durum, durum.Partner).LastOrDefault() == "1NT"
+                && Gercek(durum, durum.AktifOyuncu).Count == 0
                 && !durum.RakipActiMi())
             {
                 // 5+ majör kontrolü
@@ -87,10 +125,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
                 if (partnerSon == "2♦" || partnerSon == "2♥" || partnerSon == "2♠")
                 {
-                    if (durum.KendiTeklifleri.Count == 1)
+                    if (Gercek(durum, durum.AktifOyuncu).Count == 1)
                         return true;
                 }
             }
+
+            // ═══════════════════════════════════════════════════════════════
+            // ROL 4: Ben 1NT açtım, Stayman'a cevap verdim, ortak davet etti
+            // ═══════════════════════════════════════════════════════════════
+            if (Rol4Davet(durum, out _)) return true;
 
             return false;
         }
@@ -104,10 +147,23 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var el = durum.AktifOyuncuEli;
 
             // ═══════════════════════════════════════════════════════════════
+            // ROL 4: Ortağın davetine karar ver (minimum → Pas, maksimum → oyun)
+            // ═══════════════════════════════════════════════════════════════
+            if (Rol4Davet(durum, out string davet))
+            {
+                int hp4 = ElDegerlendirici.HCP(el);
+                if (davet == "2NT") return hp4 >= 16 ? "3NT" : "Pas";
+
+                // Majör raise daveti (3♥ / 3♠)
+                string sembol = davet.Substring(1);
+                return hp4 >= 16 ? "4" + sembol : "Pas";
+            }
+
+            // ═══════════════════════════════════════════════════════════════
             // ROL 1: Stayman sorusu
             // ═══════════════════════════════════════════════════════════════
-            if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
-                && durum.KendiTeklifleri.Count == 0)
+            if (Gercek(durum, durum.Partner).LastOrDefault() == "1NT"
+                && Gercek(durum, durum.AktifOyuncu).Count == 0)
             {
                 return "2♣";
             }
@@ -131,7 +187,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ═══════════════════════════════════════════════════════════════
             if (durum.KendiTeklifleri.Contains("2♣") &&
                 durum.PartnerTeklifleri.Contains("1NT") &&
-                durum.KendiTeklifleri.Count == 1)
+                Gercek(durum, durum.AktifOyuncu).Count == 1)
             {
                 string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
                 int hp = ElDegerlendirici.HCP(el);

@@ -17,6 +17,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   2♠    = Doğal, 6+ ♠
     ///   2NT   = Güçlü iki renkli el
     /// 
+    /// HP eşikleri (2026-10-14 düzeltmesi):
+    ///   Direct seat  : 9+ HP
+    ///   Balancing    : 7+ HP  (1NT - Pas - Pas sonrası)
+    /// 
     /// Örnek:
     ///   (1NT) - Dbl - (Pas) - 2♣ (zorunlu) - (Pas) - 2♥/2♠/3♣/3♦ (gerçek renk)
     ///   (1NT) - 2♣ - (Pas) - Pas (3+ ♣) / 2♦ (diğer renk sorusu)
@@ -97,6 +101,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 && durum.Rakipler.Contains(sonTeklif.Oyuncu))
             {
                 var el = durum.AktifOyuncuEli;
+                int hp = ElDegerlendirici.HCP(el);
+
+                // Balancing mi? (1NT'den sonra en az 2 pas geçmiş)
+                // Örnek: 1NT - Pas - Pas → balancing
+                bool balancing = durum.UstUstePasSayisi >= 2;
+
+                // Direct seat: 9+ HP, Balancing: 7+ HP
+                // (6 HP'lik eller artık müdahale etmeyecek — önceki hata senaryosu)
+                int minHp = balancing ? 7 : 9;
+                if (hp < minHp) return false;
 
                 // En az 6'lı renk var mı?
                 if (Renkler.Any(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 6))
@@ -148,6 +162,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         private string MudahaleTeklifi(List<Card> el)
         {
+            // Güvenlik: HP kontrolü (UygunMu zaten eledi, ama double-check)
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp < 7) return "Pas";
+
             int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
             int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");

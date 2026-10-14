@@ -200,9 +200,15 @@ namespace BricKartOyunu.Forms
             _bricOyna?.SetGameControlsEnabled(false);
 
             System.Diagnostics.Debug.WriteLine(
-    $"[DeklarasyonForm_Load] Aktif oyuncu: {_aktifOyuncu}, " +
-    $"BricOyna.ActivePlayer: {_bricOyna?.ActivePlayer}, " +
-    $"baslangicSutunu: {_baslangicSutunu}");
+                $"[DeklarasyonForm_Load] Aktif oyuncu: {_aktifOyuncu}, " +
+                $"BricOyna.ActivePlayer: {_bricOyna?.ActivePlayer}, " +
+                $"baslangicSutunu: {_baslangicSutunu}");
+
+            // 🔹 İLK AI TETİKLEMESİ
+            // Form açıldığında sıra AI'deyse (Batı/Kuzey/Doğu) ihale hemen başlasın.
+            // Önceden sadece SonrakiOyuncuyaGec içinde vardı; dealer AI olunca
+            // ihale hiç başlamıyordu.
+            AITetikle();
         }
 
         private void IsaretleAktifOyuncu()
