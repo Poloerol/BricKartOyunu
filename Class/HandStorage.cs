@@ -15,10 +15,8 @@ namespace BricKartOyunu.Class
         /// </summary>
         public static Dictionary<Player, List<Card>> ElGetir(long dealNumber)
         {
-            // Seed olarak el numarasını veriyoruz
             Random rng = new Random((int)(dealNumber % int.MaxValue));
 
-            // 1. Desteyi oluştur
             List<Card> deste = new List<Card>();
             string[] suits = { "Maça", "Kupa", "Sinek", "Karo" };
 
@@ -35,7 +33,7 @@ namespace BricKartOyunu.Class
                 }
             }
 
-            // 2. Fisher-Yates Algoritması ile Desteyi Karıştır
+            // Fisher-Yates Algoritması ile Desteyi Karıştır
             for (int i = deste.Count - 1; i > 0; i--)
             {
                 int j = rng.Next(i + 1);
@@ -44,7 +42,6 @@ namespace BricKartOyunu.Class
                 deste[j] = temp;
             }
 
-            // 3. Kartları 4 oyuncuya 13'er adet dağıt
             var elDagitimi = new Dictionary<Player, List<Card>>
             {
                 { Player.Kuzey, new List<Card>() },
@@ -59,7 +56,6 @@ namespace BricKartOyunu.Class
                 elDagitimi[oyuncu].Add(deste[i]);
             }
 
-            // 4. CardSorter ile elleri kurallara uygun sırala
             foreach (var oyuncu in elDagitimi.Keys.ToList())
             {
                 elDagitimi[oyuncu] = CardSorter.SiraliEl(elDagitimi[oyuncu]);
@@ -74,7 +70,6 @@ namespace BricKartOyunu.Class
         public static long YeniElNumarasiUret()
         {
             Random rand = new Random();
-            // 10 haneli benzersiz bir el kimliği üretir
             long val1 = rand.Next(10000, 99999);
             long val2 = rand.Next(10000, 99999);
             return (val1 * 100000) + val2;
