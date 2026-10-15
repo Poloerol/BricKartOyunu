@@ -39,29 +39,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public bool UygunMu(IhaleDurumu durum)
         {
-            if (durum == null) return false;
-            if (durum.AktifOyuncuEli == null) return false;
-            if (durum.AktifOyuncuEli.Count != 13) return false;
-
-            // 1. Sadece ilk teklifte geçerli (henüz kimse konuşmadı veya herkes pas dedi)
             if (!durum.IlkTeklifMi()) return false;
 
-            // 2. El puanı 12-21 arası olmalı
-            //    (22+ HP → 2♣ yapay güçlü devreye girer)
-            int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
-            if (hp < 12 || hp > 21) return false;
+            var el = durum.AktifOyuncuEli;
+            int hp = ElDegerlendirici.HCP(el);
+            bool dengeli = ElDegerlendirici.DengeliEl(el);
 
-            // 3. Elde 5'li majör olmalı
-            if (!ElDegerlendirici.BesliMajorVar(durum.AktifOyuncuEli)) return false;
+            // Dengeli ve 20-21 veya 15-17 puan aralığındaysa majör açışını engelle (NT önceliklidir)
+            if (dengeli && ((hp >= 15 && hp <= 17) || (hp >= 20 && hp <= 21)))
+            {
+                return false;
+            }
 
-            // 4. Dengeli el (15-17 HP) ise StrongNT önce gelmeli
-            //    Bu kural BesliMajor'un devreye girmesini engellemez —
-            //    sadece öncelik sıralamasıyla StrongNT önce dener (Oncelik 20).
-            //    Ama dengeli 15-17 HP'de 5'li majör varsa (5-3-3-2 dengeli + 5 majör)
-            //    genelde önce majör açılır. Bu yüzden burada engel yok.
+            int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
-            return true;
+            return hp >= 12 && (macca >= 5 || kupa >= 5);
         }
+
 
         // ═══════════════════════════════════════════════════════════════════
         // TEKLİF VERME
