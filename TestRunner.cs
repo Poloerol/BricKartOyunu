@@ -4961,9 +4961,9 @@ new IhaleHamlesi
         public static void Test_TSF_AciciNT()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 22.4 — 3. Renk Forsingi: Açıcı 2NT (dengeli)");
+            Yaz("TEST 22.4 — 3. Renk Forsingi: Açıcı 2NT/3NT (dengeli)");
             Yaz("Senaryo: 1♦ - 1♠ - 2♦ - 3♣ - ?");
-            Yaz("Beklenen: 2NT (dengeli, 11-13)");
+            Yaz("Beklenen: 2NT veya 3NT (3♣ sonrası 2NT yasal değil → 3NT)");
             Yaz("────────────────────────────────────────");
 
             var kuzeyEli = new List<Card>
@@ -5012,7 +5012,8 @@ new IhaleHamlesi
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            bool dogru22 = (sonuc == "2NT" || sonuc == "3NT");
+            Yaz(dogru22 ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT veya 3NT)");
             Yaz("════════════════════════════════════════");
         }
 

@@ -36,7 +36,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 24;
 
-        private const int MinHp = 12;
+        private const int MinHp = 11; // 5'li majör: 4'lü majör + kisa rakip için 11 yeter
         private const int GucluHp = 17;
 
         private static readonly string[] Renkler = { "Sinek", "Karo", "Kupa", "Maça" };
@@ -122,17 +122,48 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int rakipUzunluk = ElDegerlendirici.RenkUzunlugu(el, rakip);
             if (rakipUzunluk > 2) return false;
 
+            // 5'li majör sistemi:
+            //   Rakip 1♥/1♠ açtıysa diğer majörde 4+ kart takeout'un temel sözü.
+            //   Overcall 5+ istediği için 4'lü majör → Dbl (1♠ overcall değil).
+            bool rakipMajor = (rakip == "Kupa" || rakip == "Maça");
+            string digerMajor = rakip == "Kupa" ? "Maça" : (rakip == "Maça" ? "Kupa" : null);
+
+            if (rakipMajor && digerMajor != null)
+            {
+                int digerMaj = ElDegerlendirici.RenkUzunlugu(el, digerMajor);
+                // 5+ diğer majör → doğal 1 seviye overcall (Dbl değil)
+                if (digerMaj >= 5) return false;
+                // 4'lü diğer majör → Dbl (overcall 5+ istediği için)
+                if (digerMaj < 4) return false;
+            }
+
+            int zayifYan = 0; // 2 kartlı yan renk sayısı
             bool besliYanRenk = false;
             foreach (var r in Renkler)
             {
                 if (r == rakip) continue;
                 int u = ElDegerlendirici.RenkUzunlugu(el, r);
-                if (u < 3) return false;          // her yan renkte destek şart
+                if (u < 2) return false;          // 0-1 kartlı ikinci renk → şekil bozuk
+                if (u == 2) zayifYan++;
                 if (u >= 5) besliYanRenk = true;
             }
 
-            // İyi 5'li renk varsa doğal müdahale; kısalık 0-1 ise yine kontra
-            if (besliYanRenk && hp < GucluHp && rakipUzunluk >= 2) return false;
+            // Klasik: her yan 3+. 5'li majör esnetmesi: diğer majör 4+ ise
+            // bir minörde 2 kart kabul (ör. 4♠-1♥-2♦-5♣).
+            if (zayifYan > 1) return false;
+            if (zayifYan == 1 && !(rakipMajor && digerMajor != null &&
+                ElDegerlendirici.RenkUzunlugu(el, digerMajor) >= 4))
+                return false;
+
+            // İyi 5'li renk + orta güç → doğal overcall tercih (kısa 0-1 ise yine Dbl)
+            // 5'li majör kuralı: 5'li yan minör olsa bile diğer majör 4+ ise Dbl kalır
+            // (2♣ majörü inkar eder). Sadece diğer majör YOKSA doğal overcall'a bırak.
+            if (besliYanRenk && hp < GucluHp && rakipUzunluk >= 2)
+            {
+                if (!(rakipMajor && digerMajor != null &&
+                      ElDegerlendirici.RenkUzunlugu(el, digerMajor) >= 4))
+                    return false;
+            }
 
             return true;
         }

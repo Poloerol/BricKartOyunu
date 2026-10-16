@@ -2813,13 +2813,15 @@ namespace BricKartOyunu
         }
 
         /// <summary>
-        /// Aktif oyuncu AI ise otomatik oynar (basit: renk takip + rastgele).
+        /// Aktif oyuncu AI ise otomatik oynar.
+        /// Açılış atağında sıralı onör / marka kuralları (As, Rua, Dam atağı) uygulanır,
+        /// diğer durumlarda renk takip + rastgele.
         /// </summary>
         private void AIOyna(Player oyuncu)
         {
             System.Diagnostics.Debug.WriteLine(
-        $"[AIOyna] Çağrıldı — oyuncu: {oyuncu}, aktif: {activePlayer}, " +
-        $"aşama: {_oyunAsamasi}");
+                $"[AIOyna] Çağrıldı — oyuncu: {oyuncu}, aktif: {activePlayer}, " +
+                $"aşama: {_oyunAsamasi}");
 
             if (_oyunAsamasi != OyunAsamasi.Oyun)
             {
@@ -2848,9 +2850,24 @@ namespace BricKartOyunu
                 return;
             }
 
-            // Renk takip: atak renginden var mı?
             Card secilen = null;
-            if (!string.IsNullOrEmpty(_buEldeAtakRengi))
+
+            // Açılış atağı: elin ilk kartı (13 kart) ve bu elde henüz kart oynanmadı.
+            // Birden fazla renk kurala uyarsa As > Rua > Dam öncelikli.
+            if (string.IsNullOrEmpty(_buEldeAtakRengi) && el.Count == 13)
+            {
+                var adaylar = AtakKurallari.AdaylariBul(el);
+                if (adaylar.Count > 0)
+                {
+                    var oneri = adaylar.OrderByDescending(a => a.Kart.Value).First();
+                    secilen = oneri.Kart;
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[AIOyna] Açılış atağı kuralı: {oneri.Kural} — {oneri.Aciklama}");
+                }
+            }
+
+            // Renk takip: atak renginden var mı?
+            if (secilen == null && !string.IsNullOrEmpty(_buEldeAtakRengi))
             {
                 var ayniRenk = el.Where(c => c.Suit == _buEldeAtakRengi).ToList();
                 if (ayniRenk.Count > 0)
