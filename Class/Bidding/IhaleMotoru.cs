@@ -342,6 +342,23 @@ namespace BricKartOyunu.Class.Bidding
         {
             string partnerTeklifi = durum.PartnerTeklifleri.Last();
             string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerTeklifi);
+            int partnerSeviyesi = KozYardimcisi.TekliftenSeviyeCikar(partnerTeklifi);
+
+            // ─── KRİTİK GÜNCELLEME 1: Partner 3 veya 4 Seviyesinde Baraj (Preempt) Açtıysa ───
+            if (partnerSeviyesi >= 3 && partnerKozu != "NT")
+            {
+                // Baraj açışlarına zayıf ellerle (HP < 16) yeni renk söylenmez, sadece PAS geçilir.
+                // Eğer çok güçlü bir koz desteğimiz varsa emprenye etmek için yükseltilebilir.
+                int kozDestegi = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+
+                // Elimiz zayıfsa ve partner baraj açtıysa direkt PAS
+                if (hp < 15) return "Pas";
+
+                // Çok güçlü ellerde (16+ HP) 3NT veya 4 seviyesinde majör oyunu düşünülebilir
+                if (hp >= 16 && dengeli) return "3NT";
+
+                return "Pas";
+            }
 
             // ─── Partner 1NT açtı ───────────────────────────────────────
             if (partnerTeklifi == "1NT")
@@ -358,7 +375,7 @@ namespace BricKartOyunu.Class.Bidding
                 return "Pas";
             }
 
-            // ─── Partner 1 seviyesinde renk açtı ────────────────────────
+            // ─── Partner 1 veya 2 seviyesinde renk açtıysa (Mevcut kodunuz) ───
             if (partnerKozu != null && partnerKozu != "NT")
             {
                 if (hp < 6) return "Pas";
@@ -380,26 +397,24 @@ namespace BricKartOyunu.Class.Bidding
                     }
                 }
 
-                // Yeni renk teklif et
-                if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
+                // Yeni renk teklif et (Sadece 1 seviyesi veya yasal limitlerde geçerli)
+                if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4 && partnerSeviyesi == 1)
                     return "1♠";
-                if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
+                if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4 && partnerSeviyesi == 1)
                     return "1♥";
 
-                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5 && partnerKozu != "Karo")
+                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5 && partnerKozu != "Karo" && partnerSeviyesi == 1)
                     return "2♦";
-                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5 && partnerKozu != "Sinek")
+                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5 && partnerKozu != "Sinek" && partnerSeviyesi == 1)
                     return "2♣";
 
-                if (dengeli && hp >= 10 && hp <= 12) return "2NT";
-                if (dengeli && hp >= 13 && hp <= 15) return "3NT";
-
-                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4) return "2♦";
-                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4) return "2♣";
+                if (dengeli && hp >= 10 && hp <= 12 && partnerSeviyesi == 1) return "2NT";
+                if (dengeli && hp >= 13 && hp <= 15 && partnerSeviyesi == 1) return "3NT";
             }
 
             return "Pas";
         }
+
 
         // ═══════════════════════════════════════════════════════════════════
         // YARDIMCI: RAKİP AÇILIŞINA MÜDAHALE
@@ -416,6 +431,13 @@ namespace BricKartOyunu.Class.Bidding
             if (durum.Gecmis.Any(h => h.GercekTeklifMi && h.Oyuncu == durum.Partner))
                 return "Pas";
 
+            // ─── KRİTİK GÜNCELLEME 1: Son gerçek teklif rakibin 1NT'si ise doğal overcall yapılmaz! ───
+            // Bu durum Cappelletti, DONT veya Multi-Landy gibi konvansiyonların işidir.
+            if (durum.SonGercekTeklif != null && (durum.SonGercekTeklif == "1NT" || durum.SonGercekTeklif.EndsWith("NT")))
+            {
+                return "Pas";
+            }
+
             // Rakibin SON GERÇEK teklifi (Pas'lar atlanır)
             var sonRakip = durum.Gecmis
                 .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
@@ -423,38 +445,42 @@ namespace BricKartOyunu.Class.Bidding
             if (sonRakip == null || string.IsNullOrEmpty(sonRakip.Teklif)) return "Pas";
 
             string rakipKozu = KozYardimcisi.TekliftenKozCikar(sonRakip.Teklif);
-            if (string.IsNullOrEmpty(rakipKozu) || rakipKozu == "NT") return "Pas";   // 1NT'yi Cappelletti/DONT yönetir
+            if (string.IsNullOrEmpty(rakipKozu) || rakipKozu == "NT") return "Pas";
 
             // Sadece 1 seviyesindeki açılışlara doğal müdahale
             if (!char.IsDigit(sonRakip.Teklif[0]) || sonRakip.Teklif[0] != '1') return "Pas";
 
             // Renk sırası: Sinek < Karo < Kupa < Maça
             var sira = new Dictionary<string, int>
-            {
-                { "Sinek", 0 }, { "Karo", 1 }, { "Kupa", 2 }, { "Maça", 3 }
-            };
+    {
+        { "Sinek", 0 }, { "Karo", 1 }, { "Kupa", 2 }, { "Maça", 3 }
+    };
             if (!sira.ContainsKey(rakipKozu)) return "Pas";
 
-            // 5'li majör sistemi ile uyumlu doğal müdahale:
-            //   - 1 seviye overcall = 5+ kart (açılışla aynı standart)
-            //   - 4'lü majör + kısa rakip rengi → TakeoutDouble (Dbl) yönetir
-            //   - 5+ minör / 5+ majör → renk overcall
-
             // ─── 1) 5+ majör, 1 seviyede ─────────────────────────────────
-            // Rakip 1♥ + 5'li ♠ → 1♠
-            // Rakip 1♣/1♦ + 5'li ♥/♠ → 1♥ / 1♠
-            // (4'lü majör burada overcall OLMAZ → Dbl tercih edilir)
-            if (rakipKozu != "Maça" && sira["Maça"] > sira[rakipKozu])
+            // Sadece mevcut ihalede en son teklif edilen şey hâlâ 1 seviyesindeyse izin ver
+            int sonGenelSeviye = durum.KacinciSeviye();
+
+            if (sonGenelSeviye <= 1)
             {
-                int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-                if (macca >= 5 && hp >= 8)
-                    return "1♠";
-            }
-            if (rakipKozu != "Kupa" && sira["Kupa"] > sira[rakipKozu])
-            {
-                int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-                if (kupa >= 5 && hp >= 8)
-                    return "1♥";
+                if (rakipKozu != "Maça" && sira["Maça"] > sira[rakipKozu])
+                {
+                    int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                    if (macca >= 5 && hp >= 8)
+                    {
+                        string adayTeklif = "1♠";
+                        if (GecerliTeklifMi(durum, adayTeklif)) return adayTeklif;
+                    }
+                }
+                if (rakipKozu != "Kupa" && sira["Kupa"] > sira[rakipKozu])
+                {
+                    int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                    if (kupa >= 5 && hp >= 8)
+                    {
+                        string adayTeklif = "1♥";
+                        if (GecerliTeklifMi(durum, adayTeklif)) return adayTeklif;
+                    }
+                }
             }
 
             // ─── 2) 5+ kartlı overcall (minör veya 2 seviye) ─────────────
@@ -466,10 +492,23 @@ namespace BricKartOyunu.Class.Bidding
 
             foreach (var renk in adaylar)
             {
+                // ─── KRİTİK GÜNCELLEME 2: Seviyeyi hiyerarşiye göre değil, ihale akışına göre yasal belirle ───
                 int seviye = sira[renk] > sira[rakipKozu] ? 1 : 2;
 
-                if (seviye == 1 && hp >= 8) return "1" + KozYardimcisi.KozSembolu(renk);
-                if (seviye == 2 && hp >= 11) return "2" + KozYardimcisi.KozSembolu(renk);
+                // Eğer aradaki diğer rakip (Kuzey) ihaleyi yükselttiyse, seviyeyi yasal sınıra çek
+                string geciciTeklif = seviye.ToString() + KozYardimcisi.KozSembolu(renk);
+                string yasalTeklif = YasalSeviyeyeYukselt(durum, geciciTeklif);
+
+                int gercekSeviye = KozYardimcisi.TekliftenSeviyeCikar(yasalTeklif);
+
+                // ─── KRİTİK GÜNCELLEME 3: Kuralları gercekSeviye üzerinden ve kart uzunluğunu doğrulayarak işlet ───
+                int kartUzunlugu = ElDegerlendirici.RenkUzunlugu(el, renk);
+
+                if (gercekSeviye == 1 && hp >= 8 && kartUzunlugu >= 5)
+                    return yasalTeklif;
+
+                if (gercekSeviye == 2 && hp >= 11 && kartUzunlugu >= 5)
+                    return yasalTeklif;
             }
 
             return "Pas";

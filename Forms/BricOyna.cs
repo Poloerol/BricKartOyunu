@@ -66,7 +66,12 @@ namespace BricKartOyunu
             get => _currentBackImagePath;
             set { _currentBackImagePath = value; }
         }
-
+        // EL BİLGİ / TEST PANELİ
+        private Panel elBilgiPanel;
+        private Label lblElBilgiNumara;
+        private Label lblNewLabel;
+        private Label lblOldLabel;
+       
         private static Image GetCachedImage(string path)
         {
             if (string.IsNullOrEmpty(path)) return null;
@@ -1318,6 +1323,7 @@ namespace BricKartOyunu
                 OyunBilgiPaneliniGuncelle();
             }
 
+
             int guneyBitisX = guneyX + (12 * (_kartGenislik / 2)) + _kartGenislik;
             int btnY = this.ClientSize.Height - 70;
             btnGeri.Left = guneyBitisX + 10;
@@ -1429,6 +1435,68 @@ namespace BricKartOyunu
 
             this.Controls.Add(oyunBilgiPanel);
             oyunBilgiPanel.BringToFront();
+        }
+
+        /// <summary>
+        /// OYUN BİLGİSİ panelinin 10px altında yer alan el numarası panelini oluşturur.
+        /// </summary>
+        private void SetupElBilgiPanel()
+        {
+            if (elBilgiPanel != null) return;
+
+            // İki stil numarasını da rahatça barındırabilecek yükseklikte bir panel
+            elBilgiPanel = new Panel
+            {
+                Size = new Size(BilgiPanelGenislik, 95),
+                BackColor = AnaSayfa.MasaRengi, // Masa rengiyle aynı
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            EnableDoubleBuffer(elBilgiPanel);
+
+            // 1. New Style Başlık ve Değer
+            var lblNewBaslik = new Label
+            {
+                Location = new Point(5, 4),
+                Size = new Size(BilgiPanelGenislik - 10, 18),
+                Text = "New Style Deal #:",
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblNewBaslik);
+
+            lblNewLabel = new Label
+            {
+                Location = new Point(5, 22),
+                Size = new Size(BilgiPanelGenislik - 10, 25),
+                Text = "N0112-49594-...",
+                Font = new Font("Segoe UI", 7.5F),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblNewLabel);
+
+            // 2. Old Style Başlık ve Değer
+            var lblOldBaslik = new Label
+            {
+                Location = new Point(5, 50),
+                Size = new Size(BilgiPanelGenislik - 10, 18),
+                Text = "Old Style Deal #:",
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblOldBaslik);
+
+            lblOldLabel = new Label
+            {
+                Location = new Point(5, 68),
+                Size = new Size(BilgiPanelGenislik - 10, 20),
+                Text = "1955946097",
+                Font = new Font("Segoe UI", 7.5F),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblOldLabel);
+
+            this.Controls.Add(elBilgiPanel);
+            elBilgiPanel.BringToFront();
         }
 
         /// <summary>

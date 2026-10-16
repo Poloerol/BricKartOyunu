@@ -37,27 +37,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public bool UygunMu(IhaleDurumu durum)
         {
-            if (durum == null) return false;
-            if (durum.AktifOyuncuEli == null) return false;
-            if (durum.AktifOyuncuEli.Count != 13) return false;
-
-            // 1. Sadece ilk teklifte geçerli (paslar dahil)
             if (!durum.IlkTeklifMi()) return false;
 
             var el = durum.AktifOyuncuEli;
-
-            // 2. HP: 12-21
             int hp = ElDegerlendirici.HCP(el);
-            if (hp < 12 || hp > 21) return false;
+            bool dengeli = ElDegerlendirici.DengeliEl(el);
 
-            // 3. 5'li majör → BesliMajor
-            if (ElDegerlendirici.BesliMajorVar(el)) return false;
+            // 15-17 ve 20-21 dengeli eller NT açılmalıdır, minör açılışı olmamalıdır!
+            if (dengeli && ((hp >= 15 && hp <= 17) || (hp >= 20 && hp <= 21)))
+            {
+                return false;
+            }
 
-            // 4. Dengeli 15-17 → StrongNT
-            if (hp >= 15 && hp <= 17 && ElDegerlendirici.DengeliEl(el)) return false;
+            // 22+ Güçlü 2♣ eliyse de minör açılmamalı
+            if (hp >= 22) return false;
 
-            return true;
+            return hp >= 12;
         }
+
 
         public string TeklifVer(IhaleDurumu durum)
         {

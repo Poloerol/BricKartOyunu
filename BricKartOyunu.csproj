@@ -216,6 +216,7 @@
     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
+    <Compile Include="Class\HandStorage.cs" />
     <Compile Include="Class\Player.cs" />
     <Compile Include="Forms\BricMaci.cs">
       <SubType>Form</SubType>
