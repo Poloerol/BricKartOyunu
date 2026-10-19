@@ -27,6 +27,16 @@ namespace BricKartOyunu.Class.Bidding
         public bool Namyats { get; set; } = false;   // 4♣ = güçlü ♥, 4♦ = güçlü ♠
 
         // ═══════════════════════════════════════════════════════════════════
+        // 1♣ CEVAP SİSTEMİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// 1♣ açışına özel cevap sistemi (Kuvvetli 1♣ / Polish Club hibrit).
+        /// true ise BirClubCevap konvansiyonu devreye girer.
+        /// </summary>
+        public bool BirClubCevapSistemi { get; set; } = false;
+
+        // ═══════════════════════════════════════════════════════════════════
         // SİSTEM — REVERSE
         // ═══════════════════════════════════════════════════════════════════
 
@@ -161,6 +171,9 @@ namespace BricKartOyunu.Class.Bidding
                 Preempt = true,
                 Namyats = false,    // Varsayılan: kapalı (Preempt ile çakışmasın)
 
+                // 1 Sinek cevap sistemi
+                BirClubCevapSistemi = false,  // deneyler için true yap
+
                 // 1NT/2NT cevapları
                 Stayman = true,
                 BergenRaises = true,
@@ -290,6 +303,9 @@ namespace BricKartOyunu.Class.Bidding
             if (Multi2D) aktifler.Add("Multi 2♦");
             if (Preempt) aktifler.Add("Preempt");
             if (Namyats) aktifler.Add("Namyats");
+
+            //──── 1Sinek Yanıtları ─────────────────────────────────────
+            if (BirClubCevapSistemi) aktifler.Add("1♣ Cevap Sistemi");
 
             // ─── 1NT / 2NT CEVAPLARI ─────────────────────────────────────
             if (Stayman) aktifler.Add("Stayman");

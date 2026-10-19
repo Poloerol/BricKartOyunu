@@ -4961,9 +4961,9 @@ new IhaleHamlesi
         public static void Test_TSF_AciciNT()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 22.4 — 3. Renk Forsingi: Açıcı 2NT (dengeli)");
+            Yaz("TEST 22.4 — 3. Renk Forsingi: Açıcı 2NT/3NT (dengeli)");
             Yaz("Senaryo: 1♦ - 1♠ - 2♦ - 3♣ - ?");
-            Yaz("Beklenen: 2NT (dengeli, 11-13)");
+            Yaz("Beklenen: 2NT veya 3NT (3♣ sonrası 2NT yasal değil → 3NT)");
             Yaz("────────────────────────────────────────");
 
             var kuzeyEli = new List<Card>
@@ -5012,7 +5012,8 @@ new IhaleHamlesi
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            bool dogru22 = (sonuc == "2NT" || sonuc == "3NT");
+            Yaz(dogru22 ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT veya 3NT)");
             Yaz("════════════════════════════════════════");
         }
 
@@ -12919,7 +12920,113 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz(sonuc == "Pas" ? "✅ DOĞRU (zayıf balancing eli Pas)" : $"❌ YANLIŞ (beklenen Pas, gelen {sonuc})");
             Yaz("════════════════════════════════════════");
         }
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 44.x — 1♣ Cevap Sistemi
+        // ═══════════════════════════════════════════════════════════════════
 
+        private static OrtaklikAnlasmasi BirClubAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.BirClubCevapSistemi = true;
+            return a;
+        }
+
+        private static void TestBirClub(string baslik, string senaryo, string beklenen,
+            List<Card> el, bool zonNS = false, bool zonEW = false, string partnerTeklif = "1♣")
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz(baslik);
+            Yaz($"Senaryo: {senaryo}");
+            Yaz($"Beklenen: {beklenen}");
+            Yaz("────────────────────────────────────────");
+
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = partnerTeklif, Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas",        Sira = 2, GecerliMi = true },
+            };
+
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = BirClubAnlasmasi(),
+                Gecmis = gecmis,
+                ZonNS = zonNS,
+                ZonEW = zonEW,
+            };
+
+            int hcp = ElDegerlendirici.HCP(el);
+            Yaz($"HCP: {hcp}");
+            Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(el)}");
+            Yaz($"Dağılım: ♠{ElDegerlendirici.RenkUzunlugu(el, "Maça")} " +
+                $"♥{ElDegerlendirici.RenkUzunlugu(el, "Kupa")} " +
+                $"♦{ElDegerlendirici.RenkUzunlugu(el, "Karo")} " +
+                $"♣{ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
+            Yaz($"Zon: NS={zonNS}, EW={zonEW}");
+            Yaz("────────────────────────────────────────");
+
+            var konv = new BirClubCevap { AktifMi = true };
+            Yaz($"BirClubCevap.UygunMu → {konv.UygunMu(durum)}");
+            if (konv.UygunMu(durum))
+                Yaz($"BirClubCevap.TeklifVer → {konv.TeklifVer(durum)}");
+
+            Yaz("────────────────────────────────────────");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == beklenen ? $"✅ DOĞRU ({beklenen})"
+                                  : $"❌ YANLIŞ (beklenen {beklenen}, gelen {sonuc})");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_BirClub_FG_Relay()
+        {
+            // ♠KQxx ♥Axx ♦Kxx ♣Jxx → 13 HCP dengeli → 2♣
+            var el = ElMetinden("KQ76", "A54", "K32", "J85");
+            TestBirClub("TEST 44.1 — 1♣ Cevap: 13 HCP dengeli → 2♣",
+                "1♣ - Pas - ?", "2♣", el);
+        }
+
+        public static void Test_BirClub_Major()
+        {
+            // ♠xx ♥KJxxx ♦Qxx ♣xxx → 6 HCP, 5♥ → 1♥
+            var el = ElMetinden("85", "KJ432", "Q65", "863");
+            TestBirClub("TEST 44.2 — 1♣ Cevap: 6 HCP 5♥ → 1♥",
+                "1♣ - Pas - ?", "1♥", el);
+        }
+
+        public static void Test_BirClub_Preempt_NV()
+        {
+            // ♠xx ♥xx ♦KQJxxx ♣xxx → 6 HCP, 6♦, NV → 3♦
+            var el = ElMetinden("85", "73", "KQJ654", "832");
+            TestBirClub("TEST 44.3 — 1♣ Cevap: NV 6♦ → 3♦",
+                "1♣ - Pas - ? (NV)", "3♦", el, zonNS: false, zonEW: false);
+        }
+
+        public static void Test_BirClub_Preempt_V()
+        {
+            // Aynı el, V zonda → iyi renk kontrolü (KQJ var, 2 onör) → 3♦
+            var el = ElMetinden("85", "73", "KQJ654", "832");
+            TestBirClub("TEST 44.4 — 1♣ Cevap: V 6♦ iyi renk → 3♦",
+                "1♣ - Pas - ? (V)", "3♦", el, zonNS: true, zonEW: true);
+        }
+
+        public static void Test_BirClub_TersFlannery()
+        {
+            // ♠KJ543 ♥KJ62 ♦85 ♣73 → 7 HCP, 5♠ 4♥
+            var el = ElMetinden("KJ543", "KJ62", "85", "73");
+            TestBirClub("TEST 44.5 — 1♣ Cevap: 7 HCP 5♠4♥ → 2♥",
+                "1♣ - Pas - ?", "2♥", el);
+        }
+
+        public static void Test_BirClub_1NT()
+        {
+            // ♠Qxx ♥Jxx ♦Kxx ♣Jxxx → 8 HCP, dengeli, majör yok → 1NT
+            var el = ElMetinden("Q85", "J73", "K62", "J954");
+            TestBirClub("TEST 44.6 — 1♣ Cevap: 8 HCP dengeli → 1NT",
+                "1♣ - Pas - ?", "1NT", el);
+        }
 
         public static void TumTestleriCalistir()
         {
@@ -13277,6 +13384,14 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_TakeoutDouble_Cevap_Zayif_EnUcuzSeviye();
             Test_TakeoutDouble_Cevap_CezaPasi();
             Test_TakeoutDouble_Cevap_CezaPasi_YetersizOnör();
+
+            Yaz("▶ TEST 44.1-44.6: 1♣ Cevap Sistemi");
+            Test_BirClub_FG_Relay();
+            Test_BirClub_Major();
+            Test_BirClub_Preempt_NV();
+            Test_BirClub_Preempt_V();
+            Test_BirClub_TersFlannery();
+            Test_BirClub_1NT();
 
             Yaz("");
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");

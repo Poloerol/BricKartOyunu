@@ -391,5 +391,67 @@ namespace BricKartOyunu.Class.Bidding
 
             return $"{HCP(el)} HCP, {ToplamPuan(el)} TP, {dengeli}, {dagilim}";
         }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // 1♣ CEVAP SİSTEMİ İÇİN EK YARDIMCILAR
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Belirli bir renkte "iyi renk" var mı?
+        /// Kriter: En az 5 kart, en az 2 onör (A/K/Q), ve içinde A veya K var.
+        /// </summary>
+        public static bool IyiRenk(List<Card> el, string renk)
+        {
+            if (el == null) return false;
+            var kartlar = el.Where(c => c.Suit == renk)
+                            .OrderByDescending(c => c.Value)
+                            .ToList();
+            if (kartlar.Count < 5) return false;
+
+            int onorSayisi = kartlar.Count(c => c.Value >= 12);
+            bool asVeyaPapazVar = kartlar.Any(c => c.Value == 14 || c.Value == 13);
+
+            return onorSayisi >= 2 && asVeyaPapazVar;
+        }
+
+        /// <summary>
+        /// El tam olarak 4-3-3-3 dağılımında mı? (Belirli renk 4'lü, diğer üçü 3'erli)
+        /// </summary>
+        public static bool Dagilim4333(List<Card> el, string dortluRenk)
+        {
+            if (el == null || el.Count != 13) return false;
+            var sayilar = RenkSayilari(el);
+            if (sayilar[dortluRenk] != 4) return false;
+            return sayilar.Values.Count(s => s == 3) == 3;
+        }
+
+        /// <summary>
+        /// 5/4 veya 4/4 minör dağılımı (iki minörde toplam 9+ kart).
+        /// </summary>
+        public static bool IkiMinorDagilimi(List<Card> el, out int karo, out int sinek)
+        {
+            karo = RenkUzunlugu(el, "Karo");
+            sinek = RenkUzunlugu(el, "Sinek");
+            return karo >= 4 && sinek >= 4 && (karo + sinek) >= 9;
+        }
+
+        /// <summary>
+        /// Belirli bir oyuncunun zonda olup olmadığını hesaplar (IhaleDurumu'ndan).
+        /// NS oyuncuları: Kuzey/Güney. EW oyuncuları: Batı/Doğu.
+        /// </summary>
+        public static bool ZondaMi(bool zonNS, bool zonEW, Player oyuncu)
+        {
+            switch (oyuncu)
+            {
+                case Player.Kuzey:
+                case Player.Guney:
+                    return zonNS;
+                case Player.Bati:
+                case Player.Dogu:
+                    return zonEW;
+                default:
+                    return false;
+            }
+        }
     }
 }

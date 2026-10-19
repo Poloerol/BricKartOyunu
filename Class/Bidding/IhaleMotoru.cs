@@ -104,6 +104,9 @@ namespace BricKartOyunu.Class.Bidding
     new FourthSuitForcing(),    // 4. Renk Forsingi (2 seviye)
     new MinorAcilis(),          // minör açılış
 
+        // ─── 1♣ CEVAP SİSTEMİ ──────────────────────────────────────
+    new BirClubCevap(),         // 1♣ açışına özel cevaplar
+
     // ─── FALLBACK ────────────────────────────────────────────────
     new BasitCevap(),           // basit cevap
 };
@@ -135,16 +138,112 @@ namespace BricKartOyunu.Class.Bidding
                 string teklif = konvansiyon.TeklifVer(durum);
                 // UygunMu == true ise dönen teklif geçerlidir (Pas dahil).
                 // ROPI: 1 anahtar → Pas; Multi düzeltme → Pas vb.
-                // null/boş = konvansiyon bu durumda teklif üretemedi → sonrakine geç.
-                if (!string.IsNullOrEmpty(teklif))
-                    return teklif;
+                if (string.IsNullOrEmpty(teklif)) continue;
+
+                // Yasadışı seviye: mümkünse yükselt (2NT→3NT, 2♥→3♥), olmazsa reddet
+                string yasal = YasalSeviyeyeYukselt(durum, teklif);
+                if (!GecerliTeklifMi(durum, yasal))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[IhaleMotoru] {konvansiyon.Ad} yasadışı teklif reddedildi: {teklif}");
+                    continue;
+                }
+                if (yasal != teklif)
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[IhaleMotoru] {konvansiyon.Ad} seviye yükseltildi: {teklif} → {yasal}");
+                return yasal;
             }
 
-            // Hiçbir konvansiyon uymadı → temel mantık.
-            // TemelMantik katmanları:
-            //   1) açılış  2) partner cevabı  3) destek
-            //   4) rakip müdahalesi  5) orta/geç fallback
-            return TemelMantik(durum);
+            string temel = TemelMantik(durum);
+            string temelYasal = YasalSeviyeyeYukselt(durum, temel);
+            if (!GecerliTeklifMi(durum, temelYasal))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[IhaleMotoru] TemelMantik yasadışı teklif reddedildi: {temel} → Pas");
+                return "Pas";
+            }
+            return temelYasal;
+        }
+
+        /// <summary>
+        /// Teklif mevcut ihalede yasal mı?
+        /// Pas / Dbl / Rdbl her zaman yasal (kontrat kuralları ayrı).
+        /// Seviyeli teklif: son gerçek tekliften yüksek olmalı.
+        /// </summary>
+        private static bool GecerliTeklifMi(IhaleDurumu durum, string teklif)
+        {
+            if (string.IsNullOrEmpty(teklif)) return false;
+
+            string t = teklif.Trim();
+            if (t.Equals("Pas", StringComparison.OrdinalIgnoreCase)) return true;
+            if (t.Equals("Dbl", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("Kontr", StringComparison.OrdinalIgnoreCase)) return true;
+            // DopiRopi "Rdbl" döner; diğer yerler "RDbl" / "S.Kontr" kullanabilir
+            if (t.Equals("Rdbl", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("RDbl", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("S.Kontr", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("SKontr", StringComparison.OrdinalIgnoreCase)) return true;
+
+            string son = durum?.SonGercekTeklif;
+            if (string.IsNullOrEmpty(son)) return true; // açılış
+
+            int yeniSev = KozYardimcisi.TekliftenSeviyeCikar(t);
+            string yeniKoz = KozYardimcisi.TekliftenKozCikar(t);
+            int sonSev = KozYardimcisi.TekliftenSeviyeCikar(son);
+            string sonKoz = KozYardimcisi.TekliftenKozCikar(son);
+
+            if (yeniSev <= 0 || string.IsNullOrEmpty(yeniKoz)) return false;
+            if (yeniSev > sonSev) return true;
+            if (yeniSev < sonSev) return false;
+
+            // Aynı seviye: koz sırası Sinek < Karo < Kupa < Maça < NT
+            return KozSirasi(yeniKoz) > KozSirasi(sonKoz);
+        }
+
+        /// <summary>
+        /// Teklif yasal değilse aynı kozda bir üst seviyeye yükseltir.
+        /// Örnek: 3♣ sonrası 2NT → 3NT; 2♠ sonrası 2♥ → 3♥.
+        /// </summary>
+        private static string YasalSeviyeyeYukselt(IhaleDurumu durum, string teklif)
+        {
+            if (string.IsNullOrEmpty(teklif)) return teklif;
+            if (GecerliTeklifMi(durum, teklif)) return teklif;
+
+            string t = teklif.Trim();
+            // Pas / kontr yükseltilmez
+            if (t.Equals("Pas", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("Dbl", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("Kontr", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("Rdbl", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("RDbl", StringComparison.OrdinalIgnoreCase) ||
+                t.Equals("S.Kontr", StringComparison.OrdinalIgnoreCase))
+                return t;
+
+            int sev = KozYardimcisi.TekliftenSeviyeCikar(t);
+            string koz = KozYardimcisi.TekliftenKozCikar(t);
+            if (sev <= 0 || string.IsNullOrEmpty(koz)) return teklif;
+
+            for (int s = sev + 1; s <= 7; s++)
+            {
+                string aday = KozYardimcisi.TeklifOlustur(s, koz);
+                if (GecerliTeklifMi(durum, aday))
+                    return aday;
+            }
+            return teklif; // yükseltilemedi — çağıran reddeder
+        }
+
+        private static int KozSirasi(string koz)
+        {
+            if (string.IsNullOrEmpty(koz)) return -1;
+            switch (koz)
+            {
+                case "Sinek": case "♣": return 0;
+                case "Karo": case "♦": return 1;
+                case "Kupa": case "♥": return 2;
+                case "Maça": case "♠": return 3;
+                case "NT": return 4;
+                default: return -1;
+            }
         }
         // ═══════════════════════════════════════════════════════════════════
         // TEMEL MANTIK (FALLBACK) — GÜÇLENDİRİLMİŞ
@@ -339,7 +438,29 @@ namespace BricKartOyunu.Class.Bidding
             };
             if (!sira.ContainsKey(rakipKozu)) return "Pas";
 
-            // 5+ kartlı adaylar: önce en uzun, eşitse daha yüksek renk
+            // 5'li majör sistemi ile uyumlu doğal müdahale:
+            //   - 1 seviye overcall = 5+ kart (açılışla aynı standart)
+            //   - 4'lü majör + kısa rakip rengi → TakeoutDouble (Dbl) yönetir
+            //   - 5+ minör / 5+ majör → renk overcall
+
+            // ─── 1) 5+ majör, 1 seviyede ─────────────────────────────────
+            // Rakip 1♥ + 5'li ♠ → 1♠
+            // Rakip 1♣/1♦ + 5'li ♥/♠ → 1♥ / 1♠
+            // (4'lü majör burada overcall OLMAZ → Dbl tercih edilir)
+            if (rakipKozu != "Maça" && sira["Maça"] > sira[rakipKozu])
+            {
+                int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                if (macca >= 5 && hp >= 8)
+                    return "1♠";
+            }
+            if (rakipKozu != "Kupa" && sira["Kupa"] > sira[rakipKozu])
+            {
+                int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                if (kupa >= 5 && hp >= 8)
+                    return "1♥";
+            }
+
+            // ─── 2) 5+ kartlı overcall (minör veya 2 seviye) ─────────────
             var adaylar = sira.Keys
                 .Where(r => r != rakipKozu && ElDegerlendirici.RenkUzunlugu(el, r) >= 5)
                 .OrderByDescending(r => ElDegerlendirici.RenkUzunlugu(el, r))
@@ -348,7 +469,6 @@ namespace BricKartOyunu.Class.Bidding
 
             foreach (var renk in adaylar)
             {
-                // Rakibin renginden yüksekse 1 seviyesi, değilse 2 seviyesi
                 int seviye = sira[renk] > sira[rakipKozu] ? 1 : 2;
 
                 if (seviye == 1 && hp >= 8) return "1" + KozYardimcisi.KozSembolu(renk);
@@ -468,6 +588,8 @@ namespace BricKartOyunu.Class.Bidding
                 case "Preempt": return _anlasma.Preempt;
                 case "Namyats": return _anlasma.Namyats;   // ← YENİ
 
+                // 1Club Yanıt
+                case "1♣ Cevap Sistemi": return _anlasma.BirClubCevapSistemi;
                 // 1NT Cevapları
                 case "Inverted Minors": return _anlasma.InvertedMinors;
                 case "Forcing NT": return _anlasma.ForcingNT;
