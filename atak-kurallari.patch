@@ -1,0 +1,46 @@
+diff --git a/BricKartOyunu.csproj b/BricKartOyunu.csproj
+index 2b1383a..1173d67 100644
+--- a/BricKartOyunu.csproj
++++ b/BricKartOyunu.csproj
+@@ -212,6 +212,7 @@
+     <Compile Include="Class\Bidding\IKonvansiyon.cs" />
+     <Compile Include="Class\Bidding\KozYardimcisi.cs" />
+     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
++    <Compile Include="Class\AtakKurallari.cs" />
+     <Compile Include="Class\Cards.cs" />
+     <Compile Include="Class\CardSorter.cs" />
+     <Compile Include="Class\Player.cs" />
+diff --git a/Forms/BricOyna.cs b/Forms/BricOyna.cs
+index 537d98a..53889a8 100644
+--- a/Forms/BricOyna.cs
++++ b/Forms/BricOyna.cs
+@@ -2848,9 +2848,27 @@ namespace BricKartOyunu
+                 return;
+             }
+ 
+-            // Renk takip: atak renginden var mı?
+             Card secilen = null;
+-            if (!string.IsNullOrEmpty(_buEldeAtakRengi))
++
++            // Açılış atağı: elin ilk kartı (13 kart) ve bu elde henüz kart oynanmadı.
++            // Sıralı onör / marka kuralları (As, Rua, Dam atağı) uygulanır.
++            if (string.IsNullOrEmpty(_buEldeAtakRengi) && el.Count == 13)
++            {
++                var adaylar = AtakKurallari.AdaylariBul(el);
++                if (adaylar.Count > 0)
++                {
++                    // Birden fazla renk kurala uyarsa: As > Rua > Dam öncelikli
++                    var oneri = adaylar
++                        .OrderByDescending(a => a.Kart.Value)
++                        .First();
++                    secilen = oneri.Kart;
++                    System.Diagnostics.Debug.WriteLine(
++                        $"[AIOyna] Açılış atağı kuralı: {oneri.Kural} — {oneri.Aciklama}");
++                }
++            }
++
++            // Renk takip: atak renginden var mı?
++            if (secilen == null && !string.IsNullOrEmpty(_buEldeAtakRengi))
+             {
+                 var ayniRenk = el.Where(c => c.Suit == _buEldeAtakRengi).ToList();
+                 if (ayniRenk.Count > 0)

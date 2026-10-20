@@ -298,13 +298,18 @@ namespace BricKartOyunu.Forms
                         int x = NumW + s * HucreW;
                         Rectangle rect = new Rectangle(x, y, HucreW, HucreH);
 
+                        // Her hücrenin arka planını gri yap
                         using (SolidBrush bgBr = new SolidBrush(bgGri))
                             g.FillRectangle(bgBr, rect);
 
+                        // Her hücrenin kenarlığını çiz
                         using (Pen p = new Pen(cizgiKoyu))
                             g.DrawRectangle(p, rect);
 
-                        bool aktif = LinearIndex(r, s) > _sonTeklifIndex;
+                        // Aktif hücreleri belirle
+                        // Eğer hücre indeksi _sonTeklifIndex'ten büyükse VEYA
+                        // _sonTeklifIndex -1 ise (henüz teklif yoksa), tüm hücreler aktif
+                        bool aktif = (_sonTeklifIndex == -1) || (LinearIndex(r, s) > _sonTeklifIndex);
 
                         if (aktif)
                         {
@@ -318,6 +323,7 @@ namespace BricKartOyunu.Forms
                                 g.DrawString(KozLabel[s], kf, kozBr, textRect, sfCenter);
                             }
                         }
+                        // Aktif değilse içi boş gri kutu kalır
                     }
                 }
 
@@ -371,6 +377,8 @@ namespace BricKartOyunu.Forms
                 Sira = _ihaleHamleleri.Count + 1,
                 GecerliMi = true
             });
+            // 🔹 Grid'i yenile
+            panelGrid?.Invalidate();
 
         }
 
@@ -732,6 +740,18 @@ namespace BricKartOyunu.Forms
 
             // İhale geçmişini ve başlayan oyuncuyu BricOyna'ya kaydet
             _bricOyna?.IhaleGecmisiniKaydet(_bids, OyuncuSirasi[_baslangicSutunu]);
+
+            // 🔹 KRİTİK EKLEME: Oyun başlamadan önce açık DekBasForm'ları kapat!
+            // Aksi halde DeklarasyonForm kapanınca arkada kalan DekBasForm öne çıkar.
+            foreach (Form f in Application.OpenForms.Cast<Form>()
+                         .Where(f => f is DekBasForm)
+                         .ToArray())
+            {
+                if (f is DekBasForm dekBas)
+                    dekBas.ProgramatikKapat();
+                else
+                    f.Close();
+            }
 
             // Oynatma ekranına bilgileri aktar
             _bricOyna?.IhaleTamamlandiBaslat(_sonKontratTeklifi, gercekDeklaran, solRakip);
@@ -1126,6 +1146,10 @@ namespace BricKartOyunu.Forms
 
             // Grid'i yenile
             panelGrid?.Invalidate();
+
+            // Sonraki oyuncuya geçmeden önce grid'i kesin olarak güncelle
+            _sonTeklifIndex = TeklifGridIndexHesapla(teklif);
+           
 
             // Sonraki oyuncuya geç
             SonrakiOyuncuyaGec();

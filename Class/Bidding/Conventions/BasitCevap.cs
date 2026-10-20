@@ -50,6 +50,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // 4. Son teklif partnerin mi?
             if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
 
+            // 5. Basit cevap sadece 1 seviye açılışlara (1♣/1♦/1♥/1♠/1NT)
+            //    Partner 2♠ (zayıf iki) açtıysa bu konvansiyon devreye girmez —
+            //    aksi halde 1♣ gibi yasadışı düşük seviye teklifler üretilir.
+            string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
+            int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerSon ?? "");
+            if (partnerSeviye != 1) return false;
+
             return true;
         }
 
@@ -104,10 +111,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "Pas";
             }
 
-            // ─── 10-15 HP → 2NT, limit raise veya yeni renk ───
+            // ─── 10-15 HP → limit raise, yeni renk, sonra 2NT ───
             if (hp < 16)
             {
-                // 1. ÖNCE 4'lü MAJÖR göster
+                // 1. ÖNCE 4'lü yeni MAJÖR (1 seviye)
                 if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
                     return "1♠";
                 if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
@@ -136,16 +143,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
-                // 4. Dengeli ise → 2NT (invite)
-                if (ElDegerlendirici.DengeliEl(el)) return "2NT";
-
-                // 5. Yeni minör varsa → 2 seviyesi
-                if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5 && partnerKozu != "Karo")
+                // 4. 5'li yeni renk ÖNCE (5-3-3-2 dengeli sayılır ama 2♦/2♣/2♥ öncelikli)
+                //    Örnek: 1♠ - ?  el ♠2 ♥3 ♦5 ♣3 → 2♦ (2NT DEĞİL)
+                if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5)
+                    return "2♥";
+                if (partnerKozu != "Karo" && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5)
                     return "2♦";
-                if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5 && partnerKozu != "Sinek")
+                if (partnerKozu != "Sinek" && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5)
                     return "2♣";
 
-                // 6. Son çare: 2NT
+                // 5. Dengeli 10-12, 5'li yan renk yok → 2NT (invite)
+                if (ElDegerlendirici.DengeliEl(el) && hp <= 12)
+                    return "2NT";
+
+                // 6. 13-15 dengeli / yarı dengeli → 3NT veya 2NT
+                if (ElDegerlendirici.DengeliEl(el) && hp >= 13)
+                    return "3NT";
+
+                // 7. Son çare
                 return "2NT";
             }
 

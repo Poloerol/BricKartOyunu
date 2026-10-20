@@ -204,8 +204,45 @@ namespace BricKartOyunu
         // oluşturmak, aynı milisaniyede yapılan ardışık çağrılarda aynı seed'e
         // düşüp aynı dağıtıma sebep olabiliyordu. Tek instance bunu engeller.
         private static readonly Random _rng = new Random();
+        // ═══════════════════════════════════════════════════════════════════
+        // SEED TABANLI KART DAĞITIMI
+        // ═══════════════════════════════════════════════════════════════════
 
+        /// <summary>
+        /// Bu elin seed değeri. Aynı seed → aynı dağıtım.
+        /// 0 veya negatif ise rastgele üretilir.
+        /// </summary>
+        private int _seed = 0;
 
+        /// <summary>
+        /// Son kullanılan seed (UI'da göstermek için).
+        /// </summary>
+        public int Seed => _seed;
+
+        /// <summary>
+        /// Yeni bir seed üretir (rastgele).
+        /// </summary>
+        private static int YeniSeed()
+        {
+            return new Random().Next(1, int.MaxValue);
+        }
+        // ═══════════════════════════════════════════════════════════════════
+        // SEED YÖNETİMİ — ComboBox + Butonlar
+        // ═══════════════════════════════════════════════════════════════════
+
+        private ComboBox cmbSeed;
+        private Button btnSeedSil;
+        private Button btnSeedDagit;
+
+        /// <summary>
+        /// Son 10 seed (FIFO). Uygulama kapanınca kaybolur.
+        /// </summary>
+        private readonly Queue<int> _seedHafizasi = new Queue<int>(10);
+        private const int MaxSeedHafiza = 10;
+        private Label lblBilgiSeed;
+
+        // 🔹 EKLE: Seed'lerin kaydedileceği dosya yolu
+        private static readonly string SeedDosyaYolu = Path.Combine(Application.StartupPath, "seedler.txt");
 
         public BricOyna()
         {
@@ -378,14 +415,15 @@ namespace BricKartOyunu
 
         private void BricOyna_Load(object sender, EventArgs e)
         {
-
-
             if (this.DesignMode) return;
 
             // 🔹 ToolStrip butonlarının görsel boyutunu büyüt (32x32 → 48x48)
             toolStrip1.ImageScalingSize = new Size(32, 32);
             toolStrip1.AutoSize = false;
             toolStrip1.Height = 40;
+
+            ////Seed numarası
+            //_seed = 1196129724;  // TEST: aynı seed
 
             // 🔹 Toolbar butonlarının basılı/basılmamış resimlerini ayarla
             ToolbarButonResimleriniAyarla(BtnHepsi, "allHandsalt.png", "allHandsUst.png");
@@ -409,6 +447,9 @@ namespace BricKartOyunu
             //Butonlar inaktif yapılıyor
             ButonlariInaktifYap();   // <-- 7 buton burada inaktif yapılıyor
 
+            // 🔹 Seed geçmişini önce yükle (KartlariDagit üzerine yazmasın!)
+            SeedHafizasiniYukle();
+
 
             KartlariDagit(AnaSayfa.SeciliKartSeti);
             UpdateInfoBoard(_dealer);
@@ -419,6 +460,7 @@ namespace BricKartOyunu
 
             // 🔹 TEST: İhale motoru çalışıyor mu?
             TestIhaleMotoru();
+
 
             YeniDekBasFormAc();
         }
@@ -1309,6 +1351,7 @@ namespace BricKartOyunu
 
             // 🔹 YENİ: Oyun bilgi panelini oluştur ve sağ üste konumlandır
             SetupOyunBilgiPanel();
+            SetupSeedPanel();
             if (oyunBilgiPanel != null)
             {
                 oyunBilgiPanel.Location = new Point(
@@ -1317,7 +1360,15 @@ namespace BricKartOyunu
                 );
                 OyunBilgiPaneliniGuncelle();
             }
-
+            // 🔹 Seed paneli: Oyun Bilgisi panelinin hemen altında (10 px boşluk)
+            if (oyunBilgiPanel != null && seedPanel != null)
+            {
+                seedPanel.Location = new Point(
+                    oyunBilgiPanel.Left,
+                    oyunBilgiPanel.Bottom + 10
+                );
+                seedPanel.Width = oyunBilgiPanel.Width;
+            }
             int guneyBitisX = guneyX + (12 * (_kartGenislik / 2)) + _kartGenislik;
             int btnY = this.ClientSize.Height - 70;
             btnGeri.Left = guneyBitisX + 10;
@@ -1364,7 +1415,8 @@ namespace BricKartOyunu
 
             oyunBilgiPanel = new Panel
             {
-                Size = new Size(BilgiPanelGenislik, BilgiPanelYukseklik),
+                // Başlangıç boyutu, dinamik olarak güncellenecek
+                Size = new Size(BilgiPanelGenislik, 300),
                 BackColor = Color.FromArgb(245, 245, 220),
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -1402,6 +1454,7 @@ namespace BricKartOyunu
             lblBilgiZon = BilgiSatiriOlustur(icerik, "Zon:", y); y += satirYuksekligi;
             lblBilgiKontrat = BilgiSatiriOlustur(icerik, "Kontrat:", y); y += satirYuksekligi;
             lblBilgiDeklaran = BilgiSatiriOlustur(icerik, "Deklaran:", y); y += satirYuksekligi + 4;
+            lblBilgiSeed = BilgiSatiriOlustur(icerik, "Seed:", y); y += satirYuksekligi;
 
             // ─── Kazanılan El başlığı ───
             var lblKazanilanBaslik = new Label
@@ -1426,9 +1479,270 @@ namespace BricKartOyunu
                 TextAlign = ContentAlignment.MiddleCenter
             };
             icerik.Controls.Add(lblBilgiKazanilanEl);
+            y += lblBilgiKazanilanEl.Height; // 🔹 En alt elemanın yüksekliğini de ekle
+
+            // ═══════════════════════════════════════════════════════════════
+            // DÜZELTME: Paneli içeriğin gerçek yüksekliğine göre boyutlandır
+            // ═══════════════════════════════════════════════════════════════
+            int icerikGercekYuksekligi = y + icerik.Padding.Top + icerik.Padding.Bottom;
+            int yeniPanelYuksekligi = lblBaslik.Height + icerikGercekYuksekligi + 4; // +4 kenarlık payı
+
+            oyunBilgiPanel.Height = yeniPanelYuksekligi;
 
             this.Controls.Add(oyunBilgiPanel);
             oyunBilgiPanel.BringToFront();
+
+            // 🔹 SEED KISMI BURADAN TAMAMEN SİLİNDİ. 
+            // SetupSeedPanel() zaten kendi panelini oluşturuyor.
+        }
+
+        /// <summary>
+        /// Oyun bilgi panelinin hemen altına Seed Yönetimi panelini koyar.
+        /// </summary>
+        private void SetupSeedPanel()
+        {
+            if (seedPanel != null) return;
+
+            seedPanel = new Panel
+            {
+                Size = new Size(BilgiPanelGenislik, 90),
+                BackColor = Color.FromArgb(245, 245, 220),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            EnableDoubleBuffer(seedPanel);
+
+            // ─── Başlık ───
+            var lblBaslik = new Label
+            {
+                Dock = DockStyle.Top,
+                Height = 22,
+                Text = "SEED YÖNETİMİ",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(60, 60, 90)
+            };
+            seedPanel.Controls.Add(lblBaslik);
+
+            // ─── İçerik paneli ───
+            var icerik = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(6, 4, 6, 4),
+                BackColor = Color.Transparent
+            };
+            seedPanel.Controls.Add(icerik);
+            icerik.BringToFront();
+
+            // ─── ComboBox ───
+            int y = 4;
+            var lblSeed = new Label
+            {
+                Location = new Point(6, y),
+                Size = new Size(42, 22),
+                Text = "Seed:",
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(80, 80, 80),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            icerik.Controls.Add(lblSeed);
+
+            cmbSeed = new ComboBox
+            {
+                Location = new Point(50, y),
+                Size = new Size(155, 22),
+                DropDownStyle = ComboBoxStyle.DropDown,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular)
+            };
+            icerik.Controls.Add(cmbSeed);
+
+            // ─── Butonlar (ComboBox altında) ───
+            y += 30;
+
+            btnSeedSil = new Button
+            {
+                Location = new Point(6, y),
+                Size = new Size(70, 26),
+                Text = "Sil",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                UseVisualStyleBackColor = true
+            };
+            btnSeedSil.Click += BtnSeedSil_Click;
+            icerik.Controls.Add(btnSeedSil);
+
+            btnSeedDagit = new Button
+            {
+                Location = new Point(82, y),
+                Size = new Size(90, 26),
+                Text = "Dağıt",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                UseVisualStyleBackColor = true
+            };
+            btnSeedDagit.Click += BtnSeedDagit_Click;
+            icerik.Controls.Add(btnSeedDagit);
+
+            this.Controls.Add(seedPanel);
+            seedPanel.BringToFront();
+
+            System.Diagnostics.Debug.WriteLine(
+                "[SetupSeedPanel] Seed paneli oluşturuldu.");
+        }
+
+        /// <summary>
+        /// ComboBox'ı günceller (son seed'ler).
+        /// </summary>
+        private void ComboBoxGuncelle()
+        {
+            if (cmbSeed == null) return;
+
+            cmbSeed.Items.Clear();
+            foreach (var seed in _seedHafizasi)
+            {
+                cmbSeed.Items.Add(seed);
+            }
+
+            if (cmbSeed.Items.Count > 0)
+                cmbSeed.SelectedIndex = cmbSeed.Items.Count - 1;
+        }
+
+
+
+        /// <summary>
+        /// Dosyadan seed geçmişini okur.
+        /// </summary>
+        private void SeedHafizasiniYukle()
+        {
+            if (!File.Exists(SeedDosyaYolu)) return;
+
+            try
+            {
+                foreach (var satir in File.ReadAllLines(SeedDosyaYolu))
+                {
+                    if (int.TryParse(satir.Trim(), out int seed))
+                    {
+                        if (!_seedHafizasi.Contains(seed))
+                        {
+                            if (_seedHafizasi.Count >= MaxSeedHafiza)
+                                _seedHafizasi.Dequeue();
+                            _seedHafizasi.Enqueue(seed);
+                        }
+                    }
+                }
+                ComboBoxGuncelle();
+                System.Diagnostics.Debug.WriteLine($"[SeedYukle] {_seedHafizasi.Count} seed dosyadan yüklendi.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SeedYukle] Hata: {ex.Message}");
+            }
+        }
+
+
+
+
+        /// <summary>
+        /// Bellekteki seed geçmişini dosyaya yazar.
+        /// </summary>
+        private void SeedHafizasiniKaydet()
+        {
+            try
+            {
+                File.WriteAllLines(SeedDosyaYolu, _seedHafizasi.Select(s => s.ToString()));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SeedKaydet] Hata: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Seed'i hafızaya ekler (FIFO, max 10).
+        /// </summary>
+        private void SeedHafizayaEkle(int seed)
+        {
+            if (_seedHafizasi.Contains(seed)) return;
+
+            if (_seedHafizasi.Count >= MaxSeedHafiza)
+                _seedHafizasi.Dequeue();
+
+            _seedHafizasi.Enqueue(seed);
+            ComboBoxGuncelle();
+
+            // 🔹 EKLE: Her yeni seed eklendiğinde dosyaya kaydet
+            SeedHafizasiniKaydet();
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[SeedHafizasi] Eklendi: {seed} (toplam: {_seedHafizasi.Count})");
+        }
+
+        /// <summary>
+        /// "Sil" butonu: seçili seed'i siler.
+        /// </summary>
+        private void BtnSeedSil_Click(object sender, EventArgs e)
+        {
+            if (cmbSeed == null || string.IsNullOrWhiteSpace(cmbSeed.Text)) return;
+
+            if (!int.TryParse(cmbSeed.Text.Trim(), out int seciliSeed)) return;
+
+            var gecici = _seedHafizasi.Where(s => s != seciliSeed).ToList();
+            _seedHafizasi.Clear();
+            foreach (var s in gecici)
+                _seedHafizasi.Enqueue(s);
+
+            ComboBoxGuncelle();
+            SeedHafizasiniKaydet();
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[SeedSil] Silindi: {seciliSeed} (kalan: {_seedHafizasi.Count})");
+        }
+
+        /// <summary>
+        /// "Dağıt" butonu: seçili seed ile el dağıtır.
+        /// </summary>
+        private void BtnSeedDagit_Click(object sender, EventArgs e)
+        {
+            if (cmbSeed == null || string.IsNullOrWhiteSpace(cmbSeed.Text))
+            {
+                MessageBox.Show("Lütfen bir seed değeri girin veya seçin.", "Seed Dağıt",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 🔹 Değişiklik: Sadece seçili elemanı değil, kutudaki metni oku (manuel giriş için)
+            if (!int.TryParse(cmbSeed.Text.Trim(), out int seciliSeed))
+            {
+                MessageBox.Show("Geçersiz seed formatı! Lütfen sadece sayı girin.", "Hata",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var cevap = MessageBox.Show(
+                $"Seed: {seciliSeed}\n\n" +
+                "Mevcut el kaybolacak ve seçili seed ile yeni el dağıtılacak.\n" +
+                "Devam etmek istiyor musunuz?",
+                "Seed ile Dağıt",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (cevap != DialogResult.Yes) return;
+
+            KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, seciliSeed);
+
+            _oyunAsamasi = OyunAsamasi.Baslangic;
+            _currentTour++;
+            _dealer = SonrakiOyuncu(_dealer);
+            activePlayer = _dealer;
+            _declarer = _dealer;
+            _atakYapacakOyuncu = _dealer;
+            _kontrat = null;
+            _kontratDeklaran = _dealer;
+
+            ButonlariInaktifYap();
+            UpdateInfoBoard(_dealer);
+            OyunBilgiPaneliniGuncelle();
+            YeniDekBasFormAc();
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[SeedDagit] Manuel giriş/Seçim ile dağıtıldı: {seciliSeed}");
         }
 
         /// <summary>
@@ -1489,6 +1803,10 @@ namespace BricKartOyunu
                 lblBilgiDeklaran.Text = string.IsNullOrEmpty(_kontrat)
                     ? "—"
                     : PlayerIsmiTurkce(_kontratDeklaran);
+
+            // 🔹 Seed
+            if (lblBilgiSeed != null)
+                lblBilgiSeed.Text = _seed.ToString();
 
             // Kazanılan El
             if (lblBilgiKazanilanEl != null)
@@ -1703,6 +2021,40 @@ namespace BricKartOyunu
             }
         }
         /// <summary>
+        /// Bord bittiğinde dört oyuncunun 13'er kartlık ellerini açık gösterir.
+        /// Kartlar oynandıkça ellerden çıkarıldığı için eller, oynanan kart kaydından
+        /// (_oynananTumEller) yeniden kurulur. Renk sırası GetSuitSirasi ile aynıdır
+        /// (koz ilk grup; NT'de ♠ ♥ ♣ ♦). Masadaki son elin kartları temizlenir.
+        /// </summary>
+        private void BordSonuElleriniGoster()
+        {
+            foreach (var oyuncu in new[] { Player.Kuzey, Player.Guney, Player.Bati, Player.Dogu })
+            {
+                var el = OyuncuEli(oyuncu);
+                if (el == null) continue;
+
+                el.Clear();
+                el.AddRange(_oynananTumEller
+                    .Where(t => t.Oyuncu == oyuncu)
+                    .Select(t => t.Kart));
+            }
+
+            MasadakiKartlariTemizle();
+
+            this.SuspendLayout();
+            try
+            {
+                HepsiniGoster();
+            }
+            finally
+            {
+                this.ResumeLayout(true);
+            }
+
+            this.Refresh();
+        }
+
+        /// <summary>
         /// 13 el tamamlandığında Deal Complete formunu açar.
         /// Form kapandığında ne olacağını form kendi belirler
         /// (yeni el, ana menü vs.).
@@ -1718,8 +2070,12 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[BordTamamlandi] DealCompleteForm açılıyor...");
 
+            // Bord bitti: dört elin tamamı açık, masa boş olsun (form açılmadan önce çizilir)
+            BordSonuElleriniGoster();
+
             using (var form = new DealCompleteForm(this))
             {
+                form.StartPosition = FormStartPosition.CenterParent;
                 var sonuc = form.ShowDialog(this);
 
                 if (sonuc == DialogResult.OK)
@@ -1781,7 +2137,7 @@ namespace BricKartOyunu
             OyunBilgiPaneliniGuncelle();
 
             // 7) Yeni kartları dağıt
-            KartlariDagit(AnaSayfa.SeciliKartSeti);
+            KartlariDagitRastgele(AnaSayfa.SeciliKartSeti);
 
             // 8) Yeni DekBasForm aç
             YeniDekBasFormAc();
@@ -1794,6 +2150,18 @@ namespace BricKartOyunu
 
         private void KartlariDagit(string kartSeti)
         {
+            // 🔹 Seed yoksa üret
+            if (_seed <= 0)
+            {
+                _seed = YeniSeed();
+            }
+
+            // 🔹 Seed'e bağlı deterministik Random
+            var rng = new Random(_seed);
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[KartlariDagit] Seed: {_seed}");
+
             this.SuspendLayout();
             try
             {
@@ -1805,10 +2173,10 @@ namespace BricKartOyunu
                     foreach (var r in rank)
                         kartlar.Add(r + s + ".png");
 
-                // 🔹 Fisher-Yates shuffle
+                // 🔹 Fisher-Yates shuffle (seed'li rng)
                 for (int i = kartlar.Count - 1; i > 0; i--)
                 {
-                    int j = _rng.Next(i + 1);
+                    int j = rng.Next(i + 1);
                     (kartlar[i], kartlar[j]) = (kartlar[j], kartlar[i]);
                 }
 
@@ -1851,12 +2219,42 @@ namespace BricKartOyunu
 
                 // ─── 5. Görsel gösterim: sadece insan oyuncunun (Güney) eli açık ───
                 SadeceGuneyiGoster();
+                // 🔹 Seed'i hafızaya ekle
+                SeedHafizayaEkle(_seed);
             }
+
             finally
             {
                 this.ResumeLayout(true);
             }
         }
+
+        /// <summary>
+        /// Belirli bir seed ile el dağıtır.
+        /// Aynı seed + aynı kart seti → aynı dağıtım.
+        /// Test için: aynı eli tekrar dağıtmak istediğinde kullan.
+        /// </summary>
+        public void KartlariDagitSeedIle(string kartSeti, int seed)
+        {
+            _seed = seed;
+            KartlariDagit(kartSeti);
+            System.Diagnostics.Debug.WriteLine(
+                $"[KartlariDagitSeedIle] Seed: {seed}");
+        }
+
+        /// <summary>
+        /// Rastgele seed ile el dağıtır (mevcut davranış).
+        /// Yeni bord başlarken kullanılır.
+        /// </summary>
+        public void KartlariDagitRastgele(string kartSeti)
+        {
+            _seed = YeniSeed();
+            KartlariDagit(kartSeti);
+            System.Diagnostics.Debug.WriteLine(
+                $"[KartlariDagitRastgele] Yeni seed: {_seed}");
+        }
+
+
         // 🔹 "Elleri Değiştir" formundan (ElleriDegistir.BtnOK_Click) çağrılır: Güney'in
         // eli (kullanıcının eli), seçilen yöndeki oyuncunun eliyle takas edilir.
         // guneyEl/batiEl/kuzeyEl/doguEl alanları 'readonly' olduğu için referans
@@ -1940,47 +2338,62 @@ namespace BricKartOyunu
         /// </summary>
         private void DeklaranVeDummyGoster()
         {
-            KartYerlesimiHazirla();
+            // 🔹 KRİTİK DEĞİŞİKLİK: KartYerlesimiHazirla() ÇAĞIRMIYORUZ!
+            // Çünkü o metot tüm kartları açık şekilde yerleştiriyor.
+            // Bunun yerine sadece Güney ve Dummy'yi yerleştireceğiz.
 
             Image backImg = GetBackImage();
 
-            // 1) Önce hepsini kapat
+            // 1) TÜM KARTLARI KAPAT (Batı, Doğu, Kuzey)
+            // (Güney'i en son açacağız)
             for (int i = 0; i < 13; i++)
             {
-                if (kuzeyKartlar[i] != null) kuzeyKartlar[i].Image = backImg;
-                if (guneyKartlar[i] != null) guneyKartlar[i].Image = backImg;
-                if (batiKartlar[i] != null) batiKartlar[i].Image = backImg;
-                if (doguKartlar[i] != null) doguKartlar[i].Image = backImg;
-            }
-
-            // 2) Güney (insan) — her zaman açık
-            BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
-
-            // 3) Dummy açık
-            Player dummy = IhaleDurumu.PartnerBul(_kontratDeklaran);
-            if (dummy != Player.Guney)   // Güney zaten açık
-            {
-                switch (dummy)
+                if (kuzeyKartlar[i] != null)
                 {
-                    case Player.Kuzey:
-                        // Kuzey dummy ise AI özelliği kapatılır (Sadece deklarasyon sırasında AI'dır)
-                        // Not: BricOyna'da AI kontrolü AITetikle/AIOyna içinde activePlayer kontrolü ile yapılır.
-                        // Dummy oyuncunun sırası gelmeyeceği için zaten AIOyna çağrılmayacaktır.
-                        // Ancak görsel olarak veya diğer mantıklar için dummy olduğunu belirtmek gerekebilir.
-                        BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
-                        break;
-                    case Player.Bati:
-                        BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY());
-                        break;
-                    case Player.Dogu:
-                        BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY());
-                        break;
+                    kuzeyKartlar[i].Image = backImg;
+                    kuzeyKartlar[i].Visible = true;
+                    if (backImg == null) kuzeyKartlar[i].BackColor = AnaSayfa.MasaRengi;
+                }
+                if (batiKartlar[i] != null)
+                {
+                    batiKartlar[i].Image = backImg;
+                    batiKartlar[i].Visible = true;
+                    if (backImg == null) batiKartlar[i].BackColor = AnaSayfa.MasaRengi;
+                }
+                if (doguKartlar[i] != null)
+                {
+                    doguKartlar[i].Image = backImg;
+                    doguKartlar[i].Visible = true;
+                    if (backImg == null) doguKartlar[i].BackColor = AnaSayfa.MasaRengi;
+                }
+                if (guneyKartlar[i] != null)
+                {
+                    guneyKartlar[i].Image = backImg;
+                    guneyKartlar[i].Visible = true;
+                    if (backImg == null) guneyKartlar[i].BackColor = AnaSayfa.MasaRengi;
                 }
             }
 
-            // 4) Deklaran Güney değilse → kapalı kalır (yukarıda hepsi zaten kapatıldı).
-            //    Ekstra bir şey yapmaya gerek yok.
+            // 2) GÜNEY'İN ELİNİ AÇ (insan oyuncu)
+            BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
 
+            // 3) DUMMY'Yİ AÇ
+            Player dummy = IhaleDurumu.PartnerBul(_kontratDeklaran);
+
+            if (dummy == Player.Kuzey)
+            {
+                BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
+            }
+            else if (dummy == Player.Bati)
+            {
+                BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY());
+            }
+            else if (dummy == Player.Dogu)
+            {
+                BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY());
+            }
+
+            // 4) Oyuncu badge'lerini güncelle
             SetupPlayerBadges();
         }
         private void HepsiniGoster()
@@ -2063,12 +2476,10 @@ namespace BricKartOyunu
 
             if (groupSuits)
             {
-                var siraliMaça = eldekiKartlar.Where(k => k.Suit == "Maça").OrderByDescending(k => k.Value).ToList();
-                var siraliKupa = eldekiKartlar.Where(k => k.Suit == "Kupa").OrderByDescending(k => k.Value).ToList();
-                var siraliSinek = eldekiKartlar.Where(k => k.Suit == "Sinek").OrderByDescending(k => k.Value).ToList();
-                var siraliKaro = eldekiKartlar.Where(k => k.Suit == "Karo").OrderByDescending(k => k.Value).ToList();
-
-                List<List<Card>> tumRenkGruplari = new List<List<Card>> { siraliMaça, siraliKupa, siraliSinek, siraliKaro };
+                // Renk sırası: ihale sonrası koz en solda, sonra renkler dönüşümlü (bkz. GetSuitSirasi)
+                List<List<Card>> tumRenkGruplari = GetSuitSirasi()
+                    .Select(renk => eldekiKartlar.Where(k => k.Suit == renk).OrderByDescending(k => k.Value).ToList())
+                    .ToList();
                 int renkBloklarArasiBosluk = sikiDizim ? 0 : 10;
 
                 foreach (var renkGrubu in tumRenkGruplari)
@@ -2119,11 +2530,11 @@ namespace BricKartOyunu
         private void BricStandartlarinaGoreDiz(PictureBox[] kartResimleri, List<Card> eldekiKartlar, int baslangicX, int baslangicY)
         {
             for (int i = 0; i < kartResimleri.Length; i++) if (kartResimleri[i] != null) kartResimleri[i].Visible = false;
-            var siraliMaça = eldekiKartlar.Where(k => k.Suit == "Maça").OrderByDescending(k => k.Value).ToList();
-            var siraliKupa = eldekiKartlar.Where(k => k.Suit == "Kupa").OrderByDescending(k => k.Value).ToList();
-            var siraliSinek = eldekiKartlar.Where(k => k.Suit == "Sinek").OrderByDescending(k => k.Value).ToList();
-            var siraliKaro = eldekiKartlar.Where(k => k.Suit == "Karo").OrderByDescending(k => k.Value).ToList();
-            List<List<Card>> tumSatirlar = new List<List<Card>> { siraliMaça, siraliKupa, siraliSinek, siraliKaro }.Where(satir => satir.Count > 0).ToList();
+            // Renk sırası: ihale sonrası koz en üstte, sonra renkler dönüşümlü (bkz. GetSuitSirasi)
+            List<List<Card>> tumSatirlar = GetSuitSirasi()
+                .Select(renk => eldekiKartlar.Where(k => k.Suit == renk).OrderByDescending(k => k.Value).ToList())
+                .Where(satir => satir.Count > 0)
+                .ToList();
             int yatayKayma = 20;
             int dikeySatirAraligi = _kartYukseklik + 2;
             int toplamKullanilanKart = 0;
@@ -2544,6 +2955,16 @@ namespace BricKartOyunu
             if (kart == null) return;
             if (_oyunAsamasi != OyunAsamasi.Oyun) return;
 
+            // El bitti, masadaki 4 kart henüz temizlenmedi (PlayZone tıklaması bekleniyor).
+            // Bu durumda kart oynanırsa önceki elin kartlarıyla karışır, oyuncular
+            // aynı elde iki kez oynar ve eller dengesiz biter. Kartı kabul etme.
+            if (_elBittiBekliyor || _oynananToplamEl >= 13)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[KartOyna] {oyuncu} kartı reddedildi — el/bord bitti, yeni el başlamadan kart oynanamaz.");
+                return;
+            }
+
             // Sıra bu oyuncuda mı?
             if (activePlayer != oyuncu)
             {
@@ -2707,17 +3128,91 @@ namespace BricKartOyunu
                     kartResimleri[i].Visible = false;
             }
 
+            // ─── 2b. Kapalı Batı/Doğu: başlangıçtaki düz dikey yığın düzeni ───
+            // (Renk renk dizim kalan kartlardan dağılım bilgisi sızdırır.)
+            if ((oyuncu == Player.Bati || oyuncu == Player.Dogu) && !OyuncuEliAcikMi(oyuncu))
+            {
+                KapaliDikeyYiginiDuzenle(kartResimleri, el.Count, baslangicX);
+                return;
+            }
+
             // ─── 3. Kalan kartları yeniden diz ───
             // NOT: Zaten diğer kartlar dizili ama oynanan kart gizlenmediği için
             //      yeniden dizmek en temiz yol.
             if (yatayDizim)
             {
-                BricStandartlarinaGoreDizYatay(kartResimleri, el, baslangicX, baslangicY, false, true);
+                BricStandartlarinaGoreDizYatay(kartResimleri, el, baslangicX, baslangicY, false, OyuncuEliAcikMi(oyuncu));
             }
             else
             {
                 BricStandartlarinaGoreDiz(kartResimleri, el, baslangicX, baslangicY);
             }
+
+            // ─── 4. Açık olmaması gereken oyuncunun kartlarını tekrar kapat ───
+            // Dizim metotları kartları açık yüzle çizer; defans oyuncusu (ve deklaran
+            // Güney değilse) yeniden dizimden sonra kapalı kalmalı.
+            if (!OyuncuEliAcikMi(oyuncu))
+            {
+                Image backImg = GetBackImage();
+                for (int i = 0; i < kartResimleri.Length; i++)
+                {
+                    if (kartResimleri[i] == null || !kartResimleri[i].Visible) continue;
+                    if (backImg != null) kartResimleri[i].Image = backImg;
+                    else { kartResimleri[i].Image = null; kartResimleri[i].BackColor = AnaSayfa.MasaRengi; }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Kapalı Batı/Doğu elini KartYerlesimiHazirla ile aynı düz dikey yığın olarak çizer.
+        /// Kalan kart sayısı kadar kutu görünür; yığın aralığı ve konumu değişmez,
+        /// böylece renk dağılımı hakkında hiçbir ipucu verilmez.
+        /// </summary>
+        private void KapaliDikeyYiginiDuzenle(PictureBox[] kartResimleri, int kalanKartSayisi, int x)
+        {
+            int maxEWToplamYukseklik = (4 * _kartYukseklik) + (3 * 2);
+            int ewBaslangicY = _kuzeyY + 172;
+            float dikeyAdim = (maxEWToplamYukseklik - _kartYukseklik) / 12f;
+            if (dikeyAdim < 0) dikeyAdim = 0;
+
+            Image backImg = GetBackImage();
+
+            for (int i = 0; i < kartResimleri.Length; i++)
+            {
+                var pb = kartResimleri[i];
+                if (pb == null) continue;
+
+                if (i < kalanKartSayisi)
+                {
+                    if (backImg != null) pb.Image = backImg;
+                    else { pb.Image = null; pb.BackColor = AnaSayfa.MasaRengi; }
+                    pb.Left = x;
+                    pb.Top = ewBaslangicY + (int)(i * dikeyAdim);
+                    pb.Visible = true;
+                    pb.BringToFront();
+                }
+                else
+                {
+                    pb.Visible = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Oyun aşamasında bu oyuncunun eli açık mı gösterilmeli?
+        /// Güney (insan) her zaman; dummy (deklaranın ortağı) açık; diğerleri kapalı.
+        /// "Hepsi / E-W / N-S göster" butonları aktifse o oyuncular da açık kalır.
+        /// </summary>
+        private bool OyuncuEliAcikMi(Player oyuncu)
+        {
+            if (oyuncu == Player.Guney) return true;
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return true; // ihale aşamasında mevcut davranış korunur
+
+            if (BtnHepsi != null && BtnHepsi.Checked) return true;
+            if (BtnEW != null && BtnEW.Checked && (oyuncu == Player.Dogu || oyuncu == Player.Bati)) return true;
+            if (BtnNS != null && BtnNS.Checked && oyuncu == Player.Kuzey) return true;
+
+            return oyuncu == IhaleDurumu.PartnerBul(_kontratDeklaran); // dummy
         }
 
         /// <summary>
@@ -2813,18 +3308,42 @@ namespace BricKartOyunu
         }
 
         /// <summary>
-        /// Aktif oyuncu AI ise otomatik oynar (basit: renk takip + rastgele).
+        /// Aktif oyuncu AI ise otomatik oynar.
+        /// Basit ama briç mantığına uygun kart seçimi:
+        /// 1. Koz varsa: kozu oyna (en düşük koz — küçük koz)
+        /// 2. Renk takip zorunluysa: 
+        ///    - Ortak As/K oynadıysa → en düşük
+        ///    - Rakip yüksek oynadıysa → en yüksek (üçüncü el yüksek)
+        ///    - İkinci el → en düşük (second hand low)
+        ///    - Dördüncü el → kazanacak en düşük
+        ///    - Diğer → en düşük
+        /// 3. Renk yoksa: kozu oyna veya en düşük kart
+        /// </summary>
+        /// <summary>
+        /// Aktif oyuncu AI ise otomatik oynar.
+        /// 
+        /// Briç mantığına uygun kart seçimi:
+        /// 1. Açılış atağı: AtakKurallari (As, Rua, Dam atağı vs.)
+        /// 2. Renk takip zorunluysa:
+        ///    - Ortak As/K oynadıysa → en düşük
+        ///    - Rakip Q+ oynadıysa → en yüksek
+        ///    - İkinci el → en düşük (second hand low)
+        ///    - Üçüncü el → en yüksek (third hand high)
+        ///    - Dördüncü el → kazanacak en düşük, kazanamıyorsa en düşük
+        /// 3. Renk yoksa:
+        ///    - Rakip kazanıyorsa → en yüksek koz (trick'i kazan)
+        ///    - Ortak kazanıyorsa → en düşük koz (üstüne koz verme)
+        ///    - Koz yoksa → en düşük kart (ıskarta)
         /// </summary>
         private void AIOyna(Player oyuncu)
         {
             System.Diagnostics.Debug.WriteLine(
-        $"[AIOyna] Çağrıldı — oyuncu: {oyuncu}, aktif: {activePlayer}, " +
-        $"aşama: {_oyunAsamasi}");
+                $"[AIOyna] Çağrıldı — oyuncu: {oyuncu}, aktif: {activePlayer}, " +
+                $"aşama: {_oyunAsamasi}");
 
             if (_oyunAsamasi != OyunAsamasi.Oyun)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    "[AIOyna] Aşama Oyun değil, çıkılıyor.");
+                System.Diagnostics.Debug.WriteLine("[AIOyna] Aşama Oyun değil, çıkılıyor.");
                 return;
             }
             if (InsanKontrolundeMi(oyuncu))
@@ -2848,21 +3367,163 @@ namespace BricKartOyunu
                 return;
             }
 
-            // Renk takip: atak renginden var mı?
+            string koz = KontratKozu();
+            Player ortagim = IhaleDurumu.PartnerBul(oyuncu);
             Card secilen = null;
-            if (!string.IsNullOrEmpty(_buEldeAtakRengi))
+
+            // ═══════════════════════════════════════════════════════════════
+            // 1. AÇILIŞ ATAĞI (elin ilk kartı ve henüz kart oynanmadı)
+            // ═══════════════════════════════════════════════════════════════
+            if (string.IsNullOrEmpty(_buEldeAtakRengi) && el.Count == 13)
             {
-                var ayniRenk = el.Where(c => c.Suit == _buEldeAtakRengi).ToList();
-                if (ayniRenk.Count > 0)
+                var adaylar = AtakKurallari.AdaylariBul(el);
+                if (adaylar.Count > 0)
                 {
-                    secilen = ayniRenk[_rng.Next(ayniRenk.Count)];
+                    var oneri = adaylar.OrderByDescending(a => a.Kart.Value).First();
+                    secilen = oneri.Kart;
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[AIOyna] Açılış atağı kuralı: {oneri.Kural} — {oneri.Aciklama}");
                 }
             }
 
-            // Yoksa rastgele
+            // ═══════════════════════════════════════════════════════════════
+            // 2. RENK TAKİP ZORUNLULUĞU (atak renginden var mı?)
+            // ═══════════════════════════════════════════════════════════════
+            if (secilen == null && !string.IsNullOrEmpty(_buEldeAtakRengi))
+            {
+                var ayniRenk = el.Where(c => c.Suit == _buEldeAtakRengi)
+                                 .OrderByDescending(c => c.Value)
+                                 .ToList();
+
+                if (ayniRenk.Count > 0)
+                {
+                    int oynananSayisi = _buEldeOynananlar.Count;
+
+                    // Ortağın ve rakiplerin bu elde oynadığı kartlar
+                    var ortagimKarti = _buEldeOynananlar
+                        .FirstOrDefault(x => x.Oyuncu == ortagim);
+                    var rakipKartlari = _buEldeOynananlar
+                        .Where(x => x.Oyuncu != oyuncu && x.Oyuncu != ortagim)
+                        .ToList();
+
+                    // ─── Durum A: Ortak As/K oynadıysa → en düşük (Q'yu sakla) ───
+                    if (ortagimKarti.Kart != null && ortagimKarti.Kart.Value >= 13)
+                    {
+                        secilen = ayniRenk.Last();  // en düşük
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AIOyna] Ortak As/K oynadı → en düşük ({secilen.Value})");
+                    }
+                    // ─── Durum B: Rakip Q veya üstü oynadıysa → en yüksek ───
+                    else if (rakipKartlari.Any(x => x.Kart.Value >= 12))
+                    {
+                        secilen = ayniRenk.First();  // en yüksek
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AIOyna] Rakip yüksek oynadı → en yüksek ({secilen.Value})");
+                    }
+                    // ─── Durum C: İkinci el → en düşük (second hand low) ───
+                    else if (oynananSayisi == 1)
+                    {
+                        secilen = ayniRenk.Last();  // en düşük
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AIOyna] İkinci el → en düşük ({secilen.Value})");
+                    }
+                    // ─── Durum D: Üçüncü el → en yüksek (third hand high) ───
+                    else if (oynananSayisi == 2)
+                    {
+                        secilen = ayniRenk.First();  // en yüksek
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AIOyna] Üçüncü el → en yüksek ({secilen.Value})");
+                    }
+                    // ─── Durum E: Dördüncü el → kazanacak en düşük ───
+                    else if (oynananSayisi == 3)
+                    {
+                        // Atak renginde şu an en yüksek oynanan kart
+                        var atakRengindeOynananlar = _buEldeOynananlar
+                            .Where(x => x.Kart.Suit == _buEldeAtakRengi)
+                            .ToList();
+
+                        // Koz oynandı mı?
+                        bool kozOynandi = !string.IsNullOrEmpty(koz) &&
+                                          _buEldeOynananlar.Any(x => x.Kart.Suit == koz);
+
+                        if (kozOynandi)
+                        {
+                            // Koz oynandıysa kazanmak için koz gerekir
+                            var kozKartlari = el.Where(c => c.Suit == koz)
+                                                .OrderBy(c => c.Value)
+                                                .ToList();
+                            if (kozKartlari.Count > 0)
+                            {
+                                secilen = kozKartlari.First();
+                            }
+                        }
+
+                        if (secilen == null)
+                        {
+                            int enYuksekOynanan = atakRengindeOynananlar
+                                .Max(x => x.Kart.Value);
+
+                            var kazanacak = ayniRenk
+                                .Where(c => c.Value > enYuksekOynanan)
+                                .OrderBy(c => c.Value)
+                                .FirstOrDefault();
+
+                            secilen = kazanacak ?? ayniRenk.Last();
+                        }
+
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AIOyna] Dördüncü el → kazanacak en düşük ({secilen.Value})");
+                    }
+                    // ─── Durum F: Diğer → en düşük ───
+                    else
+                    {
+                        secilen = ayniRenk.Last();
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AIOyna] Diğer → en düşük ({secilen.Value})");
+                    }
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // 3. RENK YOK — KOZ OYNA VEYA EN DÜŞÜK
+            // ═══════════════════════════════════════════════════════════════
             if (secilen == null)
             {
-                secilen = el[_rng.Next(el.Count)];
+                if (!string.IsNullOrEmpty(koz))
+                {
+                    var kozKartlari = el.Where(c => c.Suit == koz)
+                                        .OrderByDescending(c => c.Value)
+                                        .ToList();
+
+                    if (kozKartlari.Count > 0)
+                    {
+                        // Şu an trick'i kim kazanıyor?
+                        Player suAnkiKazanan = SuAnkiTrickKazanani();
+
+                        if (suAnkiKazanan != ortagim)
+                        {
+                            // Rakip kazanıyor → en yüksek koz (trick'i kazan)
+                            secilen = kozKartlari.First();
+                            System.Diagnostics.Debug.WriteLine(
+                                $"[AIOyna] Renk yok, rakip kazanıyor → en yüksek koz ({secilen.Value})");
+                        }
+                        else
+                        {
+                            // Ortak kazanıyor → en düşük koz (üstüne koz verme)
+                            secilen = kozKartlari.Last();
+                            System.Diagnostics.Debug.WriteLine(
+                                $"[AIOyna] Renk yok, ortak kazanıyor → en düşük koz ({secilen.Value})");
+                        }
+                    }
+                }
+
+                // Koz yok veya kozumuz yok → en düşük kart (ıskarta)
+                if (secilen == null)
+                {
+                    secilen = el.OrderBy(c => c.Value).First();
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[AIOyna] Renk yok, koz yok → en düşük ({secilen.Suit} {secilen.Value})");
+                }
             }
 
             System.Diagnostics.Debug.WriteLine(
@@ -2871,7 +3532,56 @@ namespace BricKartOyunu
             // Kartı oyna (aynı merkezi metot)
             KartOyna(oyuncu, secilen, secilen.Image);
         }
+        /// <summary>
+        /// Şu anki trick'te (henüz 4 kart tamamlanmadan) kim kazanıyor?
+        /// Koz varsa ve oynanmışsa → en yüksek koz
+        /// Yoksa → atak rengindeki en yüksek kart
+        /// </summary>
+        private Player SuAnkiTrickKazanani()
+        {
+            if (_buEldeOynananlar == null || _buEldeOynananlar.Count == 0)
+                return activePlayer;
 
+            string koz = KontratKozu();
+            string atakRengi = _buEldeAtakRengi;
+
+            Card enYuksekKoz = null;
+            Player kozSahibi = activePlayer;
+
+            Card enYuksekAtak = null;
+            Player atakSahibi = activePlayer;
+
+            foreach (var (o, k) in _buEldeOynananlar)
+            {
+                if (k == null) continue;
+
+                // Koz kontrolü
+                if (!string.IsNullOrEmpty(koz) && k.Suit == koz)
+                {
+                    if (enYuksekKoz == null || k.Value > enYuksekKoz.Value)
+                    {
+                        enYuksekKoz = k;
+                        kozSahibi = o;
+                    }
+                }
+
+                // Atak rengi kontrolü
+                if (!string.IsNullOrEmpty(atakRengi) && k.Suit == atakRengi)
+                {
+                    if (enYuksekAtak == null || k.Value > enYuksekAtak.Value)
+                    {
+                        enYuksekAtak = k;
+                        atakSahibi = o;
+                    }
+                }
+            }
+
+            // Koz oynandıysa → koz kazanır
+            if (enYuksekKoz != null) return kozSahibi;
+
+            // Yoksa atak rengindeki en yüksek
+            return atakSahibi;
+        }
         /// <summary>
         /// Bu elde oynanan 4 kart arasında kazananı belirler.
         /// Kurallar:
@@ -3019,6 +3729,7 @@ namespace BricKartOyunu
 
             ButonlariInaktifYap();
             UpdateInfoBoard(_dealer);
+            _seed++;  // 🔹 Yeni el → yeni seed
             KartlariDagit(AnaSayfa.SeciliKartSeti);
 
             // 🔹 YENİ: Bilgi panelini güncelle (yeni Dealer ve Zon görünsün)
@@ -3080,6 +3791,19 @@ namespace BricKartOyunu
         private Label lblBilgiDeklaran;
         private Label lblBilgiKazanilanEl;
 
+        // ═══════════════════════════════════════════════════════════════════
+        // SEED PANELİ (oyun bilgi panelinin altında)
+        // ═══════════════════════════════════════════════════════════════════
+
+        private Panel seedPanel;
+
+        //private Button btnSeedSil;
+        //private Button btnSeedDagit;
+        //private readonly Queue<int> _seedHafizasi = new Queue<int>(10);
+        //private const int MaxSeedHafiza = 10;
+
+
+
         private const int BilgiPanelGenislik = 220;
         private const int BilgiPanelYukseklik = 190;
         private const int BilgiPanelSagBosluk = 20;
@@ -3107,17 +3831,47 @@ namespace BricKartOyunu
         {
             if (string.IsNullOrEmpty(_kontrat)) return null;
 
-            char sonKarakter = _kontrat.Last();
+            // NT — koz yok ("3NT", "3NT X" ...)
+            if (_kontrat.IndexOf("NT", StringComparison.OrdinalIgnoreCase) >= 0) return null;
 
-            switch (sonKarakter)
+            // Kontralı kontratlarda ("4♠X", "4♠ XX") son karakter X olabilir;
+            // bu yüzden son renk sembolü aranır.
+            int idx = _kontrat.LastIndexOfAny(new[] { '♠', '♥', '♦', '♣' });
+            if (idx < 0) return null;
+
+            switch (_kontrat[idx])
             {
                 case '♠': return "Maça";
                 case '♥': return "Kupa";
                 case '♦': return "Karo";
                 case '♣': return "Sinek";
-                case 'T': return null;   // NT — koz yok
-                case 't': return null;
                 default: return null;
+            }
+        }
+
+        /// <summary>
+        /// Elde renklerin dizilme sırası.
+        ///   - İhale sırasında / NT kontratında: Maça, Kupa, Sinek, Karo (değişmez).
+        ///   - Renk kontratında: koz 1. sırada (N/S'de en solda, E/W'de en üstte),
+        ///     kalan renkler siyah-kırmızı dönüşümlü:
+        ///       Maça  koz → Maça, Kupa, Sinek, Karo
+        ///       Sinek koz → Sinek, Kupa, Maça, Karo
+        ///       Kupa  koz → Kupa, Maça, Karo, Sinek
+        ///       Karo  koz → Karo, Maça, Kupa, Sinek
+        /// </summary>
+        private string[] GetSuitSirasi()
+        {
+            string[] varsayilan = { "Maça", "Kupa", "Sinek", "Karo" };
+
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return varsayilan;
+
+            switch (KontratKozu())
+            {
+                case "Maça": return new[] { "Maça", "Kupa", "Sinek", "Karo" };
+                case "Sinek": return new[] { "Sinek", "Kupa", "Maça", "Karo" };
+                case "Kupa": return new[] { "Kupa", "Maça", "Karo", "Sinek" };
+                case "Karo": return new[] { "Karo", "Maça", "Kupa", "Sinek" };
+                default: return varsayilan; // NT
             }
         }
 
@@ -3162,26 +3916,82 @@ namespace BricKartOyunu
             _kontratDeklaran = OyuncuyaCevir(deklaran);
             _declarer = _kontratDeklaran;
             _atakYapacakOyuncu = OyuncuyaCevir(solRakip);
-
-            // 🔹 İhale bitti → açılışı yapacak oyuncu = "dealer"
             _dealer = _atakYapacakOyuncu;
-
-            // Oyun başlangıcında sıra atak yapacak oyuncuda
             activePlayer = _atakYapacakOyuncu;
 
             OyunBilgiPaneliniGuncelle();
 
-            // 🔹 Deklaran ve dummy açık, rakipler kapalı (Briç kuralı)
             this.SuspendLayout();
             try
             {
-                DeklaranVeDummyGoster();
+                // 🔹 1. ADIM: TÜM PictureBox'ları gizle ve görseli temizle
+                for (int i = 0; i < 13; i++)
+                {
+                    if (kuzeyKartlar[i] != null) kuzeyKartlar[i].Visible = false;
+                    if (guneyKartlar[i] != null) guneyKartlar[i].Visible = false;
+                    if (batiKartlar[i] != null) batiKartlar[i].Visible = false;
+                    if (doguKartlar[i] != null) doguKartlar[i].Visible = false;
+                }
+
+                // 🔹 2. ADIM: KartYerlesimiHazirla() ÇAĞIR (konumları ayarlar, kartları yerleştirir)
+                KartYerlesimiHazirla();
+
+                // 🔹 3. ADIM: Görseli arka yüz resmiyle değiştir
+                Image backImg = GetBackImage();
+                for (int i = 0; i < 13; i++)
+                {
+                    if (batiKartlar[i] != null)
+                    {
+                        batiKartlar[i].Image = backImg;
+                        if (backImg == null) batiKartlar[i].BackColor = AnaSayfa.MasaRengi;
+                    }
+                    if (doguKartlar[i] != null)
+                    {
+                        doguKartlar[i].Image = backImg;
+                        if (backImg == null) doguKartlar[i].BackColor = AnaSayfa.MasaRengi;
+                    }
+                }
+
+                // 🔹 4. ADIM: Güney'in elini aç
+                BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
+
+                // 🔹 5. ADIM: Dummy'yi aç
+                Player dummy = IhaleDurumu.PartnerBul(_kontratDeklaran);
+
+                if (dummy == Player.Kuzey)
+                {
+                    BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
+                }
+                else if (dummy == Player.Bati)
+                {
+                    BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY());
+                }
+                else if (dummy == Player.Dogu)
+                {
+                    BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY());
+                }
+
+                // 🔹 6. ADIM: Batı ve Doğu'yu KESİNLİKLE kapat
+                for (int i = 0; i < 13; i++)
+                {
+                    if (batiKartlar[i] != null)
+                    {
+                        batiKartlar[i].Image = backImg;
+                        if (backImg == null) batiKartlar[i].BackColor = AnaSayfa.MasaRengi;
+                    }
+                    if (doguKartlar[i] != null)
+                    {
+                        doguKartlar[i].Image = backImg;
+                        if (backImg == null) doguKartlar[i].BackColor = AnaSayfa.MasaRengi;
+                    }
+                }
             }
             finally
             {
                 this.ResumeLayout(true);
             }
 
+            // 🔹 7. ADIM: AI'ı tetikle
             if (!InsanKontrolundeMi(activePlayer))
             {
                 AITetikle();

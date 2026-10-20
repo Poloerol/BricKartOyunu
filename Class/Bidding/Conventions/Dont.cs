@@ -17,7 +17,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   2♠    = Doğal, 6+ ♠
     ///   2NT   = Güçlü iki renkli el
     /// 
-    /// HP eşikleri (2026-10-14 düzeltmesi):
+    /// HP eşikleri:
     ///   Direct seat  : 9+ HP
     ///   Balancing    : 7+ HP  (1NT - Pas - Pas sonrası)
     /// 
@@ -25,6 +25,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   (1NT) - Dbl - (Pas) - 2♣ (zorunlu) - (Pas) - 2♥/2♠/3♣/3♦ (gerçek renk)
     ///   (1NT) - 2♣ - (Pas) - Pas (3+ ♣) / 2♦ (diğer renk sorusu)
     ///   (1NT) - 2♦ - (Pas) - 2♥ (majör sorusu) / 2♠ (uzun ♠)
+    /// 
+    /// Değişiklik günlüğü:
+    ///   - UygunMu Durum 2: Dbl "gerçek teklif" olmadığı için SonGercekTeklif/PartnerTeklifleri
+    ///     üzerinden aranıyordu ve hiç tetiklenmiyordu. Artık PartnerDontTeklifi (Gecmis tabanlı)
+    ///     kullanılıyor; Dbl ve 2♣/2♦/2♥/2♠/2NT cevapları aynı kapıdan geçiyor.
+    ///   - Balancing (1NT - Pas - Pas) için ayrı HP eşiği (7+), direct için 9+.
+    ///   - MudahaleTeklifi: doğal 6+ ♠ (2♠) iki renkli dallardan önce kontrol edilir.
+    ///   - Dbl - 2♣ sonrası partner gerçek rengini söyleyince Pas (devam dalı).
     /// </summary>
     public class Dont : IKonvansiyon
     {
@@ -34,14 +42,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // Cappelletti (12)'den sonra, ama diğerlerinden önce
         public int Oncelik => 12;
 
+        private const int DirectHpEsigi = 9;
+        private const int BalancingHpEsigi = 7;
+
         private static readonly string[] DontTeklifleri =
             { "Dbl", "2♣", "2♦", "2♥", "2♠", "2NT" };
 
-        private static readonly string[] Renkler =
-            { "Maça", "Kupa", "Karo", "Sinek" };
-
         // ═══════════════════════════════════════════════════════════════════
-        // YARDIMCI: Partner DONT müdahalesi yaptı mı?
+        // YARDIMCI METOTLAR
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>
@@ -49,13 +57,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// bir DONT teklifiyse onu döner, değilse null.
         /// 
         /// DİKKAT: Dbl "gerçek teklif" değildir (GercekTeklifMi=false), bu yüzden
-        /// durum.PartnerTeklifleri veya GercekTeklifMi filtresi yerine tüm
-        /// geçmişe (Gecmis) bakılır.
+        /// tüm geçmişe (Gecmis) bakılır.
         /// </summary>
         private string PartnerDontTeklifi(IhaleDurumu durum)
         {
             var liste = durum.Gecmis.ToList();
-
             int birNtIndex = liste.FindIndex(h =>
                 h.Teklif == "1NT" && durum.Rakipler.Contains(h.Oyuncu));
             if (birNtIndex < 0) return null;
@@ -65,7 +71,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 .Where(h => h.Oyuncu == durum.Partner && h.Teklif != "Pas")
                 .ToList();
 
-            // Partner 1NT'den sonra yalnızca bir kez teklif yapmış ve bu DONT teklifi olmalı
             if (partnerTeklifleri.Count == 1
                 && DontTeklifleri.Contains(partnerTeklifleri[0].Teklif))
             {
@@ -75,50 +80,104 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return null;
         }
 
+        /// <summary>
+        /// 1NT'den sonra BEN (ne partner ne rakip olan oyuncu) Pas-olmayan
+        /// kaç teklif yaptım?
+        /// </summary>
+        private int BenimTekliflerimSayisi(IhaleDurumu durum)
+        {
+            var liste = durum.Gecmis.ToList();
+            int birNtIndex = liste.FindIndex(h =>
+                h.Teklif == "1NT" && durum.Rakipler.Contains(h.Oyuncu));
+            if (birNtIndex < 0) return 0;
+
+            return liste
+                .Skip(birNtIndex + 1)
+                .Count(h => h.Oyuncu != durum.Partner
+                         && !durum.Rakipler.Contains(h.Oyuncu)
+                         && h.Teklif != "Pas");
+        }
+
+        /// <summary>
+        /// Dbl - 2♣ dizisinden sonra partner gerçek rengini söyledi mi?
+        /// (Partner: Dbl + ikinci bir renk teklifi, ben: 2♣.)
+        /// </summary>
+        private bool DblSonrasiPartnerGercekRenkSoyledi(IhaleDurumu durum)
+        {
+            var liste = durum.Gecmis.ToList();
+            int birNtIndex = liste.FindIndex(h =>
+                h.Teklif == "1NT" && durum.Rakipler.Contains(h.Oyuncu));
+            if (birNtIndex < 0) return false;
+
+            var sonrasi = liste.Skip(birNtIndex + 1).Where(h => h.Teklif != "Pas").ToList();
+            if (sonrasi.Count < 3) return false;
+
+            return sonrasi[0].Oyuncu == durum.Partner && sonrasi[0].Teklif == "Dbl"
+                && sonrasi[1].Oyuncu != durum.Partner
+                && !durum.Rakipler.Contains(sonrasi[1].Oyuncu)
+                && sonrasi[1].Teklif == "2♣"
+                && sonrasi[2].Oyuncu == durum.Partner;
+        }
+
+        /// <summary>Balancing seat: 1NT - Pas - Pas - ?</summary>
+        private bool BalancingMi(IhaleDurumu durum)
+        {
+            return durum.UstUstePasSayisi >= 2;
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         // UYGUNLUK KONTROLÜ
         // ═══════════════════════════════════════════════════════════════════
 
         public bool UygunMu(IhaleDurumu durum)
         {
-            if (durum == null || durum.Gecmis == null) return false;
+            if (durum == null) return false;
             if (durum.AktifOyuncuEli == null) return false;
+            if (durum.AktifOyuncuEli.Count != 13) return false;
+            if (durum.IhaleBittiMi()) return false;
 
-            // ─── SENARYO B (önce): Partner DONT yaptı, biz cevap veriyoruz ───
-            // Cevap, el dağılımından bağımsızdır (ör. Dbl'a 2♣ zorunlu),
-            // bu yüzden Senaryo A'nın el kontrolünden ÖNCE bakılır.
-            if (PartnerDontTeklifi(durum) != null) return true;
+            var el = durum.AktifOyuncuEli;
+            int hp = ElDegerlendirici.HCP(el);
+            int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
 
-            // ─── SENARYO A: Rakip 1NT açtı, biz müdahale ediyoruz ───
-            var gercekTeklifler = durum.Gecmis
-                .Where(h => h.GercekTeklifMi)
-                .ToList();
+            // ═══════════════════════════════════════════════════════════════
+            // DURUM 2: Partnerim DONT ile müdahale etti → cevap ver
+            // (Dbl dahil; Dbl gerçek teklif olmadığından Gecmis üzerinden bakılır)
+            // ═══════════════════════════════════════════════════════════════
+            if (PartnerDontTeklifi(durum) != null && BenimTekliflerimSayisi(durum) == 0)
+                return true;
 
-            if (gercekTeklifler.Count < 1) return false;
+            // ═══════════════════════════════════════════════════════════════
+            // DURUM 3: Dbl - 2♣ sonrası partner gerçek rengini söyledi → Pas
+            // ═══════════════════════════════════════════════════════════════
+            if (DblSonrasiPartnerGercekRenkSoyledi(durum))
+                return true;
 
-            var sonTeklif = gercekTeklifler.Last();
-            if (sonTeklif.Teklif == "1NT"
-                && durum.Rakipler.Contains(sonTeklif.Oyuncu))
+            // ═══════════════════════════════════════════════════════════════
+            // DURUM 1: Ben DONT ile müdahale ediyorum (Rakip 1NT açtı)
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.SonGercekTeklif == "1NT" &&
+                durum.SonGercekTeklifSahibi != null &&
+                durum.Rakipler.Contains(durum.SonGercekTeklifSahibi.Value))
             {
-                var el = durum.AktifOyuncuEli;
-                int hp = ElDegerlendirici.HCP(el);
+                // Sadece ilk açılış 1NT ise (1♦-1♥-1NT gibi rebid değilse)
+                var gercekTeklifler = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                if (gercekTeklifler.Count == 1)
+                {
+                    int esik = BalancingMi(durum) ? BalancingHpEsigi : DirectHpEsigi;
 
-                // Balancing mi? (1NT'den sonra en az 2 pas geçmiş)
-                // Örnek: 1NT - Pas - Pas → balancing
-                bool balancing = durum.UstUstePasSayisi >= 2;
+                    bool besliRenkVar = (macca >= 5 || kupa >= 5 || karo >= 5 || sinek >= 5);
+                    bool dortluIkiRenkVar = ((macca >= 4 && kupa >= 4) || (macca >= 4 && karo >= 4) ||
+                                             (macca >= 4 && sinek >= 4) || (kupa >= 4 && karo >= 4) ||
+                                             (kupa >= 4 && sinek >= 4) || (karo >= 4 && sinek >= 4));
+                    bool altiliRenkVar = (macca >= 6 || kupa >= 6 || karo >= 6 || sinek >= 6);
 
-                // Direct seat: 9+ HP, Balancing: 7+ HP
-                // (6 HP'lik eller artık müdahale etmeyecek — önceki hata senaryosu)
-                int minHp = balancing ? 7 : 9;
-                if (hp < minHp) return false;
-
-                // En az 6'lı renk var mı?
-                if (Renkler.Any(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 6))
-                    return true;
-
-                // İki renkli el var mı? (en az 4-4)
-                if (Renkler.Count(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 4) >= 2)
-                    return true;
+                    if (hp >= esik && (besliRenkVar || dortluIkiRenkVar || altiliRenkVar))
+                        return true;
+                }
             }
 
             return false;
@@ -133,12 +192,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var el = durum.AktifOyuncuEli;
             if (el == null || el.Count != 13) return "Pas";
 
-            // ─── ÖNCE: Partner DONT müdahalesi yaptı mı? ───
+            // ─── Dbl - 2♣ - (partner gerçek renk) → Pas ───
+            if (DblSonrasiPartnerGercekRenkSoyledi(durum))
+                return "Pas";
+
+            // ─── Partner DONT müdahalesi yaptı mı? ───
             string partnerTeklif = PartnerDontTeklifi(durum);
             if (partnerTeklif != null)
                 return PartnerCevabi(el, partnerTeklif);
 
-            // ─── SONRA: Rakip 1NT açtı, biz müdahale edeceğiz ───
+            // ─── Rakip 1NT açtı, biz müdahale edeceğiz ───
             var gercekTeklifler = durum.Gecmis
                 .Where(h => h.GercekTeklifMi)
                 .ToList();
@@ -149,7 +212,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (sonTeklif.Teklif == "1NT"
                     && durum.Rakipler.Contains(sonTeklif.Oyuncu))
                 {
-                    return MudahaleTeklifi(el);
+                    int esik = BalancingMi(durum) ? BalancingHpEsigi : DirectHpEsigi;
+                    return MudahaleTeklifi(el, esik);
                 }
             }
 
@@ -160,41 +224,34 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // RAKİP 1NT'YE MÜDAHALE
         // ═══════════════════════════════════════════════════════════════════
 
-        private string MudahaleTeklifi(List<Card> el)
+        private string MudahaleTeklifi(List<Card> el, int hpEsigi)
         {
-            // Güvenlik: HP kontrolü (UygunMu zaten eledi, ama double-check)
             int hp = ElDegerlendirici.HCP(el);
-            if (hp < 7) return "Pas";
+            if (hp < hpEsigi) return "Pas";
 
             int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
             int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
 
+            // ─── 2♠: Doğal, 6+ ♠ (iki renkli dallardan ÖNCE) ───
+            if (macca >= 6)
+                return "2♠";
+
             // ─── 2♣: ♣ + daha yüksek bir renk ───
-            if (sinek >= 4)
-            {
-                if (macca >= 4 || kupa >= 4 || karo >= 4)
-                    return "2♣";
-            }
+            if (sinek >= 4 && (macca >= 4 || kupa >= 4 || karo >= 4))
+                return "2♣";
 
             // ─── 2♦: ♦ + bir majör ───
-            if (karo >= 4)
-            {
-                if (macca >= 4 || kupa >= 4)
-                    return "2♦";
-            }
+            if (karo >= 4 && (macca >= 4 || kupa >= 4))
+                return "2♦";
 
             // ─── 2♥: ♥ + ♠ (majörler) ───
             if (kupa >= 4 && macca >= 4)
                 return "2♥";
 
-            // ─── 2♠: Doğal, 6+ ♠ ───
-            if (macca >= 6)
-                return "2♠";
-
             // ─── Dbl: Tek renkli el (6+ kart) ───
-            if (macca >= 6 || kupa >= 6 || karo >= 6 || sinek >= 6)
+            if (kupa >= 6 || karo >= 6 || sinek >= 6)
                 return "Dbl";
 
             // ─── 2NT: Güçlü iki renkli el (basitleştirilmiş) ───
@@ -212,17 +269,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             // ─── Partner Dbl dedi (tek renkli) → 2♣ zorunlu ───
             if (partnerTeklif == "Dbl")
-            {
                 return "2♣";
-            }
 
             // ─── Partner 2♣ dedi (♣ + yüksek renk) ───
             if (partnerTeklif == "2♣")
             {
                 int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-                // 3+ ♣ varsa Pas
                 if (sinek >= 3) return "Pas";
-                // Yoksa 2♦ sor (diğer renk)
                 return "2♦";
             }
 
@@ -230,9 +283,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (partnerTeklif == "2♦")
             {
                 int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-                // 3+ ♦ varsa Pas
                 if (karo >= 3) return "Pas";
-                // Yoksa 2♥ sor (majör sorusu)
                 return "2♥";
             }
 
@@ -241,17 +292,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
                 int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-                // ♥ daha iyiyse Pas
                 if (kupa >= macca) return "Pas";
-                // ♠ daha iyiyse 2♠
                 return "2♠";
             }
 
             // ─── Partner 2♠ dedi (doğal 6+ ♠) → Pas ───
             if (partnerTeklif == "2♠")
-            {
                 return "Pas";
-            }
 
             // ─── Partner 2NT dedi (güçlü iki renkli: ♦ + ♣) ───
             if (partnerTeklif == "2NT")

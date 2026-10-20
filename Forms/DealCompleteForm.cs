@@ -19,6 +19,15 @@ namespace BricKartOyunu.Forms
             // 🔹 Görev çubuğunda görünmesin
             this.ShowInTaskbar = false;
 
+            // 🔹 Küçük başlık çubuklu, yeniden boyutlandırılamayan, sadece X'li pencere.
+            // Border stili değişince istemci alanı kaymasın diye boyut korunur.
+            var istemciBoyutu = this.ClientSize;
+            this.FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            this.ClientSize = istemciBoyutu;
+
+            // 🔹 Konum ctor'da verilmeli; Load içinde atanması etkisizdir.
+            this.StartPosition = FormStartPosition.CenterParent;
+
             // X davranışını FormClosing'de yöneteceğiz
             this.FormClosing += DealCompleteForm_FormClosing;
         }
@@ -27,9 +36,6 @@ namespace BricKartOyunu.Forms
         {
             // Başlık
             this.Text = "Deal Complete";
-
-            // Açılınca ortala
-            this.StartPosition = FormStartPosition.CenterParent;
 
             // ═══════════════════════════════════════════════════════════════
             // BUTON EVENT'LERİNİ BAĞLA

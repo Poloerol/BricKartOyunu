@@ -13028,6 +13028,320 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
                 "1♣ - Pas - ?", "1NT", el);
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 45.x — 1♣ ⇒ 1♦ Gelişimi (Aşama 1: Açıcı Rebid)
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static IhaleDurumu BirKaroGelisimDurumu(List<Card> el)
+        {
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♦", Sira = 2, GecerliMi = true },
+            };
+            return new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = BirClubAnlasmasi(),
+                Gecmis = gecmis,
+            };
+        }
+
+        private static void TestBirClubBirKaro(string baslik, string senaryo, string beklenen, List<Card> el)
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz(baslik);
+            Yaz($"Senaryo: {senaryo}");
+            Yaz($"Beklenen: {beklenen}");
+            Yaz("────────────────────────────────────────");
+            var durum = BirKaroGelisimDurumu(el);
+            Yaz($"HCP: {ElDegerlendirici.HCP(el)}");
+            Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(el)}");
+            Yaz($"Dağılım: ♠{ElDegerlendirici.RenkUzunlugu(el, "Maça")} " +
+                $"♥{ElDegerlendirici.RenkUzunlugu(el, "Kupa")} " +
+                $"♦{ElDegerlendirici.RenkUzunlugu(el, "Karo")} " +
+                $"♣{ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
+            Yaz("────────────────────────────────────────");
+
+            var konv = new BirClubBirKaroGelisim { AktifMi = true };
+            Yaz($"BirClubBirKaroGelisim.UygunMu → {konv.UygunMu(durum)}");
+            if (konv.UygunMu(durum))
+                Yaz($"BirClubBirKaroGelisim.TeklifVer → {konv.TeklifVer(durum)}");
+
+            Yaz("────────────────────────────────────────");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == beklenen ? $"✅ DOĞRU ({beklenen})"
+                                  : $"❌ YANLIŞ (beklenen {beklenen}, gelen {sonuc})");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_BirClubBirKaro_Acilis_1Heart()
+        {
+            var el = ElMetinden("Q7", "KJ85", "65", "AK952");
+            TestBirClubBirKaro("TEST 45.1 — 1♣-1♦-?: 4+♣ 4♥, 14 HCP → 1♥",
+                "1♣ - 1♦ - ?", "1♥", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_1Spade()
+        {
+            var el = ElMetinden("KJ85", "76", "Q5", "AQ852");
+            TestBirClubBirKaro("TEST 45.2 — 1♣-1♦-?: 4+♣ 4♠, 13 HCP → 1♠",
+                "1♣ - 1♦ - ?", "1♠", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_1NT()
+        {
+            var el = ElMetinden("Q75", "J84", "K93", "AQ52");
+            TestBirClubBirKaro("TEST 45.3 — 1♣-1♦-?: 13 HCP dengeli → 1NT",
+                "1♣ - 1♦ - ?", "1NT", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_2Club()
+        {
+            var el = ElMetinden("Q7", "KJ5", "84", "AJ9752");
+            TestBirClubBirKaro("TEST 45.4 — 1♣-1♦-?: 6+♣, 13 HCP → 2♣",
+                "1♣ - 1♦ - ?", "2♣", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_2Diamond()
+        {
+            var el = ElMetinden("Q7", "KJ5", "A874", "Q985");
+            TestBirClubBirKaro("TEST 45.5 — 1♣-1♦-?: 4+♣ 4♦, 12 HCP → 2♦",
+                "1♣ - 1♦ - ?", "2♦", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_2Heart_Strong()
+        {
+            var el = ElMetinden("AQ", "AKJ5", "65", "KQJ85");
+            TestBirClubBirKaro("TEST 45.6 — 1♣-1♦-?: 5+♣ 4♥, 19 HCP → 2♥",
+                "1♣ - 1♦ - ?", "2♥", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_2Spade_Strong()
+        {
+            var el = ElMetinden("AKJ5", "76", "A5", "KQJ85");
+            TestBirClubBirKaro("TEST 45.7 — 1♣-1♦-?: 5+♣ 4♠, 19 HCP → 2♠",
+                "1♣ - 1♦ - ?", "2♠", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_2NT_Strong()
+        {
+            var el = ElMetinden("A", "KJ5", "Q84", "AKQJ95");
+            TestBirClubBirKaro("TEST 45.8 — 1♣-1♦-?: 6+♣, 19 HCP → 2NT",
+                "1♣ - 1♦ - ?", "2NT", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_3Club()
+        {
+            var el = ElMetinden("Q7", "KJ5", "84", "AKQJ97");
+            TestBirClubBirKaro("TEST 45.9 — 1♣-1♦-?: 6+♣, 16 HCP → 3♣",
+                "1♣ - 1♦ - ?", "3♣", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_3Diamond()
+        {
+            var el = ElMetinden("Q7", "52", "A832", "AKQJ5");
+            TestBirClubBirKaro("TEST 45.10 — 1♣-1♦-?: 5+♣ 4♦, 16 HCP → 3♦",
+                "1♣ - 1♦ - ?", "3♦", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_3Heart_Splinter()
+        {
+            var el = ElMetinden("AKJ5", "7", "AQJ8", "KQJ5");
+            TestBirClubBirKaro("TEST 45.11 — 1♣-1♦-?: 4♣4♦4♠1♥, 19 HCP → 3♥",
+                "1♣ - 1♦ - ?", "3♥", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_3Spade_Splinter()
+        {
+            var el = ElMetinden("7", "AKJ5", "AQJ8", "KQJ5");
+            TestBirClubBirKaro("TEST 45.12 — 1♣-1♦-?: 4♣4♦4♥1♠, 19 HCP → 3♠",
+                "1♣ - 1♦ - ?", "3♠", el);
+        }
+        public static void Test_BirClubBirKaro_Acilis_3NT_Void()
+        {
+            var el = ElMetinden("AKJ5", "AQJ8", "7", "KQJ5");
+            TestBirClubBirKaro("TEST 45.13 — 1♣-1♦-?: 4♣4♥4♠1♦, 19 HCP → 3NT",
+                "1♣ - 1♦ - ?", "3NT", el);
+        }
+
+
+        // ═══════════════════════════════════════════════════════════════════
+        // TEST 46.x — 1♣ ⇒ 1♦ ⇒ 1♥ Gelişimi (Aşama A: Cevapçı Devam)
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static IhaleDurumu BirKupaGelisimDurumuA(List<Card> el)
+        {
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♦", Sira = 2, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 3, GecerliMi = true },
+            };
+            return new IhaleDurumu
+            {
+                AktifOyuncu = Player.Guney,
+                AktifOyuncuEli = el,
+                Anlasma = BirClubAnlasmasi(),
+                Gecmis = gecmis,
+            };
+        }
+
+        private static IhaleDurumu BirKupaGelisimDurumuB(List<Card> el)
+        {
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♦", Sira = 2, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 3, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4, GecerliMi = true },
+            };
+            return new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = el,
+                Anlasma = BirClubAnlasmasi(),
+                Gecmis = gecmis,
+            };
+        }
+
+        private static void TestBirKupaGelisim(string baslik, string senaryo, string beklenen,
+            List<Card> el, bool asamaB = false)
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz(baslik);
+            Yaz($"Senaryo: {senaryo}");
+            Yaz($"Beklenen: {beklenen}");
+            Yaz("────────────────────────────────────────");
+
+            if (el.Count != 13)
+            {
+                Yaz($"❌ HATA: El {el.Count} kart, 13 olmalı!");
+                return;
+            }
+
+            int hcp = ElDegerlendirici.HCP(el);
+            Yaz($"HCP: {hcp}");
+            Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(el)}");
+            Yaz($"Dağılım: ♠{ElDegerlendirici.RenkUzunlugu(el, "Maça")} " +
+                $"♥{ElDegerlendirici.RenkUzunlugu(el, "Kupa")} " +
+                $"♦{ElDegerlendirici.RenkUzunlugu(el, "Karo")} " +
+                $"♣{ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
+            Yaz("────────────────────────────────────────");
+
+            var durum = asamaB ? BirKupaGelisimDurumuB(el) : BirKupaGelisimDurumuA(el);
+
+            var konv = new BirClubBirKaroBirKupaGelisim { AktifMi = true };
+            Yaz($"BirClubBirKaroBirKupaGelisim.UygunMu → {konv.UygunMu(durum)}");
+            if (konv.UygunMu(durum))
+                Yaz($"BirClubBirKaroBirKupaGelisim.TeklifVer → {konv.TeklifVer(durum)}");
+
+            Yaz("────────────────────────────────────────");
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == beklenen ? $"✅ DORU ({beklenen})"
+                                  : $"❌ YANLIŞ (beklenen {beklenen}, gelen {sonuc})");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_1Spade()
+        {
+            var el = ElMetinden("KQ85", "32", "AQJ4", "852");
+            TestBirKupaGelisim("TEST 46.1 — 1♣-1♦-1♥-?: 4+♦ 4♠ F1R → 1♠",
+                "1♣ - 1♦ - 1♥ - ?", "1♠", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_1NT()
+        {
+            var el = ElMetinden("Q32", "J32", "K32", "J432");
+            TestBirKupaGelisim("TEST 46.2 — 1♣-1♦-1♥-?: 6 HCP dengeli → 1NT",
+                "1♣ - 1♦ - 1♥ - ?", "1NT", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_2Club()
+        {
+            var el = ElMetinden("A5", "32", "AQJ432", "K52");
+            TestBirKupaGelisim("TEST 46.3 — 1♣-1♦-1♥-?: 13 HCP 6♦ röle → 2♣",
+                "1♣ - 1♦ - 1♥ - ?", "2♣", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_2Diamond()
+        {
+            var el = ElMetinden("KQ85", "32", "AJ5432", "5");  // 10 HCP, 6♦4♠
+            TestBirKupaGelisim("TEST 46.4 — 1♣-1♦-1♥-?: 6♦4♠ 10 HCP → 2♦",
+                "1♣ - 1♦ - 1♥ - ?", "2♦", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_2NT()
+        {
+            var el = ElMetinden("A52", "J32", "KQ32", "J52");
+            TestBirKupaGelisim("TEST 46.5 — 1♣-1♦-1♥-?: 12 HCP dengeli → 2NT",
+                "1♣ - 1♦ - 1♥ - ?", "2NT", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_3Club()
+        {
+            var el = ElMetinden("KQ85", "3", "AJ943", "852");  // 10 HCP, 5♦4♠3♣1♥
+            TestBirKupaGelisim("TEST 46.6 — 1♣-1♦-1♥-?: 5♦4♠3♣1♥ 10 HCP → 3♣",
+                "1♣ - 1♦ - 1♥ - ?", "3♣", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_3Diamond()
+        {
+            var el = ElMetinden("KQ85", "32", "AKQ432", "5");
+            TestBirKupaGelisim("TEST 46.7 — 1♣-1♦-1♥-?: 6♦4♠ FG → 3♦",
+                "1♣ - 1♦ - 1♥ - ?", "3♦", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Cevapci_3NT()
+        {
+            var el = ElMetinden("A52", "J32", "KQ32", "AJ2");
+            TestBirKupaGelisim("TEST 46.8 — 1♣-1♦-1♥-?: 14 HCP dengeli durdurucu → 3NT",
+                "1♣ - 1♦ - 1♥ - ?", "3NT", el);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Acici_2Diamond_MIN()
+        {
+            var el = ElMetinden("A5", "KQ32", "Q52", "KJ52");
+            TestBirKupaGelisim("TEST 47.1 — 1♣-1♦-1♥-2♣-?: 3♦ MIN → 2♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Acici_2Heart_MAX()
+        {
+            var el = ElMetinden("A5", "KQ32", "Q52", "AK52");
+            TestBirKupaGelisim("TEST 47.2 — 1♣-1♦-1♥-2♣-?: 3♦ MAX → 2♥",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♥", el, asamaB: true);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Acici_2Spade()
+        {
+            var el = ElMetinden("KQ85", "AQ32", "52", "K52");
+            TestBirKupaGelisim("TEST 47.3 — 1♣-1♦-1♥-2♣-?: 4♠ → 2♠",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♠", el, asamaB: true);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Acici_2NT()
+        {
+            var el = ElMetinden("52", "KQ32", "QJ52", "K52");
+            TestBirKupaGelisim("TEST 47.4 — 1♣-1♦-1♥-2♣-?: 4♦ 12 HCP → 2NT",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2NT", el, asamaB: true);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Acici_3Club()
+        {
+            var el = ElMetinden("52", "KQ32", "52", "AQ852");
+            TestBirKupaGelisim("TEST 47.5 — 1♣-1♦-1♥-2♣-?: 4♥4♣ 11 HCP → 3♣",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♣", el, asamaB: true);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Acici_3Diamond()
+        {
+            var el = ElMetinden("A5", "Q32", "KJ852", "532");  // 10 HCP, 13 kart
+            TestBirKupaGelisim("TEST 47.6 — 1♣-1♦-1♥-2♣-?: 5♦ 10 HCP → 3♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♦", el, asamaB: true);
+        }
+
+        public static void Test_BirClubBirKaroBirKupa_Acici_3Heart()
+        {
+            var el = ElMetinden("A5", "AQ32", "KQ52", "852");  // 16 HCP, 4♦4♥
+            TestBirKupaGelisim("TEST 47.7 — 1♣-1♦-1♥-2♣-?: 4♦4♥ SI → 3♥",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♥", el, asamaB: true);
+        }
+
         public static void TumTestleriCalistir()
         {
             Yaz("▶ Test 1.1: Gerber Soru Sorma");
@@ -13393,7 +13707,43 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_BirClub_TersFlannery();
             Test_BirClub_1NT();
 
+            Yaz("▶ TEST 45.1-45.13: 1♣ ⇒ 1♦ Gelişimi (Aşama 1)");
+            Test_BirClubBirKaro_Acilis_1Heart();
+            Test_BirClubBirKaro_Acilis_1Spade();
+            Test_BirClubBirKaro_Acilis_1NT();
+            Test_BirClubBirKaro_Acilis_2Club();
+            Test_BirClubBirKaro_Acilis_2Diamond();
+            Test_BirClubBirKaro_Acilis_2Heart_Strong();
+            Test_BirClubBirKaro_Acilis_2Spade_Strong();
+            Test_BirClubBirKaro_Acilis_2NT_Strong();
+            Test_BirClubBirKaro_Acilis_3Club();
+            Test_BirClubBirKaro_Acilis_3Diamond();
+            Test_BirClubBirKaro_Acilis_3Heart_Splinter();
+            Test_BirClubBirKaro_Acilis_3Spade_Splinter();
+            Test_BirClubBirKaro_Acilis_3NT_Void();
+
+
             Yaz("");
+            
+            Yaz("▶ TEST 46.1-46.8: 1♣ ⇒ 1♦ ⇒ 1♥ Gelişimi (Cevapçı Devam)");
+            Test_BirClubBirKaroBirKupa_Cevapci_1Spade();
+            Test_BirClubBirKaroBirKupa_Cevapci_1NT();
+            Test_BirClubBirKaroBirKupa_Cevapci_2Club();
+            Test_BirClubBirKaroBirKupa_Cevapci_2Diamond();
+            Test_BirClubBirKaroBirKupa_Cevapci_2NT();
+            Test_BirClubBirKaroBirKupa_Cevapci_3Club();
+            Test_BirClubBirKaroBirKupa_Cevapci_3Diamond();
+            Test_BirClubBirKaroBirKupa_Cevapci_3NT();
+
+            Yaz("▶ TEST 47.1-47.7: 1♣ ⇒ 1♦ ⇒ 1♥ ⇒ 2♣ Gelişimi (Açıcı Röle Cevabı)");
+            Test_BirClubBirKaroBirKupa_Acici_2Diamond_MIN();
+            Test_BirClubBirKaroBirKupa_Acici_2Heart_MAX();
+            Test_BirClubBirKaroBirKupa_Acici_2Spade();
+            Test_BirClubBirKaroBirKupa_Acici_2NT();
+            Test_BirClubBirKaroBirKupa_Acici_3Club();
+            Test_BirClubBirKaroBirKupa_Acici_3Diamond();
+            Test_BirClubBirKaroBirKupa_Acici_3Heart();
+
             Yaz("✅ TÜM TESTLER TAMAMLANDI!");
         }
 
