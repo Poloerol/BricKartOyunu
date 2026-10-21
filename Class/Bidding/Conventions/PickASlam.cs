@@ -152,7 +152,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (KozYardimcisi.TekliftenKozCikar(ilk) != sonKoz) return false;
 
             // El gücü ve dağılım şartları (Pick-a-Slam için uygun el)
-            if (ElDegerlendirici.HCP(el) < 12) return false;
+            if (ElDegerlendirici.HCP(el) < 13) return false;
 
             int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
