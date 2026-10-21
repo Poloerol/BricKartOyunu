@@ -2360,7 +2360,7 @@ namespace BricKartOyunu
         public static void Test_GSF_Soru()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 9.3 — Grand Slam Force (Soru)");
+            Yaz("TEST 10.1 — Grand Slam Force (Soru)");
             Yaz("════════════════════════════════════════");
 
             // Ben Blackwood 4NT dedim, partner 5♠ (2 As) dedi, ben 5NT diyeceğim
@@ -2419,7 +2419,7 @@ namespace BricKartOyunu
         public static void Test_GSF_Cevap()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 9.4 — Grand Slam Force (Cevap)");
+            Yaz("TEST 10.2 — Grand Slam Force (Cevap)");
             Yaz("════════════════════════════════════════");
 
             // Partner 5NT dedi, ben Papaz sayısını söyleyeceğim

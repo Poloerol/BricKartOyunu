@@ -190,6 +190,7 @@
     <Compile Include="Class\Bidding\Conventions\Namyats.cs" />
     <Compile Include="Class\Bidding\Conventions\NegativeDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\NonSerious3NT.cs" />
+    <Compile Include="Class\Bidding\Conventions\OneClub_OneDiamondConvention.cs" />
     <Compile Include="Class\Bidding\Conventions\PickASlam.cs" />
     <Compile Include="Class\Bidding\Conventions\Preempt.cs" />
     <Compile Include="Class\Bidding\Conventions\PreemptCevap.cs" />

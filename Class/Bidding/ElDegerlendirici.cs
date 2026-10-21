@@ -453,5 +453,7 @@ namespace BricKartOyunu.Class.Bidding
                     return false;
             }
         }
+        
+
     }
 }

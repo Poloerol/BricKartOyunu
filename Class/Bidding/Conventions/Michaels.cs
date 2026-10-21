@@ -34,13 +34,26 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli == null || durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
+            // 5-5 majör şartı
+            int s = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Maça");
+            int h = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Kupa");
+
+            if (s >= 5 && h >= 5 && durum.RakipActiMi())
+                return true;
+
+            // Eğer özel CueBid veya Cevap koşulları varsa onları da çağırarak kontrol et
             if (CueBidUygunMu(durum)) return true;
             if (CevapUygunMu(durum)) return true;
+
             return false;
         }
 
+
         public string TeklifVer(IhaleDurumu durum)
         {
+            if (!UygunMu(durum))
+                return "Pas"; // uygun değilse motor yanlış teklif üretmesin
+
             if (CueBidUygunMu(durum))
                 return CueBidTeklifi(durum);
 
@@ -49,6 +62,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             return "Pas";
         }
+
 
         // ═══════════════════════════════════════════════════════════════
         // CUE BID (müdahale eden)
