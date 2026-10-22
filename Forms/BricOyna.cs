@@ -66,7 +66,12 @@ namespace BricKartOyunu
             get => _currentBackImagePath;
             set { _currentBackImagePath = value; }
         }
-
+        // EL BİLGİ / TEST PANELİ
+        private Panel elBilgiPanel;
+        //private Label lblElBilgiNumara;
+        private Label lblNewLabel;
+        private Label lblOldLabel;
+       
         private static Image GetCachedImage(string path)
         {
             if (string.IsNullOrEmpty(path)) return null;
@@ -1746,6 +1751,68 @@ namespace BricKartOyunu
         }
 
         /// <summary>
+        /// OYUN BİLGİSİ panelinin 10px altında yer alan el numarası panelini oluşturur.
+        /// </summary>
+        private void SetupElBilgiPanel()
+        {
+            if (elBilgiPanel != null) return;
+
+            // İki stil numarasını da rahatça barındırabilecek yükseklikte bir panel
+            elBilgiPanel = new Panel
+            {
+                Size = new Size(BilgiPanelGenislik, 95),
+                BackColor = AnaSayfa.MasaRengi, // Masa rengiyle aynı
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            EnableDoubleBuffer(elBilgiPanel);
+
+            // 1. New Style Başlık ve Değer
+            var lblNewBaslik = new Label
+            {
+                Location = new Point(5, 4),
+                Size = new Size(BilgiPanelGenislik - 10, 18),
+                Text = "New Style Deal #:",
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblNewBaslik);
+
+            lblNewLabel = new Label
+            {
+                Location = new Point(5, 22),
+                Size = new Size(BilgiPanelGenislik - 10, 25),
+                Text = "N0112-49594-...",
+                Font = new Font("Segoe UI", 7.5F),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblNewLabel);
+
+            // 2. Old Style Başlık ve Değer
+            var lblOldBaslik = new Label
+            {
+                Location = new Point(5, 50),
+                Size = new Size(BilgiPanelGenislik - 10, 18),
+                Text = "Old Style Deal #:",
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblOldBaslik);
+
+            lblOldLabel = new Label
+            {
+                Location = new Point(5, 68),
+                Size = new Size(BilgiPanelGenislik - 10, 20),
+                Text = "1955946097",
+                Font = new Font("Segoe UI", 7.5F),
+                ForeColor = Color.Black
+            };
+            elBilgiPanel.Controls.Add(lblOldLabel);
+
+            this.Controls.Add(elBilgiPanel);
+            elBilgiPanel.BringToFront();
+        }
+
+        /// <summary>
         /// Etiket + değer satırı oluşturur (örn. "Dealer: Kuzey").
         /// </summary>
         private Label BilgiSatiriOlustur(Panel parent, string baslik, int y)
@@ -3334,6 +3401,8 @@ namespace BricKartOyunu
         ///    - Rakip kazanıyorsa → en yüksek koz (trick'i kazan)
         ///    - Ortak kazanıyorsa → en düşük koz (üstüne koz verme)
         ///    - Koz yoksa → en düşük kart (ıskarta)
+        /// Açılış atağında sıralı onör / marka kuralları (As, Rua, Dam atağı) uygulanır,
+        /// diğer durumlarda renk takip + rastgele.
         /// </summary>
         private void AIOyna(Player oyuncu)
         {
@@ -3374,7 +3443,22 @@ namespace BricKartOyunu
             // ═══════════════════════════════════════════════════════════════
             // 1. AÇILIŞ ATAĞI (elin ilk kartı ve henüz kart oynanmadı)
             // ═══════════════════════════════════════════════════════════════
+            // Açılış atağı: elin ilk kartı (13 kart) ve bu elde henüz kart oynanmadı.
+            // Birden fazla renk kurala uyarsa As > Rua > Dam öncelikli.
             if (string.IsNullOrEmpty(_buEldeAtakRengi) && el.Count == 13)
+            {
+                var adaylar = AtakKurallari.AdaylariBul(el);
+                if (adaylar.Count > 0)
+                {
+                    var oneri = adaylar.OrderByDescending(a => a.Kart.Value).First();
+                    secilen = oneri.Kart;
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[AIOyna] Açılış atağı kuralı: {oneri.Kural} — {oneri.Aciklama}");
+                }
+            }
+
+            // Renk takip: atak renginden var mı?
+            if (secilen == null && !string.IsNullOrEmpty(_buEldeAtakRengi))
             {
                 var adaylar = AtakKurallari.AdaylariBul(el);
                 if (adaylar.Count > 0)
