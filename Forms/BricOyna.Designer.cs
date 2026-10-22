@@ -68,6 +68,7 @@
             this.BtnGuney = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.IhaleYorumuToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -134,6 +135,7 @@
             // 
             this.eylmlerToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ihaleGösterToolStripMenuItem,
+            this.IhaleYorumuToolStripMenuItem,
             this.oynananElleriGösterToolStripMenuItem});
             this.eylmlerToolStripMenuItem.Name = "eylmlerToolStripMenuItem";
             this.eylmlerToolStripMenuItem.Size = new System.Drawing.Size(64, 20);
@@ -425,6 +427,13 @@
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
+            // IhaleYorumuToolStripMenuItem
+            // 
+            this.IhaleYorumuToolStripMenuItem.Name = "IhaleYorumuToolStripMenuItem";
+            this.IhaleYorumuToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.IhaleYorumuToolStripMenuItem.Text = "İhale Yorumu";
+            this.IhaleYorumuToolStripMenuItem.Click += new System.EventHandler(this.IhaleYorumuToolStripMenuItem_Click);
+            // 
             // BricOyna
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -490,6 +499,7 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripMenuItem ihaleGösterToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem oynananElleriGösterToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem IhaleYorumuToolStripMenuItem;
     }
 }
 

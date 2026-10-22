@@ -24,6 +24,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════════
 
         public string Ad => "Strong NT";
+        public string Aciklama => "15-17 HCP dengeli 1NT açılışı";
 
         public bool AktifMi { get; set; } = true;
 

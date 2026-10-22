@@ -29,6 +29,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class PuppetStayman : IKonvansiyon
     {
         public string Ad => "Puppet Stayman";
+        public string Aciklama => "2NT açışına Puppet Stayman";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 13;
 

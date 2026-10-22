@@ -33,6 +33,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class ThirdSuitForcing : IKonvansiyon
     {
         public string Ad => "3. Renk Forsingi";
+        public string Aciklama => "Üçüncü renk forsingi";
         public bool AktifMi { get; set; } = true;
 
         // TrialBid (27) ile GSF (28) arasında

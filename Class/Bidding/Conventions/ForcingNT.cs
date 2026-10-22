@@ -24,6 +24,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class ForcingNT : IKonvansiyon
     {
         public string Ad => "Forcing NT";
+        public string Aciklama => "Majör açılışına forcing 1NT cevabı";
         public bool AktifMi { get; set; } = true;
 
         // BesliMajor (10)'dan sonra, Stayman (11)'dan önce

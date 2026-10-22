@@ -31,6 +31,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Multi2D : IKonvansiyon
     {
         public string Ad => "Multi 2♦";
+        public string Aciklama => "Multi 2♦ açılışı";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 7;
 

@@ -32,6 +32,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class DopiRopi : IKonvansiyon
     {
         public string Ad => "DOPI-ROPI";
+        public string Aciklama => "Blackwood müdahalesine DOPI/ROPI cevapları";
         public bool AktifMi { get; set; } = true;
 
         // Blackwood (15) ve Gerber (13)'ten ÖNCE gelmeli: rakip kontr verdiğinde

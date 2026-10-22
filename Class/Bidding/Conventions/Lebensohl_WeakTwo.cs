@@ -18,6 +18,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Lebensohl_WeakTwo : IKonvansiyon
     {
         public string Ad => "Lebensohl (Zayıf 2)";
+        public string Aciklama => "Zayıf iki açışına Lebensohl cevapları";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 7;
 

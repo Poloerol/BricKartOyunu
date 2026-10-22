@@ -23,6 +23,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class NonSerious3NT : IKonvansiyon
     {
         public string Ad => "Non-Serious 3NT";
+        public string Aciklama => "Minimum el gösteren 3NT";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 24;
 

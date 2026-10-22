@@ -36,6 +36,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class ExclusionBlackwood : IKonvansiyon
     {
         public string Ad => "Exclusion Blackwood";
+        public string Aciklama => "Şikan üzerinden kilit kart sorusu";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 27;
 

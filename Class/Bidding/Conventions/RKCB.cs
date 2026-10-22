@@ -10,6 +10,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class RKCB : IKonvansiyon
     {
         public string Ad => "RKCB";
+        public string Aciklama => "Roman Key Card Blackwood";
         public bool AktifMi { get; set; } = true;
 
         /// <summary>

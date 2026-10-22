@@ -159,9 +159,7 @@
     <Compile Include="Class\Bidding\Conventions\BasitCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\BergenRaises.cs" />
     <Compile Include="Class\Bidding\Conventions\BesliMajor.cs" />
-    <Compile Include="Class\Bidding\Conventions\BirClubBirKaroBirKupaGelisim.cs" />
-    <Compile Include="Class\Bidding\Conventions\BirClubBirKaroGelisim.cs" />
-    <Compile Include="Class\Bidding\Conventions\BirClubCevap.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_Answer.cs" />
     <Compile Include="Class\Bidding\Conventions\Blackwood.cs" />
     <Compile Include="Class\Bidding\Conventions\Cappelletti.cs" />
     <Compile Include="Class\Bidding\Conventions\Kickback.cs" />
@@ -183,14 +181,13 @@
     <Compile Include="Class\Bidding\Conventions\Lebensohl_Reverse.cs" />
     <Compile Include="Class\Bidding\Conventions\Lebensohl_WeakTwo.cs" />
     <Compile Include="Class\Bidding\Conventions\Michaels.cs" />
-    <Compile Include="Class\Bidding\Conventions\MinorAcilis.cs" />
     <Compile Include="Class\Bidding\Conventions\MinorTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\Multi2D.cs" />
     <Compile Include="Class\Bidding\Conventions\MultiLandy.cs" />
     <Compile Include="Class\Bidding\Conventions\Namyats.cs" />
     <Compile Include="Class\Bidding\Conventions\NegativeDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\NonSerious3NT.cs" />
-    <Compile Include="Class\Bidding\Conventions\OneClub_OneDiamondConvention.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_OneDiamond.cs" />
     <Compile Include="Class\Bidding\Conventions\PickASlam.cs" />
     <Compile Include="Class\Bidding\Conventions\Preempt.cs" />
     <Compile Include="Class\Bidding\Conventions\PreemptCevap.cs" />
@@ -217,8 +214,14 @@
     <Compile Include="Class\Bidding\IhaleHamlesi.cs" />
     <Compile Include="Class\Bidding\IhaleMotoru.cs" />
     <Compile Include="Class\Bidding\IKonvansiyon.cs" />
+    <Compile Include="Class\Bidding\Interfaces\IAcilisGelisimi.cs" />
     <Compile Include="Class\Bidding\KozYardimcisi.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_OneDiamond_OneHeart.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_Opening.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_Opening.cs" />
     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
+    <Compile Include="Class\Bidding\Tests\TestHelpers.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_OneClub.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
     <Compile Include="Class\Player.cs" />
@@ -275,6 +278,12 @@
     </Compile>
     <Compile Include="Forms\IhaleGecmisiForm.Designer.cs">
       <DependentUpon>IhaleGecmisiForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\IhaleYorumuForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\IhaleYorumuForm.Designer.cs">
+      <DependentUpon>IhaleYorumuForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\KartDagitici.cs">
       <SubType>Form</SubType>
@@ -347,6 +356,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\IhaleGecmisiForm.resx">
       <DependentUpon>IhaleGecmisiForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\IhaleYorumuForm.resx">
+      <DependentUpon>IhaleYorumuForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\KartDagitici.resx">
       <DependentUpon>KartDagitici.cs</DependentUpon>

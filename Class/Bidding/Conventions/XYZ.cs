@@ -29,6 +29,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class XYZ : IKonvansiyon
     {
         public string Ad => "XYZ (X-Y-Z)";
+        public string Aciklama => "XYZ yapay 2♣ ve 2♦ sekansları";
         public bool AktifMi { get; set; } = true;
 
         // Two Way Checkback (25)'ten sonra, ama BasitCevap (100)'dan önce.

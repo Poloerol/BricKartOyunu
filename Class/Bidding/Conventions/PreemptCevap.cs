@@ -27,6 +27,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class PreemptCevap : IKonvansiyon
     {
         public string Ad => "Preempt Cevap";
+        public string Aciklama => "Preempt açışına cevaplar";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 9;
 

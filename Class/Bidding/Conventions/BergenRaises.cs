@@ -27,6 +27,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class BergenRaises : IKonvansiyon
     {
         public string Ad => "Bergen Raises";
+        public string Aciklama => "Majör açılışına Bergen destek cevapları";
         public bool AktifMi { get; set; } = true;
 
         // BesliMajor (10)'dan sonra, Stayman (11)'dan sonra,

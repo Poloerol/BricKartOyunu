@@ -18,6 +18,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Jacoby2NT : IKonvansiyon
     {
         public string Ad => "Jacoby 2NT";
+        public string Aciklama => "Majör açılışına güçlü 2NT desteği";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 17;
 

@@ -7,6 +7,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class GrandSlamForce : IKonvansiyon
     {
         public string Ad => "Grand Slam Force";
+        public string Aciklama => "Grand Slam Force ile koz onörü sorusu";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 26;
 

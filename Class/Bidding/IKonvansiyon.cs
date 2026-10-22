@@ -67,5 +67,8 @@ namespace BricKartOyunu.Class.Bidding
         /// Varsayılan: 100
         /// </summary>
         int Oncelik { get; }
+
+        // 🆕 Verilen teklifin anlamı
+        string Aciklama { get; }
     }
 }

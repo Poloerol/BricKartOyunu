@@ -25,6 +25,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Cappelletti : IKonvansiyon
     {
         public string Ad => "Cappelletti";
+        public string Aciklama => "1NT açışına Cappelletti müdahalesi";
         public bool AktifMi { get; set; } = true;
 
         // Michaels (19)'dan sonra, Unusual2NT (23)'ten önce

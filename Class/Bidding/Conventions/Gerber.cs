@@ -22,6 +22,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Gerber : IKonvansiyon
     {
         public string Ad => "Gerber";
+        public string Aciklama => "NT sekansında As sorusu";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 13;
 

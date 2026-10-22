@@ -36,6 +36,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════════
 
         public string Ad => "Blackwood";
+        public string Aciklama => "As veya kilit kart sorusu";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 15;  // Stayman (10) sonra, BasitCevap (100) önce
 

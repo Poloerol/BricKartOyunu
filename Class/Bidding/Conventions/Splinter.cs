@@ -24,6 +24,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Splinter : IKonvansiyon
     {
         public string Ad => "Splinter";
+        public string Aciklama => "Kısa renk ve majör desteği";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 16;
 

@@ -33,6 +33,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════════
 
         public string Ad => "Cue Bid";
+        public string Aciklama => "Kontrol gösteren cue-bid";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 14;   // Blackwood (15) ÖNCESİ
 

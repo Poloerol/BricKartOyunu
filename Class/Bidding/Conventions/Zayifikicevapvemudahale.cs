@@ -85,6 +85,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class ZayifIkiCevap : IKonvansiyon
     {
         public string Ad => "Zayıf İki Cevap";
+        public string Aciklama => "Zayıf iki açılışına cevaplar";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 9;
 
@@ -158,6 +159,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class ZayifIkiMudahale : IKonvansiyon
     {
         public string Ad => "Zayıf İki Müdahale";
+        public string Aciklama => "Zayıf iki açışına müdahale";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 21;
 

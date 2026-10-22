@@ -5,7 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-
+using BricKartOyunu.Class.Bidding.Interfaces;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneClub;
 
 namespace BricKartOyunu
 {
@@ -12927,7 +12928,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         private static OrtaklikAnlasmasi BirClubAnlasmasi()
         {
             var a = OrtaklikAnlasmasi.Varsayilan();
-            a.BirClubCevapSistemi = true;
+            a.OneClub_AnswerSistemi = true;
             return a;
         }
 
@@ -12965,11 +12966,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
                 $"♣{ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
             Yaz($"Zon: NS={zonNS}, EW={zonEW}");
             Yaz("────────────────────────────────────────");
-
-            var konv = new BirClubCevap { AktifMi = true };
-            Yaz($"BirClubCevap.UygunMu → {konv.UygunMu(durum)}");
-            if (konv.UygunMu(durum))
-                Yaz($"BirClubCevap.TeklifVer → {konv.TeklifVer(durum)}");
+                      
 
             Yaz("────────────────────────────────────────");
             var motor = new IhaleMotoru(durum.Anlasma);
@@ -13064,11 +13061,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
                 $"♣{ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
             Yaz("────────────────────────────────────────");
 
-            var konv = new BirClubBirKaroGelisim { AktifMi = true };
-            Yaz($"BirClubBirKaroGelisim.UygunMu → {konv.UygunMu(durum)}");
-            if (konv.UygunMu(durum))
-                Yaz($"BirClubBirKaroGelisim.TeklifVer → {konv.TeklifVer(durum)}");
-
+            
             Yaz("────────────────────────────────────────");
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
@@ -13222,17 +13215,12 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("────────────────────────────────────────");
 
             var durum = asamaB ? BirKupaGelisimDurumuB(el) : BirKupaGelisimDurumuA(el);
-
-            var konv = new BirClubBirKaroBirKupaGelisim { AktifMi = true };
-            Yaz($"BirClubBirKaroBirKupaGelisim.UygunMu → {konv.UygunMu(durum)}");
-            if (konv.UygunMu(durum))
-                Yaz($"BirClubBirKaroBirKupaGelisim.TeklifVer → {konv.TeklifVer(durum)}");
-
+                        
             Yaz("────────────────────────────────────────");
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == beklenen ? $"✅ DORU ({beklenen})"
+            Yaz(sonuc == beklenen ? $"✅ DOĞRU ({beklenen})"
                                   : $"❌ YANLIŞ (beklenen {beklenen}, gelen {sonuc})");
             Yaz("════════════════════════════════════════");
         }

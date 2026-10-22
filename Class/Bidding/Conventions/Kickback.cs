@@ -27,6 +27,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Kickback : IKonvansiyon
     {
         public string Ad => "Kickback";
+        public string Aciklama => "Alternatif kilit kart sorusu";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 27;
 

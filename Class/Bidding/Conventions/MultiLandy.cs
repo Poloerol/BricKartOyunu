@@ -21,6 +21,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class MultiLandy : IKonvansiyon
     {
         public string Ad => "Multi-Landy";
+        public string Aciklama => "1NT açışına Multi-Landy müdahalesi";
         public bool AktifMi { get; set; } = true;
 
         // Cappelletti (12) ile aynı öncelik

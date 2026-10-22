@@ -28,6 +28,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════
 
         public string Ad => "Namyats";
+        public string Aciklama => "Güçlü 4♣/4♦ majör açılışı";
         public bool AktifMi { get; set; } = true;
 
         /// <summary>

@@ -23,6 +23,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class TwoWayCheckback : IKonvansiyon
     {
         public string Ad => "İki Yönlü Checkback";
+        public string Aciklama => "1NT rebid sonrası iki yönlü checkback";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 25;   // Stayman (10) ve Jacoby Transfer (15)'ten sonra,
                                     // BasitCevap (100)'dan önce.

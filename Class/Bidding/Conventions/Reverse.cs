@@ -25,6 +25,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Reverse : IKonvansiyon
     {
         public string Ad => "Reverse";
+        public string Aciklama => "Reverse rebid";
         public bool AktifMi { get; set; } = true;
 
         // TemelMantik'dan önce, ama diğer konvansiyonlardan sonra

@@ -37,6 +37,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Dont : IKonvansiyon
     {
         public string Ad => "DONT";
+        public string Aciklama => "1NT açışına DONT müdahalesi";
         public bool AktifMi { get; set; } = true;
 
         // Cappelletti (12)'den sonra, ama diğerlerinden önce

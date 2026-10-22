@@ -26,6 +26,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Unusual2NT : IKonvansiyon
     {
         public string Ad => "Unusual 2NT";
+        public string Aciklama => "İki minör renkli Unusual 2NT müdahalesi";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 23;
 

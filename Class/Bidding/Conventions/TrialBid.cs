@@ -27,6 +27,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class TrialBid : IKonvansiyon
     {
         public string Ad => "Trial Bid";
+        public string Aciklama => "Majör desteği sonrası yardım rengi denemesi";
         public bool AktifMi { get; set; } = true;
 
         // BasitCevap (100)'dan önce, ama diğer slam konvansiyonlarından sonra.

@@ -23,6 +23,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class SupportDouble : IKonvansiyon
     {
         public string Ad => "Support Double";
+        public string Aciklama => "Üçlü majör desteğini gösteren kontr";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 18;
 

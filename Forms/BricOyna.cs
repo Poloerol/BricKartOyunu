@@ -4044,6 +4044,33 @@ namespace BricKartOyunu
             }
         }
 
+        private void IhaleYorumuToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // 1) Form zaten açık mı?
+            foreach (Form f in Application.OpenForms)
+            {
+                if (f is IhaleYorumuForm)
+                {
+                    f.BringToFront();
+                    return;
+                }
+            }
+
+            // 2) Yeni formu oluştur
+            var form = new IhaleYorumuForm(new List<string>(), "Kuzey");
+
+            // 3) Manuel konum ayarı
+            form.StartPosition = FormStartPosition.Manual;
+
+            // ⚠️ BURAYI KENDİ EKRANINA GÖRE AYARLA
+            // Aşağıdaki değerler 2. resimdeki gibi hizalamak için tahmini değerlerdir.
+            // Eğer form çok sağda/solda/yukarıda/aşağıda açılırsa bu sayıları değiştir.
+            form.Location = new Point(755, 450);
+
+            // 4) Formu göster
+            form.Show(this);
+        }
+
         /// <summary>
         /// Oynanan tüm elleri bir formda gösterir.
         /// Deal Complete formundaki "Oyunu Göster" butonu da bunu çağırır.

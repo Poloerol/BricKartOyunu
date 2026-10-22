@@ -19,6 +19,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Lebensohl : IKonvansiyon
     {
         public string Ad => "Lebensohl";
+        public string Aciklama => "1NT müdahalesine Lebensohl cevapları";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 8;
 

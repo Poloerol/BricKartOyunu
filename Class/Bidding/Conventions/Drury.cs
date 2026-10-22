@@ -19,6 +19,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Drury : IKonvansiyon
     {
         public string Ad => "Drury";
+        public string Aciklama => "Pas sonrası majör açılışına Drury cevabı";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 25;
 

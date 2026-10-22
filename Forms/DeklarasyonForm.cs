@@ -254,7 +254,7 @@ namespace BricKartOyunu.Forms
 
         private void TurkcelestirButonlar()
         {
-            if (btnInterpret != null) btnInterpret.Text = "İhale Analizi";
+            if (BtnIhaleYorum != null) BtnIhaleYorum.Text = "İhale Yorumu";
             if (btnFlowcharts != null) btnFlowcharts.Text = "Akış Şeması";
             if (btnHint != null) btnHint.Text = "İpucu";
             if (btnPass != null) btnPass.Text = "Pas";
@@ -434,10 +434,7 @@ namespace BricKartOyunu.Forms
 
         // --- Buton Tıklama Olayları ---
 
-        private void BtnInterpret_Click(object sender, EventArgs e)
-        {
-            // İhale Analizi mantığı
-        }
+        
 
         private void BtnPass_Click(object sender, EventArgs e)
         {
@@ -1188,5 +1185,23 @@ namespace BricKartOyunu.Forms
             }
         }
 
+        private void BtnIhaleYorum_Click(object sender, EventArgs e)
+        {
+            foreach (Form f in Application.OpenForms)
+            {
+                if (f is IhaleYorumuForm)
+                {
+                    f.BringToFront();
+                    return;
+                }
+            }
+
+            var form = new IhaleYorumuForm(
+                new List<string>(_bids),
+                OyuncuSirasi[_baslangicSutunu]);
+
+            form.ShowInTaskbar = false;
+            form.Show(this);
+        }
     }
 }

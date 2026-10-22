@@ -1,4 +1,7 @@
 ﻿using BricKartOyunu.Class.Bidding.Conventions;
+using BricKartOyunu.Class.Bidding.Interfaces;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneClub;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +10,7 @@ namespace BricKartOyunu.Class.Bidding
 {
     public class IhaleMotoru
     {
+        private readonly List<IAcilisGelisimi> _acilisGelismleri;
         private readonly List<IKonvansiyon> _konvansiyonlar;
         private readonly OrtaklikAnlasmasi _anlasma;
 
@@ -69,17 +73,22 @@ namespace BricKartOyunu.Class.Bidding
                 new GrandSlamForce(),
                 new Reverse(),
                 new FourthSuitForcing(),
-                new MinorAcilis(),
+                
 
                 // ─── 1♣ CEVAP SİSTEMİ ──────────────────────────────────────
-                new BirClubCevap(),
-                new BirClubBirKaroGelisim(),
-                new BirClubBirKaroBirKupaGelisim(),
+                new OneClub_Answer(),
 
                 // ─── FALLBACK ────────────────────────────────────────────────
                 new BasitCevap(),
             };
 
+            _acilisGelismleri = new List<IAcilisGelisimi>
+{
+       new OneClub_Opening(),           // ← YENİ
+    new OneDiamond_Opening(),        // ← YENİ
+    new OneClub_OneDiamond(),
+    new OneClub_OneDiamond_OneHeart(),
+};
             AnlasmayiUygula();
 
             System.Diagnostics.Debug.WriteLine(
@@ -90,6 +99,32 @@ namespace BricKartOyunu.Class.Bidding
         public string TeklifVer(IhaleDurumu durum)
         {
             if (durum == null) return "Pas";
+            if (durum.AktifOyuncuEli != null)
+            {
+                foreach (var gelisim in _acilisGelismleri.OrderByDescending(g => g.Oncelik))
+                {
+                    try
+                    {
+                        if (!gelisim.UygunMu(durum.AktifOyuncuEli, durum)) continue;
+
+                        string yeniTeklif = gelisim.TeklifVer(durum.AktifOyuncuEli, durum);
+                        if (string.IsNullOrEmpty(yeniTeklif)) continue;
+
+                        string yasalYeni = YasalSeviyeyeYukselt(durum, yeniTeklif);
+                        if (!GecerliTeklifMi(durum, yasalYeni)) continue;
+
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[KAZANAN-AcilisGelismi] {gelisim.GetType().Name} → {yasalYeni}");
+                        return yasalYeni;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AcilisGelismi] {gelisim.GetType().Name} hata: {ex.Message}");
+                        if (HatalardaFirlat) throw;
+                    }
+                }
+            }
 
             foreach (var konvansiyon in _konvansiyonlar.OrderBy(k => k.Oncelik))
             {
@@ -132,6 +167,9 @@ namespace BricKartOyunu.Class.Bidding
 
         private static bool GecerliTeklifMi(IhaleDurumu durum, string teklif)
         {
+            System.Diagnostics.Debug.WriteLine(
+        $"[GecerliTeklifMi] teklif={teklif}, SonGercekTeklif={durum?.SonGercekTeklif}");
+
             if (string.IsNullOrEmpty(teklif)) return false;
 
             string t = teklif.Trim();
@@ -201,6 +239,10 @@ namespace BricKartOyunu.Class.Bidding
 
         private string TemelMantik(IhaleDurumu durum)
         {
+            System.Diagnostics.Debug.WriteLine(
+        $"[TemelMantik] Çağrıldı! SonGercekTeklif={durum?.SonGercekTeklif}, " +
+        $"KendiTeklifleri=[{string.Join(",", durum?.KendiTeklifleri ?? new List<string>())}]");
+
             var el = durum.AktifOyuncuEli;
             if (el == null || el.Count != 13) return "Pas";
 
@@ -604,9 +646,9 @@ namespace BricKartOyunu.Class.Bidding
                 case "Preempt": return _anlasma.Preempt;
                 case "Namyats": return _anlasma.Namyats;
 
-                case "1♣ Cevap Sistemi": return _anlasma.BirClubCevapSistemi;
-                case "1♣-1♦ Gelişimi": return _anlasma.BirClubCevapSistemi;
-                case "1♣-1♦-1♥ Gelişimi": return _anlasma.BirClubCevapSistemi;
+                case "1♣ Cevap Sistemi": return _anlasma.OneClub_AnswerSistemi;
+                case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
+                case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
 
                 case "Inverted Minors": return _anlasma.InvertedMinors;
                 case "Forcing NT": return _anlasma.ForcingNT;

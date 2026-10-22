@@ -26,6 +26,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class ResponsiveDouble : IKonvansiyon
     {
         public string Ad => "Responsive Double";
+        public string Aciklama => "Rakip renk anlaşmasına responsive kontr";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 22;
 

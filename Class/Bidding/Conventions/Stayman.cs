@@ -21,6 +21,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════════
 
         public string Ad => "Stayman";
+        public string Aciklama => "NT açışına 4'lü majör araması";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 11;   // Gerber'den (13) ÖNCE
 

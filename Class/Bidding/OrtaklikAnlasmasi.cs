@@ -18,13 +18,13 @@ namespace BricKartOyunu.Class.Bidding
         public bool IkiliSinekGuclu { get; set; } = true;
         public bool ZayifIki { get; set; } = false;
         public bool Preempt { get; set; } = true;
-        public bool Multi2D { get; set; } = false;   // 2♦ = 6'lı ♥ veya ♠ (açıkken Zayıf İki devre dışı)
+        public bool Multi2D { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // AÇILIŞ SİSTEMİ — GÜÇLÜ MAJÖR AÇILIŞLARI
         // ═══════════════════════════════════════════════════════════════════
 
-        public bool Namyats { get; set; } = false;   // 4♣ = güçlü ♥, 4♦ = güçlü ♠
+        public bool Namyats { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // 1♣ CEVAP SİSTEMİ
@@ -32,15 +32,16 @@ namespace BricKartOyunu.Class.Bidding
 
         /// <summary>
         /// 1♣ açışına özel cevap sistemi (Kuvvetli 1♣ / Polish Club hibrit).
-        /// true ise BirClubCevap konvansiyonu devreye girer.
+        /// true ise OneClub_Answer konvansiyonu devreye girer.
         /// </summary>
-        public bool BirClubCevapSistemi { get; set; } = false;
+        public bool OneClub_AnswerSistemi { get; set; } = true;   // ← DEĞİŞTİ
 
         // ═══════════════════════════════════════════════════════════════════
         // SİSTEM — REVERSE
         // ═══════════════════════════════════════════════════════════════════
 
         public bool Reverse { get; set; } = true;
+
         // ═══════════════════════════════════════════════════════════════════
         // 2/1 SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
@@ -95,8 +96,6 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool FourthSuitForcing { get; set; } = true;
 
-
-
         // ═══════════════════════════════════════════════════════════════════
         // SLAM KONVANSİYONLARI
         // ═══════════════════════════════════════════════════════════════════
@@ -116,10 +115,7 @@ namespace BricKartOyunu.Class.Bidding
         public bool ReverseDrury { get; set; } = false;
         public bool CueBid { get; set; } = true;
         public bool Serious3NT { get; set; } = true;
-        public bool NonSerious3NT { get; set; } = false;  // Alternatif versiyon
-        /// <summary>
-        /// Last Train: 4. seviyede son kontrol sorusu (opsiyonel).
-        /// </summary>
+        public bool NonSerious3NT { get; set; } = false;
         public bool LastTrain { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
@@ -135,18 +131,14 @@ namespace BricKartOyunu.Class.Bidding
         public bool Unusual2NT { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
-        // 1NT MÜDAHALE SİSTEMİ (rakip 1NT açtığında)
-        // ═══════════════════════════════════════════════════════════════════
-        // NOT: Cappelletti ve DONT aynı senaryoda tetiklenir.
-        // Aynı anda SADECE BİRİ aktif olmalıdır.
-        // Varsayılan: DONT aktif, Cappelletti pasif.
+        // 1NT MÜDAHALE SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
 
         public bool Cappelletti { get; set; } = false;
         public bool Dont { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
-        // İŞARETLEŞME (SIGNALS)
+        // İŞARETLEŞME
         // ═══════════════════════════════════════════════════════════════════
 
         public bool UDCA { get; set; } = false;
@@ -160,21 +152,18 @@ namespace BricKartOyunu.Class.Bidding
         {
             return new OrtaklikAnlasmasi
             {
-                // Açılışlar
                 BesliMajor = true,
                 InvertedMinors = true,
                 ForcingNT = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
-                ZayifIki = true,      // ← EKLE
-                Multi2D = false,      // Varsayılan: kapalı (açılırsa Zayıf İki'nin yerini alır)
+                ZayifIki = true,
+                Multi2D = false,
                 Preempt = true,
-                Namyats = false,    // Varsayılan: kapalı (Preempt ile çakışmasın)
+                Namyats = false,
 
-                // 1 Sinek cevap sistemi
-                BirClubCevapSistemi = false,  // deneyler için true yap
+                OneClub_AnswerSistemi = false,   // ← DEĞİŞTİ (zaten böyleydi)
 
-                // 1NT/2NT cevapları
                 Stayman = true,
                 BergenRaises = true,
                 JacobyTransfer = true,
@@ -182,40 +171,31 @@ namespace BricKartOyunu.Class.Bidding
                 MinorTransfer = true,
                 PuppetStayman = true,
 
-                // 1NT rebid sonrası
                 TwoWayCheckback = true,
-
-                // XYZ (1X-1Y-1Z)
                 XYZ = true,
 
-                // TrialBid 
                 TrialBid = true,
                 ThirdSuitForcing = true,
                 FourthSuitForcing = true,
 
-                // 1NT müdahale sistemi — aynı anda sadece biri aktif
-                Cappelletti = false,    // VEYA true
+                Cappelletti = false,
                 Dont = true,
-                MultiLandy = false,   // Varsayılan: kapalı (Cappelletti açık)
+                MultiLandy = false,
 
-                // ─── Slam ilgisi göstergeleri ─────────────────────────
-                Serious3NT = true,      // Varsayılan: Serious 3NT aktif
-                NonSerious3NT = false,  // Non-Serious kullanılmıyor
+                Serious3NT = true,
+                NonSerious3NT = false,
 
-                // Slam
                 Blackwood = true,
                 RKCB = true,
                 RKCB1430 = true,
                 Gerber = true,
 
-                // Ortaklık
                 Jacoby2NT = true,
                 Splinter = true,
                 Drury = true,
                 CueBid = true,
                 Reverse = true,
 
-                // Rakip müdahalesi
                 NegativeDouble = true,
                 TakeoutDouble = true,
                 SupportDouble = true,
@@ -232,7 +212,6 @@ namespace BricKartOyunu.Class.Bidding
         {
             return new OrtaklikAnlasmasi
             {
-                // Açılışlar
                 BesliMajor = false,
                 InvertedMinors = false,
                 ForcingNT = false,
@@ -240,7 +219,6 @@ namespace BricKartOyunu.Class.Bidding
                 IkiliSinekGuclu = false,
                 Preempt = false,
 
-                // 1NT cevapları
                 Stayman = true,
                 BergenRaises = false,
                 JacobyTransfer = false,
@@ -248,31 +226,24 @@ namespace BricKartOyunu.Class.Bidding
                 MinorTransfer = false,
                 PuppetStayman = false,
 
-                // 1NT rebid sonrası
                 TwoWayCheckback = false,
-
-                // XYZ
                 XYZ = false,
 
-                // TrialBid
                 TrialBid = false,
                 ThirdSuitForcing = false,
                 FourthSuitForcing = false,
 
-                // Slam
                 Blackwood = true,
                 RKCB = false,
                 RKCB1430 = false,
                 Gerber = false,
 
-                // Ortaklık
                 Jacoby2NT = false,
                 Splinter = false,
                 Drury = false,
                 CueBid = false,
                 Reverse = false,
 
-                // Rakip müdahalesi
                 NegativeDouble = true,
                 TakeoutDouble = false,
                 SupportDouble = false,
@@ -281,7 +252,6 @@ namespace BricKartOyunu.Class.Bidding
                 Michaels = false,
                 Unusual2NT = false,
 
-                // 1NT müdahale sistemi
                 Cappelletti = false,
                 Dont = false,
                 MultiLandy = false,
@@ -297,17 +267,15 @@ namespace BricKartOyunu.Class.Bidding
 
             var aktifler = new System.Collections.Generic.List<string>();
 
-            // ─── AÇILIŞLAR ───────────────────────────────────────────────
             if (IkiliSinekGuclu) aktifler.Add("2♣ Güçlü");
-            if (ZayifIki && !Multi2D) aktifler.Add("Zayıf İki");   // Multi açıkken Zayıf İki devre dışı
+            if (ZayifIki && !Multi2D) aktifler.Add("Zayıf İki");
             if (Multi2D) aktifler.Add("Multi 2♦");
             if (Preempt) aktifler.Add("Preempt");
             if (Namyats) aktifler.Add("Namyats");
 
-            //──── 1Sinek Yanıtları ─────────────────────────────────────
-            if (BirClubCevapSistemi) aktifler.Add("1♣ Cevap Sistemi");
+            // 1♣ cevapları
+            if (OneClub_AnswerSistemi) aktifler.Add("1♣ Cevap Sistemi");   // ← DEĞİŞTİ
 
-            // ─── 1NT / 2NT CEVAPLARI ─────────────────────────────────────
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");
             if (PuppetStayman) aktifler.Add("Puppet");
@@ -316,7 +284,6 @@ namespace BricKartOyunu.Class.Bidding
             if (TwoWayCheckback) aktifler.Add("2-Way Checkback");
             if (XYZ) aktifler.Add("XYZ");
 
-            // ─── ORTAKLIK — DESTEK ve DENEME ────────────────────────────
             if (ForcingNT) aktifler.Add("Forcing NT");
             if (InvertedMinors) aktifler.Add("Inverted Minors");
             if (Jacoby2NT) aktifler.Add("Jacoby2NT");
@@ -330,13 +297,11 @@ namespace BricKartOyunu.Class.Bidding
             if (ReverseDrury) aktifler.Add("Reverse Drury");
             if (CueBid) aktifler.Add("Cue Bid");
 
-            // ─── SLAM KONVANSİYONLARI ────────────────────────────────────
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
             if (RKCB1430) aktifler.Add("RKCB 1430");
             if (Gerber) aktifler.Add("Gerber");
 
-            // ─── RAKİP MÜDAHALESİ ────────────────────────────────────────
             if (NegativeDouble) aktifler.Add("Neg.Dbl");
             if (TakeoutDouble) aktifler.Add("Takeout Dbl");
             if (SupportDouble) aktifler.Add("Supp.Dbl");
@@ -345,12 +310,10 @@ namespace BricKartOyunu.Class.Bidding
             if (Michaels) aktifler.Add("Michaels");
             if (Unusual2NT) aktifler.Add("Unusual2NT");
 
-            // ─── 1NT MÜDAHALE SİSTEMİ (sadece biri aktif) ────────────────
             if (Cappelletti) aktifler.Add("Cappelletti");
             if (Dont) aktifler.Add("DONT");
             if (MultiLandy) aktifler.Add("Multi-Landy");
 
-            // ─── İŞARETLEŞME ─────────────────────────────────────────────
             if (UDCA) aktifler.Add("UDCA");
             else if (StandartSignal) aktifler.Add("Standart Signal");
 

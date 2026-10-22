@@ -36,6 +36,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════
 
         public string Ad => "Serious 3NT";
+        public string Aciklama => "Ciddi slam ilgisi gösteren 3NT";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 13;   // CueBid (14) ÖNCESİ: 3NT cue-bid'den önce denenmeli
 

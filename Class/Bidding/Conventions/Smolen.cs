@@ -22,6 +22,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Smolen : IKonvansiyon
     {
         public string Ad => "Smolen";
+        public string Aciklama => "5-4 majör dağılımı";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 26;
 

@@ -7,6 +7,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class KozQSorusu : IKonvansiyon
     {
         public string Ad => "Koz Q Sorusu";
+        public string Aciklama => "Koz kızını soran 5NT";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 27;
 

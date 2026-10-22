@@ -32,6 +32,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class FourthSuitForcing : IKonvansiyon
     {
         public string Ad => "4. Renk Forsingi";
+        public string Aciklama => "Dördüncü renk forsingi";
         public bool AktifMi { get; set; } = true;
 
         // XYZ (24) ve diğer konvansiyonlardan sonra, BasitCevap (100)'dan önce

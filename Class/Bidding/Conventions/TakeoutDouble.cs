@@ -33,6 +33,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class TakeoutDouble : IKonvansiyon
     {
         public string Ad => "Takeout Double";
+        public string Aciklama => "Rakip renk açışına takeout kontr";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 24;
 

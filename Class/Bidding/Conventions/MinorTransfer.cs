@@ -19,6 +19,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class MinorTransfer : IKonvansiyon
     {
         public string Ad => "Minor Transfer";
+        public string Aciklama => "NT açılışına minör transferi";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 24;
 

@@ -25,6 +25,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════
 
         public string Ad => "Preempt";
+        public string Aciklama => "Zayıf preempt açılışı";
         public bool AktifMi { get; set; } = true;
 
         /// <summary>

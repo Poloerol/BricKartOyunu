@@ -25,6 +25,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class InvertedMinors : IKonvansiyon
     {
         public string Ad => "Inverted Minors";
+        public string Aciklama => "Ters minör destekleri";
         public bool AktifMi { get; set; } = true;
 
         // BesliMajor (10)'dan sonra, Stayman (11)'dan önce

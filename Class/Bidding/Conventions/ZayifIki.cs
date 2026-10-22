@@ -17,6 +17,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════
 
         public string Ad => "Zayıf İki";   // ← Motor case etiketiyle eşleşmeli
+        public string Aciklama => "6'lı renkle zayıf iki açışı";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 8;
 

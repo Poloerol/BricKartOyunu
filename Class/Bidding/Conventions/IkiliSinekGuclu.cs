@@ -19,6 +19,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class IkiliSinekGuclu : IKonvansiyon
     {
         public string Ad => "2♣ Güçlü";
+        public string Aciklama => "Güçlü yapay 2♣ açılışı";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 5;
 

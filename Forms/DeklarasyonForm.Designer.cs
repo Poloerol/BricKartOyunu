@@ -28,7 +28,7 @@ namespace BricKartOyunu.Forms
             this.colGuney = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panelGrid = new System.Windows.Forms.Panel();
             this.btnElDegerlendirme = new System.Windows.Forms.Button();
-            this.btnInterpret = new System.Windows.Forms.Button();
+            this.BtnIhaleYorum = new System.Windows.Forms.Button();
             this.btnFlowcharts = new System.Windows.Forms.Button();
             this.btnHint = new System.Windows.Forms.Button();
             this.btnPass = new System.Windows.Forms.Button();
@@ -135,16 +135,16 @@ namespace BricKartOyunu.Forms
             this.btnElDegerlendirme.UseVisualStyleBackColor = true;
             this.btnElDegerlendirme.Click += new System.EventHandler(this.BtnElDegerlendirme_Click);
             // 
-            // btnInterpret
+            // BtnIhaleYorum
             // 
-            this.btnInterpret.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.btnInterpret.Location = new System.Drawing.Point(128, 218);
-            this.btnInterpret.Name = "btnInterpret";
-            this.btnInterpret.Size = new System.Drawing.Size(110, 32);
-            this.btnInterpret.TabIndex = 7;
-            this.btnInterpret.Text = "İhale Yorumu";
-            this.btnInterpret.UseVisualStyleBackColor = true;
-            this.btnInterpret.Click += new System.EventHandler(this.BtnInterpret_Click);
+            this.BtnIhaleYorum.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.BtnIhaleYorum.Location = new System.Drawing.Point(128, 218);
+            this.BtnIhaleYorum.Name = "BtnIhaleYorum";
+            this.BtnIhaleYorum.Size = new System.Drawing.Size(110, 32);
+            this.BtnIhaleYorum.TabIndex = 7;
+            this.BtnIhaleYorum.Text = "İhale Yorumu";
+            this.BtnIhaleYorum.UseVisualStyleBackColor = true;
+            this.BtnIhaleYorum.Click += new System.EventHandler(this.BtnIhaleYorum_Click);
             // 
             // btnFlowcharts
             // 
@@ -211,7 +211,7 @@ namespace BricKartOyunu.Forms
             this.Controls.Add(this.btnPass);
             this.Controls.Add(this.btnHint);
             this.Controls.Add(this.btnFlowcharts);
-            this.Controls.Add(this.btnInterpret);
+            this.Controls.Add(this.BtnIhaleYorum);
             this.Controls.Add(this.btnElDegerlendirme);
             this.Controls.Add(this.panelGrid);
             this.Controls.Add(this.lstIhale);
@@ -244,7 +244,7 @@ namespace BricKartOyunu.Forms
         private System.Windows.Forms.ColumnHeader colGuney;
         private System.Windows.Forms.Panel panelGrid;
         private System.Windows.Forms.Button btnElDegerlendirme;
-        private System.Windows.Forms.Button btnInterpret;
+        private System.Windows.Forms.Button BtnIhaleYorum;
         private System.Windows.Forms.Button btnFlowcharts;
         private System.Windows.Forms.Button btnHint;
         private System.Windows.Forms.Button btnPass;

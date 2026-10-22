@@ -23,6 +23,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Michaels : IKonvansiyon
     {
         public string Ad => "Michaels";
+        public string Aciklama => "İki renkli Michaels cue-bid";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 19;
 

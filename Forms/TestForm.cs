@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BricKartOyunu.Tests;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -8,7 +9,7 @@ namespace BricKartOyunu.Forms
     public partial class TestForm : Form
     {
         // Sonuç kuyruğu
-        private List<TestSonucu> _sonuclar;
+        private List<TestSonucu> _sonuclar = new List<TestSonucu>();
         private int _gecenSayisi;
         private int _kalanSayisi;
 
@@ -20,6 +21,7 @@ namespace BricKartOyunu.Forms
         public TestForm()
         {
             InitializeComponent();
+            _sonuclar = new List<TestSonucu>();
             // Butonlar Designer'da bağlı (btnTestleriCalistir_Click, btnExit_Click)
             this.ShowInTaskbar = false;
         }
@@ -80,12 +82,15 @@ namespace BricKartOyunu.Forms
 
         private void SonucEkle(string mesaj)
         {
+            if (mesaj == null)
+                mesaj = string.Empty;
+
             Color renk = Color.LightGray;
-            if (mesaj.Contains("✅")) { renk = Color.LightGreen; _gecenSayisi++; }
+            if (mesaj.Contains("ÖZET")) renk = Color.White;
+            else if (mesaj.Contains("✅")) { renk = Color.LightGreen; _gecenSayisi++; }
             else if (mesaj.Contains("❌")) { renk = Color.Salmon; _kalanSayisi++; }
             else if (mesaj.Contains("═══")) renk = Color.Cyan;
             else if (mesaj.Contains("TEST")) renk = Color.Yellow;
-            else if (mesaj.Contains("ÖZET")) renk = Color.White;
 
             _sonuclar.Add(new TestSonucu { Mesaj = mesaj, Renk = renk });
 
@@ -202,6 +207,25 @@ namespace BricKartOyunu.Forms
         private void TestForm_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void BtnOneClubTestleri_Click(object sender, EventArgs e)
+        {
+            // Sonuç formunu hazırla (aynı eski altyapıyı kullanıyoruz)
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                TestRunner_OneClub.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
         }
     }
 }

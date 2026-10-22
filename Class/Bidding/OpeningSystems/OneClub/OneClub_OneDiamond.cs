@@ -1,17 +1,18 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
+using BricKartOyunu.Class;
+using BricKartOyunu.Class.Bidding.Interfaces;
 
-namespace BricKartOyunu.Class.Bidding.Conventions
+namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
 {
     /// <summary>
     /// 1♣ ⇒ 1♦ GELİŞİMİ — AŞAMA 1: AÇICI REBİD.
-    ///
     /// Sıra: 1♣ (biz) - 1♦ (partner) - ? (biz)
     ///
-    /// Tablodaki rebid'ler (5'li majör mantığıyla):
+    /// Kitaptaki tablo (eski BirClubBirKaroGelisim.cs ile birebir):
     ///   1♥    = 4+♣ 4♥, 11-17 HCP
     ///   1♠    = 4+♣ 4♠, 11-17 HCP
-    ///   1NT   = 11-14 dengeli (4'lü majör olabilir)
+    ///   1NT   = 11-14 dengeli
     ///   2♣    = 6+♣, 11-16 HCP
     ///   2♦    = 4+♣ 4♦, 11-14 HCP
     ///   2♥    = 5+♣ 4♥, 18+ HCP
@@ -23,26 +24,29 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   3♠    = 4♣4♦4♥1♠, 18-21 HCP
     ///   3NT   = 4♣4♥4♠1♦, 18-21 HCP
     /// </summary>
-    public class BirClubBirKaroGelisim : IKonvansiyon
+    public class OneClub_OneDiamond : IAcilisGelisimi
     {
-        public string Ad => "1♣-1♦ Gelişimi";
-        public bool AktifMi { get; set; } = true;
-        public int Oncelik => 6;
+        public string Aciklama => "1♣-1♦ açıcı gelişimi";
+        public int Oncelik => 40;
 
-        public bool UygunMu(IhaleDurumu durum)
+        public bool UygunMu(List<Card> el, IhaleDurumu durum)
         {
-            if (durum == null || durum.AktifOyuncuEli == null) return false;
-            if (durum.AktifOyuncuEli.Count != 13) return false;
+            if (durum == null || el == null) return false;
+            if (el.Count != 13) return false;
 
+            // Bizim ilk teklifimiz 1♣ olmalı
             if (durum.KendiTeklifleri.Count == 0) return false;
             if (durum.KendiTeklifleri[0] != "1♣") return false;
 
+            // Son gerçek teklif 1♦ olmalı ve partnerden gelmeli
             if (durum.SonGercekTeklif != "1♦") return false;
             if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
 
+            // Sadece 2 gerçek teklif olmalı (1♣, 1♦)
             int gercekTeklifSayisi = durum.Gecmis.Count(h => h.GercekTeklifMi);
             if (gercekTeklifSayisi > 2) return false;
 
+            // Rakip araya girmemiş olmalı
             if (durum.RakipTeklifleri.Any(t => !string.IsNullOrEmpty(t)
                 && t != "Pas" && t != "Dbl" && t != "RDbl"))
                 return false;
@@ -50,9 +54,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return true;
         }
 
-        public string TeklifVer(IhaleDurumu durum)
+        public string TeklifVer(List<Card> el, IhaleDurumu durum)
         {
-            var el = durum.AktifOyuncuEli;
             if (el == null) return "Pas";
 
             int hcp = ElDegerlendirici.HCP(el);

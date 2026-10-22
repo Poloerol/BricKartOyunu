@@ -21,6 +21,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class PickASlam : IKonvansiyon
     {
         public string Ad => "Pick-a-Slam";
+        public string Aciklama => "5NT ile slam seçimi";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 25;
 

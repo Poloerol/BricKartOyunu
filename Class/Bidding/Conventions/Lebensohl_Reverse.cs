@@ -24,6 +24,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     public class Lebensohl_Reverse : IKonvansiyon
     {
         public string Ad => "Lebensohl (Reverse)";
+        public string Aciklama => "Reverse sekansına Lebensohl cevapları";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 6;
 
