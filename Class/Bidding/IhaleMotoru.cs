@@ -43,6 +43,7 @@ namespace BricKartOyunu.Class.Bidding
                 new MultiLandy(),
                 new Gerber(),
                 new PuppetStayman(),
+                new FitCueBid(),   // ← YENİ: Rakip müdahalesine karşı fit cue-bid
                 new CueBid(),
                 new KozQSorusu(),
                 new Kickback(),

@@ -77,10 +77,10 @@ namespace BricKartOyunu.Tests
                 Player.Bati, "2NT", sonucEkle, ref gecen, ref kalan);
 
             // ════════════════════════════════════════════════════════════════
-            // DÜNKÜ SENARYO TESTİ: Kuzey 1♣ açtı, Güney 1♥ dedi, sıra Kuzey'de
+            // SENARYO TESTİ: 1♣ - 1♥ - ? (16 HP + Fit → 3♥ Davet)
             // ════════════════════════════════════════════════════════════════
             sonucEkle("");
-            sonucEkle("── SENARYO TESTİ: 1♣ - 1♥ - ? (Kuzey'in Sırası) ──");
+            sonucEkle("── SENARYO TESTİ: 1♣ - 1♥ - ? (16 HP + Fit → 3♥ Davet) ──");
 
             var elKuzey = TestHelpers.ElOlustur("Q2", "AJT9", "72", "AKQT5");
             sonucEkle($"Kuzey'in Eli: HCP={ElDegerlendirici.HCP(elKuzey)}, " +
@@ -97,14 +97,14 @@ namespace BricKartOyunu.Tests
             string sonucSenaryo = motorSenaryo.TeklifVer(durumSenaryo);
 
             sonucEkle($"Motor Sonucu: {sonucSenaryo}");
-            if (sonucSenaryo == "2♥")
+            if (sonucSenaryo == "3♥")
             {
-                sonucEkle("✅ DOĞRU: Kupa fiti tanındı, 2♥ döndü!");
+                sonucEkle("✅ DOĞRU: Kupa fiti tanındı, 3♥ (Davet) döndü!");
                 gecen++;
             }
             else
             {
-                sonucEkle($"❌ HATA: Beklenen 2♥, gelen {sonucSenaryo}");
+                sonucEkle($"❌ HATA: Beklenen 3♥, gelen {sonucSenaryo}");
                 kalan++;
             }
 

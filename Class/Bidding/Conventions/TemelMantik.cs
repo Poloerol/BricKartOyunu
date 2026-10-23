@@ -10,11 +10,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// Diğer özel konvansiyonlar (Stayman, Jacoby Transfer, vb.) devreye 
     /// girmediğinde, bu sınıf briç matematiğine göre en mantıklı teklifi verir.
     /// 
-    /// İçerdiği kurallar:
-    /// - Açılış: 22+ HP → 2♣, 20-21 dengeli → 2NT, 15-17 dengeli → 1NT, 12+ → En uzun renk
-    /// - Rakip müdahalesi: 8+ HP ve 5'li renk ile 1. seviyede, 11+ HP ile 2. seviyede
-    /// - Partner açılışına cevap: Fit varsa destek, yoksa yeni renk, NT, Pas
-    /// - Açıcı rebid: ÖNCE FİT (partnerin rengi 3+ destek ise), SONRA NT/yeni renk
+    /// Hiyerarşi (Öncelik Sırası):
+    /// 1. FİT + 12+ HP + Rakip Müdahalesi → Rakip renginde Cue-Bid.
+    /// 2. FİT (6-9 → Basit Destek, 10-12 → Davet, 13+ → Davet/Manş).
+    ///    - Rakip müdahalesi YOKSA: 13+ HP → Davet (3♥).
+    ///    - Rakip müdahalesi VARSA: 13+ HP → Manş (4♥).
+    /// 3. STOPER: Rakip müdahalesi + 6-9 HP + dengeli + rakip renkte stoper → 1NT.
+    /// 4. NT: Rakip müdahalesi yoksa, normal NT mantığı.
+    /// 5. YENİ RENK: Fit/NT yoksa, 5'li uzun rengi göster.
     /// </summary>
     public class TemelMantik : IKonvansiyon
     {
@@ -23,10 +26,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 999;  // Her zaman en son çalışır
 
-        /// <summary>
-        /// TemelMantik her zaman uygundur. Çünkü o "son çare"dir.
-        /// Diğer konvansiyonlar devreye girmezse, bu çalışır.
-        /// </summary>
         public bool UygunMu(IhaleDurumu durum)
         {
             return true;
@@ -130,9 +129,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             // ═══════════════════════════════════════════════════════════════
-            // 4. AÇICI REBID — ÖNCE FİT, SONRA NT
+            // 4. AÇICI REBID VEYA RAKİP MÜDAHALESİNE CEVAP
+            //    HİYERARŞİ: 1) CUE-BID → 2) FİT → 3) STOPER → 4) NT → 5) YENİ RENK
             // ═══════════════════════════════════════════════════════════════
-            if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count > 0)
+            if (durum.PartnerActiMi())
             {
                 var partnerSonTeklif = durum.PartnerTeklifleri.LastOrDefault();
                 if (!string.IsNullOrEmpty(partnerSonTeklif))
@@ -148,43 +148,122 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
                     int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
 
-                    // ═══ KRİTİK: ÖNCE FİT KONTROLÜ ═══
-                    if (!string.IsNullOrEmpty(partnerKozu) && partnerKozu != "NT")
+                    bool rakipMudahaleEtti = durum.RakipActiMi();
+
+                    // ═══════════════════════════════════════════════════════
+                    // 1. ÖNCELİK: FİT + 12+ HP + RAKİP MÜDAHALESİ → CUE-BID
+                    // ═══════════════════════════════════════════════════════
+                    if (rakipMudahaleEtti && !string.IsNullOrEmpty(partnerKozu) && partnerKozu != "NT")
                     {
                         int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
-                        if (destek >= 3)
+                        if (destek >= 3 && partnerSeviye == 1 && hp >= 12)
                         {
-                            if (partnerSeviye == 1)
-                            {
-                                string hedef = null;
-                                if (partnerKozu == "Kupa") hedef = "2♥";
-                                else if (partnerKozu == "Maça") hedef = "2♠";
-                                else if (partnerKozu == "Karo") hedef = "2♦";
-                                else if (partnerKozu == "Sinek") hedef = "2♣";
+                            string rakipKozu = null;
+                            var sonRakipTeklifi = durum.Gecmis
+                                .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
+                                .LastOrDefault();
+                            if (sonRakipTeklifi != null)
+                                rakipKozu = KozYardimcisi.TekliftenKozCikar(sonRakipTeklifi.Teklif);
 
-                                if (hedef != null && !durum.KendiTeklifleri.Contains(hedef))
+                            if (!string.IsNullOrEmpty(rakipKozu) && rakipKozu != "NT")
+                            {
+                                string cueBid = "2" + KozYardimcisi.KozSembolu(rakipKozu);
+                                if (!durum.KendiTeklifleri.Contains(cueBid))
                                 {
                                     System.Diagnostics.Debug.WriteLine(
-                                        $"[TemelMantik] FİT: Partner {partnerKozu} dedi, bende {destek} destek var → {hedef}");
-                                    return hedef;
+                                        $"[TemelMantik] FİT + 12+ HP + RAKİP MÜDAHALESİ → CUE-BID: {cueBid}");
+                                    return cueBid;
                                 }
-                            }
-                            else if (partnerSeviye == 2)
-                            {
-                                string hedef = null;
-                                if (partnerKozu == "Kupa") hedef = "3♥";
-                                else if (partnerKozu == "Maça") hedef = "3♠";
-                                else if (partnerKozu == "Karo") hedef = "3♦";
-                                else if (partnerKozu == "Sinek") hedef = "3♣";
-
-                                if (hedef != null && !durum.KendiTeklifleri.Contains(hedef))
-                                    return hedef;
                             }
                         }
                     }
 
-                    // ═══ FİT YOKSA: NT veya yeni renk ═══
-                    if (dengeli)
+                    // ═══════════════════════════════════════════════════════
+                    // 2. ÖNCELİK: FİT
+                    //    - Rakip müdahalesi YOKSA: 13+ HP → Davet (3♥)
+                    //    - Rakip müdahalesi VARSA: 13+ HP → Manş (4♥)
+                    // ═══════════════════════════════════════════════════════
+                    if (!string.IsNullOrEmpty(partnerKozu) && partnerKozu != "NT")
+                    {
+                        int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+                        if (destek >= 3 && partnerSeviye == 1)
+                        {
+                            string hedef = null;
+
+                            if (hp <= 9) // 6-9 HP basit destek
+                            {
+                                if (partnerKozu == "Kupa") hedef = "2♥";
+                                else if (partnerKozu == "Maça") hedef = "2♠";
+                                else if (partnerKozu == "Karo") hedef = "2♦";
+                                else if (partnerKozu == "Sinek") hedef = "2♣";
+                            }
+                            else if (hp >= 10 && hp <= 12) // Davet
+                            {
+                                if (partnerKozu == "Kupa") hedef = "3♥";
+                                else if (partnerKozu == "Maça") hedef = "3♠";
+                                else if (partnerKozu == "Karo") hedef = "3♦";
+                                else if (partnerKozu == "Sinek") hedef = "3♣";
+                            }
+                            else if (hp >= 13)
+                            {
+                                if (rakipMudahaleEtti)
+                                {
+                                    // Rakip müdahalesi VAR: 13+ HP → Manş
+                                    if (partnerKozu == "Kupa") hedef = "4♥";
+                                    else if (partnerKozu == "Maça") hedef = "4♠";
+                                    else if (partnerKozu == "Karo") hedef = "5♦";
+                                    else if (partnerKozu == "Sinek") hedef = "5♣";
+                                }
+                                else
+                                {
+                                    // Rakip müdahalesi YOK: 13+ HP → Davet (3♥)
+                                    // Çünkü partnerin 6-9 HP'siyle toplam 19-25 arası olabilir.
+                                    // Manş garanti değil, davet yap.
+                                    if (partnerKozu == "Kupa") hedef = "3♥";
+                                    else if (partnerKozu == "Maça") hedef = "3♠";
+                                    else if (partnerKozu == "Karo") hedef = "3♦";
+                                    else if (partnerKozu == "Sinek") hedef = "3♣";
+                                }
+                            }
+
+                            if (hedef != null && !durum.KendiTeklifleri.Contains(hedef))
+                            {
+                                System.Diagnostics.Debug.WriteLine(
+                                    $"[TemelMantik] FİT: {partnerKozu}, {destek} destek, {hp} HP, " +
+                                    $"Rakip={(rakipMudahaleEtti ? "VAR" : "YOK")} → {hedef}");
+                                return hedef;
+                            }
+                        }
+                    }
+
+                    // ═══════════════════════════════════════════════════════
+                    // 3. ÖNCELİK: RAKİP MÜDAHALESİ VARSA STOPER VE 1NT
+                    // ═══════════════════════════════════════════════════════
+                    if (rakipMudahaleEtti && dengeli)
+                    {
+                        string rakipKozu = null;
+                        var sonRakipTeklifi = durum.Gecmis
+                            .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
+                            .LastOrDefault();
+                        if (sonRakipTeklifi != null)
+                            rakipKozu = KozYardimcisi.TekliftenKozCikar(sonRakipTeklifi.Teklif);
+
+                        if (!string.IsNullOrEmpty(rakipKozu) && rakipKozu != "NT" && hp >= 6 && hp <= 9)
+                        {
+                            bool stoperVar = ElDegerlendirici.StopperVar(el, rakipKozu);
+                            if (stoperVar && !durum.KendiTeklifleri.Contains("1NT"))
+                            {
+                                System.Diagnostics.Debug.WriteLine(
+                                    $"[TemelMantik] STOPER: Rakip {rakipKozu}, {hp} HP + stoper → 1NT");
+                                return "1NT";
+                            }
+                        }
+                    }
+
+                    // ═══════════════════════════════════════════════════════
+                    // 4. ÖNCELİK: NORMAL NT (Rakip müdahalesi yoksa)
+                    // ═══════════════════════════════════════════════════════
+                    if (dengeli && !rakipMudahaleEtti)
                     {
                         if (hp >= 18 && hp <= 19 && !durum.KendiTeklifleri.Contains("2NT"))
                             return "2NT";
@@ -192,6 +271,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                             return "1NT";
                     }
 
+                    // ═══════════════════════════════════════════════════════
+                    // 5. ÖNCELİK: YENİ RENK (5'li renk varsa)
+                    // ═══════════════════════════════════════════════════════
                     if (macca >= 5 && partnerKozu != "Maça" && !durum.KendiTeklifleri.Contains("2♠"))
                         return "2♠";
                     if (kupa >= 5 && partnerKozu != "Kupa" && !durum.KendiTeklifleri.Contains("2♥"))
