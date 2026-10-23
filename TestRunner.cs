@@ -13098,8 +13098,8 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_BirClubBirKaro_Acilis_2Diamond()
         {
             var el = ElMetinden("Q7", "KJ5", "A874", "Q985");
-            TestBirClubBirKaro("TEST 45.5 — 1♣-1♦-?: 4+♣ 4♦, 12 HCP → 2♦",
-                "1♣ - 1♦ - ?", "2♦", el);
+            TestBirClubBirKaro("TEST 45.5 — 1♣-1♦-?: 4+♣ 4♦, 12 HCP → 1NT",
+                "1♣ - 1♦ - ?", "1NT", el);
         }
         public static void Test_BirClubBirKaro_Acilis_2Heart_Strong()
         {
