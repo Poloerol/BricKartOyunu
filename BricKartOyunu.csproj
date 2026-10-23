@@ -222,6 +222,7 @@
     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
     <Compile Include="Class\Bidding\Tests\TestHelpers.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_OneDiamond.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
     <Compile Include="Class\Player.cs" />

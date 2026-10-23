@@ -8,17 +8,13 @@ namespace BricKartOyunu.Class.Bidding
     /// 
     /// Bu sınıf şunları hesaplar:
     /// - HCP (High Card Points): A=4, K=3, Q=2, J=1
-    /// - Dağılım puanı: void=3, singleton=2, doubleton=1
+    /// - Dağılım puanı (Koz varsa Kısalık, yoksa Uzunluk)
     /// - Toplam puan: HCP + Dağılım
     /// - Renk sayıları (her renkten kaç kart)
     /// - Dengeli/dengesiz el kontrolü
     /// - Majör/minör uzunlukları
     /// - Stopper (durdurucu) kontrolü
-    /// 
-    /// Kullanım:
-    ///   var el = guneyEl;
-    ///   int hcp = ElDegerlendirici.HCP(el);        // 15
-    ///   bool dengeli = ElDegerlendirici.DengeliEl(el);  // true
+    /// - Fit (Koz uyumu) kontrolü
     /// </summary>
     public static class ElDegerlendirici
     {
@@ -50,20 +46,45 @@ namespace BricKartOyunu.Class.Bidding
 
         /// <summary>
         /// Dağılım puanı hesaplar.
-        /// Void (şikan) = 3, Singleton = 2, Doubleton = 1
+        /// 
+        /// kozRengi null veya boş ise: SADECE uzun renk puanı verilir (NT veya fit yok).
+        ///   - 5'li renk = +1, 6'lı = +2, 7'li = +3, vs. (her fazla kart için +1)
+        /// kozRengi belirli ise: KOZ DIŞINDAKİ renklerde kısalık puanı verilir.
+        ///   - Void (şikan) = +3
+        ///   - Singleton = +2
+        ///   - Doubleton = +1
+        ///   - Ayrıca koz rengi 5+ ise uzunluk puanı da eklenir.
         /// </summary>
-        public static int DagilimPuani(List<Card> el)
+        public static int DagilimPuani(List<Card> el, string kozRengi = null)
         {
             if (el == null) return 0;
 
             int puan = 0;
             var sayilar = RenkSayilari(el);
 
-            foreach (var sayi in sayilar.Values)
+            if (string.IsNullOrEmpty(kozRengi))
             {
-                if (sayi == 0) puan += 3;       // Void / Şikan
-                else if (sayi == 1) puan += 2;  // Singleton
-                else if (sayi == 2) puan += 1;  // Doubleton
+                // KOZ YOK (NT veya fit bulunmamış): Sadece uzun renk puanı
+                foreach (var sayi in sayilar.Values)
+                {
+                    if (sayi >= 5) puan += (sayi - 4); // 5'li = +1, 6'lı = +2, vs.
+                }
+            }
+            else
+            {
+                // KOZ VAR (fit bulunmuş): Koz dışındaki renklerde kısalık puanı
+                foreach (var kv in sayilar)
+                {
+                    if (kv.Key == kozRengi) continue; // Koz rengine kısalık puanı verilmez
+
+                    if (kv.Value == 0) puan += 3;       // Void
+                    else if (kv.Value == 1) puan += 2;  // Singleton
+                    else if (kv.Value == 2) puan += 1;  // Doubleton
+                }
+
+                // Koz renginde uzunluk puanı (5+ kart varsa)
+                int kozSayisi = sayilar.ContainsKey(kozRengi) ? sayilar[kozRengi] : 0;
+                if (kozSayisi >= 5) puan += (kozSayisi - 4);
             }
 
             return puan;
@@ -71,10 +92,11 @@ namespace BricKartOyunu.Class.Bidding
 
         /// <summary>
         /// Toplam puan = HCP + Dağılım puanı.
+        /// kozRengi null ise NT puanı, dolu ise fit puanı hesaplanır.
         /// </summary>
-        public static int ToplamPuan(List<Card> el)
+        public static int ToplamPuan(List<Card> el, string kozRengi = null)
         {
-            return HCP(el) + DagilimPuani(el);
+            return HCP(el) + DagilimPuani(el, kozRengi);
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -139,6 +161,28 @@ namespace BricKartOyunu.Class.Bidding
         public static bool RenkVar(List<Card> el, string renk, int minimumAdet)
         {
             return RenkUzunlugu(el, renk) >= minimumAdet;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // FIT (KOZ UYUMU) KONTROLÜ
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// İki oyuncunun ortak kozda fit olup olmadığını kontrol eder.
+        /// Fit tanımı: Aynı renkten toplam en az 8 kart.
+        /// 
+        /// En iyi fit 4+4'tür (her iki taraf da kısalık puanı kazanır).
+        /// 
+        /// partnerKozSayisi: Partnerin deklare ettiği rengin minimum kart sayısı
+        /// (örn. partner 1♥ açtıysa 5, partner 3♥ dediyse 3 gibi tahmin edilir).
+        /// </summary>
+        public static bool FitVarMi(List<Card> benimEl, string koz, int partnerKozSayisi)
+        {
+            if (benimEl == null || string.IsNullOrEmpty(koz)) return false;
+            if (partnerKozSayisi <= 0) return false;
+
+            int benimKozSayim = RenkUzunlugu(benimEl, koz);
+            return (benimKozSayim + partnerKozSayisi) >= 8;
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -212,7 +256,7 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Belirli bir renkte stopper (durdurucu) var mı?
         /// Stopper: As, Kx, QJx, J10xx, vs.
-        /// Bu basit versiyon sadece As ve Kx kontrol eder.
+        /// Bu basit versiyon sadece As, Kx ve QJ kontrol eder.
         /// </summary>
         public static bool StopperVar(List<Card> el, string renk)
         {
@@ -288,7 +332,6 @@ namespace BricKartOyunu.Class.Bidding
 
                 // Kx = 0.5
                 if (renkKartlari[0].Value == 13 && renkKartlari.Count >= 2) sayi += 0.5;
-                else if (renkKartlari.Count >= 2 && renkKartlari[0].Value == 13) sayi += 0.5;
 
                 // KQ = 1
                 if (renkKartlari.Count >= 2 &&
@@ -371,15 +414,16 @@ namespace BricKartOyunu.Class.Bidding
             if (el == null || string.IsNullOrEmpty(renk)) return false;
             return el.Any(c => c.Suit == renk && c.Value == 12);
         }
+
         // ═══════════════════════════════════════════════════════════════════
         // YARDIMCI
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>
         /// Elin özet metni (debug için).
-        /// Örnek: "15 HCP, 6 TP, Dengeli, Maça:5 Kupa:3 Karo:3 Sinek:2"
+        /// Örnek: "15 HCP, 17 TP (NT), Dengeli, Maça:5 Kupa:3 Karo:3 Sinek:2"
         /// </summary>
-        public static string Ozet(List<Card> el)
+        public static string Ozet(List<Card> el, string kozRengi = null)
         {
             if (el == null) return "Boş el";
 
@@ -388,8 +432,9 @@ namespace BricKartOyunu.Class.Bidding
                             $"Karo:{sayilar["Karo"]} Sinek:{sayilar["Sinek"]}";
 
             string dengeli = DengeliEl(el) ? "Dengeli" : "Dengesiz";
+            string kozBilgi = string.IsNullOrEmpty(kozRengi) ? "NT" : $"{kozRengi} kozu";
 
-            return $"{HCP(el)} HCP, {ToplamPuan(el)} TP, {dengeli}, {dagilim}";
+            return $"{HCP(el)} HCP, {ToplamPuan(el, kozRengi)} TP ({kozBilgi}), {dengeli}, {dagilim}";
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -453,7 +498,5 @@ namespace BricKartOyunu.Class.Bidding
                     return false;
             }
         }
-        
-
     }
 }

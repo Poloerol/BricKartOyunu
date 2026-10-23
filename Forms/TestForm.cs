@@ -219,7 +219,14 @@ namespace BricKartOyunu.Forms
 
             try
             {
+                // ─── 1) 1♣ Açış Sistemi Testleri ───
                 TestRunner_OneClub.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 2) 1♣ ⇒ 1♦ Gelişim Testleri ───
+                SonucEkle("");
+                TestRunner_OneClub_OneDiamond.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── Ortak özet ───
                 OzetiGuncelle();
             }
             catch (Exception ex)

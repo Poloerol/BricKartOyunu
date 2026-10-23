@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using BricKartOyunu.Class;
+﻿using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding;
+using System;
+using System.Collections.Generic;
 
 namespace BricKartOyunu.Tests
 {
@@ -14,6 +15,9 @@ namespace BricKartOyunu.Tests
             EkleRenk(el, "Kupa", kupa);
             EkleRenk(el, "Karo", karo);
             EkleRenk(el, "Sinek", sinek);
+
+            if (el.Count != 13)
+                throw new ArgumentException($"El {el.Count} kart içeriyor, 13 olmalı! ({maca}/{kupa}/{karo}/{sinek})");
             return el;
         }
 

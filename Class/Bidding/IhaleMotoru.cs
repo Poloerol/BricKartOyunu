@@ -238,218 +238,196 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         private string TemelMantik(IhaleDurumu durum)
-        {
-            System.Diagnostics.Debug.WriteLine(
+{
+    System.Diagnostics.Debug.WriteLine(
         $"[TemelMantik] Çağrıldı! SonGercekTeklif={durum?.SonGercekTeklif}, " +
         $"KendiTeklifleri=[{string.Join(",", durum?.KendiTeklifleri ?? new List<string>())}]");
 
-            var el = durum.AktifOyuncuEli;
-            if (el == null || el.Count != 13) return "Pas";
+    var el = durum.AktifOyuncuEli;
+    if (el == null || el.Count != 13) return "Pas";
 
-            int hp = ElDegerlendirici.HCP(el);
-            bool dengeli = ElDegerlendirici.DengeliEl(el);
+    int hp = ElDegerlendirici.HCP(el);
+    bool dengeli = ElDegerlendirici.DengeliEl(el);
 
-            // ═══════════════════════════════════════════════════════════════
-            // 0. PARTNER 1NT AÇTIYSA (Cevapçı olarak)
-            // ═══════════════════════════════════════════════════════════════
-            if (durum.PartnerTeklifleri.Count > 0 &&
-                durum.PartnerTeklifleri.Last() == "1NT" &&
-                durum.KendiTeklifleri.Count == 0)
-            {
-                return "Pas";
-            }
+    // ═══════════════════════════════════════════════════════════════
+    // 0. PARTNER 1NT AÇTIYSA (Cevapçı olarak)
+    // ═══════════════════════════════════════════════════════════════
+    if (durum.PartnerTeklifleri.Count > 0 &&
+        durum.PartnerTeklifleri.Last() == "1NT" &&
+        durum.KendiTeklifleri.Count == 0)
+    {
+        return "Pas";
+    }
 
-            // Partner 1NT açtı ve ben transfer/stayman yaptım, şimdi cevap veriyorum
-            if (durum.PartnerTeklifleri.Count > 0 &&
-                durum.PartnerTeklifleri.Contains("1NT") &&
-                durum.KendiTeklifleri.Count > 0)
-            {
-                if (durum.SonGercekTeklif == "2♦" && durum.SonGercekTeklifSahibi == durum.Partner)
-                    return "2♥";
-                if (durum.SonGercekTeklif == "2♥" && durum.SonGercekTeklifSahibi == durum.Partner)
-                    return "2♠";
-                if (durum.SonGercekTeklif == "2♣" && durum.SonGercekTeklifSahibi == durum.Partner)
-                {
-                    int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-                    int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-                    if (macca >= 4) return "2♠";
-                    if (kupa >= 4) return "2♥";
-                    return "2♦";
-                }
-                return "Pas";
-            }
-
-            // ═══════════════════════════════════════════════════════════════
-            // 0.5. PARTNER 3+ SEVİYEDE SIÇRAMA YAPTIYSA (Pick-a-Slam)
-            // ═══════════════════════════════════════════════════════════════
-            System.Diagnostics.Debug.WriteLine(
-                $"[0.5 DEBUG] PartnerActiMi={durum.PartnerActiMi()}, " +
-                $"KendiTeklifleri.Count={durum.KendiTeklifleri.Count}, hp={hp}");
-            if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count > 0 && hp >= 15)
-            {
-                var partnerSonTeklif = durum.PartnerTeklifleri.LastOrDefault();
-                if (!string.IsNullOrEmpty(partnerSonTeklif))
-                {
-                    int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerSonTeklif);
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[0.5 DEBUG] partnerSonTeklif={partnerSonTeklif}, partnerSeviye={partnerSeviye}");
-
-                    if (partnerSeviye >= 3)
-                    {
-                        int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-                        int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-                        int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-                        int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-                        bool ikiMajör = (macca >= 4 && kupa >= 4);
-                        bool minörVar = (karo >= 4 || sinek >= 4);
-
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[0.5 DEBUG] ikiMajör={ikiMajör}, minörVar={minörVar}, " +
-                            $"KendiTeklifleri.Contains(5NT)={durum.KendiTeklifleri.Contains("5NT")}");
-
-                        if (ikiMajör || minörVar)
-                        {
-                            if (!durum.KendiTeklifleri.Contains("5NT"))
-                            {
-                                System.Diagnostics.Debug.WriteLine(
-                                    $"[TemelMantik] Partner 3+ seviyede, {hp} HP → 5NT (Pick-a-Slam)");
-                                return "5NT";
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ═══════════════════════════════════════════════════════════════
-            // 1. İLK TEKLİF (AÇILIŞ)
-            // ═══════════════════════════════════════════════════════════════
-            if (durum.IlkTeklifMi())
-            {
-                if (hp >= 22) return "2♣";
-                if (hp >= 20 && hp <= 21 && dengeli) return "2NT";
-                if (hp >= 15 && hp <= 17 && dengeli) return "1NT";
-                if (hp >= 12) return EnUzunRengiAc(el);
-                return "Pas";
-            }
-
-            // ═══════════════════════════════════════════════════════════════
-            // 2. RAKİP AÇTI, BEN MÜDAHALE EDİYORUM
-            // ═══════════════════════════════════════════════════════════════
-            if (durum.RakipActiMi() && durum.KendiTeklifleri.Count == 0)
-            {
-                return RakipAcilisinaMudahale(durum, el, hp);
-            }
-
-            // ═══════════════════════════════════════════════════════════════
-            // 3. PARTNER AÇTI, BEN İLK KEZ CEVAP VERİYORUM
-            // ═══════════════════════════════════════════════════════════════
-            if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count == 0)
-            {
-                return PartnerAcilisinaCevap(durum, el, hp, dengeli);
-            }
-
-            // ═══════════════════════════════════════════════════════════════
-            // 4. AÇICI REBID
-            // ═══════════════════════════════════════════════════════════════
-            if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count > 0)
-            {
-                var partnerSonTeklif = durum.PartnerTeklifleri.LastOrDefault();
-                if (!string.IsNullOrEmpty(partnerSonTeklif))
-                {
-                    if (partnerSonTeklif == "1NT") return "Pas";
-
-                    string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerSonTeklif);
-                    int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerSonTeklif);
-                    if (partnerSeviye <= 0) partnerSeviye = 1;
-
-                    int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-                    int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-                    int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-                    int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-
-                    if (durum.PartnerTeklifleri.Count >= 2)
-                    {
-                        string oncekiPartnerTeklifi = durum.PartnerTeklifleri[durum.PartnerTeklifleri.Count - 2];
-                        string oncekiPartnerKozu = KozYardimcisi.TekliftenKozCikar(oncekiPartnerTeklifi);
-
-                        if (partnerKozu == oncekiPartnerKozu && partnerSeviye >= 2)
-                        {
-                            int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
-                            if (destek >= 3 && hp < 16)
-                            {
-                                System.Diagnostics.Debug.WriteLine(
-                                    $"[TemelMantik] Partner {partnerKozu} rengini tekrar etti, {destek} destek var → Pas");
-                                return "Pas";
-                            }
-                        }
-                    }
-
-                    if (dengeli)
-                    {
-                        if (hp >= 18 && hp <= 19)
-                        {
-                            if (!durum.KendiTeklifleri.Contains("2NT")) return "2NT";
-                        }
-                        if (hp >= 12 && hp <= 14)
-                        {
-                            if (!durum.KendiTeklifleri.Contains("1NT")) return "1NT";
-                        }
-                    }
-
-                    if (partnerKozu == "Kupa" && kupa >= 4)
-                    {
-                        string hedef = partnerSeviye == 1 ? "2♥" : "3♥";
-                        if (!durum.KendiTeklifleri.Contains(hedef)) return hedef;
-                    }
-                    if (partnerKozu == "Maça" && macca >= 4)
-                    {
-                        string hedef = partnerSeviye == 1 ? "2♠" : "3♠";
-                        if (!durum.KendiTeklifleri.Contains(hedef)) return hedef;
-                    }
-                    if (partnerKozu == "Karo" && karo >= 4)
-                    {
-                        string hedef = partnerSeviye == 1 ? "2♦" : "3♦";
-                        if (!durum.KendiTeklifleri.Contains(hedef)) return hedef;
-                    }
-
-                    if (macca >= 5 && partnerKozu != "Maça")
-                    {
-                        if (!durum.KendiTeklifleri.Contains("2♠")) return "2♠";
-                    }
-                    if (kupa >= 5 && partnerKozu != "Kupa")
-                    {
-                        if (!durum.KendiTeklifleri.Contains("2♥")) return "2♥";
-                    }
-                    if (karo >= 5 && partnerKozu != "Karo")
-                    {
-                        if (!durum.KendiTeklifleri.Contains("2♦")) return "2♦";
-                    }
-                    if (sinek >= 5 && partnerKozu != "Sinek")
-                    {
-                        if (!durum.KendiTeklifleri.Contains("2♣")) return "2♣";
-                    }
-                }
-            }
-
-            // ═══════════════════════════════════════════════════════════════
-            // 5. GÜVENLİK KİLİDİ
-            // ═══════════════════════════════════════════════════════════════
-            int guvenlikSonSeviye = 0;
-            var guvenlikSonTeklif = durum.SonGercekTeklif;
-            if (!string.IsNullOrEmpty(guvenlikSonTeklif))
-            {
-                guvenlikSonSeviye = KozYardimcisi.TekliftenSeviyeCikar(guvenlikSonTeklif);
-            }
-
-            if (guvenlikSonSeviye >= 4 && hp < 15)
-            {
-                System.Diagnostics.Debug.WriteLine($"[TemelMantik] İhale çok yükseldi (Seviye {guvenlikSonSeviye}, HP {hp}) → Pas");
-                return "Pas";
-            }
-
-            return "Pas";
+    // Partner 1NT açtı ve ben transfer/stayman yaptım, şimdi cevap veriyorum
+    if (durum.PartnerTeklifleri.Count > 0 &&
+        durum.PartnerTeklifleri.Contains("1NT") &&
+        durum.KendiTeklifleri.Count > 0)
+    {
+        if (durum.SonGercekTeklif == "2♦" && durum.SonGercekTeklifSahibi == durum.Partner)
+            return "2♥";
+        if (durum.SonGercekTeklif == "2♥" && durum.SonGercekTeklifSahibi == durum.Partner)
+            return "2♠";
+        if (durum.SonGercekTeklif == "2♣" && durum.SonGercekTeklifSahibi == durum.Partner)
+        {
+            int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            if (macca >= 4) return "2♠";
+            if (kupa >= 4) return "2♥";
+            return "2♦";
         }
+        return "Pas";
+    }
 
+    // ═══════════════════════════════════════════════════════════════
+    // 0.5. PARTNER 3+ SEVİYEDE SIÇRAMA YAPTIYSA (Pick-a-Slam)
+    // ═══════════════════════════════════════════════════════════════
+    if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count > 0 && hp >= 15)
+    {
+        var partnerSonTeklif = durum.PartnerTeklifleri.LastOrDefault();
+        if (!string.IsNullOrEmpty(partnerSonTeklif))
+        {
+            int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerSonTeklif);
+            if (partnerSeviye >= 3)
+            {
+                int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+                int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+                bool ikiMajor = (macca >= 4 && kupa >= 4);
+                bool minorVar = (karo >= 4 || sinek >= 4);
+
+                if (ikiMajor || minorVar)
+                {
+                    if (!durum.KendiTeklifleri.Contains("5NT"))
+                        return "5NT";
+                }
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 1. İLK TEKLİF (AÇILIŞ)
+    // ═══════════════════════════════════════════════════════════════
+    if (durum.IlkTeklifMi())
+    {
+        if (hp >= 22) return "2♣";
+        if (hp >= 20 && hp <= 21 && dengeli) return "2NT";
+        if (hp >= 15 && hp <= 17 && dengeli) return "1NT";
+        if (hp >= 12) return EnUzunRengiAc(el);
+        return "Pas";
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 2. RAKİP AÇTI, BEN MÜDAHALE EDİYORUM
+    // ═══════════════════════════════════════════════════════════════
+    if (durum.RakipActiMi() && durum.KendiTeklifleri.Count == 0)
+    {
+        return RakipAcilisinaMudahale(durum, el, hp);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 3. PARTNER AÇTI, BEN İLK KEZ CEVAP VERİYORUM
+    // ═══════════════════════════════════════════════════════════════
+    if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count == 0)
+    {
+        return PartnerAcilisinaCevap(durum, el, hp, dengeli);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 4. AÇICI REBID — KRİTİK DEĞİŞİKLİK BURADA
+    // ═══════════════════════════════════════════════════════════════
+    if (durum.PartnerActiMi() && durum.KendiTeklifleri.Count > 0)
+    {
+        var partnerSonTeklif = durum.PartnerTeklifleri.LastOrDefault();
+        if (!string.IsNullOrEmpty(partnerSonTeklif))
+        {
+            if (partnerSonTeklif == "1NT") return "Pas";
+
+            string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerSonTeklif);
+            int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerSonTeklif);
+            if (partnerSeviye <= 0) partnerSeviye = 1;
+
+            int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+
+            // ═══ KRİTİK: ÖNCE FİT KONTROLÜ ═══
+            // Partner bir renk gösterdiyse ve bende 3+ destek varsa, 
+            // fit vardır. NT veya başka şey düşünme, DESTEK VER!
+            if (!string.IsNullOrEmpty(partnerKozu) && partnerKozu != "NT")
+            {
+                int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+                if (destek >= 3)
+                {
+                    // Partnerin 1♥/1♠/1♦/1♣'ine destek
+                    if (partnerSeviye == 1)
+                    {
+                                // Minimum fit → 2 seviyesinde destek
+                                string hedef = null;
+                                if (partnerKozu == "Kupa") hedef = "2♥";
+                                else if (partnerKozu == "Maça") hedef = "2♠";
+                                else if (partnerKozu == "Karo") hedef = "2♦";
+                                else if (partnerKozu == "Sinek") hedef = "2♣";
+                                if (hedef != null && !durum.KendiTeklifleri.Contains(hedef))
+                        {
+                            System.Diagnostics.Debug.WriteLine(
+                                $"[TemelMantik] FİT: Partner {partnerKozu} dedi, bende {destek} destek var → {hedef}");
+                            return hedef;
+                        }
+                    }
+                    else if (partnerSeviye == 2)
+                    {
+                                // Partner 2 seviyesinde gösterdiyse (ör. 2♥), 3 seviyesinde destek
+                                string hedef = null;
+                                if (partnerKozu == "Kupa") hedef = "3♥";
+                                else if (partnerKozu == "Maça") hedef = "3♠";
+                                else if (partnerKozu == "Karo") hedef = "3♦";
+                                else if (partnerKozu == "Sinek") hedef = "3♣";
+                                if (hedef != null && !durum.KendiTeklifleri.Contains(hedef))
+                            return hedef;
+                    }
+                }
+            }
+
+            // ═══ FİT YOKSA: NT veya yeni renk ═══
+            if (dengeli)
+            {
+                if (hp >= 18 && hp <= 19 && !durum.KendiTeklifleri.Contains("2NT"))
+                    return "2NT";
+                if (hp >= 12 && hp <= 14 && !durum.KendiTeklifleri.Contains("1NT"))
+                    return "1NT";
+            }
+
+            // Yeni 5'li renk gösterme
+            if (macca >= 5 && partnerKozu != "Maça" && !durum.KendiTeklifleri.Contains("2♠"))
+                return "2♠";
+            if (kupa >= 5 && partnerKozu != "Kupa" && !durum.KendiTeklifleri.Contains("2♥"))
+                return "2♥";
+            if (karo >= 5 && partnerKozu != "Karo" && !durum.KendiTeklifleri.Contains("2♦"))
+                return "2♦";
+            if (sinek >= 5 && partnerKozu != "Sinek" && !durum.KendiTeklifleri.Contains("2♣"))
+                return "2♣";
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 5. GÜVENLİK KİLİDİ
+    // ═══════════════════════════════════════════════════════════════
+    int guvenlikSonSeviye = 0;
+    var guvenlikSonTeklif = durum.SonGercekTeklif;
+    if (!string.IsNullOrEmpty(guvenlikSonTeklif))
+        guvenlikSonSeviye = KozYardimcisi.TekliftenSeviyeCikar(guvenlikSonTeklif);
+
+    if (guvenlikSonSeviye >= 4 && hp < 15)
+    {
+        System.Diagnostics.Debug.WriteLine($"[TemelMantik] İhale çok yükseldi (Seviye {guvenlikSonSeviye}, HP {hp}) → Pas");
+        return "Pas";
+    }
+
+    return "Pas";
+}
         private string PartnerAcilisinaCevap(IhaleDurumu durum, List<Card> el, int hp, bool dengeli)
         {
             string partnerTeklifi = durum.PartnerTeklifleri.Last();
