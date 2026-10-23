@@ -11,6 +11,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// girmediğinde, bu sınıf briç matematiğine göre en mantıklı teklifi verir.
     /// 
     /// Hiyerarşi (Öncelik Sırası):
+    /// 0.1. Slam Tavanı: Toplam HP < 33 ise slam yok; < 37 ise grand slam yok.
     /// 1. FİT + 12+ HP + Rakip Müdahalesi → Rakip renginde Cue-Bid.
     /// 2. FİT (6-9 → Basit Destek, 10-12 → Davet, 13+ → Davet/Manş).
     ///    - Rakip müdahalesi YOKSA: 13+ HP → Davet (3♥).
@@ -44,6 +45,55 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool dengeli = ElDegerlendirici.DengeliEl(el);
 
             // ═══════════════════════════════════════════════════════════════
+            // 0.1. SLAM TAVANI KONTROLÜ
+            // ═══════════════════════════════════════════════════════════════
+            int partnerMaxHp = 40;
+            if (durum.PartnerActiMi() && durum.PartnerTeklifleri.Count > 0)
+            {
+                string sonPartnerTeklif = durum.PartnerTeklifleri.Last();
+                int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(sonPartnerTeklif);
+
+                if (sonPartnerTeklif == "1NT") partnerMaxHp = 17;
+                else if (sonPartnerTeklif == "2NT") partnerMaxHp = 22;
+                else if (partnerSeviye == 1) partnerMaxHp = 21;
+                else if (partnerSeviye == 2) partnerMaxHp = 17;
+                else if (partnerSeviye == 3) partnerMaxHp = 21;
+                else if (partnerSeviye >= 4) partnerMaxHp = 21;
+            }
+
+            int toplamMaxHp = hp + partnerMaxHp;
+
+            // 33 HP altı → 6/7 seviyesinde teklif verme (slam yok)
+            if (toplamMaxHp < 33)
+            {
+                int sonSeviye = 0;
+                if (!string.IsNullOrEmpty(durum.SonGercekTeklif))
+                    sonSeviye = KozYardimcisi.TekliftenSeviyeCikar(durum.SonGercekTeklif);
+
+                if (sonSeviye >= 5)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[TemelMantik] SLAM TAVANI: Toplam HP {toplamMaxHp} < 33 → Pas");
+                    return "Pas";
+                }
+            }
+
+            // 37 HP altı → 7 seviyesinde teklif verme (grand slam yok)
+            if (toplamMaxHp < 37)
+            {
+                int sonSeviye = 0;
+                if (!string.IsNullOrEmpty(durum.SonGercekTeklif))
+                    sonSeviye = KozYardimcisi.TekliftenSeviyeCikar(durum.SonGercekTeklif);
+
+                if (sonSeviye >= 6)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[TemelMantik] SLAM TAVANI: Toplam HP {toplamMaxHp} < 37 → Pas");
+                    return "Pas";
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════
             // 0. PARTNER 1NT AÇTIYSA (Cevapçı olarak)
             // ═══════════════════════════════════════════════════════════════
             if (durum.PartnerTeklifleri.Count > 0 &&
@@ -53,7 +103,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "Pas";
             }
 
-            // Partner 1NT açtı ve ben transfer/stayman yaptım, şimdi cevap veriyorum
+            // Partner 1NT açtı ve transfer/stayman yaptım
             if (durum.PartnerTeklifleri.Count > 0 &&
                 durum.PartnerTeklifleri.Contains("1NT") &&
                 durum.KendiTeklifleri.Count > 0)
@@ -190,14 +240,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                         {
                             string hedef = null;
 
-                            if (hp <= 9) // 6-9 HP basit destek
+                            if (hp <= 9)
                             {
                                 if (partnerKozu == "Kupa") hedef = "2♥";
                                 else if (partnerKozu == "Maça") hedef = "2♠";
                                 else if (partnerKozu == "Karo") hedef = "2♦";
                                 else if (partnerKozu == "Sinek") hedef = "2♣";
                             }
-                            else if (hp >= 10 && hp <= 12) // Davet
+                            else if (hp >= 10 && hp <= 12)
                             {
                                 if (partnerKozu == "Kupa") hedef = "3♥";
                                 else if (partnerKozu == "Maça") hedef = "3♠";
@@ -208,7 +258,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                             {
                                 if (rakipMudahaleEtti)
                                 {
-                                    // Rakip müdahalesi VAR: 13+ HP → Manş
                                     if (partnerKozu == "Kupa") hedef = "4♥";
                                     else if (partnerKozu == "Maça") hedef = "4♠";
                                     else if (partnerKozu == "Karo") hedef = "5♦";
@@ -216,9 +265,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                                 }
                                 else
                                 {
-                                    // Rakip müdahalesi YOK: 13+ HP → Davet (3♥)
-                                    // Çünkü partnerin 6-9 HP'siyle toplam 19-25 arası olabilir.
-                                    // Manş garanti değil, davet yap.
                                     if (partnerKozu == "Kupa") hedef = "3♥";
                                     else if (partnerKozu == "Maça") hedef = "3♠";
                                     else if (partnerKozu == "Karo") hedef = "3♦";
@@ -257,52 +303,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                                     $"[TemelMantik] STOPER: Rakip {rakipKozu}, {hp} HP + stoper → 1NT");
                                 return "1NT";
                             }
-                        }
-                    }
-                    // ═══════════════════════════════════════════════════════════════
-                    // 3.5. RAKİP DBL ETTİ, BEN CEVAP VERİYORUM
-                    // ═══════════════════════════════════════════════════════════════
-                    if (durum.RakipActiMi() && durum.KendiTeklifleri.Count > 0)
-                    {
-                        // Son rakip teklifi DBL mi?
-                        var sonRakipTeklifi = durum.Gecmis
-                            .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
-                            .LastOrDefault();
-
-                        if (sonRakipTeklifi != null &&
-                            (sonRakipTeklifi.Teklif == "Dbl" || sonRakipTeklifi.Teklif == "Kontr"))
-                        {
-                            // Rakip DBL etti. Benim ne yapacağım?
-
-                            // 1. Benim 10+ HP'm varsa → RDBL (cezaya çevir)
-                            if (hp >= 10)
-                                return "Rdbl";
-
-                            // 2. 6-9 HP + dengeli + majörlerde stoper → 1NT
-                            if (hp >= 6 && hp <= 9 && dengeli)
-                            {
-                                bool kupaStoper = ElDegerlendirici.StopperVar(el, "Kupa");
-                                bool macaStoper = ElDegerlendirici.StopperVar(el, "Maça");
-                                if (kupaStoper && macaStoper)
-                                    return "1NT";
-                            }
-
-                            // 3. 4+ majör varsa → onu göster
-                            if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
-                                return "1♠";
-                            if (ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
-                                return "1♥";
-
-                            // 4. 6+♦ varsa → 2♦
-                            if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 6)
-                                return "2♦";
-
-                            // 5. 3+♣ desteği varsa → 2♣
-                            if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 3)
-                                return "2♣";
-
-                            // 6. Fallback: Pas (DBL'i cezaya çevir)
-                            return "Pas";
                         }
                     }
 
