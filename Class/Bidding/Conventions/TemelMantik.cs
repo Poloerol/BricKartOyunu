@@ -259,6 +259,52 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                             }
                         }
                     }
+                    // ═══════════════════════════════════════════════════════════════
+                    // 3.5. RAKİP DBL ETTİ, BEN CEVAP VERİYORUM
+                    // ═══════════════════════════════════════════════════════════════
+                    if (durum.RakipActiMi() && durum.KendiTeklifleri.Count > 0)
+                    {
+                        // Son rakip teklifi DBL mi?
+                        var sonRakipTeklifi = durum.Gecmis
+                            .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
+                            .LastOrDefault();
+
+                        if (sonRakipTeklifi != null &&
+                            (sonRakipTeklifi.Teklif == "Dbl" || sonRakipTeklifi.Teklif == "Kontr"))
+                        {
+                            // Rakip DBL etti. Benim ne yapacağım?
+
+                            // 1. Benim 10+ HP'm varsa → RDBL (cezaya çevir)
+                            if (hp >= 10)
+                                return "Rdbl";
+
+                            // 2. 6-9 HP + dengeli + majörlerde stoper → 1NT
+                            if (hp >= 6 && hp <= 9 && dengeli)
+                            {
+                                bool kupaStoper = ElDegerlendirici.StopperVar(el, "Kupa");
+                                bool macaStoper = ElDegerlendirici.StopperVar(el, "Maça");
+                                if (kupaStoper && macaStoper)
+                                    return "1NT";
+                            }
+
+                            // 3. 4+ majör varsa → onu göster
+                            if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
+                                return "1♠";
+                            if (ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
+                                return "1♥";
+
+                            // 4. 6+♦ varsa → 2♦
+                            if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 6)
+                                return "2♦";
+
+                            // 5. 3+♣ desteği varsa → 2♣
+                            if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 3)
+                                return "2♣";
+
+                            // 6. Fallback: Pas (DBL'i cezaya çevir)
+                            return "Pas";
+                        }
+                    }
 
                     // ═══════════════════════════════════════════════════════
                     // 4. ÖNCELİK: NORMAL NT (Rakip müdahalesi yoksa)
