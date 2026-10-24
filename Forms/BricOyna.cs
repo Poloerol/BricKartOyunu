@@ -71,7 +71,7 @@ namespace BricKartOyunu
         //private Label lblElBilgiNumara;
         private Label lblNewLabel;
         private Label lblOldLabel;
-
+       
         private static Image GetCachedImage(string path)
         {
             if (string.IsNullOrEmpty(path)) return null;

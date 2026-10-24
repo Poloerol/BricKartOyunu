@@ -14,7 +14,7 @@ namespace BricKartOyunu.Forms
     /// </summary>
     public partial class OynananElleriGosterForm : Form
     {
-        private readonly List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> _eller;
+        private List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> _eller;
 
         public OynananElleriGosterForm(
             List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> eller)
@@ -24,6 +24,15 @@ namespace BricKartOyunu.Forms
 
             this.ShowInTaskbar = false;
 
+            ListeyiDoldur();
+        }
+
+        /// <summary>
+        /// Oynanan eller değiştiğinde (kart geri alma / ileri alma) listeyi yeniler.
+        /// </summary>
+        public void Guncelle(List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> eller)
+        {
+            _eller = eller ?? new List<(int, Player, Card, bool)>();
             ListeyiDoldur();
         }
 
@@ -55,6 +64,9 @@ namespace BricKartOyunu.Forms
             listView1.GridLines = true;
             listView1.HeaderStyle = ColumnHeaderStyle.Nonclickable;
             listView1.OwnerDraw = true;
+            // Yeniden doldurulurken olaylar ikiye katlanmasın
+            listView1.DrawColumnHeader -= ListView1_DrawColumnHeader;
+            listView1.DrawSubItem -= ListView1_DrawSubItem;
             listView1.DrawColumnHeader += ListView1_DrawColumnHeader;
             listView1.DrawSubItem += ListView1_DrawSubItem;
 

@@ -50,6 +50,25 @@ namespace BricKartOyunu.Forms
             GecmisiYukle(teklifler, baslangicOyuncusu);
         }
 
+        /// <summary>
+        /// Açık olan ihale geçmişi listesini yeni teklif listesiyle yeniler
+        /// (BtnGeriAl / BtnileriAl sonrası BricOyna tarafından çağrılır).
+        /// </summary>
+        public void Guncelle(List<string> teklifler, string baslangicOyuncusu)
+        {
+            lstGecmis.BeginUpdate();
+            try
+            {
+                lstGecmis.Items.Clear();
+                GecmisiYukle(teklifler, baslangicOyuncusu);
+            }
+            finally
+            {
+                lstGecmis.EndUpdate();
+            }
+            lstGecmis.Refresh();
+        }
+
         private void GecmisiYukle(List<string> teklifler, string baslangicOyuncusu)
         {
             if (teklifler == null || teklifler.Count == 0) return;

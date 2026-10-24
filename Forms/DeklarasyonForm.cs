@@ -617,13 +617,9 @@ namespace BricKartOyunu.Forms
 
                     // Ayrıca bu teklifin kontrat bilgilerini geri yükle
                     // (örn. teklif "2♣" ise, kontrat 2♣, kozu Sinek olur)
-                    string koz = sonGercekTeklif.Length > 0
-                        ? sonGercekTeklif.Last().ToString()
+                    string koz = sonGercekTeklif.Length > 1
+                        ? sonGercekTeklif.Substring(1)
                         : "";
-
-                    int seviye = 0;
-                    if (sonGercekTeklif.Length > 1)
-                        int.TryParse(sonGercekTeklif.Substring(0, sonGercekTeklif.Length - 1), out seviye);
 
                     _sonKontratTeklifi = sonGercekTeklif;
                     _kontratKozu = koz;
@@ -647,11 +643,11 @@ namespace BricKartOyunu.Forms
         {
             if (string.IsNullOrEmpty(teklif) || teklif.Length < 2) return -1;
 
-            string koz = teklif.Last().ToString();
-            string seviyeStr = teklif.Substring(0, teklif.Length - 1);
-
-            int seviye;
-            if (!int.TryParse(seviyeStr, out seviye)) return -1;
+            // Seviye her zaman ilk karakterdir (1-7); koz geri kalanıdır ("♣", "♦", "♥", "♠", "NT").
+            // NOT: Eski kod seviyeyi "1N" gibi ayrıştırmaya çalışıp NT tekliflerinde -1 döndürüyordu;
+            //      bu yüzden 1NT sonrası ızgarada hiçbir hücre gizlenmiyordu.
+            int seviye = teklif[0] - '0';
+            string koz = teklif.Substring(1).Trim();
 
             if (seviye < 1 || seviye > 7) return -1;
 
