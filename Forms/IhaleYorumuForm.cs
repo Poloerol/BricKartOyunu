@@ -57,20 +57,20 @@ namespace BricKartOyunu.Forms
                 mevcutYonIdx = (mevcutYonIdx + 1) % 4;
             }
 
-            // Kutuları Yerleştir (Y koordinatları aşağı çekildi: 10 -> 25)
-            // Kuzey (Üst kutu)
+            // ─── Kutuları Yerleştir ───
+            // Kuzey (Üst kutu) — kuzey verisi
             EkleKutu("Kuzey", kuzey, kuzeyYorum, 110, 25, 200, 60);
 
-            // Doğu (Sol alt kutu)
-            EkleKutu("Batı", dogu, doguYorum, 10, 135, 190, 60);
+            // Batı (Sol alt kutu) — bati verisi
+            EkleKutu("Batı", bati, batiYorum, 10, 135, 190, 60);
 
-            // Güney (Sağ alt kutu)
-            EkleKutu("Doğu", guney, guneyYorum, 210, 135, 190, 60);
+            // Doğu (Sağ alt kutu) — dogu verisi
+            EkleKutu("Doğu", dogu, doguYorum, 210, 135, 190, 60);
 
-            // Batı (En alt orta kutu)
-            EkleKutu("Güney", bati, batiYorum, 110, 245, 200, 60);
+            // Güney (En alt orta kutu) — guney verisi
+            EkleKutu("Güney", guney, guneyYorum, 110, 245, 200, 60);
 
-            // OK Butonu (Biraz daha aşağıya alındı)
+            // OK Butonu
             Button btnOk = new Button
             {
                 Text = "OK",

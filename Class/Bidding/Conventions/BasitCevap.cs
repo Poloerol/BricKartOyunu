@@ -5,33 +5,12 @@ using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
-    /// <summary>
-    /// Basit Cevap Konvansiyonu.
-    /// 
-    /// Partner bir renk açtığında (1♠/1♥/1♦/1♣), bu konvansiyon cevabı belirler.
-    /// 
-    /// Kural:
-    /// - 0-5 HP → Pas
-    /// - 6-9 HP → Basit destek (2♠/2♥/2♦/2♣) veya yeni renk (1♠/1♥/1♦/1♣)
-    /// - 10-12 HP → 2NT (dengeli) veya 3♠/3♥ (limit raise) veya yeni renk
-    /// - 13+ HP → Yeni renk 2 seviyesinde (2/1 game force)
-    /// 
-    /// Öncelik: 100 (fallback'ten önce)
-    /// </summary>
     public class BasitCevap : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "Basit Cevap";
         public string Aciklama => "Basit açılış cevapları";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 100;
-
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
 
         public bool UygunMu(IhaleDurumu durum)
         {
@@ -39,21 +18,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
 
-            // 1. Partner açtı mı?
             if (!durum.PartnerActiMi()) return false;
-
-            // 2. Rakip müdahale etti mi? (Etmediyse basit cevap)
             if (durum.RakipActiMi()) return false;
-
-            // 3. Ben henüz cevap vermedim mi?
             if (durum.KendiTeklifleri.Count > 0) return false;
-
-            // 4. Son teklif partnerin mi?
             if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
 
-            // 5. Basit cevap sadece 1 seviye açılışlara (1♣/1♦/1♥/1♠/1NT)
-            //    Partner 2♠ (zayıf iki) açtıysa bu konvansiyon devreye girmez —
-            //    aksi halde 1♣ gibi yasadışı düşük seviye teklifler üretilir.
             string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
             int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerSon ?? "");
             if (partnerSeviye != 1) return false;
@@ -61,31 +30,32 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return true;
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
-
         public string TeklifVer(IhaleDurumu durum)
         {
             var el = durum.AktifOyuncuEli;
             int hp = ElDegerlendirici.HCP(el);
 
-            // Partnerin son teklifi
             string partnerTeklifi = durum.PartnerTeklifleri.LastOrDefault();
             string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerTeklifi);
             int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerTeklifi);
 
             // ─── 0-5 HP → Pas ───
             if (hp < 6)
-            {
                 return "Pas";
-            }
 
             // ─── 6-9 HP → Basit destek veya yeni renk ───
             if (hp < 10)
             {
-                // Partner majör açtıysa ve 3+ destek varsa → basit destek
-                if (!string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
+                // Inverted Minors AÇIKSA 1m - 2m "10+ forcing" demektir; 6-9 HP ile
+                // 3-4 kartlık minör desteği 2m ile gösterilmez (yanlış anlam verir ve
+                // elde 4'lü yan renk varken onu atlar). Bu durumda doğrudan yeni renge bak.
+                bool inverted = durum.Anlasma != null && durum.Anlasma.InvertedMinors;
+                bool partnerMinor = partnerKozu == "Sinek" || partnerKozu == "Karo";
+                bool minorDestekAtla = inverted && partnerMinor;
+
+                // 1) Partnerin rengine 3+ destek varsa → 2 seviyesinde basit destek
+                //    (majörde her zaman; minörde yalnızca Inverted Minors kapalıysa)
+                if (!minorDestekAtla && !string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
                 {
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 3)
@@ -95,19 +65,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
-                // Yeni renk (1 seviye) — 4+ kart, majör öncelikli
+                // 2) Yeni renk (1 seviye) — 4+ kart, majör öncelikli
                 string yeniRenk = YeniRenkBul(el, partnerKozu, 4, "1");
                 if (!string.IsNullOrEmpty(yeniRenk)) return yeniRenk;
 
-                // Yeni renk yoksa → 1NT (dengeli)
+                // 3) Yeni renk yoksa → 1NT (dengeli)
                 if (ElDegerlendirici.DengeliEl(el)) return "1NT";
-
-                // Son çare: partnerin rengine 2 seviye destek
-                if (!string.IsNullOrEmpty(partnerKozu))
-                {
-                    string kozSembol = KozYardimcisi.KozSembolu(partnerKozu);
-                    return "2" + kozSembol;
-                }
 
                 return "Pas";
             }
@@ -115,13 +78,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ─── 10-15 HP → limit raise, yeni renk, sonra 2NT ───
             if (hp < 16)
             {
-                // 1. ÖNCE 4'lü yeni MAJÖR (1 seviye)
                 if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
                     return "1♠";
                 if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
                     return "1♥";
 
-                // 2. Partnerin rengine 5+ destek → limit raise (3 seviyesi)
                 if (!string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
                 {
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
@@ -132,7 +93,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
-                // 3. Partnerin MAJÖRÜNE 4+ destek → limit raise
                 if (!string.IsNullOrEmpty(partnerKozu) &&
                     (partnerKozu == "Maça" || partnerKozu == "Kupa"))
                 {
@@ -144,8 +104,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
-                // 4. 5'li yeni renk ÖNCE (5-3-3-2 dengeli sayılır ama 2♦/2♣/2♥ öncelikli)
-                //    Örnek: 1♠ - ?  el ♠2 ♥3 ♦5 ♣3 → 2♦ (2NT DEĞİL)
                 if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5)
                     return "2♥";
                 if (partnerKozu != "Karo" && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5)
@@ -153,63 +111,86 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (partnerKozu != "Sinek" && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5)
                     return "2♣";
 
-                // 5. Dengeli 10-12, 5'li yan renk yok → 2NT (invite)
                 if (ElDegerlendirici.DengeliEl(el) && hp <= 12)
                     return "2NT";
 
-                // 6. 13-15 dengeli / yarı dengeli → 3NT veya 2NT
                 if (ElDegerlendirici.DengeliEl(el) && hp >= 13)
                     return "3NT";
 
-                // 7. Son çare
                 return "2NT";
             }
 
-            // ─── 16+ HP → 2/1 Game Force (yeni renk 2 seviyesinde) ───
-            // Öncelik 1: 5+ majör → 2♠ veya 2♥
+            // ─── 16+ HP → 2/1 Game Force ───
             string gfRenk = YeniRenkBul(el, partnerKozu, 5, "2");
             if (!string.IsNullOrEmpty(gfRenk)) return gfRenk;
 
-            // Öncelik 2: 4+ minör → 2♣ veya 2♦
             gfRenk = YeniRenkBul(el, partnerKozu, 4, "2");
             if (!string.IsNullOrEmpty(gfRenk)) return gfRenk;
 
-            // Öncelik 3: Destek varsa → 3♠/3♥ (forcing raise)
             if (!string.IsNullOrEmpty(partnerKozu))
             {
                 string kozSembol = KozYardimcisi.KozSembolu(partnerKozu);
                 return "3" + kozSembol;
             }
 
-            // Son çare: 2NT
             return "2NT";
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // YARDIMCI METOTLAR
-        // ═══════════════════════════════════════════════════════════════════
-
-        /// <summary>
-        /// Yeni renk bulur (partnerin rengi hariç).
-        /// Majör öncelikli, sonra minör.
-        /// </summary>
         private string YeniRenkBul(List<Card> el, string partnerKozu, int minUzunluk, string seviye)
         {
-            // Majör öncelikli
-            string[] oncelik = { "Maça", "Kupa", "Karo", "Sinek" };
-            string[] semboller = { "♠", "♥", "♦", "♣" };
+            int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
 
-            for (int i = 0; i < oncelik.Length; i++)
+            if (maca >= 5 && kupa >= 4 && maca > kupa && partnerKozu != "Maça" && minUzunluk <= maca)
+                return seviye + "♠";
+            if (kupa >= 5 && maca >= 4 && kupa > maca && partnerKozu != "Kupa" && minUzunluk <= kupa)
+                return seviye + "♥";
+
+            if (karo >= 5 && sinek >= 4 && karo > sinek && partnerKozu != "Karo" && minUzunluk <= karo)
+                return seviye + "♦";
+            if (sinek >= 5 && karo >= 4 && sinek > karo && partnerKozu != "Sinek" && minUzunluk <= sinek)
+                return seviye + "♣";
+
+            if (maca >= 5 && kupa >= 5 && maca == kupa)
             {
-                // Partnerin rengi ise atla
-                if (oncelik[i] == partnerKozu) continue;
-
-                int uzunluk = ElDegerlendirici.RenkUzunlugu(el, oncelik[i]);
-                if (uzunluk >= minUzunluk)
-                {
-                    return seviye + semboller[i];
-                }
+                if (partnerKozu != "Maça") return seviye + "♠";
+                if (partnerKozu != "Kupa") return seviye + "♥";
             }
+            if (karo >= 5 && sinek >= 5 && karo == sinek)
+            {
+                if (partnerKozu != "Karo") return seviye + "♦";
+                if (partnerKozu != "Sinek") return seviye + "♣";
+            }
+
+            if (maca >= 4 && kupa >= 4 && maca == kupa)
+            {
+                if (partnerKozu != "Kupa") return seviye + "♥";
+                if (partnerKozu != "Maça") return seviye + "♠";
+            }
+            if (karo >= 4 && sinek >= 4 && karo == sinek)
+            {
+                if (partnerKozu != "Sinek") return seviye + "♣";
+                if (partnerKozu != "Karo") return seviye + "♦";
+            }
+
+            var renkler = new (string Renk, string Sembol, int Uzunluk)[]
+            {
+                ("Maça", "♠", maca),
+                ("Kupa", "♥", kupa),
+                ("Karo", "♦", karo),
+                ("Sinek", "♣", sinek),
+            };
+
+            var sirali = renkler
+                .Where(r => r.Renk != partnerKozu && r.Uzunluk >= minUzunluk)
+                .OrderByDescending(r => r.Uzunluk)
+                .ThenBy(r => Array.IndexOf(new[] { "Maça", "Kupa", "Karo", "Sinek" }, r.Renk))
+                .ToList();
+
+            if (sirali.Count > 0)
+                return seviye + sirali[0].Sembol;
 
             return null;
         }

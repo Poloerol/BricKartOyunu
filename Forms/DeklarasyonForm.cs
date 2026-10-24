@@ -21,11 +21,6 @@ namespace BricKartOyunu.Forms
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// İhale motoru — AI'ların teklif vermesi için.
-        /// </summary>
-        private IhaleMotoru _motor;
-
-        /// <summary>
         /// Ortaklık anlaşması (konvansiyon ayarları).
         /// </summary>
         private OrtaklikAnlasmasi _anlasma;
@@ -39,6 +34,7 @@ namespace BricKartOyunu.Forms
         /// AI oynayacak mı? (test için kapatılabilir)
         /// </summary>
         private bool _aiAktif = true;
+        private IhaleMotoru _ihaleMotoru;
 
         private int _sonTeklifIndex = -1;
 
@@ -58,6 +54,10 @@ namespace BricKartOyunu.Forms
         private readonly List<string> _bids = new List<string>();
 
         private readonly List<IhaleHamlesi> _ihaleHamleleri = new List<IhaleHamlesi>();
+
+        // Yeni temiz deklarasyon motoru (Güney insan, diğerleri AI)
+        private HumanVsAiBiddingSession _humanVsAiSession;
+        private BiddingPresenter _biddingPresenter;
 
         // İleri alınan (redo) hamleleri tutar
         private readonly List<(string Oyuncu, string Teklif)> _ileriAlinanHamleler
@@ -111,12 +111,12 @@ namespace BricKartOyunu.Forms
             this.FormClosing += DeklarasyonForm_FormClosing;
             this.FormClosed += DeklarasyonForm_FormClosed;
 
-            // 🔹 İhale motorunu başlat
+            // 🔹 Yeni ihale oturumunu hazırla
             _anlasma = OrtaklikAnlasmasi.Varsayilan();
-            _motor = new IhaleMotoru(_anlasma);
+            _humanVsAiSession = null;
+            _biddingPresenter = null;
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[DeklarasyonForm] Motor başlatıldı: {_motor.Ozet()}");
+            System.Diagnostics.Debug.WriteLine("[DeklarasyonForm] Yeni ihale oturumu hazır.");
         }
 
         private static void EnableDoubleBuffer(Control c)
@@ -434,7 +434,7 @@ namespace BricKartOyunu.Forms
 
         // --- Buton Tıklama Olayları ---
 
-        
+
 
         private void BtnPass_Click(object sender, EventArgs e)
         {
@@ -450,6 +450,7 @@ namespace BricKartOyunu.Forms
                 return;
             }
 
+            SyncHumanVsAiSession();
             SonrakiOyuncuyaGec();
         }
 
@@ -474,6 +475,7 @@ namespace BricKartOyunu.Forms
             // 🔹 Geri al butonunu aktif et
             _bricOyna?.GeriAlButonunuAktifEt();
 
+            SyncHumanVsAiSession();
             SonrakiOyuncuyaGec();
         }
 
@@ -487,24 +489,36 @@ namespace BricKartOyunu.Forms
             // 🔹 Geri al butonunu aktif et
             _bricOyna?.GeriAlButonunuAktifEt();
 
+            SyncHumanVsAiSession();
             SonrakiOyuncuyaGec();
         }
 
         private bool IhaleBittiMi()
         {
-            // Açılışta herkes pas dediyse (4 Pas)
-            if (string.IsNullOrEmpty(_sonKontratTeklifi) && _ustUstePasSayisi == 4)
+            // Oturum (_humanVsAiSession) gecikmeli senkronize olduğu için
+            // bitiş kararı doğrudan _bids listesinden verilir.
+            int sonGercek = -1;
+            for (int i = _bids.Count - 1; i >= 0; i--)
             {
-                return true;
+                string b = _bids[i];
+                if (b != "Pas" && b != "PAS" && b != "Dbl" && b != "RDbl")
+                {
+                    sonGercek = i;
+                    break;
+                }
             }
 
-            // Bir teklif verildikten sonra üst üste 3 pas geldiyse
-            if (!string.IsNullOrEmpty(_sonKontratTeklifi) && _ustUstePasSayisi == 3)
-            {
-                return true;
-            }
+            // Hiç gerçek teklif yok: 4 pas
+            if (sonGercek < 0) return _bids.Count >= 4;
 
-            return false;
+            // Son gerçek tekliften sonra 3 ardışık pas
+            int sonrakiPas = 0;
+            for (int i = _bids.Count - 1; i > sonGercek; i--)
+            {
+                if (_bids[i] == "Pas" || _bids[i] == "PAS") sonrakiPas++;
+                else return false;   // araya Dbl/RDbl girdi
+            }
+            return sonrakiPas >= 3;
         }
 
         /// <summary>
@@ -696,6 +710,11 @@ namespace BricKartOyunu.Forms
         // ═══════════════════════════════════════════════════════════════════
         private void IhaleyiSonlandir()
         {
+            if (_humanVsAiSession != null)
+            {
+                RefreshContractFieldsFromSession();
+            }
+
             if (string.IsNullOrEmpty(_sonKontratTeklifi))
             {
                 MessageBox.Show("Tüm oyuncular Pas geçti. El oynanmadan kapatılıyor.",
@@ -836,6 +855,7 @@ namespace BricKartOyunu.Forms
             _kontratKozu = koz;
 
             EkleIhaleGecmisi(_aktifOyuncu, deger);
+            SyncHumanVsAiSession();
             SonrakiOyuncuyaGec();
             panelGrid.Invalidate();
 
@@ -961,15 +981,16 @@ namespace BricKartOyunu.Forms
 
             // AI aktif mi?
             if (!_aiAktif) return;
-            if (_motor == null) return;
 
-            // Aktif oyuncu AI mi? (Şimdilik SADECE Batı)
+            // Aktif oyuncu AI mi? (Şimdilik SADECE Batı/Kuzey/Doğu)
             if (!AIMi(_aktifOyuncu))
             {
                 System.Diagnostics.Debug.WriteLine(
                     $"[AI] {_aktifOyuncu} insan, AI tetiklenmiyor.");
                 return;
             }
+
+            SyncHumanVsAiSession();
 
             System.Diagnostics.Debug.WriteLine(
                 $"[AI] {_aktifOyuncu} AI sırası — motor çalışacak.");
@@ -1002,6 +1023,58 @@ namespace BricKartOyunu.Forms
             return oyuncu != "Guney";
         }
 
+        private void SyncHumanVsAiSession()
+        {
+            if (_bricOyna == null)
+            {
+                _humanVsAiSession = null;
+                _biddingPresenter = null;
+                return;
+            }
+
+            var hands = new Dictionary<Player, List<Card>>();
+            foreach (Player p in Enum.GetValues(typeof(Player)).Cast<Player>())
+            {
+                hands[p] = _bricOyna.GetOyuncuEli(p) ?? new List<Card>();
+            }
+
+            _biddingPresenter = new BiddingPresenter(Player.Guney, hands, Player.Guney);
+            _humanVsAiSession = _biddingPresenter.Session;
+
+            foreach (var h in _ihaleHamleleri)
+            {
+                _humanVsAiSession.State.ApplyBid(h.Oyuncu, Bid.Parse(h.Teklif));
+            }
+
+            _humanVsAiSession.State.CurrentPlayer = OyuncuyaCevir(_aktifOyuncu);
+            RefreshContractFieldsFromSession();
+        }
+
+        private void RefreshContractFieldsFromSession()
+        {
+            var state = _biddingPresenter?.State ?? _humanVsAiSession?.State;
+            if (state == null)
+                return;
+
+            var lastContract = state.LastRealBid();
+            if (lastContract != null && lastContract.IsContract)
+            {
+                _sonKontratTeklifi = lastContract.ToDisplayString();
+                _kontratKozu = Bid.SuitToSymbol(lastContract.Suit);
+                _sonKontratVeren = state.LastContractMaker.HasValue
+                    ? state.LastContractMaker.Value.ToString()
+                    : _aktifOyuncu;
+            }
+            else
+            {
+                _sonKontratTeklifi = string.Empty;
+                _sonKontratVeren = string.Empty;
+                _kontratKozu = string.Empty;
+            }
+
+            _ustUstePasSayisi = state.PassCount;
+        }
+
         /// <summary>
         /// AI'ın hamlesini yapar: motoru çağırır, teklifi uygular.
         /// </summary>
@@ -1009,45 +1082,44 @@ namespace BricKartOyunu.Forms
         {
             try
             {
-                // 1. İhale durumunu oluştur
+                SyncHumanVsAiSession();
+
+                var aktifP = OyuncuyaCevir(_aktifOyuncu);
+                var el = _bricOyna?.GetOyuncuEli(aktifP) ?? new List<Card>();
                 var durum = IhaleDurumuOlustur();
 
-                // ═══════════════════════════════════════════════════════════════
-                // 🔹 DEBUG: Durum bilgisi
-                // ═══════════════════════════════════════════════════════════════
+                // Karar IhaleMotoru'ndan (48 konvansiyon) gelir.
+                // BasicBidAiStrategy (PerformAiTurn) artık kullanılmıyor.
+                if (_ihaleMotoru == null)
+                    _ihaleMotoru = new IhaleMotoru(_anlasma);
+
+                string teklif = _ihaleMotoru.TeklifVer(durum);
+                if (string.IsNullOrEmpty(teklif)) teklif = "Pas";
+
+                // Yasallık kontrolü (Dbl/RDbl dahil) — yasadışıysa Pas
+                try
+                {
+                    var aday = Bid.Parse(teklif);
+                    if (_humanVsAiSession != null &&
+                        !BidValidator.IsLegal(_humanVsAiSession.State, aktifP, aday))
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AI] Motor teklifi yasadışı: {teklif} → Pas");
+                        teklif = "Pas";
+                    }
+                }
+                catch
+                {
+                    teklif = "Pas";
+                }
+
                 System.Diagnostics.Debug.WriteLine("════════════════════════════════════════");
                 System.Diagnostics.Debug.WriteLine($"[AI DEBUG] AktifOyuncu: {durum.AktifOyuncu}");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] AktifOyuncuEli: {durum.AktifOyuncuEli?.Count ?? 0} kart");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] HCP: {ElDegerlendirici.HCP(durum.AktifOyuncuEli)}");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] TP: {ElDegerlendirici.ToplamPuan(durum.AktifOyuncuEli)}");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] DengeliMi: {ElDegerlendirici.DengeliEl(durum.AktifOyuncuEli)}");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] AktifOyuncuEli: {el.Count} kart");
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] HCP: {ElDegerlendirici.HCP(el)}");
                 System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Gecmis.Count: {durum.Gecmis.Count}");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] IlkTeklifMi: {durum.IlkTeklifMi()}");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] IhaleBittiMi: {durum.IhaleBittiMi()}");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Partner: {durum.Partner}");
-                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Rakipler: [{string.Join(", ", durum.Rakipler)}]");
-
-                // Geçmiş hamleleri listele
-                if (durum.Gecmis.Count > 0)
-                {
-                    var gecmisStr = string.Join(" | ",
-                        durum.Gecmis.Select(h => $"{h.Oyuncu}:{h.Teklif}"));
-                    System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Gecmis: {gecmisStr}");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Gecmis: (boş)");
-                }
-
-                // El dağılımı
-                var sayilar = ElDegerlendirici.RenkSayilari(durum.AktifOyuncuEli);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[AI DEBUG] Dağılım: ♠{sayilar["Maça"]} ♥{sayilar["Kupa"]} ♦{sayilar["Karo"]} ♣{sayilar["Sinek"]}");
-
+                System.Diagnostics.Debug.WriteLine($"[AI DEBUG] Son AI karar: {teklif}");
                 System.Diagnostics.Debug.WriteLine("────────────────────────────────────────");
-
-                // 2. Motor'dan teklif al
-                string teklif = _motor.TeklifVer(durum);
 
                 System.Diagnostics.Debug.WriteLine(
                     $"[AI] {_aktifOyuncu} motor teklifi: {teklif}");
@@ -1146,7 +1218,7 @@ namespace BricKartOyunu.Forms
 
             // Sonraki oyuncuya geçmeden önce grid'i kesin olarak güncelle
             _sonTeklifIndex = TeklifGridIndexHesapla(teklif);
-           
+
 
             // Sonraki oyuncuya geç
             SonrakiOyuncuyaGec();

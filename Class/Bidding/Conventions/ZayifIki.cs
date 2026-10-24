@@ -6,7 +6,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
     /// Zayıf İki (Weak 2-Bid)
-    /// 2♦, 2♥, 2♠ açılışları 5-11 HP + 6'lı renk gösterir.
+    /// 2♦, 2♥, 2♠ açılışları 5-10 HP + 6'lı renk gösterir.
     /// Amaç: bozucu (preemptive) ve tanımlayıcı.
     /// 2♣ güçlü yapay açılış olarak ayrı kalır (IkiliSinekGuclu).
     /// </summary>
@@ -33,7 +33,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
 
             if (hp >= 22) return false;   // 2♣ güçlü açılışa bırak
-            if (hp < 5 || hp > 11) return false;
+            if (hp < 5 || hp > 10) return false;
 
             if (hp >= 15 && ElDegerlendirici.DengeliEl(durum.AktifOyuncuEli))
                 return false;              // 1NT açılışına bırak

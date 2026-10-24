@@ -206,10 +206,12 @@ namespace BricKartOyunu.Class.Bidding
 
         /// <summary>
         /// Rakip daha önce açtı mı?
+        /// (Gerçek teklif, Kontr veya S.Kontr varsa true döner.)
         /// </summary>
         public bool RakipActiMi()
         {
-            return Gecmis.Any(h => Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi);
+            return Gecmis.Any(h => Rakipler.Contains(h.Oyuncu) &&
+                (h.GercekTeklifMi || h.KontrMi || h.SKontrMi));
         }
 
         /// <summary>

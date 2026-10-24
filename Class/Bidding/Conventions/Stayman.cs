@@ -221,10 +221,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
 
                     int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-                    if (maca >= 4) return "2♠";
-
+                    // Açıcı 4'lü maçası olsaydı 2♠ derdi → maça fiti yok, NT'de bitir (5'li maça varsa doğal 2♠)
+                    if (maca >= 5) return "2♠";
                     if (hp >= 10) return "3NT";
-                    return "2NT";
+                    if (hp >= 8) return "2NT";
+                    return "Pas";
                 }
 
                 // ─── Açıcı 2♠ dedi (4'lü ♠ var) ──────────────────────────

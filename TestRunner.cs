@@ -27,7 +27,19 @@ namespace BricKartOyunu
         private static void Yaz(string mesaj)
         {
             Debug.WriteLine(mesaj);
-            SonucYaz?.Invoke(mesaj);
+
+            try
+            {
+                if (SonucYaz != null)
+                {
+                    // Eğer callback bir Form kontrolüne bağlıysa güvenli çağrı yapalım
+                    SonucYaz.Invoke(mesaj);
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // Form veya RichTextBox kapatılmış, hatayı yut ve döngüyü/çalışmayı koru
+            }
         }
         public static void Test_Gerber_SoruSorma()
         {
@@ -3446,6 +3458,13 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        private static OrtaklikAnlasmasi BasitCevapAnlasmasi()
+        {
+            var a = OrtaklikAnlasmasi.Varsayilan();
+            a.InvertedMinors = false;   // BasitCevap'ı test etmek için Inverted Minors kapalı
+            return a;
+        }
+
         public static void Test_BasitCevap_6liDestek()
         {
             Yaz("════════════════════════════════════════");
@@ -3480,7 +3499,7 @@ namespace BricKartOyunu
             {
                 AktifOyuncu = Player.Guney,
                 AktifOyuncuEli = guneyEli,
-                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Anlasma = BasitCevapAnlasmasi(),
                 Gecmis = gecmis,
             };
 
@@ -12966,7 +12985,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
                 $"♣{ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
             Yaz($"Zon: NS={zonNS}, EW={zonEW}");
             Yaz("────────────────────────────────────────");
-                      
+
 
             Yaz("────────────────────────────────────────");
             var motor = new IhaleMotoru(durum.Anlasma);
@@ -13061,7 +13080,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
                 $"♣{ElDegerlendirici.RenkUzunlugu(el, "Sinek")}");
             Yaz("────────────────────────────────────────");
 
-            
+
             Yaz("────────────────────────────────────────");
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
@@ -13215,7 +13234,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("────────────────────────────────────────");
 
             var durum = asamaB ? BirKupaGelisimDurumuB(el) : BirKupaGelisimDurumuA(el);
-                        
+
             Yaz("────────────────────────────────────────");
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
@@ -13712,7 +13731,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
 
 
             Yaz("");
-            
+
             Yaz("▶ TEST 46.1-46.8: 1♣ ⇒ 1♦ ⇒ 1♥ Gelişimi (Cevapçı Devam)");
             Test_BirClubBirKaroBirKupa_Cevapci_1Spade();
             Test_BirClubBirKaroBirKupa_Cevapci_1NT();
