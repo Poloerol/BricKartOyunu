@@ -1336,8 +1336,13 @@ namespace BricKartOyunu
             // Kuzey elini dizip bittiği dinamik ucu alıyoruz
             int kuzeyBitisX = BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, kuzeyX, _kuzeyY, false, false);
 
-            // Doğu eli, Kuzey'in bitiş hizasına göre simetrik konumlanıyor
-            int doguX = kuzeyBitisX + yanBosluk;
+            // Doğu eli: konumu elde kalan kart sayısına göre DEĞİŞMEMELİ (Hepsi/NS/EW geçişlerinde
+            // ve oyun sırasında Doğu sütunu kaymasın). Kuzey elinin en geniş hali (13 kart, renk
+            // grupları arası boşluklu) esas alınır; oyun alanının sağ kenarının da dışında kalır.
+            int kuzeyEnGenisBitisX = kuzeyX + (9 * 18) + (3 * (_kartGenislik + 10)) + _kartGenislik;
+            int doguX = kuzeyEnGenisBitisX + yanBosluk;
+            int oyunAlaniSagKenar = ((this.ClientSize.Width - 500) / 6) + 30 + 500;
+            if (doguX < oyunAlaniSagKenar + 40) doguX = oyunAlaniSagKenar + 40;
 
             // 3. DOĞU KARTLARI
             for (int i = 0; i < 13; i++)

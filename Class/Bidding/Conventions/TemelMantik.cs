@@ -271,6 +271,26 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private string FitsizDevam(IhaleDurumu d, List<Card> el, int hp, bool dengeli, double est, int cur,
                                    List<string> rakipRenkleri, List<IhaleHamlesi> gercek, bool zorunlu, bool benNTAcildi, bool dar)
         {
+            // İlk cevap: ortak (NT/2♣ dışında) açtı ve ben henüz konuşmadım → 1 seviyede 4+ kartlık
+            // majör varsa NT davetinden/oyun gücünden ÖNCE o majörü göster (fit aranır).
+            // Örn. 1♣ - ? ile 5♠ + 11 HP: 2NT değil 1♠.
+            if (!gercek.Any(h => h.Oyuncu == d.AktifOyuncu) && gercek.Count > 0 &&
+                gercek.First().Oyuncu == d.Partner && gercek.First().Koz != "NT" &&
+                gercek.First().Teklif != "2♣" && hp >= 6)
+            {
+                int sL = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                int hL = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                string major = null;
+                if (sL >= 4 || hL >= 4)
+                {
+                    if (sL > hL) major = "Maça";
+                    else if (hL > sL) major = "Kupa";
+                    else major = sL >= 5 ? "Maça" : "Kupa";   // 5-5: ♠, 4-4: ♥ (en ucuzdan)
+                }
+                if (major != null && !rakipRenkleri.Contains(major) && Cheapest(d, major) == 1)
+                    return Seviye(d, major, 1);
+            }
+
             bool nt = dengeli || EnUzunUzunluk(el) <= 5;
             bool ntOlur = NTOlur(el, rakipRenkleri);
 

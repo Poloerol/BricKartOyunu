@@ -2430,6 +2430,46 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        public static void Test_Cevap_BesliMajor_1MacaYerine2NT()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 11.1 — 1♣ sonrası 5♠ + 11 HP dengeli: 2NT değil 1♠");
+            Yaz("════════════════════════════════════════");
+
+            // ♠10 9 8 6 3  ♥Q 10 6  ♦K 5  ♣A Q 10  (11 HP, 5-3-2-3)
+            var kuzeyEli = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 10 }, new Card { Suit = "Maça", Value = 9 },
+                new Card { Suit = "Maça", Value = 8 },  new Card { Suit = "Maça", Value = 6 },
+                new Card { Suit = "Maça", Value = 3 },
+                new Card { Suit = "Kupa", Value = 12 }, new Card { Suit = "Kupa", Value = 10 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Karo", Value = 13 }, new Card { Suit = "Karo", Value = 5 },
+                new Card { Suit = "Sinek", Value = 14 }, new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 10 },
+            };
+            var gecmis = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣",  Sira = 3, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+            };
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = Player.Kuzey,
+                AktifOyuncuEli = kuzeyEli,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == "1♠" ? "✅ DOĞRU (1♠)" : $"❌ YANLIŞ (beklenen 1♠, gelen {sonuc})");
+            Yaz("════════════════════════════════════════");
+        }
+
         public static void Test_Puppet_KeyCard_4_1Q()
         {
             Yaz("════════════════════════════════════════");
@@ -13554,6 +13594,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Puppet_KeyCard_2();
             Test_Puppet_KeyCard_3();
             Test_Puppet_KeyCard_4_1Q();
+            Test_Cevap_BesliMajor_1MacaYerine2NT();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();
