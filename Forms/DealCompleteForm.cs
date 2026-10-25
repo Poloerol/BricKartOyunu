@@ -25,8 +25,8 @@ namespace BricKartOyunu.Forms
             this.FormBorderStyle = FormBorderStyle.FixedToolWindow;
             this.ClientSize = istemciBoyutu;
 
-            // 🔹 Konum ctor'da verilmeli; Load içinde atanması etkisizdir.
-            this.StartPosition = FormStartPosition.CenterParent;
+            // 🔹 Konum: playZonePanel'in tam ortası (hesaplama Load'da yapılır; Manual olmalı).
+            this.StartPosition = FormStartPosition.Manual;
 
             // X davranışını FormClosing'de yöneteceğiz
             this.FormClosing += DealCompleteForm_FormClosing;
@@ -36,6 +36,9 @@ namespace BricKartOyunu.Forms
         {
             // Başlık
             this.Text = "Deal Complete";
+
+            // 🔹 playZonePanel'in tam ortasında aç (panel yoksa BricOyna'nın ortasına düş)
+            PlayZoneOrtasinaKonumla();
 
             // ═══════════════════════════════════════════════════════════════
             // BUTON EVENT'LERİNİ BAĞLA
@@ -51,6 +54,40 @@ namespace BricKartOyunu.Forms
 
             System.Diagnostics.Debug.WriteLine(
                 "[DealComplete] Buton event'leri bağlandı.");
+        }
+
+        /// <summary>Formu BricOyna.playZonePanel'in tam ortasına yerleştirir; ekran dışına taşmaz.</summary>
+        private void PlayZoneOrtasinaKonumla()
+        {
+            try
+            {
+                System.Drawing.Point merkez;
+                if (_bricOyna != null && _bricOyna.playZonePanel != null && !_bricOyna.playZonePanel.IsDisposed)
+                {
+                    var p = _bricOyna.playZonePanel;
+                    merkez = p.PointToScreen(new System.Drawing.Point(p.Width / 2, p.Height / 2));
+                }
+                else if (_bricOyna != null)
+                {
+                    merkez = new System.Drawing.Point(
+                        _bricOyna.Left + _bricOyna.Width / 2, _bricOyna.Top + _bricOyna.Height / 2);
+                }
+                else return;
+
+                int x = merkez.X - this.Width / 2;
+                int y = merkez.Y - this.Height / 2;
+
+                // Ekranın çalışma alanı içinde kal
+                var alan = Screen.FromPoint(merkez).WorkingArea;
+                x = Math.Max(alan.Left, Math.Min(x, alan.Right - this.Width));
+                y = Math.Max(alan.Top, Math.Min(y, alan.Bottom - this.Height));
+
+                this.Location = new System.Drawing.Point(x, y);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[DealComplete] Konumlandırma hatası: " + ex.Message);
+            }
         }
 
         private void DealCompleteForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -79,9 +116,9 @@ namespace BricKartOyunu.Forms
 
         private void BtnReplay_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(
-                "Bu bordun tekrarı özelliği henüz geliştirilmedi.",
-                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // BricOyna bu sonucu görünce aynı dağılımı baştan kurar
+            this.DialogResult = DialogResult.Retry;
+            this.Close();
         }
 
         private void BtnReviewBidding_Click(object sender, EventArgs e)

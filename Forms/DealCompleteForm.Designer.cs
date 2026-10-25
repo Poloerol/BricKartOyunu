@@ -44,7 +44,7 @@
             this.btnScore.Name = "btnScore";
             this.btnScore.Size = new System.Drawing.Size(200, 40);
             this.btnScore.TabIndex = 0;
-            this.btnScore.Text = "Bu Elin Puanı";
+            this.btnScore.Text = "Bu Elin Puanlaması";
             this.btnScore.UseVisualStyleBackColor = true;
             // 
             // btnReplay

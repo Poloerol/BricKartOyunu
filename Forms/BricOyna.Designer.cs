@@ -320,6 +320,7 @@
             this.BtnClaim.Size = new System.Drawing.Size(23, 22);
             this.BtnClaim.Text = "toolStripButton5";
             this.BtnClaim.ToolTipText = "Claim";
+            this.BtnClaim.Click += new System.EventHandler(this.BtnClaim_Click);
             // 
             // BtnGeriAl
             // 
