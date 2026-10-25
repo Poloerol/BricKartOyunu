@@ -291,6 +291,7 @@ namespace BricKartOyunu
                     ControlStyles.UserPaint |
                     ControlStyles.OptimizedDoubleBuffer, true);
                 this.UpdateStyles();
+                EkranYardimci.TumKontrollerdeCiftTampon(this);
             }
             this.Load += BricOyna_Load;
             this.Resize += BricOyna_Resize;
@@ -448,14 +449,14 @@ namespace BricKartOyunu
         /// </summary>
         private void BricOyna_Resize(object sender, EventArgs e)
         {
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 KartYerlesimiHazirla();
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -497,6 +498,9 @@ namespace BricKartOyunu
             SeedHafizasiniYukle();
 
 
+            EkranYardimci.CizimiDondur(this);
+            try
+            {
             KartlariDagit(AnaSayfa.SeciliKartSeti);
             UpdateInfoBoard(_dealer);
             UpdatePlayerBadges();
@@ -506,7 +510,8 @@ namespace BricKartOyunu
 
             // 🔹 TEST: İhale motoru çalışıyor mu?
             TestIhaleMotoru();
-
+            }
+            finally { EkranYardimci.CizimiAc(this); }
 
             YeniDekBasFormAc();
         }
@@ -2151,14 +2156,14 @@ namespace BricKartOyunu
 
             MasadakiKartlariTemizle();
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 HepsiniGoster();
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
 
             this.Refresh();
@@ -2218,18 +2223,39 @@ namespace BricKartOyunu
         /// Replay: aynı bord (aynı seed, aynı dealer) ilk dağıtım konumuna döner,
         /// yalnızca Güney açık, DekBasForm açılır.
         /// </summary>
-        public void BordTekrariBaslat()
+        /// <summary>
+        /// Bir bord başlarken (yeni bord, tekrar, dört pas sonrası) bordun TÜM oyun durumunu
+        /// tek yerden sıfırlar. Yeni bir bord-bazlı alan eklenirse buraya eklenmelidir.
+        /// </summary>
+        private void BordDurumunuSifirla()
         {
+            // Oynanan eller ve geri al / ileri al geçmişi
             _oynananTumEller.Clear();
-            OyunGecmisiniSifirla();
+            OyunGecmisiniSifirla();            // geçmiş + ileri al yığını + otomatik oyun durdurma
+
+            // Sayaçlar ve skor girdileri
             _oynananToplamEl = 0;
             _kazanilanElNS = 0;
             _kazanilanElEW = 0;
+            _kontrDurumu = KontrDurumu.Yok;
+
+            // Masa ve el durumu
             MasadakiKartlariTemizle();
             _buEldeOynananlar.Clear();
             _buEldeAtakRengi = null;
             _elBittiBekliyor = false;
             _dummyAcildi = false;
+
+            // Eller ihale sonrası takas edildiyse (Kuzey deklaran) bayrağı geri al
+            _ellerIhaleSonrasiTakasli = false;
+
+            // Önceki bordun ihale kaydı yeni bordda görünmesin
+            _sonIhaleGecmisi = new List<string>();
+        }
+
+        public void BordTekrariBaslat()
+        {
+            BordDurumunuSifirla();
 
             _oyunAsamasi = OyunAsamasi.Baslangic;
             activePlayer = _dealer;
@@ -2253,20 +2279,7 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[YeniBord] Yeni bord başlatılıyor...");
 
-            // 🔹 Oynanan tüm eller listesini temizle
-            _oynananTumEller.Clear();
-            OyunGecmisiniSifirla();
-
-            // 1) El sayacını sıfırla
-            _oynananToplamEl = 0;
-
-            // 2) Masadaki kartları temizle
-            MasadakiKartlariTemizle();
-
-            // 3) Bu elde oynananları sıfırla
-            _buEldeOynananlar.Clear();
-            _buEldeAtakRengi = null;
-            _elBittiBekliyor = false;
+            BordDurumunuSifirla();
 
             // 4) Aktif oyuncu, dealer, kontrat vs. sıfırlanır — DortPasSonrasiYeniEliBaslat ile aynı
             _oyunAsamasi = OyunAsamasi.Baslangic;
@@ -2312,7 +2325,7 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 $"[KartlariDagit] Seed: {_seed}");
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 // ─── 1. Kartları karıştır ve 4 oyuncuya böl ───
@@ -2375,7 +2388,7 @@ namespace BricKartOyunu
 
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -2434,14 +2447,14 @@ namespace BricKartOyunu
             digerEl.Clear();
             digerEl.AddRange(guneyGecici);
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 SadeceGuneyiGoster();
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -2875,7 +2888,7 @@ namespace BricKartOyunu
             eWGösterToolStripMenuItem.Checked = false;
             nSGösterToolStripMenuItem.Checked = false;
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 if (hepsiniGösterToolStripMenuItem.Checked)
@@ -2885,7 +2898,7 @@ namespace BricKartOyunu
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -2896,7 +2909,7 @@ namespace BricKartOyunu
             {
                 BtnGuney.Checked = false; BtnHepsi.Checked = false; BtnNS.Checked = false;
                 hepsiniGösterToolStripMenuItem.Checked = false; nSGösterToolStripMenuItem.Checked = false; eWGösterToolStripMenuItem.Checked = true;
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     KartYerlesimiHazirla();
@@ -2910,21 +2923,21 @@ namespace BricKartOyunu
                     BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, ewStartingY);
                     SetupPlayerBadges();
                 }
-                finally { this.ResumeLayout(true); }
+                finally { this.ResumeLayout(true); EkranYardimci.CizimiAc(this); }
             }
             else
             {
                 eWGösterToolStripMenuItem.Checked = false;
                 BtnGuney.Checked = false;
 
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     SadeceGuneyiGoster();
                 }
                 finally
                 {
-                    this.ResumeLayout(true);
+                    this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
                 }
             }
         }
@@ -2937,7 +2950,7 @@ namespace BricKartOyunu
             {
                 BtnGuney.Checked = false; BtnHepsi.Checked = false; BtnEW.Checked = false;
                 hepsiniGösterToolStripMenuItem.Checked = false; eWGösterToolStripMenuItem.Checked = false; nSGösterToolStripMenuItem.Checked = true;
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     KartYerlesimiHazirla();
@@ -2951,21 +2964,21 @@ namespace BricKartOyunu
                     BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
                     SetupPlayerBadges();
                 }
-                finally { this.ResumeLayout(true); }
+                finally { this.ResumeLayout(true); EkranYardimci.CizimiAc(this); }
             }
             else
             {
                 nSGösterToolStripMenuItem.Checked = false;
                 BtnGuney.Checked = false;
 
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     SadeceGuneyiGoster();
                 }
                 finally
                 {
-                    this.ResumeLayout(true);
+                    this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
                 }
             }
 
@@ -2983,7 +2996,7 @@ namespace BricKartOyunu
             eWGösterToolStripMenuItem.Checked = false;
             nSGösterToolStripMenuItem.Checked = false;
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 if (BtnGuney.Checked)
@@ -3026,7 +3039,7 @@ namespace BricKartOyunu
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -3855,6 +3868,7 @@ namespace BricKartOyunu
 
         public void DortPasSonrasiYeniEliBaslat()
         {
+            BordDurumunuSifirla();
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
             _currentTour++;
             _dealer = SonrakiOyuncu(_dealer);
@@ -3912,6 +3926,7 @@ namespace BricKartOyunu
         // 🔹 UI'ya yansıtmak için public erişim
         public string Kontrat => _kontrat;
         public Player KontratDeklaran => _kontratDeklaran;
+        public int BordNo => _currentTour;
         public Player AtakYapacakOyuncu => _atakYapacakOyuncu;
         public int KazanilanElNS => _kazanilanElNS;
         public int KazanilanElEW => _kazanilanElEW;
@@ -4078,7 +4093,7 @@ namespace BricKartOyunu
 
             OyunBilgiPaneliniGuncelle();
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 // 🔹 1. ADIM: TÜM PictureBox'ları gizle ve görseli temizle
@@ -4129,7 +4144,7 @@ namespace BricKartOyunu
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
 
             // 🔹 7. ADIM: AI'ı tetikle

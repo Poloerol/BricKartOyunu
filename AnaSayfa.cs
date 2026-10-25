@@ -93,6 +93,19 @@ namespace BricKartOyunu.Forms
                 ControlStyles.OptimizedDoubleBuffer,
                 true);
             this.UpdateStyles();
+            BricKartOyunu.Class.EkranYardimci.TumKontrollerdeCiftTampon(this);
+        }
+
+        // Sayfa geçişlerinde ve dinamik yerleşimde titremeyi önlemek için tüm pencere
+        // ağacı tek seferde (WS_EX_COMPOSITED) çizilir.
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
+                return cp;
+            }
         }
 
         // ====================================================================

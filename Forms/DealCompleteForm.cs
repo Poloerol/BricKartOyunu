@@ -110,8 +110,8 @@ namespace BricKartOyunu.Forms
         private void BtnScore_Click(object sender, EventArgs e)
         {
             if (_bricOyna == null) return;
-            MessageBox.Show(_bricOyna.SkorMetni(), "Skor",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var f = new DuplicateSkorForm(_bricOyna))
+                f.ShowDialog(this);
         }
 
         private void BtnReplay_Click(object sender, EventArgs e)
