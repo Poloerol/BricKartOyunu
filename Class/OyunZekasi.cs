@@ -714,12 +714,28 @@ namespace BricKartOyunu.Class
                 ? el.Where(c => c.Suit == x.Koz).OrderBy(c => c.Value).ToList()
                 : new List<Card>();
 
-            if (kozlar.Count > 0 && !ortakKazaniyor)
+            // Ortak kazanıyor görünse bile, arkada oynayacak rakip ortağın kartını geçebilir.
+            // Üçüncü elde (ortak açtı/kazanıyor, sonra yalnız bir rakip kaldı) ve ortağın kartı
+            // sağlam değilse kozla çakmak eli kurtarır: ortağın kartının üstünde görünmeyen
+            // en az 2 kart varsa (rakip büyük ihtimalle birini taşır) çak.
+            bool ortagiKurtarmakIcinKes = false;
+            if (kozlar.Count > 0 && ortakKazaniyor && poz == 2 &&
+                x.Koz != null && best.Suit != x.Koz && atak != x.Koz)
+            {
+                int ustte = x.UsttekiGorunmeyen(best);
+                bool pahaliKoz = kozlar[0].Value >= 12 && ustte < 3;   // Dam/üstü kozu ucuza harcama
+                int esik = kozlar[0].Value <= 10 ? 1 : 2;   // ucuz kozla tek büyük kart bile yeter
+                if (ustte >= esik && !pahaliKoz) ortagiKurtarmakIcinKes = true;
+            }
+
+            if (kozlar.Count > 0 && (!ortakKazaniyor || ortagiKurtarmakIcinKes))
             {
                 var kes = best.Suit == x.Koz ? kozlar.Where(c => c.Value > best.Value).ToList() : kozlar;
                 if (kes.Count > 0)
                 {
-                    neden = "Koz ile kesiliyor (en alçak kazanan koz)";
+                    neden = ortagiKurtarmakIcinKes
+                        ? "Ortağın kartı sağlam değil, arkadaki rakip geçebilir → koz ile kesiliyor"
+                        : "Koz ile kesiliyor (en alçak kazanan koz)";
                     return kes[0];
                 }
             }

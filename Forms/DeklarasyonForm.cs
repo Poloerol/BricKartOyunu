@@ -796,9 +796,31 @@ namespace BricKartOyunu.Forms
             }
 
             // Oynatma ekranına bilgileri aktar
-            _bricOyna?.IhaleTamamlandiBaslat(_sonKontratTeklifi, gercekDeklaran, solRakip);
+            _bricOyna?.IhaleTamamlandiBaslat(_sonKontratTeklifi, gercekDeklaran, solRakip, KontrDurumunuBul());
 
             IzinliKapat();
+        }
+
+        /// <summary>
+        /// Son gerçek tekliften sonra Dbl/RDbl var mı? (0 = yok, 1 = kontr, 2 = sürkontr)
+        /// </summary>
+        private int KontrDurumunuBul()
+        {
+            int sonGercek = -1;
+            for (int i = _bids.Count - 1; i >= 0; i--)
+            {
+                string b = _bids[i];
+                if (b != "Pas" && b != "PAS" && b != "Dbl" && b != "RDbl") { sonGercek = i; break; }
+            }
+            if (sonGercek < 0) return 0;
+
+            int durum = 0;
+            for (int i = sonGercek + 1; i < _bids.Count; i++)
+            {
+                if (_bids[i] == "Dbl") durum = 1;
+                else if (_bids[i] == "RDbl") durum = 2;
+            }
+            return durum;
         }
 
         // Son teklifi veren tarafın (kendisinin veya ortağının) bu kozu İLK kimin söylediğini bulur

@@ -233,6 +233,7 @@
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
     <Compile Include="Class\OyunZekasi.cs" />
+    <Compile Include="Class\Skorlama.cs" />
     <Compile Include="Class\Player.cs" />
     <Compile Include="Forms\BricMaci.cs">
       <SubType>Form</SubType>

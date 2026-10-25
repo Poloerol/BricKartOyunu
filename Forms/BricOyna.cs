@@ -1904,7 +1904,7 @@ namespace BricKartOyunu
 
             // Kontrat
             if (lblBilgiKontrat != null)
-                lblBilgiKontrat.Text = string.IsNullOrEmpty(_kontrat) ? "—" : _kontrat;
+                lblBilgiKontrat.Text = string.IsNullOrEmpty(_kontrat) ? "—" : _kontrat + KontrEki();
 
             // Deklaran
             if (lblBilgiDeklaran != null)
@@ -4048,8 +4048,9 @@ namespace BricKartOyunu
         /// DeklarasyonForm'da ihale normal şekilde bittiğinde çağrılır.
         /// Kontratı ve deklaranı saklar; sırayı atak yapacak rakibe (deklaranın solu) verir.
         /// </summary>
-        public void IhaleTamamlandiBaslat(string kontrat, string deklaran, string solRakip)
+        public void IhaleTamamlandiBaslat(string kontrat, string deklaran, string solRakip, int kontrCarpani = 0)
         {
+            _kontrDurumu = kontrCarpani == 2 ? KontrDurumu.SKontr : kontrCarpani == 1 ? KontrDurumu.Kontr : KontrDurumu.Yok;
             _oyunAsamasi = OyunAsamasi.Oyun;
             OyunGecmisiniSifirla();
 
@@ -4157,6 +4158,151 @@ namespace BricKartOyunu
         // PBN (Portable Bridge Notation) DIŞA AKTARMA
         // Bridge Baron Deal Library, Deep Finesse vb. programlar okuyabilir.
         // ═══════════════════════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════════════════════
+        // SKOR HESABI (duplicate) VE BORD ÖZETİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        private KontrDurumu _kontrDurumu = KontrDurumu.Yok;
+
+        private string KontrEki()
+        {
+            return _kontrDurumu == KontrDurumu.SKontr ? " XX" : _kontrDurumu == KontrDurumu.Kontr ? " X" : "";
+        }
+
+        /// <summary>16'lı bord döngüsüne göre zon (risk) durumu.</summary>
+        private void ZonDurumu(out bool ns, out bool ew)
+        {
+            int boardMod = ((_currentTour - 1) % 16) + 1;
+            ns = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
+                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            ew = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
+                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+        }
+
+        /// <summary>
+        /// Bitmiş bordun skorunu hesaplar (deklaran tarafı açısından).
+        /// Kontrat yoksa (dört pas) PasGecildi işaretli sonuç döner.
+        /// </summary>
+        public SkorSonucu SkorHesapla()
+        {
+            if (string.IsNullOrEmpty(_kontrat))
+                return new SkorSonucu { PasGecildi = true };
+
+            int seviye = _kontrat[0] - '0';
+            string koz = _kontrat.IndexOf("NT", StringComparison.OrdinalIgnoreCase) >= 0
+                ? "NT" : _kontrat.Substring(1, 1);
+
+            bool deklaranNS = _kontratDeklaran == Player.Kuzey || _kontratDeklaran == Player.Guney;
+            bool nsZon, ewZon;
+            ZonDurumu(out nsZon, out ewZon);
+            bool zonda = deklaranNS ? nsZon : ewZon;
+            int alinan = deklaranNS ? _kazanilanElNS : _kazanilanElEW;
+
+            return Skorlama.Hesapla(seviye, koz, _kontrDurumu, zonda, alinan);
+        }
+
+        /// <summary>Skor penceresi için metin: deklaran tarafı ve N-S / E-W açısından toplam.</summary>
+        public string SkorMetni()
+        {
+            var s = SkorHesapla();
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Bord " + _currentTour);
+            if (!s.PasGecildi)
+                sb.AppendLine("Deklaran: " + PlayerIsmiTurkce(_kontratDeklaran));
+            sb.AppendLine();
+            sb.Append(Skorlama.Aciklama(s));
+
+            if (!s.PasGecildi)
+            {
+                bool deklaranNS = _kontratDeklaran == Player.Kuzey || _kontratDeklaran == Player.Guney;
+                int ns = deklaranNS ? s.Toplam : -s.Toplam;
+                sb.AppendLine();
+                sb.AppendLine("Kuzey-Güney: " + (ns > 0 ? "+" : "") + ns);
+                sb.AppendLine("Doğu-Batı  : " + (-ns > 0 ? "+" : "") + (-ns));
+            }
+            return sb.ToString();
+        }
+
+        private static string KartMetniSatiri(List<Card> el, string renk)
+        {
+            var dizi = el.Where(c => c.Suit == renk).OrderByDescending(c => c.Value)
+                         .Select(c => c.Value == 10 ? "10" : PbnDeger(c.Value).ToString());
+            string metin = string.Join(" ", dizi);
+            return string.IsNullOrEmpty(metin) ? "—" : metin;
+        }
+
+        /// <summary>Yazdırma için bordun düz metin özeti (eller, ihale, sonuç, skor).</summary>
+        public string BordOzetiMetni()
+        {
+            var sb = new System.Text.StringBuilder();
+            Player dagitici = _ellerIhaleSonrasiTakasli ? Karsi(_dealer) : _dealer;
+
+            bool nsZon, ewZon;
+            ZonDurumu(out nsZon, out ewZon);
+            string zon = nsZon && ewZon ? "Herkes zonda" : nsZon ? "K-G zonda" : ewZon ? "D-B zonda" : "Zonsuz";
+
+            sb.AppendLine("BRİÇ KART OYUNU — Bord " + _currentTour);
+            sb.AppendLine("Dağıtıcı: " + PlayerIsmiTurkce(dagitici) + "   " + zon);
+            sb.AppendLine(new string('─', 52));
+            sb.AppendLine();
+
+            string[] renkler = { "Maça", "Kupa", "Karo", "Sinek" };
+            string[] semboller = { "♠", "♥", "♦", "♣" };
+
+            Func<Player, List<string>> blok = oyuncu =>
+            {
+                var el = BaslangicEli(oyuncu);
+                var satirlar = new List<string> { PlayerIsmiTurkce(oyuncu).ToUpper() };
+                for (int i = 0; i < 4; i++)
+                    satirlar.Add(semboller[i] + " " + KartMetniSatiri(el, renkler[i]));
+                return satirlar;
+            };
+
+            var kuzey = blok(Player.Kuzey);
+            var bati = blok(Player.Bati);
+            var dogu = blok(Player.Dogu);
+            var guney = blok(Player.Guney);
+
+            foreach (var satir in kuzey) sb.AppendLine(new string(' ', 20) + satir);
+            sb.AppendLine();
+            for (int i = 0; i < bati.Count; i++)
+                sb.AppendLine(bati[i].PadRight(30) + dogu[i]);
+            sb.AppendLine();
+            foreach (var satir in guney) sb.AppendLine(new string(' ', 20) + satir);
+            sb.AppendLine();
+            sb.AppendLine(new string('─', 52));
+
+            // İhale tablosu
+            sb.AppendLine("İhale:");
+            sb.AppendLine("Batı".PadRight(10) + "Kuzey".PadRight(10) + "Doğu".PadRight(10) + "Güney");
+            var bids = _sonIhaleGecmisi ?? new List<string>();
+            int sutun = 0;
+            switch (dagitici)
+            {
+                case Player.Bati: sutun = 0; break;
+                case Player.Kuzey: sutun = 1; break;
+                case Player.Dogu: sutun = 2; break;
+                default: sutun = 3; break;
+            }
+            var satirSb = new System.Text.StringBuilder(new string(' ', sutun * 10));
+            foreach (var b in bids)
+            {
+                satirSb.Append(b.PadRight(10));
+                sutun++;
+                if (sutun == 4)
+                {
+                    sb.AppendLine(satirSb.ToString().TrimEnd());
+                    satirSb.Clear();
+                    sutun = 0;
+                }
+            }
+            if (satirSb.Length > 0) sb.AppendLine(satirSb.ToString().TrimEnd());
+            sb.AppendLine();
+            sb.AppendLine(new string('─', 52));
+            sb.Append(SkorMetni());
+            return sb.ToString();
+        }
 
         private static string PbnTemiz(string t)
         {

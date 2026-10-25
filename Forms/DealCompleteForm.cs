@@ -109,9 +109,9 @@ namespace BricKartOyunu.Forms
 
         private void BtnScore_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(
-                "Skor hesaplama özelliği henüz geliştirilmedi.",
-                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (_bricOyna == null) return;
+            MessageBox.Show(_bricOyna.SkorMetni(), "Skor",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void BtnReplay_Click(object sender, EventArgs e)
@@ -210,9 +210,41 @@ namespace BricKartOyunu.Forms
 
         private void BtnPrint_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(
-                "Yazdırma özelliği henüz geliştirilmedi.",
-                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (_bricOyna == null) return;
+
+            string metin = _bricOyna.BordOzetiMetni();
+            using (var doc = new System.Drawing.Printing.PrintDocument())
+            using (var yazi = new System.Drawing.Font("Consolas", 10F))
+            {
+                doc.DocumentName = "Briç bordu";
+                var satirlar = metin.Replace("\r", "").Split('\n');
+                int sira = 0;
+
+                doc.PrintPage += (s2, pe) =>
+                {
+                    float y = pe.MarginBounds.Top;
+                    float satirYuksekligi = yazi.GetHeight(pe.Graphics);
+                    while (sira < satirlar.Length && y + satirYuksekligi <= pe.MarginBounds.Bottom)
+                    {
+                        pe.Graphics.DrawString(satirlar[sira], yazi, System.Drawing.Brushes.Black,
+                            pe.MarginBounds.Left, y);
+                        y += satirYuksekligi;
+                        sira++;
+                    }
+                    pe.HasMorePages = sira < satirlar.Length;
+                };
+
+                using (var dlg = new PrintDialog { Document = doc })
+                {
+                    if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                    try { doc.Print(); }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Yazdırılamadı: " + ex.Message, "Hata",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
         private void BtnNextDeal_Click(object sender, EventArgs e)
