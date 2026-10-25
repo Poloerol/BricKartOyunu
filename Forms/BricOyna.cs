@@ -215,6 +215,7 @@ namespace BricKartOyunu
             _oyunGecmisi.Clear();
             _oyunIleriAlYigini.Clear();
             _ileriAliniyor = false;
+            TumAIyiDurdur();
         }
 
         // ====================================================================
@@ -308,6 +309,11 @@ namespace BricKartOyunu
             FirstClickSorununuCoz(BtnGuney, BtnGuney_Click);
             FirstClickSorununuCoz(BtnGeriAl, BtnGeriAl_Click);
             FirstClickSorununuCoz(BtnileriAl, BtnileriAl_Click);
+
+            // 🔹 Otomatik oynatma butonu
+            if (BtnOtoOyna != null)
+                BtnOtoOyna.Click += BtnOtoOyna_Click;
+            FirstClickSorununuCoz(BtnOtoOyna, BtnOtoOyna_Click);
             FirstClickSorununuCoz(BtnSonrakiEl, BtnSonrakiEl_Click);
         }
 
@@ -2963,6 +2969,8 @@ namespace BricKartOyunu
         /// </summary>
         private bool InsanKontrolundeMi(Player oyuncu)
         {
+            if (_tumAI && _oyunAsamasi == OyunAsamasi.Oyun) return false;   // otomatik oynatma: herkes AI
+
             if (oyuncu == _humanPlayer) return true;
 
             if (_oyunAsamasi == OyunAsamasi.Oyun &&
@@ -3000,6 +3008,7 @@ namespace BricKartOyunu
                 $"[GuneyKartTiklandi] index: {kartIndex}, aktif: {activePlayer}, aşama: {_oyunAsamasi}");
 
             if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+            if (_tumAI) return;   // otomatik oynatma sürerken elle oynanmaz
 
             // Kendi elinden oynama: sıra Güney'de olmalı
             if (activePlayer != Player.Guney)
@@ -3041,6 +3050,7 @@ namespace BricKartOyunu
                 $"deklaran: {_kontratDeklaran}, aşama: {_oyunAsamasi}");
 
             if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+            if (_tumAI) return;   // otomatik oynatma sürerken elle oynanmaz
 
             // Sadece deklaran Güney + sıra Kuzey (dummy)
             if (_kontratDeklaran != Player.Guney) return;
@@ -3207,6 +3217,7 @@ namespace BricKartOyunu
                 _sonElKazanani = kazanan;
                 _elBittiBekliyor = true;
                 GeriAlIleriAlButonlariniGuncelle();
+                if (_tumAI && _tumAIDuraklamasiz) TumAIYeniEleZamanla();
 
                 System.Diagnostics.Debug.WriteLine(
                     "[KartOyna] El bitti. PlayZone'a tıklayınca yeni el başlayacak.");
@@ -4189,10 +4200,90 @@ namespace BricKartOyunu
         /// masa / sıra / skor / dummy / oynanan eller önceki duruma getirilir.
         /// Sıra AI'daysa oyun duraklar; İleri Al aynı kartı tekrar oynatır.
         /// </summary>
+        // ====================================================================
+        // OTOMATİK OYNATMA (BtnOtoOyna)
+        // ====================================================================
+        // Evet de Hayır da bu bord boyunca dört oyuncuyu (Güney ve dummy dahil) AI yapar;
+        // her kart AI zamanlayıcısıyla oynanır.
+        //   Evet  → eller arasında duraklama yok (el bitince kendiliğinden devam eder)
+        //   Hayır → her el bitince durur, oyun alanına tıklanınca bir sonraki ele geçilir (normal oyun gibi)
+        private bool _tumAI = false;
+        private bool _tumAIDuraklamasiz = false;
+        private System.Windows.Forms.Timer _tumAIElTimer;
+
+        private void BtnOtoOyna_Click(object sender, EventArgs e)
+        {
+            // Yalnızca yer oyunu (kart oynama) aşamasında çalışır
+            if (_oyunAsamasi != OyunAsamasi.Oyun || _tumAI) return;
+            if (_oynananToplamEl >= 13) return;
+
+            DialogResult sonuc;
+            using (var onay = new OtoOynaOnayForm())
+            {
+                sonuc = onay.ShowDialog(this);
+            }
+
+            if (sonuc == DialogResult.Yes) OtomatikOyna(true);
+            else if (sonuc == DialogResult.No) OtomatikOyna(false);
+            // pencere X ile kapatıldıysa hiçbir şey yapma
+        }
+
+        private void OtomatikOyna(bool duraklamasiz)
+        {
+            _oyunIleriAlYigini.Clear();
+            _tumAI = true;
+            _tumAIDuraklamasiz = duraklamasiz;
+            GeriAlIleriAlButonlariniGuncelle();
+
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
+
+            if (_elBittiBekliyor)
+            {
+                if (duraklamasiz) TumAIYeniEle();   // önceki el bitmiş: sonraki ele geç
+                // duraklamalıysa oyun alanına tıklanmasını bekler (normal oyun)
+            }
+            else AITetikle();                        // sıradaki oyuncu (insan olsa da) AI gibi oynar
+        }
+
+        /// <summary>Tam AI modunda el bitince kısa bekleyip (oyun alanına tıklanmadan) yeni ele geçer.</summary>
+        private void TumAIYeniEleZamanla()
+        {
+            _tumAIElTimer?.Stop();
+            _tumAIElTimer?.Dispose();
+            _tumAIElTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            _tumAIElTimer.Tick += (s, e) =>
+            {
+                _tumAIElTimer?.Stop();
+                _tumAIElTimer?.Dispose();
+                _tumAIElTimer = null;
+                if (!IsDisposed) TumAIYeniEle();
+            };
+            _tumAIElTimer.Start();
+        }
+
+        private void TumAIYeniEle()
+        {
+            if (!_tumAI || !_elBittiBekliyor || _oyunAsamasi != OyunAsamasi.Oyun) return;
+            PlayZonePanel_Click(null, EventArgs.Empty);   // masayı temizler, kazananı başlatır, AI'ı tetikler
+        }
+
+        /// <summary>Otomatik oynatmayı bırakır (kullanıcı geri/ileri aldığında ya da yeni bordda).</summary>
+        private void TumAIyiDurdur()
+        {
+            _tumAI = false;
+            _tumAIDuraklamasiz = false;
+            _tumAIElTimer?.Stop();
+            _tumAIElTimer?.Dispose();
+            _tumAIElTimer = null;
+        }
+
         private void OyunSonHamleyiGeriAl()
         {
             if (_oyunAsamasi != OyunAsamasi.Oyun) return;
             if (_oyunGecmisi.Count == 0 || _oynananToplamEl >= 13) return;
+            TumAIyiDurdur();   // kullanıcı müdahale etti: normal moda dön
 
             // Bekleyen AI hamlesi varsa iptal et
             _aiTimer?.Stop();
@@ -4246,6 +4337,7 @@ namespace BricKartOyunu
         {
             if (_oyunAsamasi != OyunAsamasi.Oyun) return;
             if (_oyunIleriAlYigini.Count == 0) return;
+            TumAIyiDurdur();
 
             _aiTimer?.Stop();
             _aiTimer?.Dispose();
@@ -4311,5 +4403,66 @@ namespace BricKartOyunu
             }
         }
 
+    }
+
+
+    /// <summary>
+    /// "Otomatik oynatma" onay penceresi: başlık satırı, açıklama satırı ve Evet / Hayır butonları.
+    /// Evet → DialogResult.Yes, Hayır → DialogResult.No, X ile kapatma → DialogResult.Cancel.
+    /// </summary>
+    internal sealed class OtoOynaOnayForm : Form
+    {
+        public Button BtnEvet { get; private set; }
+        public Button BtnHayir { get; private set; }
+
+        public OtoOynaOnayForm()
+        {
+            Text = "Otomatik oynatma";
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            ShowInTaskbar = false;
+            ClientSize = new Size(340, 130);
+
+            var lbl1 = new Label
+            {
+                Text = "Otomatik oynatma",
+                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Location = new Point(10, 14),
+                Size = new Size(320, 28)
+            };
+            var lbl2 = new Label
+            {
+                Text = "(Oynanan eller arasında duraklama yok)",
+                Font = new Font("Segoe UI", 9.5F),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Location = new Point(10, 46),
+                Size = new Size(320, 24)
+            };
+
+            BtnEvet = new Button
+            {
+                Name = "BtnEvet",
+                Text = "Evet",
+                DialogResult = DialogResult.Yes,
+                Location = new Point(70, 84),
+                Size = new Size(90, 30)
+            };
+            BtnHayir = new Button
+            {
+                Name = "BtnHayir",
+                Text = "Hayır",
+                DialogResult = DialogResult.No,
+                Location = new Point(180, 84),
+                Size = new Size(90, 30)
+            };
+
+            Controls.AddRange(new Control[] { lbl1, lbl2, BtnEvet, BtnHayir });
+            AcceptButton = BtnEvet;
+        }
     }
 }
