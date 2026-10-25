@@ -1,0 +1,10 @@
+cd C:\Users\egokm\source\repos\Poloerol\BricKartOyunu\BricKartOyunu
+
+Betik yolu:
+C:\Users\egokm\source\repos\Poloerol\commit-sync.ps1
+
+
+Commit Kodu:
+
+cd "$env:USERPROFILE\source\repos\Poloerol"
+powershell -ExecutionPolicy Bypass -File .\commit-sync.ps1
