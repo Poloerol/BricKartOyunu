@@ -188,6 +188,36 @@ namespace BricKartOyunu
             = new List<(int, Player, Card, bool)>();
 
         // ====================================================================
+        // KART OYNAMA GEÇMİŞİ — BtnGeriAl / BtnileriAl (oyun aşaması)
+        // ====================================================================
+        // Her oynanan kart için, o hamleden ÖNCEKİ durumun kopyası saklanır.
+        private sealed class OyunHamlesi
+        {
+            public Player Oyuncu;
+            public Card Kart;
+            public string AtakRengi;
+            public bool ElBittiBekliyor;
+            public Player SonElKazanani;
+            public int ToplamEl;
+            public int NS;
+            public int EW;
+            public bool DummyAcildi;
+            public List<(Player Oyuncu, Card Kart)> BuEldeOnce;
+            public int TumEllerSayisi;
+        }
+
+        private readonly List<OyunHamlesi> _oyunGecmisi = new List<OyunHamlesi>();       // oynananlar
+        private readonly List<OyunHamlesi> _oyunIleriAlYigini = new List<OyunHamlesi>(); // geri alınanlar
+        private bool _ileriAliniyor = false;
+
+        private void OyunGecmisiniSifirla()
+        {
+            _oyunGecmisi.Clear();
+            _oyunIleriAlYigini.Clear();
+            _ileriAliniyor = false;
+        }
+
+        // ====================================================================
         // OYUN OYNAMA — Masa Kartları
         // ====================================================================
         // Masa kartı boyutu (elden biraz küçük — 4 kart masada sığsın)
@@ -2173,6 +2203,7 @@ namespace BricKartOyunu
 
             // 🔹 Oynanan tüm eller listesini temizle
             _oynananTumEller.Clear();
+            OyunGecmisiniSifirla();
 
             // 1) El sayacını sıfırla
             _oynananToplamEl = 0;
@@ -3072,6 +3103,23 @@ namespace BricKartOyunu
                 return;
             }
 
+            // ── Geri Al / İleri Al: bu hamleden önceki durumu kaydet ──
+            _oyunGecmisi.Add(new OyunHamlesi
+            {
+                Oyuncu = oyuncu,
+                Kart = kart,
+                AtakRengi = _buEldeAtakRengi,
+                ElBittiBekliyor = _elBittiBekliyor,
+                SonElKazanani = _sonElKazanani,
+                ToplamEl = _oynananToplamEl,
+                NS = _kazanilanElNS,
+                EW = _kazanilanElEW,
+                DummyAcildi = _dummyAcildi,
+                BuEldeOnce = new List<(Player Oyuncu, Card Kart)>(_buEldeOynananlar),
+                TumEllerSayisi = _oynananTumEller.Count
+            });
+            if (!_ileriAliniyor) _oyunIleriAlYigini.Clear();   // yeni bir kart = ileri alınacak bölüm geçersiz
+
             // Bu elde ilk kart mı? Atak rengini belirle
             if (_buEldeAtakRengi == null)
             {
@@ -3150,6 +3198,7 @@ namespace BricKartOyunu
                         "[KartOyna] BORD TAMAMLANDI! Deal Complete formu açılacak.");
 
                     _elBittiBekliyor = false;
+                    GeriAlIleriAlButonlariniGuncelle();
                     BordTamamlandiFormuAc();
                     return;
                 }
@@ -3157,6 +3206,7 @@ namespace BricKartOyunu
                 // El bitti ama bord devam ediyor
                 _sonElKazanani = kazanan;
                 _elBittiBekliyor = true;
+                GeriAlIleriAlButonlariniGuncelle();
 
                 System.Diagnostics.Debug.WriteLine(
                     "[KartOyna] El bitti. PlayZone'a tıklayınca yeni el başlayacak.");
@@ -3168,9 +3218,10 @@ namespace BricKartOyunu
             // EL HENÜZ BİTMEDİ — Sırayı bir sonraki oyuncuya geçir
             // ═══════════════════════════════════════════════════════════════
             activePlayer = SonrakiOyuncu(activePlayer);
+            GeriAlIleriAlButonlariniGuncelle();
 
-            // Sıra AI'da mı? Otomatik oynat
-            if (!InsanKontrolundeMi(activePlayer))
+            // Sıra AI'da mı? Otomatik oynat (İleri Al sırasında AI tetiklenmez)
+            if (!_ileriAliniyor && !InsanKontrolundeMi(activePlayer))
             {
                 AITetikle();
             }
@@ -3875,6 +3926,10 @@ namespace BricKartOyunu
         public void IhaleTamamlandiBaslat(string kontrat, string deklaran, string solRakip)
         {
             _oyunAsamasi = OyunAsamasi.Oyun;
+            OyunGecmisiniSifirla();
+            // İlk kart atağına kadar Geri Al / İleri Al kapalı
+            if (BtnGeriAl != null) BtnGeriAl.Enabled = false;
+            if (BtnileriAl != null) BtnileriAl.Enabled = false;
             _kontrat = kontrat;
             _kontratDeklaran = OyuncuyaCevir(deklaran);
             _declarer = _kontratDeklaran;
@@ -3964,6 +4019,7 @@ namespace BricKartOyunu
         {
             _sonIhaleGecmisi = new List<string>(bids);
             _ihaleBaslangicOyuncusu = baslangicOyuncusu;
+            IhaleGecmisiFormlariniGuncelle();
         }
 
         private void oynananElleriGösterToolStripMenuItem_Click(object sender, EventArgs e)
@@ -4115,6 +4171,12 @@ namespace BricKartOyunu
                 BtnGeriAl.Enabled = dekForm.GeriAlinabilirMi;
                 BtnileriAl.Enabled = dekForm.IleriAlinabilirMi;
             }
+            else if (_oyunAsamasi == OyunAsamasi.Oyun)
+            {
+                // İlk kart atağından sonra Geri Al aktif; geri alınan kart varsa İleri Al aktif.
+                BtnGeriAl.Enabled = _oyunGecmisi.Count > 0 && _oynananToplamEl < 13;
+                BtnileriAl.Enabled = _oyunIleriAlYigini.Count > 0;
+            }
             else
             {
                 BtnGeriAl.Enabled = false;
@@ -4122,16 +4184,115 @@ namespace BricKartOyunu
             }
         }
 
+        /// <summary>
+        /// Oyun aşamasında son oynanan kartı geri alır: kart oynayanın eline döner,
+        /// masa / sıra / skor / dummy / oynanan eller önceki duruma getirilir.
+        /// Sıra AI'daysa oyun duraklar; İleri Al aynı kartı tekrar oynatır.
+        /// </summary>
         private void OyunSonHamleyiGeriAl()
         {
-            System.Diagnostics.Debug.WriteLine(
-                "[BricOyna] OyunSonHamleyiGeriAl: Henüz implemente edilmedi.");
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+            if (_oyunGecmisi.Count == 0 || _oynananToplamEl >= 13) return;
+
+            // Bekleyen AI hamlesi varsa iptal et
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
+
+            var h = _oyunGecmisi[_oyunGecmisi.Count - 1];
+            _oyunGecmisi.RemoveAt(_oyunGecmisi.Count - 1);
+            _oyunIleriAlYigini.Add(h);
+
+            // Kartı oyuncunun eline geri koy
+            var el = OyuncuEli(h.Oyuncu);
+            if (el != null && !el.Contains(h.Kart)) el.Add(h.Kart);
+
+            // Sayaçlar ve listeler
+            _buEldeOynananlar.Clear();
+            _buEldeOynananlar.AddRange(h.BuEldeOnce);
+            _buEldeAtakRengi = h.AtakRengi;
+            _elBittiBekliyor = h.ElBittiBekliyor;
+            _sonElKazanani = h.SonElKazanani;
+            _oynananToplamEl = h.ToplamEl;
+            _kazanilanElNS = h.NS;
+            _kazanilanElEW = h.EW;
+            if (_oynananTumEller.Count > h.TumEllerSayisi)
+                _oynananTumEller.RemoveRange(h.TumEllerSayisi, _oynananTumEller.Count - h.TumEllerSayisi);
+
+            bool dummyKapanacak = _dummyAcildi && !h.DummyAcildi;
+            _dummyAcildi = h.DummyAcildi;
+
+            // Masa: o hamleden önceki kartlar
+            MasadakiKartlariTemizle();
+            foreach (var (o, k) in h.BuEldeOnce)
+                KartiMasayaYerlestir(o, k, k.Image);
+
+            // Eller (görsel)
+            OyuncuEliniGuncelle(h.Oyuncu, h.Kart);
+            if (dummyKapanacak)
+                OyuncuEliniGuncelle(IhaleDurumu.PartnerBul(_kontratDeklaran), null);   // açılış atağı geri alındı → dummy tekrar kapalı
+
+            activePlayer = h.Oyuncu;
+            OyunBilgiPaneliniGuncelle();
+            OynananElleriFormlariniGuncelle();
+            GeriAlIleriAlButonlariniGuncelle();
         }
 
+        /// <summary>
+        /// Oyun aşamasında en son geri alınan kartı tekrar oynatır (aynı oyuncu, aynı kart).
+        /// Geri alınan tüm kartlar ileri alındığında sıra AI'daysa oyun kaldığı yerden sürer.
+        /// </summary>
         private void OyunSonHamleyiIleriAl()
         {
-            System.Diagnostics.Debug.WriteLine(
-                "[BricOyna] OyunSonHamleyiIleriAl: Henüz implemente edilmedi.");
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+            if (_oyunIleriAlYigini.Count == 0) return;
+
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
+
+            var h = _oyunIleriAlYigini[_oyunIleriAlYigini.Count - 1];
+            _oyunIleriAlYigini.RemoveAt(_oyunIleriAlYigini.Count - 1);
+
+            int onceki = _oyunGecmisi.Count;
+            _ileriAliniyor = true;
+            try
+            {
+                KartOyna(h.Oyuncu, h.Kart, h.Kart.Image);
+            }
+            finally
+            {
+                _ileriAliniyor = false;
+            }
+
+            // Kart kabul edilmediyse (durum tutarsız) ileri alma yığını geçersizdir
+            if (_oyunGecmisi.Count == onceki)
+                _oyunIleriAlYigini.Clear();
+
+            OynananElleriFormlariniGuncelle();
+
+            // Geri alınanların hepsi ileri alındı ve sıra AI'da → oyun devam etsin
+            if (_oyunIleriAlYigini.Count == 0 && !_elBittiBekliyor && _oynananToplamEl < 13 &&
+                !InsanKontrolundeMi(activePlayer))
+            {
+                AITetikle();
+            }
+
+            GeriAlIleriAlButonlariniGuncelle();
+        }
+
+        /// <summary>Açık IhaleGecmisiForm varsa içeriğini güncel ihale geçmişiyle yeniler.</summary>
+        private void IhaleGecmisiFormlariniGuncelle()
+        {
+            foreach (var f in Application.OpenForms.OfType<IhaleGecmisiForm>().ToList())
+                f.Guncelle(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu);
+        }
+
+        /// <summary>Açık OynananElleriGosterForm varsa içeriğini güncel eller listesiyle yeniler.</summary>
+        private void OynananElleriFormlariniGuncelle()
+        {
+            foreach (var f in Application.OpenForms.OfType<OynananElleriGosterForm>().ToList())
+                f.Guncelle(_oynananTumEller);
         }
 
         /// <summary>

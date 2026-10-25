@@ -1,4 +1,4 @@
-using BricKartOyunu.Class;
+﻿using BricKartOyunu.Class;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -62,6 +62,15 @@ namespace BricKartOyunu.Forms
         // İleri alınan (redo) hamleleri tutar
         private readonly List<(string Oyuncu, string Teklif)> _ileriAlinanHamleler
             = new List<(string, string)>();
+
+        // Her "Geri Al" tıklamasında kaç teklif silindi (İleri Al aynı bloğu geri getirir)
+        private readonly Stack<int> _ileriAlinanBlokBoyutlari = new Stack<int>();
+
+        // İleri Al sırasında tekliflerin yeniden eklenmesi "yeni hamle" sayılmaz
+        private bool _ileriAliniyor = false;
+
+        // Bir Geri Al tıklamasında silinen teklif sayısı
+        private const int GeriAlAdim = 4;
 
         /// <summary>
         /// Geri alınacak hamle var mı?
@@ -366,7 +375,18 @@ namespace BricKartOyunu.Forms
             // teklifleri kaydet
             _bids.Add(deger);
 
+            // Yeni bir hamle yapıldıysa (İleri Al değilse) ileri alınacak bölüm geçersizdir
+            if (!_ileriAliniyor)
+            {
+                _ileriAlinanHamleler.Clear();
+                _ileriAlinanBlokBoyutlari.Clear();
+            }
+
             _teklifSayisi++;
+
+            // İhale geçmişi (menüdeki İhale Göster / açık IhaleGecmisiForm) güncel kalsın
+            _bricOyna?.IhaleGecmisiniKaydet(_bids, OyuncuSirasi[_baslangicSutunu]);
+
             // 🔹 BricOyna'daki BtnGeriAl / BtnileriAl durumlarını güncelle
             _bricOyna?.GeriAlIleriAlButonlariniGuncelle();
 
@@ -522,117 +542,108 @@ namespace BricKartOyunu.Forms
         }
 
         /// <summary>
-        /// Son yapılan teklifi/pası/kontru geri alır.
-        /// Hem ListView hem grid panelinin görünümünü doğru state'e döndürür.
+        /// BricOyna'daki BtnGeriAl tarafından çağrılır: son 4 teklifi (daha azı varsa
+        /// hepsini) geri alır. Liste, grid ve aktif oyuncu bu duruma göre yeniden kurulur.
         /// </summary>
         public void SonHamleyiGeriAl()
         {
-            if (_teklifSayisi == 0) return;
-            if (lstIhale == null || lstIhale.Items.Count == 0) return;
+            if (_bids.Count == 0) return;
 
-            // 1. Son satırın son dolu hücresini bul ve temizle
-            ListViewItem sonSatir = lstIhale.Items[lstIhale.Items.Count - 1];
-            int sonSutun = -1;
-            string silinenTeklif = "";
-            string silinenOyuncu = "";
+            // Bekleyen AI hamlesi varsa iptal et
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
 
-            for (int i = sonSatir.SubItems.Count - 1; i >= 0; i--)
+            int adet = Math.Min(GeriAlAdim, _bids.Count);
+            for (int i = 0; i < adet; i++)
             {
-                if (!string.IsNullOrEmpty(sonSatir.SubItems[i].Text))
+                int son = _bids.Count - 1;
+                string oyuncu = OyuncuSirasi[(_baslangicSutunu + son) % 4];
+
+                // En son teklif önce eklenir → listenin sonunda EN ESKİ silinen kalır
+                _ileriAlinanHamleler.Add((oyuncu, _bids[son]));
+
+                _bids.RemoveAt(son);
+                if (_ihaleHamleleri.Count > _bids.Count)
+                    _ihaleHamleleri.RemoveAt(_ihaleHamleleri.Count - 1);
+            }
+            _ileriAlinanBlokBoyutlari.Push(adet);
+
+            DurumuTekliflerdenYenidenKur();
+
+            // Sıra AI'daysa ihale devam etsin (kısa gecikme: bu sürede İleri Al basılabilir)
+            AITetikle();
+        }
+
+        /// <summary>
+        /// Teklif listesi (_bids) değiştikten sonra tüm görünümü ve durumu yeniden kurar:
+        /// ihale listesi, teklif tablosunda (grid) aktif hücreler, kontrat bilgileri,
+        /// aktif oyuncu, Kontr / S.Kontr butonları ve BricOyna tarafındaki ihale geçmişi.
+        /// </summary>
+        private void DurumuTekliflerdenYenidenKur()
+        {
+            // 1. İhale listesini baştan doldur
+            lstIhale.BeginUpdate();
+            try
+            {
+                lstIhale.Items.Clear();
+                for (int i = 0; i < _bids.Count; i++)
                 {
-                    sonSutun = i;
-                    silinenTeklif = sonSatir.SubItems[i].Text;
-                    silinenOyuncu = OyuncuSirasi[i];
-                    sonSatir.SubItems[i].Text = "";
-                    break;
+                    int global = _baslangicSutunu + i;
+                    int satir = global / 4;
+                    int sutun = global % 4;
+
+                    while (lstIhale.Items.Count <= satir)
+                        lstIhale.Items.Add(new ListViewItem(new string[] { "", "", "", "" }));
+
+                    lstIhale.Items[satir].SubItems[sutun].Text = _bids[i];
                 }
             }
-
-            if (sonSutun == -1) return;
-
-            // 2. Satır tamamen boşsa satırı sil
-            bool bosMu = sonSatir.SubItems.Cast<ListViewItem.ListViewSubItem>()
-                                .All(s => string.IsNullOrEmpty(s.Text));
-            if (bosMu)
+            finally
             {
-                lstIhale.Items.Remove(sonSatir);
+                lstIhale.EndUpdate();
             }
+            if (lstIhale.Items.Count > 0)
+                lstIhale.EnsureVisible(lstIhale.Items.Count - 1);
+            lstIhale.Refresh();
 
-            // 3. _bids'ten son elemanı çıkar
-            if (_bids.Count > 0)
-            {
-                _bids.RemoveAt(_bids.Count - 1);
-            }
+            _teklifSayisi = _bids.Count;
 
-            // 3b. _ihaleHamleleri'nden de son elemanı çıkar
-            if (_ihaleHamleleri.Count > 0)
-            {
-                _ihaleHamleleri.RemoveAt(_ihaleHamleleri.Count - 1);
-            }
-
-            // 4. İleri almak için sakla
-            _ileriAlinanHamleler.Add((silinenOyuncu, silinenTeklif));
-
-            // 5. Sayacı azalt
-            _teklifSayisi--;
-
-            // 6. Aktif oyuncuyu bir öncekine al
-            int idx = Array.IndexOf(OyuncuSirasi, _aktifOyuncu);
-            if (idx >= 0)
-            {
-                idx = (idx - 1 + OyuncuSirasi.Length) % OyuncuSirasi.Length;
-                _aktifOyuncu = OyuncuSirasi[idx];
-            }
-            IsaretleAktifOyuncu();
-
-            // 🔹 7. KRİTİK DÜZELTME: Grid'i doğru state'e döndür
-            //     Önce tüm değişkenleri sıfırla
+            // 2. Kontrat bilgileri ve teklif tablosu: son GERÇEK tekliften sonrası aktif
             _sonKontratTeklifi = "";
             _sonKontratVeren = "";
             _kontratKozu = "";
             _sonTeklifIndex = -1;
             _ustUstePasSayisi = 0;
 
-            // 🔹 Sonra kalan teklifleri tarayıp en son "gerçek" teklifin indeksini bul
-            //    "_bids" listesindeki her bir teklif için hangi hücreye denk geldiğini hesapla
-            //    (Aynı mantıkla: teklif -> seviye ve koz, seviye-1 ve koz indeksinden hesapla)
-            if (_bids.Count > 0)
+            for (int i = 0; i < _bids.Count; i++)
             {
-                // _bids'teki son GERÇEK teklifi bul (Pas, Dbl, RDbl değil)
-                string sonGercekTeklif = "";
-                for (int i = _bids.Count - 1; i >= 0; i--)
-                {
-                    string b = _bids[i];
-                    if (b != "Pas" && b != "Dbl" && b != "RDbl")
-                    {
-                        sonGercekTeklif = b;
-                        break;
-                    }
-                }
+                string b = _bids[i];
+                if (b == "Pas" || b == "PAS" || b == "Dbl" || b == "RDbl") continue;
 
-                // Eğer son gerçek teklif varsa, grid indeksini hesapla
-                if (!string.IsNullOrEmpty(sonGercekTeklif))
-                {
-                    _sonTeklifIndex = TeklifGridIndexHesapla(sonGercekTeklif);
-
-                    // Ayrıca bu teklifin kontrat bilgilerini geri yükle
-                    // (örn. teklif "2♣" ise, kontrat 2♣, kozu Sinek olur)
-                    string koz = sonGercekTeklif.Length > 1
-                        ? sonGercekTeklif.Substring(1)
-                        : "";
-
-                    _sonKontratTeklifi = sonGercekTeklif;
-                    _kontratKozu = koz;
-                    // _sonKontratVeren'i kesin bilmiyoruz, bırakabiliriz
-                    // (IhaleyiSonlandir sırasında zaten liste üzerinden bulunuyor)
-                }
+                _sonKontratTeklifi = b;
+                _sonKontratVeren = OyuncuSirasi[(_baslangicSutunu + i) % 4];
+                _kontratKozu = b.Length > 1 ? b.Substring(1) : "";
+                _sonTeklifIndex = TeklifGridIndexHesapla(b);
             }
 
-            // 8. Grid'i yenile — ARTIK _sonTeklifIndex doğru değere sahip
-            panelGrid?.Invalidate();
+            for (int i = _bids.Count - 1; i >= 0; i--)
+            {
+                if (_bids[i] == "Pas" || _bids[i] == "PAS") _ustUstePasSayisi++;
+                else break;
+            }
 
-            // 9. Buton durumlarını güncelle
+            // 3. Sıra kimde?
+            _aktifOyuncu = OyuncuSirasi[(_baslangicSutunu + _bids.Count) % 4];
+            IsaretleAktifOyuncu();
+
+            // 4. Tablo + butonlar
+            panelGrid?.Invalidate();
             UpdateBiddingButtonsState();
+
+            // 5. BricOyna: ihale geçmişi + Geri Al / İleri Al butonları
+            _bricOyna?.IhaleGecmisiniKaydet(_bids, OyuncuSirasi[_baslangicSutunu]);
+            _bricOyna?.GeriAlIleriAlButonlariniGuncelle();
         }
 
         /// <summary>
@@ -669,32 +680,46 @@ namespace BricKartOyunu.Forms
         }
 
         /// <summary>
-        /// Geri alınan son hamleyi ileri alır (redo).
-        /// BricOyna'daki BtnileriAl tarafından çağrılır.
+        /// BricOyna'daki BtnileriAl tarafından çağrılır: en son geri alınan bölümü
+        /// (en fazla 4 teklif) aynı sırayla tekrar uygular.
         /// </summary>
         public void SonHamleyiIleriAl()
         {
             if (_ileriAlinanHamleler.Count == 0) return;
 
-            // Son geri alınan hamleyi al
-            var (Oyuncu, Teklif) = _ileriAlinanHamleler[_ileriAlinanHamleler.Count - 1];
-            _ileriAlinanHamleler.RemoveAt(_ileriAlinanHamleler.Count - 1);
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
 
-            // Aktif oyuncuyu hamlenin sahibine ayarla
-            _aktifOyuncu = Oyuncu;
-            IsaretleAktifOyuncu();
+            int adet = _ileriAlinanBlokBoyutlari.Count > 0
+                ? _ileriAlinanBlokBoyutlari.Pop()
+                : Math.Min(GeriAlAdim, _ileriAlinanHamleler.Count);
+            adet = Math.Min(adet, _ileriAlinanHamleler.Count);
 
-            // Teklifi tekrar ekle
-            EkleIhaleGecmisi(Oyuncu, Teklif);
+            _ileriAliniyor = true;
+            try
+            {
+                for (int i = 0; i < adet; i++)
+                {
+                    var hamle = _ileriAlinanHamleler[_ileriAlinanHamleler.Count - 1];
+                    _ileriAlinanHamleler.RemoveAt(_ileriAlinanHamleler.Count - 1);
+                    EkleIhaleGecmisi(hamle.Oyuncu, hamle.Teklif);
+                }
+            }
+            finally
+            {
+                _ileriAliniyor = false;
+            }
 
-            // Sonraki oyuncuya geç
-            SonrakiOyuncuyaGec();
+            DurumuTekliflerdenYenidenKur();
 
-            // Yeni teklif eklendi, _sonTeklifIndex güncellenmeli
-            _sonTeklifIndex = TeklifGridIndexHesapla(Teklif);
+            if (IhaleBittiMi())
+            {
+                IhaleyiSonlandir();
+                return;
+            }
 
-            panelGrid?.Invalidate();
-            UpdateBiddingButtonsState();
+            AITetikle();
         }
 
         // ═══════════════════════════════════════════════════════════════════
