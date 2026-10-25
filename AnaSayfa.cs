@@ -94,6 +94,45 @@ namespace BricKartOyunu.Forms
                 true);
             this.UpdateStyles();
             BricKartOyunu.Class.EkranYardimci.TumKontrollerdeCiftTampon(this);
+
+            oyunAyarlarıToolStripMenuItem.Click += OyunAyarlariToolStripMenuItem_Click;
+        }
+
+        // ====================================================================
+        // MENÜ — OYUN AYARLARI
+        // ====================================================================
+
+        private static OyunPlaniSecenekleri _oyunPlani;
+
+        /// <summary>
+        /// Oyun planı ayarları. İlk erişimde kalıcı depodan (AppData) yüklenir;
+        /// ayar ekranında Tamam'a basılınca yeniden kaydedilir.
+        /// </summary>
+        public static OyunPlaniSecenekleri OyunPlani
+        {
+            get
+            {
+                if (_oyunPlani == null) _oyunPlani = OyunPlaniSecenekleri.Yukle();
+                return _oyunPlani;
+            }
+            set { _oyunPlani = value ?? new OyunPlaniSecenekleri(); }
+        }
+
+        private void OyunAyarlariToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (var form = new OyunPlaniAyarlari(OyunPlani))
+            {
+                form.StartPosition = FormStartPosition.CenterScreen;   // ekranın ortasında aç
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    OyunPlani = form.Secenekler;
+                    if (!OyunPlani.Kaydet())
+                        MessageBox.Show(
+                            "Ayarlar bu oturum için uygulandı ama dosyaya kaydedilemedi:\n" +
+                            AyarDeposu.DosyaYolu(OyunPlaniSecenekleri.DepoAdi),
+                            "Ayarlar kaydedilemedi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
         }
 
         // Sayfa geçişlerinde ve dinamik yerleşimde titremeyi önlemek için tüm pencere

@@ -233,6 +233,7 @@
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
     <Compile Include="Class\OyunZekasi.cs" />
+    <Compile Include="Class\AyarDeposu.cs" />
     <Compile Include="Class\EkranYardimci.cs" />
     <Compile Include="Class\Skorlama.cs" />
     <Compile Include="Class\Player.cs" />
@@ -253,6 +254,10 @@
     </Compile>
     <Compile Include="Forms\DagilimDepo.Designer.cs">
       <DependentUpon>DagilimDepo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\OyunPlaniSecenekleri.cs" />
+    <Compile Include="Forms\OyunPlaniAyarlari.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\DuplicateSkorForm.cs">
       <SubType>Form</SubType>
@@ -385,6 +390,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\OynananElleriGosterForm.resx">
       <DependentUpon>OynananElleriGosterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OyunPlaniAyarlari.resx">
+      <DependentUpon>OyunPlaniAyarlari.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\TestForm.resx">
       <DependentUpon>TestForm.cs</DependentUpon>
