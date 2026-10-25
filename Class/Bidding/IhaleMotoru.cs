@@ -33,6 +33,9 @@ namespace BricKartOyunu.Class.Bidding
                 new Multi2D(),
                 new Namyats(),
                 new Preempt(),
+                new PreemptCevap(),          // ortağın 3'lü bozucu açılışına cevap
+                new ZayifIkiCevap(),         // ortağın zayıf iki açılışına cevap
+                new ZayifIkiMudahale(),      // rakibin zayıf iki açılışına müdahale
                 new Lebensohl_Reverse(),
                 new Lebensohl_WeakTwo(),
                 new Lebensohl(),
@@ -293,6 +296,13 @@ namespace BricKartOyunu.Class.Bidding
                 k.AktifMi = AnlasmayaGoreAktifMi(k.Ad);
             }
 
+            // Multi 2♦ açıksa zayıf iki cevap/müdahale 2♦'yı ele almaz
+            foreach (var k in _konvansiyonlar)
+            {
+                var zc = k as ZayifIkiCevap; if (zc != null) zc.Multi2DAcik = _anlasma.Multi2D;
+                var zm = k as ZayifIkiMudahale; if (zm != null) zm.Multi2DAcik = _anlasma.Multi2D;
+            }
+
             var cappelletti = _konvansiyonlar.FirstOrDefault(k => k.Ad == "Cappelletti");
             var dont = _konvansiyonlar.FirstOrDefault(k => k.Ad == "DONT");
             if (cappelletti != null && dont != null && cappelletti.AktifMi && dont.AktifMi)
@@ -315,6 +325,9 @@ namespace BricKartOyunu.Class.Bidding
                 case "Zayıf İki": return _anlasma.ZayifIki && !_anlasma.Multi2D;
                 case "Multi 2♦": return _anlasma.Multi2D;
                 case "Preempt": return _anlasma.Preempt;
+                case "Preempt Cevap": return _anlasma.Preempt;
+                case "Zayıf İki Cevap": return _anlasma.ZayifIki && !_anlasma.Multi2D;
+                case "Zayıf İki Müdahale": return _anlasma.ZayifIki && !_anlasma.Multi2D;
                 case "Namyats": return _anlasma.Namyats;
 
                 case "1♣ Cevap Sistemi": return _anlasma.OneClub_AnswerSistemi;

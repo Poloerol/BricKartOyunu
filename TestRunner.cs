@@ -2470,6 +2470,57 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        // ── 11.2 – 11.4: önceden motora bağlı olmayan konvansiyonların tetiklenme testleri ──
+        private static void SeviyeTesti(string baslik, List<Card> el, Player aktif,
+                                        List<IhaleHamlesi> gecmis, string beklenen)
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz(baslik);
+            Yaz("════════════════════════════════════════");
+            var durum = new IhaleDurumu
+            {
+                AktifOyuncu = aktif,
+                AktifOyuncuEli = el,
+                Anlasma = OrtaklikAnlasmasi.Varsayilan(),
+                Gecmis = gecmis,
+            };
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz($"Motor → {sonuc}");
+            Yaz(sonuc == beklenen ? $"✅ DOĞRU ({beklenen})"
+                                  : $"❌ YANLIŞ (beklenen {beklenen}, gelen {sonuc})");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Preempt_Cevap_Ve_ZayifIki()
+        {
+            // ♠K 7 4  ♥Q 8 5 3  ♦A 6 2  ♣9 7 5  (9 HP, 3 maça)
+            var el1 = new List<Card> { new Card { Suit = "Maça", Value = 13 }, new Card { Suit = "Maça", Value = 7 }, new Card { Suit = "Maça", Value = 4 }, new Card { Suit = "Kupa", Value = 12 }, new Card { Suit = "Kupa", Value = 8 }, new Card { Suit = "Kupa", Value = 5 }, new Card { Suit = "Kupa", Value = 3 }, new Card { Suit = "Karo", Value = 14 }, new Card { Suit = "Karo", Value = 6 }, new Card { Suit = "Karo", Value = 2 }, new Card { Suit = "Sinek", Value = 9 }, new Card { Suit = "Sinek", Value = 7 }, new Card { Suit = "Sinek", Value = 5 } };
+
+            SeviyeTesti("TEST 11.2 — Ortak 3♠ bozucu açtı, 3 maça destek → 4♠", el1, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "3♠",  Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+                }, "4♠");
+
+            SeviyeTesti("TEST 11.3 — Ortak 2♠ (zayıf iki) açtı, 3 maça + 9 HP → 3♠", el1, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠",  Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+                }, "3♠");
+
+            // ♠A K J 8 5  ♥7 3  ♦K 6 4  ♣Q 7 5  (13 HP, 5 maça)
+            var el2 = new List<Card> { new Card { Suit = "Maça", Value = 14 }, new Card { Suit = "Maça", Value = 13 }, new Card { Suit = "Maça", Value = 11 }, new Card { Suit = "Maça", Value = 8 }, new Card { Suit = "Maça", Value = 5 }, new Card { Suit = "Kupa", Value = 7 }, new Card { Suit = "Kupa", Value = 3 }, new Card { Suit = "Karo", Value = 13 }, new Card { Suit = "Karo", Value = 6 }, new Card { Suit = "Karo", Value = 4 }, new Card { Suit = "Sinek", Value = 12 }, new Card { Suit = "Sinek", Value = 7 }, new Card { Suit = "Sinek", Value = 5 } };
+
+            SeviyeTesti("TEST 11.4 — Rakip 2♥ (zayıf iki) açtı, 5 maça + 13 HP → 2♠ müdahale", el2, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "2♥", Sira = 1, GecerliMi = true },
+                }, "2♠");
+        }
+
         public static void Test_Puppet_KeyCard_4_1Q()
         {
             Yaz("════════════════════════════════════════");
@@ -13595,6 +13646,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Puppet_KeyCard_3();
             Test_Puppet_KeyCard_4_1Q();
             Test_Cevap_BesliMajor_1MacaYerine2NT();
+            Test_Preempt_Cevap_Ve_ZayifIki();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();
