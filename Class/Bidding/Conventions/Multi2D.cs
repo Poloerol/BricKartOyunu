@@ -28,7 +28,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// 
     /// Öncelik: 7 (Zayıf İki 8'den önce)
     /// </summary>
-    public class Multi2D : IKonvansiyon
+    public class Multi2D : IKonvansiyon, IBilincliPas
     {
         public string Ad => "Multi 2♦";
         public string Aciklama => "Multi 2♦ açılışı";

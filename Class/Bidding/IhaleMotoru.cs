@@ -16,6 +16,11 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool HatalardaFirlat { get; set; } = false;
 
+        public bool KorumaAktif { get; set; } = true;       // IhaleKoruma denetimi
+        public bool SeviyeYukseltme { get; set; } = false;  // eski "yasadışı teklifi 1 üst seviyeye çıkar" hilesi
+        public bool PasiAtla { get; set; } = true;          // konvansiyon "Pas" derse görüşü yok say
+                                                            // (IBilincliPas işaretli konvansiyonlar hariç)
+
         public IhaleMotoru(OrtaklikAnlasmasi anlasma)
         {
             _anlasma = anlasma ?? OrtaklikAnlasmasi.Varsayilan();
@@ -61,6 +66,7 @@ namespace BricKartOyunu.Class.Bidding
                 new ResponsiveDouble(),
                 new Unusual2NT(),
                 new TakeoutDouble(),
+                new TakeoutDoubleCevap(),
                 new XYZ(),
                 new MinorTransfer(),
                 new Serious3NT(),
@@ -109,10 +115,14 @@ namespace BricKartOyunu.Class.Bidding
                 {
                     try
                     {
+                        if (!AcilisGelisimiAktifMi(gelisim)) continue;
                         if (!gelisim.UygunMu(durum.AktifOyuncuEli, durum)) continue;
 
                         string yeniTeklif = gelisim.TeklifVer(durum.AktifOyuncuEli, durum);
                         if (string.IsNullOrEmpty(yeniTeklif)) continue;
+
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AcilisGelismi] {gelisim.GetType().Name} uygun → {yeniTeklif}");
 
                         string yasalYeni = YasalSeviyeyeYukselt(durum, yeniTeklif);
                         if (!GecerliTeklifMi(durum, yasalYeni)) continue;
@@ -134,18 +144,47 @@ namespace BricKartOyunu.Class.Bidding
             foreach (var konvansiyon in _konvansiyonlar.OrderBy(k => k.Oncelik))
             {
                 if (!konvansiyon.AktifMi) continue;
-                if (!konvansiyon.UygunMu(durum)) continue;
 
-                string teklif = konvansiyon.TeklifVer(durum);
+                string teklif;
+                try
+                {
+                    if (!konvansiyon.UygunMu(durum)) continue;
+                    teklif = konvansiyon.TeklifVer(durum);
+                }
+                catch (Exception ex)
+                {
+                    // Tek bir konvansiyondaki hata tüm ihaleyi çökertmesin
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[IhaleMotoru] {konvansiyon.Ad} hata: {ex.Message}");
+                    if (HatalardaFirlat) throw;
+                    continue;
+                }
                 if (string.IsNullOrEmpty(teklif)) continue;
 
-                string yasal = YasalSeviyeyeYukselt(durum, teklif);
+                // Konvansiyonların koruma satırlarındaki "Pas" (ör. el == null) görüş sayılmaz;
+                // ama IBilincliPas ile işaretlenmiş konvansiyonun Pas'ı gerçek bir karardır.
+                if (PasiAtla && teklif.Equals("Pas", StringComparison.OrdinalIgnoreCase) &&
+                    !(konvansiyon is TemelMantik) && !(konvansiyon is IBilincliPas))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[PAS-ATLANDI] {konvansiyon.Ad} Pas dedi, sıradakine geçiliyor.");
+                    continue;
+                }
+
+                string yasal = SeviyeYukseltme ? YasalSeviyeyeYukselt(durum, teklif) : teklif;
+                if (KorumaAktif && !IhaleKoruma.Izin(durum, yasal, konvansiyon.Ad))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[KORUMA-RED] {konvansiyon.Ad} → {yasal}");
+                    continue;
+                }
                 if (!GecerliTeklifMi(durum, yasal))
                 {
                     System.Diagnostics.Debug.WriteLine(
-                        $"[IhaleMotoru] {konvansiyon.Ad} yasadışı teklif reddedildi: {teklif}");
+                        $"[GECERSIZ-RED] {konvansiyon.Ad} → {yasal} (son teklif: {durum.SonGercekTeklif})");
                     continue;
                 }
+
 
                 System.Diagnostics.Debug.WriteLine(
                     $"[KAZANAN] {konvansiyon.Ad} (Oncelik={konvansiyon.Oncelik}) → {yasal}");
@@ -160,6 +199,19 @@ namespace BricKartOyunu.Class.Bidding
             // 3. Aşama: Hiçbir şey uymadıysa
             System.Diagnostics.Debug.WriteLine("[IhaleMotoru] Hiçbir konvansiyon uygun değil → Pas");
             return "Pas";
+        }
+
+        /// <summary>
+        /// 1♣ cevap gelişimleri (OneClub_OneDiamond, OneClub_OneDiamond_OneHeart)
+        /// yalnızca OneClub_AnswerSistemi açıkken çalışır. OneClub_Opening bir AÇILIŞ
+        /// gelişimidir, bayraktan etkilenmez.
+        /// </summary>
+        private bool AcilisGelisimiAktifMi(IAcilisGelisimi gelisim)
+        {
+            string ad = gelisim.GetType().Name;
+            if (ad.StartsWith("OneClub_OneDiamond", StringComparison.Ordinal))
+                return _anlasma.OneClub_AnswerSistemi;
+            return true;
         }
 
         private static bool GecerliTeklifMi(IhaleDurumu durum, string teklif)
@@ -302,6 +354,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 case "Negative Double": return _anlasma.NegativeDouble;
                 case "Takeout Double": return _anlasma.TakeoutDouble;
+                case "Takeout Double Cevap": return _anlasma.TakeoutDouble;
                 case "Support Double": return _anlasma.SupportDouble;
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
                 case "Lebensohl (Reverse)": return _anlasma.Lebensohl;
@@ -408,4 +461,12 @@ namespace BricKartOyunu.Class.Bidding
                    $"({string.Join(", ", aktifler)})";
         }
     }
+
+    /// <summary>
+    /// İşaret arayüzü: bu konvansiyon UygunMu = true iken "Pas" döndürürse bu
+    /// BİLİNÇLİ bir karardır (ör. DOPI/ROPI'de 1 anahtar kart = Pas).
+    /// IhaleMotoru bu Pas'ı atlamaz, doğrudan teklif olarak kabul eder.
+    /// Kullanım: public class DopiRopi : IKonvansiyon, IBilincliPas
+    /// </summary>
+    public interface IBilincliPas { }
 }

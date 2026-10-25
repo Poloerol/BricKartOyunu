@@ -19,7 +19,10 @@ namespace BricKartOyunu.Forms
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            if (Application.OpenForms["AnaSayfa"] is AnaSayfa anaSayfa)
+            // Tip bazlı arama: form adı değişse de bozulmaz
+            var anaSayfa = (this.Owner as AnaSayfa)
+                           ?? Application.OpenForms.OfType<AnaSayfa>().FirstOrDefault();
+            if (anaSayfa != null)
             {
                 anaSayfa.ResetToInitialState(); // AnaSayfa’yı ilk haline döndür
                 anaSayfa.Show();

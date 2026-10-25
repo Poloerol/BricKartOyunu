@@ -1,6 +1,5 @@
 ﻿using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding;
-using iText.Svg.Renderers.Impl;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -518,22 +517,24 @@ namespace BricKartOyunu.Forms
                 case ActiveMain.Oyna:
                     // BricOyna: AnaSayfa kapanır, BricOyna tek başına kalır.
                     // Kapatınca AnaSayfa tekrar açılır ve durum sıfırlanır.
-                    var bricOynaForm = new BricOyna
+                    // using: ShowDialog ile açılan form otomatik Dispose edilmez.
+                    using (var bricOynaForm = new BricOyna
                     {
                         CurrentBackImage = currentBackImage
-                    };
-
-                    this.Hide();
-
-                    try
+                    })
                     {
-                        bricOynaForm.ShowDialog();
-                    }
-                    finally
-                    {
-                        this.Show();
-                        this.Activate();
-                        ResetToInitialState();
+                        this.Hide();
+
+                        try
+                        {
+                            bricOynaForm.ShowDialog();
+                        }
+                        finally
+                        {
+                            this.Show();
+                            this.Activate();
+                            ResetToInitialState();
+                        }
                     }
                     break;
 
@@ -556,7 +557,8 @@ namespace BricKartOyunu.Forms
             switch (activeMain)
             {
                 case ActiveMain.Oyna:
-                    MessageBox.Show("Hızlı Oyna seçildi.");
+                    MessageBox.Show("İnternette Briç özelliği henüz geliştirilmedi.", "Bilgi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
                 case ActiveMain.Ogrenme:
                     ShowChildForm(new ZorEller());
@@ -576,6 +578,17 @@ namespace BricKartOyunu.Forms
         private void ShowChildForm(Form childForm)
         {
             if (childForm == null) return;
+
+            // Aynı türde bir form zaten açıksa yenisini açma, mevcut olanı öne getir
+            foreach (Form acik in Application.OpenForms)
+            {
+                if (acik != childForm && acik.GetType() == childForm.GetType() && !acik.IsDisposed)
+                {
+                    childForm.Dispose();
+                    acik.Activate();
+                    return;
+                }
+            }
 
             // Görev çubuğunda görünmesin
             childForm.ShowInTaskbar = false;
@@ -703,20 +716,31 @@ namespace BricKartOyunu.Forms
 
             btn.MouseEnter += (s, e) =>
             {
+                // Kilitli ana butonlar hover rengi almasın
+                if (mainButtonsLocked && EsAnaButonMu(btn)) return;
                 btn.BackColor = hoverBack;
                 btn.ForeColor = fore;
             };
             btn.MouseLeave += (s, e) =>
             {
+                // Kilitli ana butonlar gri kalsın (SetMainButtonsLocked rengi)
+                if (mainButtonsLocked && EsAnaButonMu(btn)) return;
                 btn.BackColor = normalBack;
                 btn.ForeColor = fore;
             };
         }
 
+        private bool EsAnaButonMu(Button btn)
+        {
+            return btn == BtnOyna || btn == BtnOgrenme || btn == BtnYarisma || btn == BtnAraclar;
+        }
+
         private void BtnTestForm_Click(object sender, EventArgs e)
         {
-            var testForm = new TestForm();
-            testForm.ShowDialog();
+            using (var testForm = new TestForm())
+            {
+                testForm.ShowDialog();
+            }
         }
 
         private void BtnUnusual2NTRakip1Maca_Click(object sender, EventArgs e)

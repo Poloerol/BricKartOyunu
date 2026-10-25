@@ -102,7 +102,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     case 2: return kozQVar ? "5♠" : "5♥";
                     case 3: return "5♦";
                     case 4: return "5♣";
-                    case 5: return "5♣";
+                    case 5: return kozQVar ? "5♠" : "5♥";
                     default: return "5♦";
                 }
             }
@@ -115,7 +115,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     case 2: return kozQVar ? "5♠" : "5♥";
                     case 3: return "5♣";
                     case 4: return "5♦";
-                    case 5: return "5♦";
+                    case 5: return kozQVar ? "5♠" : "5♥";
                     default: return "5♣";
                 }
             }

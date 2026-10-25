@@ -20,32 +20,27 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (durum == null || el == null) return false;
             if (el.Count != 13) return false;
 
-            // Aşama A: 1♣ (partner) - 1♦ (biz) - 1♥ (partner) - sıra bizde
-            // AktifOyuncu = cevapçı (biz 1♦ dedik)
-            if (durum.AktifOyuncu == Player.Guney)
-            {
-                if (durum.KendiTeklifleri.Count == 1
-                    && durum.KendiTeklifleri[0] == "1♦"
-                    && durum.PartnerTeklifleri.Count == 2
-                    && durum.PartnerTeklifleri[0] == "1♣"
-                    && durum.PartnerTeklifleri[1] == "1♥"
-                    && durum.SonGercekTeklif == "1♥")
-                    return true;
-            }
+            // Koltuktan bağımsız: yalnızca GERÇEK teklifler (Pas/Dbl sayılmaz) ve rakip sessiz
+            var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (gercek.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return false;
 
-            // Aşama B: 1♣ (biz) - 1♦ (partner) - 1♥ (biz) - 2♣ (partner) - sıra bizde
-            // AktifOyuncu = açıcı (biz 1♣ ve 1♥ dedik)
-            if (durum.AktifOyuncu == Player.Kuzey)
-            {
-                if (durum.KendiTeklifleri.Count == 2
-                    && durum.KendiTeklifleri[0] == "1♣"
-                    && durum.KendiTeklifleri[1] == "1♥"
-                    && durum.PartnerTeklifleri.Count == 2
-                    && durum.PartnerTeklifleri[0] == "1♦"
-                    && durum.PartnerTeklifleri[1] == "2♣"
-                    && durum.SonGercekTeklif == "2♣")
-                    return true;
-            }
+            // Aşama A: 1♣ (partner) - 1♦ (biz) - 1♥ (partner) - sıra bizde → CEVAPÇI DEVAM
+            if (gercek.Count == 3
+                && gercek[0].Teklif == "1♣" && gercek[1].Teklif == "1♦" && gercek[2].Teklif == "1♥"
+                && gercek[0].Oyuncu == durum.Partner
+                && gercek[1].Oyuncu == durum.AktifOyuncu
+                && gercek[2].Oyuncu == durum.Partner)
+                return true;
+
+            // Aşama B: 1♣ (biz) - 1♦ (partner) - 1♥ (biz) - 2♣ (partner) - sıra bizde → AÇICI RÖLE CEVABI
+            if (gercek.Count == 4
+                && gercek[0].Teklif == "1♣" && gercek[1].Teklif == "1♦"
+                && gercek[2].Teklif == "1♥" && gercek[3].Teklif == "2♣"
+                && gercek[0].Oyuncu == durum.AktifOyuncu
+                && gercek[1].Oyuncu == durum.Partner
+                && gercek[2].Oyuncu == durum.AktifOyuncu
+                && gercek[3].Oyuncu == durum.Partner)
+                return true;
 
             return false;
         }

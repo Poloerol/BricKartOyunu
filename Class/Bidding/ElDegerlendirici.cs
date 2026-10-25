@@ -225,6 +225,20 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Elde 5'li majör var mı? (Maça veya Kupa 5+)
         /// </summary>
+        /// <summary>
+        /// Açılış gücü: 12+ HCP, ya da 11 HCP + "20 kuralı"
+        /// (HCP + en uzun iki rengin uzunlukları toplamı >= 20).
+        /// </summary>
+        public static bool AcilisGucuVarMi(List<Card> el)
+        {
+            if (el == null || el.Count != 13) return false;
+            int hp = HCP(el);
+            if (hp >= 12) return true;
+            if (hp < 11) return false;
+            var s = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
+            return hp + s[0] + s[1] >= 20;
+        }
+
         public static bool BesliMajorVar(List<Card> el)
         {
             return RenkUzunlugu(el, "Maça") >= 5 ||
@@ -273,6 +287,10 @@ namespace BricKartOyunu.Class.Bidding
 
             // Kx var mı? (Papaz + en az 1 kart)
             if (renkKartlari[0].Value == 13 && renkKartlari.Count >= 2) return true;
+            // Qxx (3+ kart) — standart durdurucu
+            if (renkKartlari[0].Value == 12 && renkKartlari.Count >= 3) return true;
+            // Jxxx (4+ kart) — standart durdurucu
+            if (renkKartlari[0].Value == 11 && renkKartlari.Count >= 4) return true;
 
             // QJ var mı?
             if (renkKartlari.Count >= 2 &&
@@ -327,23 +345,21 @@ namespace BricKartOyunu.Class.Bidding
 
                 if (renkKartlari.Count == 0) continue;
 
-                // As = 1
-                if (renkKartlari[0].Value == 14) sayi += 1;
-
-                // Kx = 0.5
-                if (renkKartlari[0].Value == 13 && renkKartlari.Count >= 2) sayi += 0.5;
-
-                // KQ = 1
-                if (renkKartlari.Count >= 2 &&
-                    renkKartlari[0].Value == 13 &&
-                    renkKartlari[1].Value == 12) sayi += 0.5; // KQ toplam 1
-
-                // QJx = 0.5
-                if (renkKartlari.Count >= 2 &&
-                    renkKartlari[0].Value == 12 &&
-                    renkKartlari[1].Value == 11) sayi += 0.5;
+                // Standart hızlı el (quick tricks): AK=2, AQ=1.5, A=1, KQ=1, Kx=0.5
+                int v0 = renkKartlari[0].Value;
+                int v1 = renkKartlari.Count >= 2 ? renkKartlari[1].Value : 0;
+                if (v0 == 14)
+                {
+                    if (v1 == 13) sayi += 2;
+                    else if (v1 == 12) sayi += 1.5;
+                    else sayi += 1;
+                }
+                else if (v0 == 13)
+                {
+                    if (v1 == 12) sayi += 1;
+                    else if (renkKartlari.Count >= 2) sayi += 0.5;
+                }
             }
-
             return sayi;
         }
 

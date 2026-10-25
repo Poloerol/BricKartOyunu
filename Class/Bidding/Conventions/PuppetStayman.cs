@@ -58,7 +58,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
                 int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
-                return maca >= 4 || kupa >= 4;
+                if (maca >= 4 || kupa >= 4) return true;
+
+                // 3'lü majör + oyun gücü (2NT 20-21 + en az 5 HP = 25+): açıcıda 5'li majör
+                // olabilir; 5-3 fit 3NT'den güvenlidir. Majör yoksa 3NT'ye gidilir (aşağıya bak).
+                int hp = ElDegerlendirici.HCP(el);
+                return hp >= 5 && (maca == 3 || kupa == 3);
             }
 
             // ─────────────────────────────────────────────────────
@@ -220,6 +225,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // Fit VAR (3+ kart) → kontrol göster
                 if (fit >= 3)
                 {
+                    // Slam ilgisi yoksa (2NT 20-21 + <12 HP) → doğrudan oyun
+                    if (ElDegerlendirici.HCP(el) < 12)
+                        return okunan == "Kupa" ? "4♥" : "4♠";
+
                     // Önce ♣ kontrolü var mı?
                     if (PapazVeyaAsVarMi(el, "Sinek"))
                         return "4♣";

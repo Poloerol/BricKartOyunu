@@ -127,6 +127,35 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Belirtilen koz majör mü? (Maça veya Kupa)
         /// </summary>
+        private static int KozSiraNo(string k)
+        {
+            switch (k)
+            {
+                case "Sinek": return 0;
+                case "Karo": return 1;
+                case "Kupa": return 2;
+                case "Maça": return 3;
+                case "NT": return 4;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Teklif son gerçek tekliften düşükse (yasadışı) aynı rengi yasal olan en düşük seviyeye çıkarır
+        /// (ör. 2♠'den sonra 2♥ → 3♥; 3♣'den sonra 2NT → 3NT).
+        /// </summary>
+        public static string YasalaYukselt(string teklif, string sonGercekTeklif)
+        {
+            if (string.IsNullOrEmpty(teklif) || string.IsNullOrEmpty(sonGercekTeklif)) return teklif;
+            int sev = TekliftenSeviyeCikar(teklif);
+            string koz = TekliftenKozCikar(teklif);
+            int sonSev = TekliftenSeviyeCikar(sonGercekTeklif);
+            string sonKoz = TekliftenKozCikar(sonGercekTeklif);
+            if (sev <= 0 || sonSev <= 0 || KozSiraNo(koz) < 0 || KozSiraNo(sonKoz) < 0) return teklif;
+            while (sev < 7 && (sev < sonSev || (sev == sonSev && KozSiraNo(koz) <= KozSiraNo(sonKoz)))) sev++;
+            return TeklifOlustur(sev, koz);
+        }
+
         public static bool MajorMu(string koz)
         {
             return koz == "Maça" || koz == "Kupa";

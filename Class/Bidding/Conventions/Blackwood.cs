@@ -9,10 +9,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// 
     /// KLASİK BLACKWOOD (RKCB=false):
     ///   4NT sorar → As sayısı
-    ///   5♣ = 0 veya 3 As
-    ///   5♦ = 1 veya 4 As
+    ///   5♣ = 0 veya 4 As
+    ///   5♦ = 1 As
     ///   5♥ = 2 As
-    ///   5♠ = 2 As + 1 Papaz (bazı sistemlerde)
+    ///   5♠ = 3 As
     /// 
     /// RKCB (RKCB=true, RKCB1430=false):
     ///   4NT sorar → Kilit kart sayısı (4 As + koz K)
@@ -140,19 +140,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private string KlasikBlackwoodCevabi(List<Card> el)
         {
             int asSayisi = ElDegerlendirici.AsSayisi(el);
-            int papazSayisi = ElDegerlendirici.PapazSayisi(el);
-
             switch (asSayisi)
             {
-                case 0: return "5♣";  // 0 veya 3
-                case 1: return "5♦";  // 1 veya 4
-                case 2:
-                    // 2 As + Papaz var mı?
-                    if (papazSayisi >= 1) return "5♠";
-                    return "5♥";
-                case 3: return "5♣";  // 0 veya 3
-                case 4: return "5♦";  // 1 veya 4
-                default: return "5♣";
+                case 1: return "5♦";
+                case 2: return "5♥";
+                case 3: return "5♠";
+                default: return "5♣";   // 0 veya 4 As
             }
         }
 
@@ -162,7 +155,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private string RkcbCevabi(List<Card> el, string koz, bool rkcb1430)
         {
             int kilitKart = ElDegerlendirici.KilitKartSayisi(el, koz);
-            bool kozPapaziVar = ElDegerlendirici.PapazVar(el, koz);
+            bool kozPapaziVar = ElDegerlendirici.KizVar(el, koz);   // 5♥/5♠ ayrımı: koz KIZI
 
             if (rkcb1430)
             {

@@ -41,12 +41,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (partnerIlkHamle == null) return false;
 
             // Partnerden önce pas var mı? (3. veya 4. pozisyon)
-            bool partnerdenOncePasVar = durum.Gecmis.Any(h =>
-                h.Sira < partnerIlkHamle.Sira && h.PasMi);
-            if (!partnerdenOncePasVar) return false;
+            // Drury: CEVAPÇI (ben) daha önce Pas demiş olmalı (passed hand)
+            bool benOncePasDedim = durum.Gecmis.Any(h =>
+                h.Oyuncu == durum.AktifOyuncu && h.Sira < partnerIlkHamle.Sira && h.PasMi);
+            if (!benOncePasDedim) return false;
+            // Rakip müdahale ettiyse Drury yok
+            if (durum.RakipActiMi()) return false;
 
             // Ben henüz konuşmadım
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            if (durum.KendiTeklifleri.Any(t => t != "Pas")) return false;
 
             // Partnerin majöründe 3+ destek var mı?
             string partnerKozu = partnerSon == "1♥" ? "Kupa" : "Maça";

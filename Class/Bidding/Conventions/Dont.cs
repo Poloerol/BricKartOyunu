@@ -34,7 +34,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   - MudahaleTeklifi: doğal 6+ ♠ (2♠) iki renkli dallardan önce kontrol edilir.
     ///   - Dbl - 2♣ sonrası partner gerçek rengini söyleyince Pas (devam dalı).
     /// </summary>
-    public class Dont : IKonvansiyon
+    public class Dont : IKonvansiyon, IBilincliPas
     {
         public string Ad => "DONT";
         public string Aciklama => "1NT açışına DONT müdahalesi";
@@ -47,7 +47,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private const int BalancingHpEsigi = 7;
 
         private static readonly string[] DontTeklifleri =
-            { "Dbl", "2♣", "2♦", "2♥", "2♠", "2NT" };
+            { "Dbl", "2♣", "2♦", "2♥", "2♠" };
 
         // ═══════════════════════════════════════════════════════════════════
         // YARDIMCI METOTLAR
@@ -120,6 +120,88 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 && sonrasi[2].Oyuncu == durum.Partner;
         }
 
+        /// <summary>
+        /// Müdahaleci devamı: ben (1NT'ye) DONT teklifi yaptım, partner TEK bir cevap verdi.
+        ///   2♦ (♦+majör) - 2♥ (röle)  → majörüm ♥ ise Pas, ♠ ise 2♠
+        ///   2♣ (♣+yüksek) - 2♦ (röle) → yüksek rengimi söyle (♦ ise Pas)
+        ///   Dbl (tek renk) - 2♣       → gerçek rengimi söyle (♣ ise Pas)
+        ///   2♥ (majörler) - 2♠        → Pas
+        /// Bu devam yoktu: partner 2♥ röle deyince Kuzey 3 kupa ile 2♥'de kalıyordu.
+        /// </summary>
+        private bool MudahaleciDevami(IhaleDurumu durum, List<Card> el, out string teklif)
+        {
+            teklif = null;
+            var liste = durum.Gecmis.ToList();
+            int birNt = liste.FindIndex(h => h.Teklif == "1NT" && durum.Rakipler.Contains(h.Oyuncu));
+            if (birNt < 0) return false;
+
+            var sonrasi = liste.Skip(birNt + 1).ToList();
+            int benIdx = sonrasi.FindIndex(h => h.Oyuncu == durum.AktifOyuncu && h.Teklif != "Pas");
+            if (benIdx < 0) return false;
+            string benim = sonrasi[benIdx].Teklif;
+            if (!DontTeklifleri.Contains(benim)) return false;
+
+            // Ben bir daha konuşmadım; benden önce partner bir şey dememişti
+            if (sonrasi.Skip(benIdx + 1).Any(h => h.Oyuncu == durum.AktifOyuncu && h.Teklif != "Pas")) return false;
+            if (sonrasi.Take(benIdx).Any(h => h.Oyuncu == durum.Partner && h.Teklif != "Pas")) return false;
+
+            var cevaplar = sonrasi.Skip(benIdx + 1)
+                .Where(h => h.Oyuncu == durum.Partner && h.Teklif != "Pas").ToList();
+            if (cevaplar.Count != 1) return false;
+            string r = cevaplar[0].Teklif;
+
+            int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+
+            if (benim == "2♦" && r == "2♥")
+            {
+                // majörüm: uzun olan (eşitse ♠)
+                teklif = (kupa > macca) ? "Pas" : "2♠";
+                return true;
+            }
+            if (benim == "2♣" && r == "2♦")
+            {
+                // ♣ + daha yüksek renk: en uzun yüksek renk (eşitse majör tercih)
+                if (macca >= kupa && macca >= karo) teklif = "2♠";
+                else if (kupa >= karo) teklif = "2♥";
+                else teklif = "Pas";
+                return true;
+            }
+            if (benim == "Dbl" && r == "2♣")
+            {
+                if (macca >= 6) teklif = "2♠";
+                else if (kupa >= 6) teklif = "2♥";
+                else if (karo >= 6) teklif = "3♦";
+                else teklif = "Pas";    // ♣ tek renk
+                return true;
+            }
+            if (benim == "2♥" && r == "2♠") { teklif = "Pas"; return true; }
+
+            // Partner 2NT (güçlü davet): ikinci rengimi 3'lü seviyede söyle
+            if (r == "2NT")
+            {
+                if (benim == "2♣")
+                {
+                    if (macca >= kupa && macca >= karo) teklif = "3♠";
+                    else if (kupa >= karo) teklif = "3♥";
+                    else teklif = "3♦";
+                    return true;
+                }
+                if (benim == "2♦") { teklif = (kupa > macca) ? "3♥" : "3♠"; return true; }
+                if (benim == "2♥") { teklif = "3♠"; return true; }
+            }
+
+            // Partner kendi uzun rengini doğal söyledi (röle olmayan yeni renk) → Pas
+            if (benim == "2♣" || benim == "2♦" || benim == "Dbl")
+            {
+                teklif = "Pas";
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>Balancing seat: 1NT - Pas - Pas - ?</summary>
         private bool BalancingMi(IhaleDurumu durum)
         {
@@ -143,6 +225,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
             int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+
+            // ═══════════════════════════════════════════════════════════════
+            // DURUM 4: BEN DONT ile müdahale ettim, partner cevap verdi (röle) → devam
+            // ═══════════════════════════════════════════════════════════════
+            string devam;
+            if (MudahaleciDevami(durum, el, out devam)) return true;
 
             // ═══════════════════════════════════════════════════════════════
             // DURUM 2: Partnerim DONT ile müdahale etti → cevap ver
@@ -170,13 +258,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 {
                     int esik = BalancingMi(durum) ? BalancingHpEsigi : DirectHpEsigi;
 
-                    bool besliRenkVar = (macca >= 5 || kupa >= 5 || karo >= 5 || sinek >= 5);
-                    bool dortluIkiRenkVar = ((macca >= 4 && kupa >= 4) || (macca >= 4 && karo >= 4) ||
-                                             (macca >= 4 && sinek >= 4) || (kupa >= 4 && karo >= 4) ||
-                                             (kupa >= 4 && sinek >= 4) || (karo >= 4 && sinek >= 4));
+                    // Evrensel DONT: en az 5-4 iki renkli ya da 6+ kartlık tek renkli
                     bool altiliRenkVar = (macca >= 6 || kupa >= 6 || karo >= 6 || sinek >= 6);
 
-                    if (hp >= esik && (besliRenkVar || dortluIkiRenkVar || altiliRenkVar))
+                    if (hp >= esik && (IkiRenkliTeklifi(el) != null || altiliRenkVar))
                         return true;
                 }
             }
@@ -192,6 +277,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             var el = durum.AktifOyuncuEli;
             if (el == null || el.Count != 13) return "Pas";
+
+            // ─── Ben DONT ile müdahale ettim, partner röle / cevap verdi → pass-or-correct ───
+            string devamTeklifi;
+            if (MudahaleciDevami(durum, el, out devamTeklifi))
+                return devamTeklifi;
 
             // ─── Dbl - 2♣ - (partner gerçek renk) → Pas ───
             if (DblSonrasiPartnerGercekRenkSoyledi(durum))
@@ -225,6 +315,28 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // RAKİP 1NT'YE MÜDAHALE
         // ═══════════════════════════════════════════════════════════════════
 
+        /// <summary>
+        /// Evrensel DONT iki renkli kuralı: en az 5-4 dağılım; ALT rengi söyle.
+        ///   ♣ + daha yüksek bir renk → 2♣
+        ///   ♦ + bir majör            → 2♦
+        ///   ♥ + ♠                    → 2♥
+        /// En alttaki uygun çifti seçer. Uygun çift yoksa null.
+        /// </summary>
+        private string IkiRenkliTeklifi(List<Card> el)
+        {
+            int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+
+            Func<int, int, bool> ikiRenk = (alt, ust) => (alt >= 5 && ust >= 4) || (alt >= 4 && ust >= 5);
+
+            if (ikiRenk(sinek, Math.Max(karo, Math.Max(kupa, macca)))) return "2♣";
+            if (ikiRenk(karo, Math.Max(kupa, macca))) return "2♦";
+            if (ikiRenk(kupa, macca)) return "2♥";
+            return null;
+        }
+
         private string MudahaleTeklifi(List<Card> el, int hpEsigi)
         {
             int hp = ElDegerlendirici.HCP(el);
@@ -235,29 +347,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
 
-            // ─── 2♠: Doğal, 6+ ♠ (iki renkli dallardan ÖNCE) ───
-            if (macca >= 6)
-                return "2♠";
+            // ─── İki renkli (en az 5-4): alt rengi söyle ───
+            string iki = IkiRenkliTeklifi(el);
+            if (iki != null) return iki;
 
-            // ─── 2♣: ♣ + daha yüksek bir renk ───
-            if (sinek >= 4 && (macca >= 4 || kupa >= 4 || karo >= 4))
-                return "2♣";
+            // ─── 2♠: doğal, 6+ ♠ ───
+            if (macca >= 6) return "2♠";
 
-            // ─── 2♦: ♦ + bir majör ───
-            if (karo >= 4 && (macca >= 4 || kupa >= 4))
-                return "2♦";
-
-            // ─── 2♥: ♥ + ♠ (majörler) ───
-            if (kupa >= 4 && macca >= 4)
-                return "2♥";
-
-            // ─── Dbl: Tek renkli el (6+ kart) ───
+            // ─── Dbl: 6+ kartlık tek renkli el (♣/♦/♥) ───
             if (kupa >= 6 || karo >= 6 || sinek >= 6)
                 return "Dbl";
-
-            // ─── 2NT: Güçlü iki renkli el (basitleştirilmiş) ───
-            if (karo >= 5 && sinek >= 5)
-                return "2NT";
 
             return "Pas";
         }
@@ -268,31 +367,43 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         private string PartnerCevabi(List<Card> el, string partnerTeklif)
         {
-            // ─── Partner Dbl dedi (tek renkli) → 2♣ zorunlu ───
+            int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+            int hp = ElDegerlendirici.HCP(el);
+
+            // ─── Partner Dbl dedi (tek renkli) → 2♣ (çoğu elle); 6 kartlık majörüm varsa doğal ───
             if (partnerTeklif == "Dbl")
+            {
+                if (macca >= 6) return "2♠";
+                if (kupa >= 6) return "2♥";
                 return "2♣";
+            }
 
             // ─── Partner 2♣ dedi (♣ + yüksek renk) ───
             if (partnerTeklif == "2♣")
             {
-                int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-                if (sinek >= 3) return "Pas";
-                return "2♦";
+                if (sinek >= 3) return "Pas";                       // 3 kart destek → oyna
+                if (hp >= 11 && karo >= 3 && kupa >= 3 && macca >= 3) return "2NT";   // güçlü davet
+                if (kupa >= 6) return "2♥";                         // kendi 6'lı rengim (doğal)
+                if (macca >= 6) return "2♠";
+                return "2♦";                                        // röle: diğer rengini söyle / pas
             }
 
             // ─── Partner 2♦ dedi (♦ + majör) ───
             if (partnerTeklif == "2♦")
             {
-                int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-                if (karo >= 3) return "Pas";
-                return "2♥";
+                if (karo >= 3) return "Pas";                        // 3 kart destek → oyna
+                if (hp >= 11 && kupa >= 3 && macca >= 3) return "2NT";                 // güçlü davet
+                if (macca >= 6) return "2♠";                        // kendi 6'lı rengim (doğal)
+                return "2♥";                                        // röle: majörünü söyle / pas
             }
 
-            // ─── Partner 2♥ dedi (♥ + ♠) ───
+            // ─── Partner 2♥ dedi (♥ + ♠): tercih ───
             if (partnerTeklif == "2♥")
             {
-                int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-                int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                if (hp >= 11 && kupa >= 3 && macca >= 3) return "2NT";                 // güçlü davet
                 if (kupa >= macca) return "Pas";
                 return "2♠";
             }
@@ -300,15 +411,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ─── Partner 2♠ dedi (doğal 6+ ♠) → Pas ───
             if (partnerTeklif == "2♠")
                 return "Pas";
-
-            // ─── Partner 2NT dedi (güçlü iki renkli: ♦ + ♣) ───
-            if (partnerTeklif == "2NT")
-            {
-                int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-                int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-                if (karo >= sinek) return "3♦";
-                return "3♣";
-            }
 
             return "Pas";
         }

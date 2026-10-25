@@ -37,6 +37,7 @@
             this.sonrakiElToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.eylmlerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ihaleGösterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.IhaleYorumuToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.oynananElleriGösterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.görünümToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.masaRengiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -60,7 +61,7 @@
             this.BtnileriAl = new System.Windows.Forms.ToolStripButton();
             this.BtnIpucu = new System.Windows.Forms.ToolStripButton();
             this.BtnSonrakiEl = new System.Windows.Forms.ToolStripButton();
-            this.BtnExit = new System.Windows.Forms.ToolStripButton();
+            this.BtnOyundanExit = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.BtnHepsi = new System.Windows.Forms.ToolStripButton();
             this.BtnEW = new System.Windows.Forms.ToolStripButton();
@@ -68,7 +69,6 @@
             this.BtnGuney = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.IhaleYorumuToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -147,6 +147,13 @@
             this.ihaleGösterToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.ihaleGösterToolStripMenuItem.Text = "İhaleyi Göster";
             this.ihaleGösterToolStripMenuItem.Click += new System.EventHandler(this.IhaleGösterToolStripMenuItem_Click);
+            // 
+            // IhaleYorumuToolStripMenuItem
+            // 
+            this.IhaleYorumuToolStripMenuItem.Name = "IhaleYorumuToolStripMenuItem";
+            this.IhaleYorumuToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.IhaleYorumuToolStripMenuItem.Text = "İhale Yorumu";
+            this.IhaleYorumuToolStripMenuItem.Click += new System.EventHandler(this.IhaleYorumuToolStripMenuItem_Click);
             // 
             // oynananElleriGösterToolStripMenuItem
             // 
@@ -246,7 +253,7 @@
             this.BtnileriAl,
             this.BtnIpucu,
             this.BtnSonrakiEl,
-            this.BtnExit,
+            this.BtnOyundanExit,
             this.toolStripSeparator2,
             this.BtnHepsi,
             this.BtnEW,
@@ -313,6 +320,7 @@
             this.BtnClaim.Size = new System.Drawing.Size(23, 22);
             this.BtnClaim.Text = "toolStripButton5";
             this.BtnClaim.ToolTipText = "Claim";
+            this.BtnClaim.Click += new System.EventHandler(this.BtnClaim_Click);
             // 
             // BtnGeriAl
             // 
@@ -355,15 +363,16 @@
             this.BtnSonrakiEl.ToolTipText = "Sonraki El";
             this.BtnSonrakiEl.Click += new System.EventHandler(this.BtnSonrakiEl_Click);
             // 
-            // BtnExit
+            // BtnOyundanExit
             // 
-            this.BtnExit.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.BtnExit.Image = ((System.Drawing.Image)(resources.GetObject("BtnExit.Image")));
-            this.BtnExit.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.BtnExit.Name = "BtnExit";
-            this.BtnExit.Size = new System.Drawing.Size(23, 22);
-            this.BtnExit.Text = "toolStripButton10";
-            this.BtnExit.ToolTipText = "Oyundan Çık";
+            this.BtnOyundanExit.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.BtnOyundanExit.Image = ((System.Drawing.Image)(resources.GetObject("BtnOyundanExit.Image")));
+            this.BtnOyundanExit.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.BtnOyundanExit.Name = "BtnOyundanExit";
+            this.BtnOyundanExit.Size = new System.Drawing.Size(23, 22);
+            this.BtnOyundanExit.Text = "toolStripButton10";
+            this.BtnOyundanExit.ToolTipText = "Oyundan Çık";
+            this.BtnOyundanExit.Click += new System.EventHandler(this.BtnOyundanExit_Click);
             // 
             // toolStripSeparator2
             // 
@@ -427,13 +436,6 @@
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // IhaleYorumuToolStripMenuItem
-            // 
-            this.IhaleYorumuToolStripMenuItem.Name = "IhaleYorumuToolStripMenuItem";
-            this.IhaleYorumuToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
-            this.IhaleYorumuToolStripMenuItem.Text = "İhale Yorumu";
-            this.IhaleYorumuToolStripMenuItem.Click += new System.EventHandler(this.IhaleYorumuToolStripMenuItem_Click);
-            // 
             // BricOyna
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -483,7 +485,7 @@
         private System.Windows.Forms.ToolStripButton BtnileriAl;
         private System.Windows.Forms.ToolStripButton BtnIpucu;
         private System.Windows.Forms.ToolStripButton BtnSonrakiEl;
-        private System.Windows.Forms.ToolStripButton BtnExit;
+        private System.Windows.Forms.ToolStripButton BtnOyundanExit;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton BtnHepsi;
         private System.Windows.Forms.ToolStripButton BtnEW;

@@ -50,6 +50,25 @@ namespace BricKartOyunu.Forms
             GecmisiYukle(teklifler, baslangicOyuncusu);
         }
 
+        /// <summary>
+        /// Açık olan ihale geçmişi listesini yeni teklif listesiyle yeniler
+        /// (BtnGeriAl / BtnileriAl sonrası BricOyna tarafından çağrılır).
+        /// </summary>
+        public void Guncelle(List<string> teklifler, string baslangicOyuncusu)
+        {
+            lstGecmis.BeginUpdate();
+            try
+            {
+                lstGecmis.Items.Clear();
+                GecmisiYukle(teklifler, baslangicOyuncusu);
+            }
+            finally
+            {
+                lstGecmis.EndUpdate();
+            }
+            lstGecmis.Refresh();
+        }
+
         private void GecmisiYukle(List<string> teklifler, string baslangicOyuncusu)
         {
             if (teklifler == null || teklifler.Count == 0) return;
@@ -110,7 +129,7 @@ namespace BricKartOyunu.Forms
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             Font font = new Font("Arial", 8.5F, FontStyle.Bold);
 
-            if (text.Contains("♦") || text.Contains("♥"))
+            if (text.Length > 1 && (text.EndsWith("♦") || text.EndsWith("♥")))
             {
                 string seviye = text.Substring(0, text.Length - 1);
                 string simge = text.Substring(text.Length - 1);
@@ -141,6 +160,7 @@ namespace BricKartOyunu.Forms
                     g.DrawString(text, font, blackBrush, e.Bounds, sf);
                 }
             }
+            font.Dispose();
         }
 
         private void IhaleGecmisiForm_Load(object sender, EventArgs e)

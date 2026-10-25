@@ -65,44 +65,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Partner 5NT dedi → Koz Q cevabı veriyoruz
             if (durum.SonGercekTeklif == "5NT" && durum.SonGercekTeklifSahibi == durum.Partner)
             {
-                bool kozQVar = ElDegerlendirici.KizVar(el, koz);
-
-                // Yan renklerde Papaz var mı?
-                var yanRenkler = new List<string> { "Maça", "Kupa", "Karo", "Sinek" };
-                yanRenkler.Remove(koz);
-
-                string yanPapaz = null;
-                foreach (var renk in yanRenkler)
+                // Standart RKCB papaz sorusu: kozun papazı hariç, yan renklerdeki papaz sayısı
+                // 6♣ = 0, 6♦ = 1, 6♥ = 2, 6♠ = 3, 6NT = 4
+                int yanPapaz = 0;
+                foreach (var renk in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                    if (renk != koz && ElDegerlendirici.PapazVar(el, renk)) yanPapaz++;
+                switch (yanPapaz)
                 {
-                    if (ElDegerlendirici.PapazVar(el, renk))
-                    {
-                        yanPapaz = renk;
-                        break;
-                    }
+                    case 0: return "6♣";
+                    case 1: return "6♦";
+                    case 2: return "6♥";
+                    case 3: return "6♠";
+                    default: return "6NT";
                 }
-
-                if (!kozQVar && yanPapaz != null)
-                {
-                    switch (yanPapaz)
-                    {
-                        case "Sinek": return "6♣";
-                        case "Karo": return "6♦";
-                        case "Kupa": return "6♥";
-                        case "Maça": return "6♠";
-                    }
-                }
-
-                if (kozQVar && yanPapaz == null)
-                {
-                    return "6NT";
-                }
-
-                if (kozQVar && yanPapaz != null)
-                {
-                    return "7" + KozYardimcisi.KozSembolu(koz);
-                }
-
-                return "6" + KozYardimcisi.KozSembolu(koz);
             }
 
             // 5NT soruyoruz

@@ -119,6 +119,12 @@ namespace BricKartOyunu.Forms
                 _programatikKapatma = true;
                 this.Close();
             }
+            else
+            {
+                // Sahibi BricOyna değilse buton sessizce hiçbir şey yapmazdı; formu kapat.
+                _programatikKapatma = true;
+                this.Close();
+            }
         }
     }
 }

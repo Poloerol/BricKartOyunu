@@ -21,11 +21,13 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond
             if (!durum.IlkTeklifMi()) return false;
 
             int hp = ElDegerlendirici.HCP(el);
-            if (hp < 12 || hp > 21) return false;
+            if (hp > 21 || !ElDegerlendirici.AcilisGucuVarMi(el)) return false;   // 12+ HCP veya 11 HCP + 20 kuralı
 
             if (ElDegerlendirici.BesliMajorVar(el)) return false;
 
-            if (hp >= 15 && hp <= 17 && ElDegerlendirici.DengeliEl(el)) return false;
+            bool dengeliEl = ElDegerlendirici.DengeliEl(el);
+            if (hp >= 15 && hp <= 17 && dengeliEl) return false;   // 1NT açılışı
+            if (hp >= 20 && hp <= 21 && dengeliEl) return false;   // 2NT açılışı
 
             return TeklifVer(el, durum) == "1♦";
         }

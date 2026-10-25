@@ -206,10 +206,12 @@ namespace BricKartOyunu.Class.Bidding
 
         /// <summary>
         /// Rakip daha önce açtı mı?
+        /// (Gerçek teklif, Kontr veya S.Kontr varsa true döner.)
         /// </summary>
         public bool RakipActiMi()
         {
-            return Gecmis.Any(h => Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi);
+            return Gecmis.Any(h => Rakipler.Contains(h.Oyuncu) &&
+                (h.GercekTeklifMi || h.KontrMi || h.SKontrMi));
         }
 
         /// <summary>
@@ -318,7 +320,9 @@ namespace BricKartOyunu.Class.Bidding
             //    (Örn. partner 1♠ açtı, ben 2♠ dedim — bu ortakRenkler'e girer)
 
             // 3. NT açılışı yapıldı mı?
-            bool ntVar = Gecmis.Any(h => h.GercekTeklifMi && h.Koz == "NT");
+            // (Yalnızca KENDİ tarafımızın NT teklifi; rakibin NT müdahalesi anlaşma sayılmaz)
+            bool ntVar = Gecmis.Any(h => h.GercekTeklifMi && h.Koz == "NT" &&
+                                         (h.Oyuncu == AktifOyuncu || h.Oyuncu == Partner));
             if (ntVar) return "NT";
 
             return null;

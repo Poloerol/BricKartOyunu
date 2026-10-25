@@ -8,31 +8,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// Negative Double (Negatif Kontr) Konvansiyonu.
     /// 
     /// Kural:
-    /// - Rakip bir renk açtı (1♠/1♥/1♦/1♣)
+    /// - Partner bir renk açtı (1♣/1♦/1♥/1♠)
+    /// - Rakip araya girdi (overcall veya DBL)
     /// - Benim elimde gösteremediğim bir renk var (özellikle 4'lü majör)
     /// - Dbl derim → "Diğer renkleri oynayabilirim" demek
     /// 
-    /// Öncelik: 20 (açılışlardan sonra, cevaplardan önce)
-    /// 
-    /// Örnek:
-    ///   Rakip 1♠ → benim elimde 4'lü Kupa + 8+ HP → Dbl
-    ///   Rakip 1♥ → benim elimde 4'lü Maça + 8+ HP → Dbl
-    ///   Rakip 1♦ → benim elimde 4'lü Maça + 4'lü Kupa + 8+ HP → Dbl
+    /// Öncelik: 20
     /// </summary>
     public class NegativeDouble : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "Negative Double";
         public string Aciklama => "Rakip müdahalesine negatif kontr";
         public bool AktifMi { get; set; } = true;
         public int Oncelik => 20;
-
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
 
         public bool UygunMu(IhaleDurumu durum)
         {
@@ -40,70 +28,70 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli == null) return false;
             if (durum.AktifOyuncuEli.Count != 13) return false;
 
-            // 1. Rakip bir renk açtı mı?
+            // ═══════════════════════════════════════════════════════════════
+            // 1. PARTNER AÇTI MI? (Negative Double, partnerin açışına karşı yapılır)
+            // ═══════════════════════════════════════════════════════════════
+            if (!durum.PartnerActiMi()) return false;
+
+            // ═══════════════════════════════════════════════════════════════
+            // 2. RAKİP ARAYA GİRDİ Mİ? (Overcall veya DBL olmalı)
+            // ═══════════════════════════════════════════════════════════════
             if (!durum.RakipActiMi()) return false;
 
-            // 2. Rakip 2+ seviyede açmadı mı? (1 seviye olmalı)
+            // ═══════════════════════════════════════════════════════════════
+            // 3. BEN HENÜZ KONUŞMADIM MI?
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.KendiTeklifleri.Count > 0) return false;
+
+            // ═══════════════════════════════════════════════════════════════
+            // 4. RAKİP 1 SEVİYESİNDE Mİ AÇTI? (2+ seviyede Negative Double farklı)
+            // ═══════════════════════════════════════════════════════════════
             string sonRakipTeklifi = durum.RakipTeklifleri.LastOrDefault();
             if (string.IsNullOrEmpty(sonRakipTeklifi)) return false;
 
-            // 3. Ben henüz konuşmadım mı?
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            int rakipSeviye = KozYardimcisi.TekliftenSeviyeCikar(sonRakipTeklifi);
+            if (rakipSeviye != 1) return false;
 
-            // 4. Partner henüz konuşmadı mı? (veya Pas dedi?)
-            if (durum.PartnerTeklifleri.Count > 0)
-            {
-                // Partner zaten konuştuysa Negatif Kontr değil
-                return false;
-            }
-
-            // 5. El analizi
+            // ═══════════════════════════════════════════════════════════════
+            // 5. EL ANALİZİ
+            // ═══════════════════════════════════════════════════════════════
             var el = durum.AktifOyuncuEli;
             int hp = ElDegerlendirici.HCP(el);
-            if (hp < 8) return false;
 
-            // 6. Rakip rengini çıkar
+            // Tabloya göre 1 seviyesi için 6+ HP yeterli
+            if (hp < 6) return false;
+
+            // ═══════════════════════════════════════════════════════════════
+            // 6. RAKİP KOZUNU ÇIKAR
+            // ═══════════════════════════════════════════════════════════════
             string rakipKozu = KozYardimcisi.TekliftenKozCikar(sonRakipTeklifi);
-            if (string.IsNullOrEmpty(rakipKozu)) return false;
+            if (string.IsNullOrEmpty(rakipKozu) || rakipKozu == "NT") return false;
 
             // ═══════════════════════════════════════════════════════════════
-            // 6.5. 5-5 MAJÖR KONTROLÜ — Michaels'a bırak
-            // ═══════════════════════════════════════════════════════════════
-            // 5♠ + 5♥ ellerde Negatif Kontr yerine Michaels tercih edilir.
+            // 7. 5-5 MAJÖR KONTROLÜ — Michaels'a bırak
             int macaUzun = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupaUzun = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
             if (macaUzun >= 5 && kupaUzun >= 5) return false;
 
-            // 7. Gösteremediğimiz majör var mı?
-            int dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-            int dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-
-            // Rakip Maça açtıysa → 4'lü Kupa göstermek isteriz
-            if (rakipKozu == "Maça")
-            {
-                if (dortluKupa >= 4) return true;
-            }
-            // Rakip Kupa açtıysa → 4'lü Maça göstermek isteriz
-            else if (rakipKozu == "Kupa")
-            {
-                if (dortluMaca >= 4) return true;
-            }
-            // Rakip minör açtıysa → 4'lü Maça VEYA 4'lü Kupa göstermek isteriz
-            else if (rakipKozu == "Karo" || rakipKozu == "Sinek")
-            {
-                if (dortluMaca >= 4 || dortluKupa >= 4) return true;
-            }
-
-            return false;
+            // 8. Standart kural: Negatif kontr, HENÜZ TEKLİF EDİLMEMİŞ renkleri gösterir.
+            //    - İki majör de boşta (1m-(1m)): 4-4 majör
+            //    - Bir majör boşta (1♦-(1♥), 1♥-(2♣)...): o majörde 4+
+            //    - İki majör de alınmış (1♥-(1♠)): 4-4 minör
+            var partnerAcis = durum.Gecmis.FirstOrDefault(h => h.Oyuncu == durum.Partner && h.GercekTeklifMi);
+            string partnerKozu = partnerAcis != null ? partnerAcis.Koz : null;
+            bool macaBosta = partnerKozu != "Maça" && rakipKozu != "Maça";
+            bool kupaBosta = partnerKozu != "Kupa" && rakipKozu != "Kupa";
+            // 5+ kartlı boştaki majör varsa Dbl DEĞİL, doğal renk teklifi (1♠/1♥) verilir;
+            // negatif kontr "tam 4'lü" majörü gösterir.
+            if (macaBosta && kupaBosta) return macaUzun == 4 && kupaUzun == 4;
+            if (macaBosta) return macaUzun == 4;
+            if (kupaBosta) return kupaUzun == 4;
+            return ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4 &&
+                   ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4;
         }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
 
         public string TeklifVer(IhaleDurumu durum)
         {
-            // Negatif Kontr → Dbl
             return "Dbl";
         }
     }

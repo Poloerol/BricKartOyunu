@@ -55,7 +55,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
-            return hp >= 12 && (macca >= 5 || kupa >= 5);
+            return ElDegerlendirici.AcilisGucuVarMi(el) && (macca >= 5 || kupa >= 5);   // 12+ HCP veya 11 HCP + 20 kuralı
         }
 
 

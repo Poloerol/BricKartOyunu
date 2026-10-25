@@ -151,6 +151,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public string TeklifVer(IhaleDurumu durum)
         {
+            // Ham teklif yasadışı kalırsa (ör. 2♠'den sonra 2♥) yasal en düşük seviyeye çıkar
+            return KozYardimcisi.YasalaYukselt(TeklifVerHam(durum), durum.SonGercekTeklif);
+        }
+
+        private string TeklifVerHam(IhaleDurumu durum)
+        {
             var el = durum.AktifOyuncuEli;
             if (el == null || el.Count != 13) return "Pas";
 

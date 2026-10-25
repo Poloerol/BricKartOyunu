@@ -25,8 +25,8 @@ namespace BricKartOyunu.Forms
             this.FormBorderStyle = FormBorderStyle.FixedToolWindow;
             this.ClientSize = istemciBoyutu;
 
-            // 🔹 Konum ctor'da verilmeli; Load içinde atanması etkisizdir.
-            this.StartPosition = FormStartPosition.CenterParent;
+            // 🔹 Konum: playZonePanel'in tam ortası (hesaplama Load'da yapılır; Manual olmalı).
+            this.StartPosition = FormStartPosition.Manual;
 
             // X davranışını FormClosing'de yöneteceğiz
             this.FormClosing += DealCompleteForm_FormClosing;
@@ -36,6 +36,9 @@ namespace BricKartOyunu.Forms
         {
             // Başlık
             this.Text = "Deal Complete";
+
+            // 🔹 playZonePanel'in tam ortasında aç (panel yoksa BricOyna'nın ortasına düş)
+            PlayZoneOrtasinaKonumla();
 
             // ═══════════════════════════════════════════════════════════════
             // BUTON EVENT'LERİNİ BAĞLA
@@ -51,6 +54,40 @@ namespace BricKartOyunu.Forms
 
             System.Diagnostics.Debug.WriteLine(
                 "[DealComplete] Buton event'leri bağlandı.");
+        }
+
+        /// <summary>Formu BricOyna.playZonePanel'in tam ortasına yerleştirir; ekran dışına taşmaz.</summary>
+        private void PlayZoneOrtasinaKonumla()
+        {
+            try
+            {
+                System.Drawing.Point merkez;
+                if (_bricOyna != null && _bricOyna.playZonePanel != null && !_bricOyna.playZonePanel.IsDisposed)
+                {
+                    var p = _bricOyna.playZonePanel;
+                    merkez = p.PointToScreen(new System.Drawing.Point(p.Width / 2, p.Height / 2));
+                }
+                else if (_bricOyna != null)
+                {
+                    merkez = new System.Drawing.Point(
+                        _bricOyna.Left + _bricOyna.Width / 2, _bricOyna.Top + _bricOyna.Height / 2);
+                }
+                else return;
+
+                int x = merkez.X - this.Width / 2;
+                int y = merkez.Y - this.Height / 2;
+
+                // Ekranın çalışma alanı içinde kal
+                var alan = Screen.FromPoint(merkez).WorkingArea;
+                x = Math.Max(alan.Left, Math.Min(x, alan.Right - this.Width));
+                y = Math.Max(alan.Top, Math.Min(y, alan.Bottom - this.Height));
+
+                this.Location = new System.Drawing.Point(x, y);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[DealComplete] Konumlandırma hatası: " + ex.Message);
+            }
         }
 
         private void DealCompleteForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -79,9 +116,9 @@ namespace BricKartOyunu.Forms
 
         private void BtnReplay_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(
-                "Bu bordun tekrarı özelliği henüz geliştirilmedi.",
-                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // BricOyna bu sonucu görünce aynı dağılımı baştan kurar
+            this.DialogResult = DialogResult.Retry;
+            this.Close();
         }
 
         private void BtnReviewBidding_Click(object sender, EventArgs e)
@@ -94,11 +131,81 @@ namespace BricKartOyunu.Forms
             _bricOyna?.OynananElleriGoster();
         }
 
+        /// <summary>
+        /// Bordu El Kütüphanesi dosyasına (PBN, *.pbn) kaydeder. Bridge Baron Deal Library
+        /// ve diğer briç programları okuyabilir. Var olan bir dosya seçilirse bord sonuna
+        /// eklenir; böylece aynı dosyada birden çok bord saklanır.
+        /// </summary>
         private void BtnSavePPL_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(
-                "PPL dosyasına kaydetme özelliği henüz geliştirilmedi.",
-                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (_bricOyna == null) return;
+
+            string ad, aciklama, yorum;
+            if (!KayitBilgisiSor(out ad, out aciklama, out yorum)) return;
+
+            using (var dlg = new SaveFileDialog())
+            {
+                dlg.Title = "El Kütüphanesi'ne Kaydet";
+                dlg.Filter = "Taşınabilir Briç Notasyonu (*.pbn)|*.pbn";
+                dlg.DefaultExt = "pbn";
+                dlg.OverwritePrompt = false;   // var olan dosyaya ekleme yapılır
+                dlg.FileName = "Eller.pbn";
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+
+                try
+                {
+                    string pbn = _bricOyna.PbnUret(ad, aciklama, yorum);
+                    var utf8 = new System.Text.UTF8Encoding(false);
+                    bool varMi = System.IO.File.Exists(dlg.FileName) &&
+                                 new System.IO.FileInfo(dlg.FileName).Length > 0;
+
+                    // Bordlar boş satırla ayrılır
+                    System.IO.File.AppendAllText(dlg.FileName,
+                        (varMi ? "\r\n" : "") + pbn, utf8);
+
+                    MessageBox.Show(
+                        varMi ? "Bord dosyanın sonuna eklendi." : "Bord kaydedildi.",
+                        "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Kaydedilemedi: " + ex.Message, "Hata",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        /// <summary>Bord adı, kısa açıklama ve yorum için küçük giriş penceresi.</summary>
+        private bool KayitBilgisiSor(out string ad, out string aciklama, out string yorum)
+        {
+            ad = aciklama = yorum = "";
+            using (var f = new Form())
+            {
+                f.Text = "Bordu Kaydet";
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.StartPosition = FormStartPosition.CenterParent;
+                f.MaximizeBox = false;
+                f.MinimizeBox = false;
+                f.ShowInTaskbar = false;
+                f.ClientSize = new System.Drawing.Size(380, 250);
+
+                var lAd = new Label { Text = "Ad:", Left = 12, Top = 14, AutoSize = true };
+                var tAd = new TextBox { Left = 12, Top = 32, Width = 356, Text = "Bord" };
+                var lAc = new Label { Text = "Kısa açıklama:", Left = 12, Top = 62, AutoSize = true };
+                var tAc = new TextBox { Left = 12, Top = 80, Width = 356 };
+                var lYo = new Label { Text = "Yorum (bord numarasını da yazabilirsiniz):", Left = 12, Top = 110, AutoSize = true };
+                var tYo = new TextBox { Left = 12, Top = 128, Width = 356, Height = 70, Multiline = true,
+                                        ScrollBars = ScrollBars.Vertical };
+                var ok = new Button { Text = "Kaydet", Left = 212, Top = 212, Width = 75, DialogResult = DialogResult.OK };
+                var iptal = new Button { Text = "İptal", Left = 293, Top = 212, Width = 75, DialogResult = DialogResult.Cancel };
+                f.Controls.AddRange(new Control[] { lAd, tAd, lAc, tAc, lYo, tYo, ok, iptal });
+                f.AcceptButton = ok;
+                f.CancelButton = iptal;
+
+                if (f.ShowDialog(this) != DialogResult.OK) return false;
+                ad = tAd.Text; aciklama = tAc.Text; yorum = tYo.Text;
+                return true;
+            }
         }
 
         private void BtnPrint_Click(object sender, EventArgs e)

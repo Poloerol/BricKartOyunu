@@ -56,9 +56,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (!besliMacaDortluKupa && !besliKupaDortluMaca) return false;
 
-            // 5. Yeterli puan (game forcing, 8+ HP)
+            // 5. Smolen oyun zorlayıcıdır: 10+ HP (1NT 15-17 karşısında 25+ toplam)
             int hp = ElDegerlendirici.HCP(el);
-            if (hp < 8) return false;
+            if (hp < 10) return false;
 
             return true;
         }

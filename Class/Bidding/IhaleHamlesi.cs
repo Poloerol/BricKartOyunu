@@ -42,17 +42,17 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Bu hamle "Pas" mı?
         /// </summary>
-        public bool PasMi => Teklif == "Pas" || Teklif == "PAS";
+        public bool PasMi => string.Equals(Teklif, "Pas", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Bu hamle "Kontr" mu?
         /// </summary>
-        public bool KontrMi => Teklif == "Dbl" || Teklif == "Kontr";
+        public bool KontrMi => string.Equals(Teklif, "Dbl", StringComparison.OrdinalIgnoreCase) || string.Equals(Teklif, "Kontr", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Bu hamle "S.Kontr" mu?
         /// </summary>
-        public bool SKontrMi => Teklif == "RDbl" || Teklif == "S.Kontr";
+        public bool SKontrMi => string.Equals(Teklif, "RDbl", StringComparison.OrdinalIgnoreCase) || string.Equals(Teklif, "S.Kontr", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Bu hamle "gerçek bir teklif" mi?

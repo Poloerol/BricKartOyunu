@@ -37,66 +37,38 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public bool UygunMu(IhaleDurumu durum)
         {
-            if (durum == null || durum.Gecmis == null) return false;
+            if (durum == null) return false;
             if (durum.AktifOyuncuEli == null) return false;
+            if (durum.AktifOyuncuEli.Count != 13) return false;
 
-            var gercekTeklifler = durum.Gecmis
-                .Where(h => h.GercekTeklifMi)
-                .ToList();
+            // 1. Partner açtı mı?
+            if (!durum.PartnerActiMi()) return false;
 
-            if (gercekTeklifler.Count < 1) return false;
+            // 2. Partnerin teklifi 1♣ veya 1♦ mi?
+            string partnerTeklif = durum.PartnerTeklifleri.LastOrDefault();
+            if (partnerTeklif != "1♣" && partnerTeklif != "1♦") return false;
 
-            // ─── SENARYO A: Cevapçının Inverted Minör desteği ───
-            var sonTeklif = gercekTeklifler.Last();
-            if (sonTeklif.Oyuncu == durum.Partner
-                && sonTeklif.Seviye == 1
-                && (sonTeklif.Koz == "Sinek" || sonTeklif.Koz == "Karo"))
-            {
-                // Rakip araya girmiş mi?
-                if (durum.RakipActiMi()) return false;
+            // 3. Rakip araya girmedi mi?
+            if (durum.RakipActiMi()) return false;
 
-                // 4'lü majör varsa minör desteklenmez
-                int macca = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Maça");
-                int kupa = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Kupa");
-                if (macca >= 4 || kupa >= 4) return false;
+            // 4. Ben henüz konuşmadım mı?
+            if (durum.KendiTeklifleri.Count > 0) return false;
 
-                // Minör desteği 5+ mı?
-                int destek = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, sonTeklif.Koz);
-                // ♦ için nadiren 4'lü olabilir
-                if (sonTeklif.Koz == "Sinek" && destek < 5) return false;
-                if (sonTeklif.Koz == "Karo" && destek < 4) return false;
+            var el = durum.AktifOyuncuEli;
+            string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerTeklif);
 
-                int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
+            // 5. 4+ majör varsa Inverted Minors KULLANILMAZ
+            int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            if (maca >= 4 || kupa >= 4) return false;
 
-                // 2m: 10+ HP (Forcing)
-                if (hp >= 10) return true;
+            // 6. Partnerin minöründen 5+ kart var mı? (veya çok iyi 4'lü)
+            int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
+            if (destek < 5) return false; // Basitleştirme: 5+ kart şart
 
-                // 3m: 0-7 HP (Preemptive)
-                if (hp <= 7) return true;
-
-                // 8-9 HP: gri bölge, judgement
-                // Basitleştirme: 8-9 HP için Inverted Minors tetiklenmez
-                return false;
-            }
-
-            // ─── SENARYO B: Açıcının Inverted Minör'e cevabı ───
-            // Geçmiş: 1m (aktif) - 2m (partner) - ? (açıcı cevap verecek)
-            if (gercekTeklifler.Count == 2)
-            {
-                var teklif2 = gercekTeklifler[1];
-                var teklif1 = gercekTeklifler[0];
-
-                if (teklif1.Oyuncu == durum.AktifOyuncu
-                    && teklif1.Seviye == 1
-                    && (teklif1.Koz == "Sinek" || teklif1.Koz == "Karo")
-                    && teklif2.Oyuncu == durum.Partner
-                    && teklif2.Teklif == teklif1.Teklif) // 2m = Inverted
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            // 7. HP kontrolü yok: 0-8 HP → 3m (preemptive), 9+ HP → 2m (forcing).
+            //    (Eskiden hp < 5 reddediliyordu; 1♣ - 3♣ blokajı 0-7 HP de içerir.)
+            return true;
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -106,24 +78,21 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public string TeklifVer(IhaleDurumu durum)
         {
             var el = durum.AktifOyuncuEli;
-            if (el == null || el.Count != 13) return "Pas";
+            string partnerTeklif = durum.PartnerTeklifleri.Last();
+            string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerTeklif);
+            string sembol = KozYardimcisi.KozSembolu(partnerKozu);
 
-            var gercekTeklifler = durum.Gecmis
-                .Where(h => h.GercekTeklifMi)
-                .ToList();
+            int hp = ElDegerlendirici.HCP(el);
+            int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
 
-            var sonTeklif = gercekTeklifler.Last();
+            // 0-9 HP → 3m (zayıf, preemptive)
+            if (hp <= 9)
+                return "3" + sembol;
 
-            // Cevapçı mıyız? (Inverted minör desteği vereceğiz)
-            if (sonTeklif.Oyuncu == durum.Partner
-                && sonTeklif.Seviye == 1
-                && (sonTeklif.Koz == "Sinek" || sonTeklif.Koz == "Karo"))
-            {
-                return CevapciTeklifi(durum, el, sonTeklif.Koz);
-            }
-
-            // Açıcı mıyız? (Inverted minör'e cevap vereceğiz)
-            return AciciCevabi(durum, el, gercekTeklifler);
+            // 10+ HP → 2m (forcing). Partnerin minörü ne ise o: 1♣ → 2♣, 1♦ → 2♦.
+            // (Eskiden 10-12 HP için "2♦" sabit yazılıydı; 1♣ açılışında yanlıştı,
+            //  9 HP ise hiç karşılanmıyor ve Pas dönüyordu.)
+            return "2" + sembol;
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -135,16 +104,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(el);
             string sembol = KozYardimcisi.KozSembolu(minör);
 
-            // 10+ HP → 2m (Forcing)
-            if (hp >= 10)
+            // 13+ HP → 2m (Zon Forcing)
+            if (hp >= 13)
                 return "2" + sembol;
 
-            // 0-7 HP → 3m (Preemptive)
-            if (hp <= 7)
+            // 0-8 HP → 3m (Preemptive)
+            if (hp <= 8)
                 return "3" + sembol;
 
-            // 8-9 HP → gri bölge, 2m veya 3m
-            // Basitleştirme: 2m (daha güvenli)
+            // 9-12 HP → 2m (1 tur Forcing)
             return "2" + sembol;
         }
 

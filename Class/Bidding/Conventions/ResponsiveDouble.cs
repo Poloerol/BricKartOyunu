@@ -37,6 +37,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
+            // STANDART biçim: ortak kontr/müdahale yaptı, sağdaki rakip rengini yükseltti
+            if (OrtakMudahaleliMi(durum)) return true;
+
             // 1. Son 3 teklifi kontrol et:
             //    [0] = rakip açtı
             //    [1] = partner pas
@@ -96,6 +99,49 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             return dortluRenkSayisi >= 2;
+        }
+
+        /// <summary>
+        /// Standart Responsive Double: rakip 1x açtı, ORTAK kontr (takeout) ya da 1 seviyesinde
+        /// renk müdahalesi yaptı, sağdaki rakip x'i 2 veya 3 seviyesine yükseltti → sıra bende.
+        /// Dbl = kalan iki rengi gösterir (her birinde 4+ kart), 8+ HP.
+        ///   1m (Dbl) 2m → ♠ + ♥        1M (Dbl) 2M → ♣ + ♦
+        ///   1x (1y) 2x  → kalan iki renk
+        /// </summary>
+        private static bool OrtakMudahaleliMi(IhaleDurumu durum)
+        {
+            var g = durum.Gecmis.Where(h => h.GercekTeklifMi || h.KontrMi || h.PasMi).ToList();
+            if (g.Count < 3) return false;
+            var son = g[g.Count - 1];           // rakip yükseltmesi
+            var ort = g[g.Count - 2];           // sıra: ortak (kontr/müdahale)
+            // Beklenen dizi: rakip 1x – ortak (Dbl|1y) – rakip 2x/3x – (ben)
+            var acis = g[g.Count - 3];
+            if (!durum.Rakipler.Contains(son.Oyuncu) || !son.GercekTeklifMi) return false;
+            if (son.Seviye < 2 || son.Seviye > 3) return false;
+            if (ort.Oyuncu != durum.Partner) return false;
+            if (!(ort.KontrMi || (ort.GercekTeklifMi && ort.Seviye == 1))) return false;
+            if (!durum.Rakipler.Contains(acis.Oyuncu) || !acis.GercekTeklifMi || acis.Seviye != 1) return false;
+            if (acis.Koz != son.Koz || son.Koz == "NT") return false;
+            if (durum.KendiTeklifleri.Any(t => t != "Pas")) return false;
+
+            var el = durum.AktifOyuncuEli;
+            if (ElDegerlendirici.HCP(el) < 8) return false;
+
+            var kalan = new List<string>();
+            foreach (var r in KozYardimcisi.TumRenkler)
+            {
+                if (r == son.Koz) continue;
+                if (ort.GercekTeklifMi && r == ort.Koz) continue;
+                kalan.Add(r);
+            }
+            if (ort.KontrMi)
+            {
+                // Rakip minörse majörler, rakip majörse minörler
+                bool minor = son.Koz == "Sinek" || son.Koz == "Karo";
+                kalan = minor ? new List<string> { "Maça", "Kupa" } : new List<string> { "Karo", "Sinek" };
+            }
+            if (kalan.Count != 2) return false;
+            return kalan.All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 4);
         }
 
         public string TeklifVer(IhaleDurumu durum)

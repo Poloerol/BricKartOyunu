@@ -36,7 +36,7 @@ namespace BricKartOyunu.Forms
         {
             // İhale Geçmişini Hesapla
             string kuzey = "", dogu = "", guney = "", bati = "";
-            string kuzeyYorum = "Naturel", doguYorum = "Naturel", guneyYorum = "Naturel", batiYorum = "Naturel";
+            var kuzeyYorum = new List<string>(); var doguYorum = new List<string>(); var guneyYorum = new List<string>(); var batiYorum = new List<string>();
 
             string[] yonler = { "Kuzey", "Dogu", "Guney", "Bati" };
             int mevcutYonIdx = Array.IndexOf(yonler, _baslangicOyuncusu);
@@ -49,28 +49,28 @@ namespace BricKartOyunu.Forms
 
                 switch (yonler[mevcutYonIdx])
                 {
-                    case "Kuzey": kuzey += teklif + "\n"; kuzeyYorum = yorum; break;
-                    case "Dogu": dogu += teklif + "\n"; doguYorum = yorum; break;
-                    case "Guney": guney += teklif + "\n"; guneyYorum = yorum; break;
-                    case "Bati": bati += teklif + "\n"; batiYorum = yorum; break;
+                    case "Kuzey": kuzey += teklif + "\n"; kuzeyYorum.Add(yorum); break;
+                    case "Dogu": dogu += teklif + "\n"; doguYorum.Add(yorum); break;
+                    case "Guney": guney += teklif + "\n"; guneyYorum.Add(yorum); break;
+                    case "Bati": bati += teklif + "\n"; batiYorum.Add(yorum); break;
                 }
                 mevcutYonIdx = (mevcutYonIdx + 1) % 4;
             }
 
-            // Kutuları Yerleştir (Y koordinatları aşağı çekildi: 10 -> 25)
-            // Kuzey (Üst kutu)
+            // ─── Kutuları Yerleştir ───
+            // Kuzey (Üst kutu) — kuzey verisi
             EkleKutu("Kuzey", kuzey, kuzeyYorum, 110, 25, 200, 60);
 
-            // Doğu (Sol alt kutu)
-            EkleKutu("Batı", dogu, doguYorum, 10, 135, 190, 60);
+            // Batı (Sol alt kutu) — bati verisi
+            EkleKutu("Batı", bati, batiYorum, 10, 135, 190, 60);
 
-            // Güney (Sağ alt kutu)
-            EkleKutu("Doğu", guney, guneyYorum, 210, 135, 190, 60);
+            // Doğu (Sağ alt kutu) — dogu verisi
+            EkleKutu("Doğu", dogu, doguYorum, 210, 135, 190, 60);
 
-            // Batı (En alt orta kutu)
-            EkleKutu("Güney", bati, batiYorum, 110, 245, 200, 60);
+            // Güney (En alt orta kutu) — guney verisi
+            EkleKutu("Güney", guney, guneyYorum, 110, 245, 200, 60);
 
-            // OK Butonu (Biraz daha aşağıya alındı)
+            // OK Butonu
             Button btnOk = new Button
             {
                 Text = "OK",
@@ -81,7 +81,7 @@ namespace BricKartOyunu.Forms
             this.Controls.Add(btnOk);
         }
 
-        private void EkleKutu(string yonAdi, string teklifler, string yorum, int x, int y, int genislik, int yukseklik)
+        private void EkleKutu(string yonAdi, string teklifler, List<string> yorumlar, int x, int y, int genislik, int yukseklik)
         {
             // Yön Etiketi
             Label lblYon = new Label
@@ -100,7 +100,7 @@ namespace BricKartOyunu.Forms
                 Size = new Size(genislik, yukseklik),
                 BorderStyle = BorderStyle.FixedSingle,
                 Font = new Font("Arial", 8.5F, FontStyle.Regular),
-                SelectionMode = SelectionMode.None
+                SelectionMode = SelectionMode.One
             };
 
             if (!string.IsNullOrWhiteSpace(teklifler))
@@ -115,13 +115,21 @@ namespace BricKartOyunu.Forms
             // Yorum Etiketi
             Label lblYorum = new Label
             {
-                Text = yorum,
+                Text = yorumlar.Count > 0 ? yorumlar[yorumlar.Count - 1] : "",
                 Location = new Point(x, y + yukseklik + 2),
                 AutoSize = true,
                 Font = new Font("Arial", 8F, FontStyle.Regular),
                 ForeColor = Color.DimGray
             };
             this.Controls.Add(lblYorum);
+
+            // Seçilen teklifin yorumunu göster (varsayılan: bu oyuncunun son teklifi)
+            if (lst.Items.Count > 0) lst.SelectedIndex = lst.Items.Count - 1;
+            lst.SelectedIndexChanged += (s, e) =>
+            {
+                int i = lst.SelectedIndex;
+                lblYorum.Text = (i >= 0 && i < yorumlar.Count) ? yorumlar[i] : "";
+            };
         }
 
         private void IhaleYorumuForm_Load(object sender, EventArgs e)

@@ -29,7 +29,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// müdahale etti, sıra bizde). Müdahale koz renginin 5 seviyesinden YÜKSEKSE
     /// (DEPO gerekir) bu konvansiyon devreye girmez.
     /// </summary>
-    public class DopiRopi : IKonvansiyon
+    // IBilincliPas: "Pas" burada 1/4 anahtar kart demektir (bilinçli karar);
+    // motorun PasiAtla kuralı bu Pas'ı atlamaz. Görüşü yoksa TeklifVer null döner.
+    public class DopiRopi : IKonvansiyon, IBilincliPas
     {
         public string Ad => "DOPI-ROPI";
         public string Aciklama => "Blackwood müdahalesine DOPI/ROPI cevapları";

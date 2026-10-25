@@ -50,7 +50,7 @@ namespace BricKartOyunu.Forms
             };
 
             lstEvaluation.Columns.Add("", 130, HorizontalAlignment.Left);
-            lstEvaluation.Columns.Add("Trefl", 50, HorizontalAlignment.Right);
+            lstEvaluation.Columns.Add("Sinek", 50, HorizontalAlignment.Right);
             lstEvaluation.Columns.Add("Karo", 60, HorizontalAlignment.Right);
             lstEvaluation.Columns.Add("Kupa", 50, HorizontalAlignment.Right);
             lstEvaluation.Columns.Add("Maça", 50, HorizontalAlignment.Right);
