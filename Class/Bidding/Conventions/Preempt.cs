@@ -39,7 +39,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public bool UygunMu(IhaleDurumu durum)
         {
-            if (durum == null || durum.Gecmis == null || durum.Gecmis.Count > 0)
+            if (durum == null || durum.Gecmis == null || !durum.IlkTeklifMi())
                 return false;
 
             if (durum.AktifOyuncuEli == null || durum.AktifOyuncuEli.Count != 13)

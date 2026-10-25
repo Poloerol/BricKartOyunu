@@ -1157,7 +1157,7 @@ namespace BricKartOyunu
         new Card { Suit = "Kupa", Value = 4 },
         // ♦ Axxx = 4 HP
         new Card { Suit = "Karo", Value = 14 },
-        new Card { Suit = "Karo", Value = 8 },
+        new Card { Suit = "Karo", Value = 13 },
         new Card { Suit = "Karo", Value = 6 },
         new Card { Suit = "Karo", Value = 3 },
         // ♣ Qxxx = 2 HP
@@ -1166,12 +1166,15 @@ namespace BricKartOyunu
         new Card { Suit = "Sinek", Value = 5 },
         new Card { Suit = "Sinek", Value = 2 },
     };
-            // 9 HP, 3'lü Kupa desteği
+            // 12 HP açıcı, 3'lü Kupa desteği
 
             var gecmis = new List<IhaleHamlesi>
     {
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 1, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "1♠", Sira = 2, GecerliMi = true },
+        // Support Double: Güney (açıcı) 1♦, Kuzey 1♥, Doğu 1♠ → Güney 3'lü ♥ ile Dbl
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♦", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "1♠", Sira = 4, GecerliMi = true },
     };
 
             var durum = new IhaleDurumu
@@ -1512,9 +1515,11 @@ namespace BricKartOyunu
 
             var gecmis = new List<IhaleHamlesi>
     {
-        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 1, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 2, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+        // Drury: Güney (cevapçı) daha önce Pas demiş olmalı (passed hand)
+        new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "Pas", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠", Sira = 3, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
     };
 
             var durum = new IhaleDurumu
@@ -1562,13 +1567,13 @@ namespace BricKartOyunu
         new Card { Suit = "Kupa", Value = 4 },
         new Card { Suit = "Kupa", Value = 3 },
         // 2♦
-        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 12 },
         new Card { Suit = "Karo", Value = 6 },
         // 2♣
         new Card { Suit = "Sinek", Value = 10 },
         new Card { Suit = "Sinek", Value = 5 },
     };
-            // Toplam: 3+1+4 = 8 HP
+            // Toplam: 3+1+4 +2 (Q) = 10 HP (Smolen GF)
 
             var gecmis = new List<IhaleHamlesi>
     {
@@ -1621,13 +1626,13 @@ namespace BricKartOyunu
         new Card { Suit = "Kupa", Value = 4 },
         new Card { Suit = "Kupa", Value = 3 },
         // 2♦
-        new Card { Suit = "Karo", Value = 9 },
+        new Card { Suit = "Karo", Value = 12 },
         new Card { Suit = "Karo", Value = 6 },
         // 2♣
         new Card { Suit = "Sinek", Value = 10 },
         new Card { Suit = "Sinek", Value = 5 },
     };
-            // Toplam: 4+3+1 = 8 HP
+            // Toplam: 4+3+1 +2 (Q) = 10 HP (Smolen GF)
 
             var gecmis = new List<IhaleHamlesi>
     {
@@ -2392,9 +2397,9 @@ namespace BricKartOyunu
         new Card { Suit = "Kupa", Value = 2 },
         // 2♦
         new Card { Suit = "Karo", Value = 13 }, // K
-        new Card { Suit = "Karo", Value = 6 },
+        new Card { Suit = "Karo", Value = 12 }, // Q  (toplam güç 34+ olsun diye)
         // 2♣
-        new Card { Suit = "Sinek", Value = 9 },
+        new Card { Suit = "Sinek", Value = 14 }, // A
         new Card { Suit = "Sinek", Value = 4 },
     };
 
@@ -2480,13 +2485,13 @@ namespace BricKartOyunu
             };
 
             Yaz($"Papaz sayısı: {ElDegerlendirici.PapazSayisi(kuzeyEli)}");
-            Yaz("Beklenen: 6♥ (2 Papaz)");
+            Yaz("Beklenen: 6♦ (1 yan papaz; koz papazı sayılmaz)");
             Yaz("────────────────────────────────────────");
 
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "6♥" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♥)");
+            Yaz(sonuc == "6♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♦)");
             Yaz("════════════════════════════════════════");
         }
 
@@ -10306,7 +10311,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         new Card { Suit = "Karo",  Value = 13 }, // K
         new Card { Suit = "Karo",  Value = 7 },
         new Card { Suit = "Karo",  Value = 4 },
-        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 14 }, // A (slam sorusu için yeterli toplam güç)
         new Card { Suit = "Sinek", Value = 5 },
     };
 
@@ -10340,9 +10345,9 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_KozQ_Cevap_QYok_SinekK()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 39.2 — Koz Q Cevabı: Q yok, ♣K var → 6♣");
+            Yaz("TEST 39.2 — 5NT papaz sorusu: 1 yan papaz (♣K) → 6♦");
             Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - 5NT - Pas - ?");
-            Yaz("Beklenen: 6♣ (Q yok, ♣K var)");
+            Yaz("Beklenen: 6♦ (1 yan papaz)");
             Yaz("────────────────────────────────────────");
 
             // ♠ koz, ♠Q yok, ♣K var
@@ -10391,16 +10396,16 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "6♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♣)");
+            Yaz(sonuc == "6♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♦)");
             Yaz("════════════════════════════════════════");
         }
 
         public static void Test_KozQ_Cevap_QVar_YanKYok()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 39.3 — Koz Q Cevabı: Q var, yan K yok → 6NT");
+            Yaz("TEST 39.3 — 5NT papaz sorusu: yan papaz yok → 6♣");
             Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - 5NT - Pas - ?");
-            Yaz("Beklenen: 6NT (Q var, yan K yok)");
+            Yaz("Beklenen: 6♣ (0 yan papaz)");
             Yaz("────────────────────────────────────────");
 
             // ♠ koz, ♠Q var, yan K yok (sadece As'lar var)
@@ -10448,16 +10453,16 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "6NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6NT)");
+            Yaz(sonuc == "6♣" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♣)");
             Yaz("════════════════════════════════════════");
         }
 
         public static void Test_KozQ_Cevap_QVar_YanKVar()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 39.4 — Koz Q Cevabı: Q var + yan K var → 7♠");
+            Yaz("TEST 39.4 — 5NT papaz sorusu: 1 yan papaz (♣K) → 6♦");
             Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - 5NT - Pas - ?");
-            Yaz("Beklenen: 7♠ (Q var + yan K var)");
+            Yaz("Beklenen: 6♦ (1 yan papaz)");
             Yaz("────────────────────────────────────────");
 
             // ♠ koz, ♠Q var, ♣K var
@@ -10503,7 +10508,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "7♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 7♠)");
+            Yaz(sonuc == "6♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♦)");
             Yaz("════════════════════════════════════════");
         }
 
@@ -10527,7 +10532,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         new Card { Suit = "Karo",  Value = 14 }, // A
         new Card { Suit = "Karo",  Value = 7 },
         new Card { Suit = "Karo",  Value = 4 },
-        new Card { Suit = "Sinek", Value = 10 },
+        new Card { Suit = "Sinek", Value = 14 }, // A (slam sorusu için yeterli toplam güç)
         new Card { Suit = "Sinek", Value = 5 },
         new Card { Suit = "Sinek", Value = 3 },
     };

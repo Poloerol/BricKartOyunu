@@ -39,6 +39,20 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// ROL 4: Ben 1NT açtım, Stayman'a 2♦/2♥/2♠ ile cevap verdim,
         /// ortak ikinci turda DAVET etti (2NT veya cevabımın majörüne 3 seviye raise).
         /// </summary>
+        /// <summary>
+        /// ROL 5: İki 4'lü majörle 2♥ dedim, ortak 3NT (♥ fiti yok) dedi →
+        /// 4'lü maçam varsa 4♠'a düzeltirim.
+        /// </summary>
+        private static bool Rol5Duzelt(IhaleDurumu durum)
+        {
+            var benim = Gercek(durum, durum.AktifOyuncu);
+            var ortak = Gercek(durum, durum.Partner);
+            if (benim.Count != 2 || ortak.Count != 2) return false;
+            if (benim[0] != "1NT" || benim[1] != "2♥" || ortak[0] != "2♣" || ortak[1] != "3NT") return false;
+            if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
+            return ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Maça") >= 4;
+        }
+
         private static bool Rol4Davet(IhaleDurumu durum, out string davet)
         {
             davet = null;
@@ -135,7 +149,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ROL 4: Ben 1NT açtım, Stayman'a cevap verdim, ortak davet etti
             // ═══════════════════════════════════════════════════════════════
             if (Rol4Davet(durum, out _)) return true;
-
+            if (Rol5Duzelt(durum)) return true;
             return false;
         }
 
@@ -150,6 +164,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ═══════════════════════════════════════════════════════════════
             // ROL 4: Ortağın davetine karar ver (minimum → Pas, maksimum → oyun)
             // ═══════════════════════════════════════════════════════════════
+            if (Rol5Duzelt(durum)) return "4♠";
             if (Rol4Davet(durum, out string davet))
             {
                 int hp4 = ElDegerlendirici.HCP(el);
@@ -178,8 +193,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 bool dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4;
                 bool dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4;
 
-                if (dortluMaca) return "2♠";   // 4-4'te Maça öncelikli
-                if (dortluKupa) return "2♥";
+                if (dortluKupa) return "2♥";   // Standart: iki 4'lü majörde önce 2♥
+                if (dortluMaca) return "2♠";
                 return "2♦";   // Majör yok
             }
 
@@ -199,8 +214,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
                     int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
-                    if (maca == 5 && kupa == 4) return "3♥"; // Smolen
-                    if (kupa == 5 && maca == 4) return "3♠"; // Smolen
+                    // Smolen yalnızca oyun zorlayıcı (10+ HP) ellerde
+                    if (hp >= 10 && maca == 5 && kupa == 4) return "3♥"; // Smolen
+                    if (hp >= 10 && kupa == 5 && maca == 4) return "3♠"; // Smolen
 
                     if (hp >= 8 && hp <= 9) return "2NT";
                     if (hp >= 10) return "3NT";

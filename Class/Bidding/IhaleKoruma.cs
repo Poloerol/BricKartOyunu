@@ -103,7 +103,13 @@ namespace BricKartOyunu.Class.Bidding
                     // Ortak cevap veriyor: (alt, üst) sınır
                     int hi;
                     bool ayniRenk = renk == acilisRengi;
-                    if (s == 1) { lo = 6; hi = renk == "NT" ? 10 : 14; }
+                    bool majAcilis = acilisRengi == "Kupa" || acilisRengi == "Maça";
+                    bool bergen = d.Anlasma != null && d.Anlasma.BergenRaises && majAcilis && !ortakBirsekacildi;
+                    if (bergen && s == 3 && !ayniRenk && renk == "Sinek") { lo = 7; hi = 10; }                // 3♣ = 7-10 (4'lü destek)
+                    else if (bergen && s == 3 && !ayniRenk && renk == "Karo") { lo = 11; hi = 12; }           // 3♦ = 11-12
+                    else if (bergen && s == 3 && ayniRenk) { lo = 0; hi = 6; }                                // 3M = önleyici
+                    else if (majAcilis && s == 4 && ayniRenk && !ortakBirsekacildi) { lo = 3; hi = 11; }      // 4M = oynamak için / önleyici
+                    else if (s == 1) { lo = 6; hi = renk == "NT" ? 10 : 14; }
                     else if (s == 2) { lo = ayniRenk ? 6 : (renk == "NT" ? 11 : 10); hi = ayniRenk ? 10 : (renk == "NT" ? 12 : 17); }
                     else if (s == 3 && ayniRenk && !(renk == "Kupa" || renk == "Maça")) { lo = 4; hi = 10; }   // minör 3 seviye sıçrama: zayıf
                     else if (s == 3) { lo = (renk == "NT") ? 13 : 10; hi = ayniRenk ? 12 : 17; }
@@ -316,6 +322,82 @@ namespace BricKartOyunu.Class.Bidding
             return true;
         }
 
+        /// <summary>
+        /// Aktif oyuncu, ortağın yapay sorusuna / konvansiyon teklifine CEVAP mı veriyor?
+        /// (Cevaplar zorunludur; ortaklık gücü yetmese de verilmelidir.)
+        /// </summary>
+        private static bool CevapVeriyorMu(IhaleDurumu d, string ad)
+        {
+            var g = d.Gecmis ?? new List<IhaleHamlesi>();
+            var ilk = IlkGercek(d);
+            var ortSon = SonGercek(d, true);
+            var benSon = g.LastOrDefault(h => h.Oyuncu == d.AktifOyuncu && Gercek(h.Teklif));
+            bool benAcilis = ilk != null && ilk.Oyuncu == d.AktifOyuncu;
+            // ortağın son teklifi benim son teklifimden SONRA mı?
+            bool ortakSonra = ortSon != null && (benSon == null || g.IndexOf(ortSon) > g.IndexOf(benSon));
+
+            switch (ad)
+            {
+                // Tek başına zayıf / önleyici ya da yalnızca cevap niteliğinde konvansiyonlar:
+                // kendi UygunMu denetimleri yeterli
+                case "Namyats":
+                case "Multi 2♦":
+                case "Bergen Raises":
+                case "Inverted Minors":
+                    return true;
+
+                case "Gerber":
+                    return ortakSonra && ortSon.Teklif == "4♣" && ilk != null && ilk.Koz == "NT";
+
+                // NT açıcısı olarak yapay sorulara cevap
+                case "Puppet Stayman":
+                case "Stayman":
+                case "Jacoby Transfer":
+                case "Minor Transfer":
+                    return benAcilis && ortakSonra;
+
+                case "Trial Bid":
+                    return ortakSonra && ilk != null && ortSon.Koz != "NT" && ortSon.Koz != ilk.Koz && Sev(ortSon.Teklif) <= 3;
+
+                case "Exclusion Blackwood":
+                    // Exclusion sorusu: koz kararlaştırılmış, ortak daha önce hiç söylenmemiş bir renge 5. seviyeye sıçradı
+                    if (!(ortakSonra && ilk != null && benSon != null && benSon.Koz == ilk.Koz &&
+                          Sev(ortSon.Teklif) == 5 && ortSon.Koz != "NT" && ortSon.Koz != ilk.Koz)) return false;
+                    return !g.Any(h => h != ortSon && Gercek(h.Teklif) && h.Koz == ortSon.Koz);
+
+                case "Kickback":
+                    // Koz kararlaştırılmış olmalı: açılış rengine ben de destek verdim,
+                    // ortak ise kozun ÜSTÜNDE 4. seviye bir renk dedi
+                    return ortakSonra && ilk != null && benSon != null && benSon.Koz == ilk.Koz &&
+                           Sev(ortSon.Teklif) == 4 && ortSon.Koz != "NT" &&
+                           KozSiraAl(ortSon.Koz) > KozSiraAl(ilk.Koz);
+
+                // Lebensohl: 2NT rölesinden sonra ortağın 3♣'ine sign-off / düzeltme
+                case "Lebensohl":
+                case "Lebensohl (Reverse)":
+                case "Lebensohl (Zayıf 2)":
+                    return ortakSonra && benSon != null && benSon.Teklif == "2NT";
+
+                // 3. / 4. renk forsingine AÇICI olarak cevap
+                case "3. Renk Forsingi":
+                case "4. Renk Forsingi":
+                    return benAcilis && ortakSonra;
+
+                case "Blackwood":
+                case "RKCB":
+                    return ortakSonra && (ortSon.Teklif == "4NT" || ortSon.Teklif == "5NT");
+
+                case "Koz Q Sorusu":
+                case "Grand Slam Force":
+                case "Pick-a-Slam":
+                    // yalnızca ortağın 5NT sorusuna CEVAP muaf; kendi sorularım güç eşiğinden geçer
+                    return ortakSonra && ortSon.Teklif == "5NT";
+            }
+            return false;
+        }
+
+        private const double CevapSlamEsigi = 26;
+
         // ───────────────────────── Ana denetim ─────────────────────────
 
         /// <summary>true → teklif verilebilir.</summary>
@@ -341,14 +423,10 @@ namespace BricKartOyunu.Class.Bidding
                 }
                 else if (ad == "Responsive Double")
                 {
-                    if (!BizimTarafBirSeyDediMi(d)) return false;
+                    // Desen (rakip 1x - ortak Pas/Dbl - rakip 2x) konvansiyonun kendi UygunMu'sunda denetlenir;
+                    // burada yalnızca seviye ve güç sınırı aranır.
                     var rak = SonGercek(d, false);
                     if (rak == null || Sev(rak.Teklif) > 4) return false;
-                    // bir önceki bizim taraf hamlesi ortağın Dbl veya bir bid olmalı
-                    var son = (d.Gecmis ?? new List<IhaleHamlesi>()).LastOrDefault(h => h.Teklif != "Pas");
-                    if (son == null || son.Oyuncu == d.Partner || son.Oyuncu == d.AktifOyuncu) return false;
-                    var oncekiler = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => h.Teklif != "Pas").Reverse().Skip(1).FirstOrDefault();
-                    if (oncekiler == null || oncekiler.Oyuncu != d.Partner) return false;
                     if (ElDegerlendirici.HCP(d.AktifOyuncuEli) < 6) return false;
                 }
                 return true;
@@ -364,9 +442,21 @@ namespace BricKartOyunu.Class.Bidding
             if (RekabetKonv.Contains(ad))
             {
                 var g = d.Gecmis ?? new List<IhaleHamlesi>();
-                if (g.Any(h => Gercek(h.Teklif) && (h.Oyuncu == d.AktifOyuncu || h.Oyuncu == d.Partner))) return false;
                 var ilk = g.FirstOrDefault(h => Gercek(h.Teklif));
                 if (ilk == null) return false;
+                // Ortak müdahale etti (Cappelletti 2♦ / Landy 2♣ ...), ben henüz konuşmadım → cevap veriyorum
+                bool benKonustu = g.Any(h => Gercek(h.Teklif) && h.Oyuncu == d.AktifOyuncu);
+                bool ortakKonustu = g.Any(h => Gercek(h.Teklif) && h.Oyuncu == d.Partner);
+                if (!benKonustu && ortakKonustu && !BizimTaraf(d, ilk.Oyuncu)) return true;
+                // Müdahaleci devamı: kendi yapay müdahalemin ardından ortağın cevabı (pass-or-correct)
+                if (benKonustu && ortakKonustu && !BizimTaraf(d, ilk.Oyuncu))
+                {
+                    var ortSonR = g.LastOrDefault(h => h.Oyuncu == d.Partner && Gercek(h.Teklif));
+                    var benSonR = g.LastOrDefault(h => h.Oyuncu == d.AktifOyuncu && Gercek(h.Teklif));
+                    if (ortSonR != null && benSonR != null && g.IndexOf(ortSonR) > g.IndexOf(benSonR) &&
+                        Sev(ortSonR.Teklif) <= 2) return true;
+                }
+                if (benKonustu || ortakKonustu) return false;
                 return true;
             }
 
@@ -378,6 +468,12 @@ namespace BricKartOyunu.Class.Bidding
                 return true;
             var ar = PartnerAraligi(d);
             double est = ben + ar.Min + (ar.Max - ar.Min) * 0.25;
+            // Uzun (6+) renk: söylediğim renk en uzun rengimse fazladan kartlar dağılım puanı sayılır
+            if (renk != "NT" && !string.IsNullOrEmpty(renk))
+            {
+                int uzunluk = d.AktifOyuncuEli.Count(c => c.Suit == renk);
+                if (uzunluk >= 7) est += uzunluk - 5;
+            }
             int rakSev = RakipSeviyesi(d);
 
             // Ortağın sorusuna zorunlu cevap: ortağın son teklifi soru gibiyse seviye sınırı yok
@@ -388,11 +484,23 @@ namespace BricKartOyunu.Class.Bidding
                 if (ortSon.Teklif == "4NT" || ortSon.Teklif == "5NT") return true;
             }
 
+            // Ortağın yapay sorusuna CEVAP veriyorsam güç eşiği uygulanmaz
+            // (yalnızca slam seviyesindeki cevaplar için asgari toplam güç aranır)
+            if (CevapVeriyorMu(d, ad)) return sev < 6 || est >= CevapSlamEsigi;
+
             // Soru bidleri (slam arayışı) ancak güçlü toplam ile
             if (SoruKonv.Contains(ad))
             {
                 if (ad == "Serious 3NT" || ad == "Non-Serious 3NT") return est >= 28;
+                if (ad == "Koz Q Sorusu")
+                {
+                    // Kendi 4NT'm / 4. seviye sorum cevaplandı, şimdi kız soruyorum: slam eşiği biraz düşük
+                    var benSon2 = (d.Gecmis ?? new List<IhaleHamlesi>()).LastOrDefault(h => h.Oyuncu == d.AktifOyuncu && Gercek(h.Teklif));
+                    if (benSon2 != null && Sev(benSon2.Teklif) >= 4) return est >= 30;
+                    return est >= 30;
+                }
                 if (ad == "Grand Slam Force") return est >= 34;
+                if (ad == "Pick-a-Slam") return est >= 29;
                 return est >= 30;
             }
 

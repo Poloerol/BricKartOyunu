@@ -69,34 +69,23 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ═══════════════════════════════════════════════════════════════
             // 7. 5-5 MAJÖR KONTROLÜ — Michaels'a bırak
-            // ═══════════════════════════════════════════════════════════════
             int macaUzun = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupaUzun = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
             if (macaUzun >= 5 && kupaUzun >= 5) return false;
 
-            // ═══════════════════════════════════════════════════════════════
-            // 8. GÖSTEREMEDİĞİMİZ MAJÖR VAR MI?
-            // ═══════════════════════════════════════════════════════════════
-            int dortluMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-            int dortluKupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-
-            // Rakip Maça açtıysa → 4'lü Kupa göstermek isteriz
-            if (rakipKozu == "Maça")
-            {
-                if (dortluKupa >= 4) return true;
-            }
-            // Rakip Kupa açtıysa → 4'lü Maça göstermek isteriz
-            else if (rakipKozu == "Kupa")
-            {
-                if (dortluMaca >= 4) return true;
-            }
-            // Rakip minör açtıysa → 4'lü Maça VEYA 4'lü Kupa göstermek isteriz
-            else if (rakipKozu == "Karo" || rakipKozu == "Sinek")
-            {
-                if (dortluMaca >= 4 || dortluKupa >= 4) return true;
-            }
-
-            return false;
+            // 8. Standart kural: Negatif kontr, HENÜZ TEKLİF EDİLMEMİŞ renkleri gösterir.
+            //    - İki majör de boşta (1m-(1m)): 4-4 majör
+            //    - Bir majör boşta (1♦-(1♥), 1♥-(2♣)...): o majörde 4+
+            //    - İki majör de alınmış (1♥-(1♠)): 4-4 minör
+            var partnerAcis = durum.Gecmis.FirstOrDefault(h => h.Oyuncu == durum.Partner && h.GercekTeklifMi);
+            string partnerKozu = partnerAcis != null ? partnerAcis.Koz : null;
+            bool macaBosta = partnerKozu != "Maça" && rakipKozu != "Maça";
+            bool kupaBosta = partnerKozu != "Kupa" && rakipKozu != "Kupa";
+            if (macaBosta && kupaBosta) return macaUzun >= 4 && kupaUzun >= 4;
+            if (macaBosta) return macaUzun >= 4;
+            if (kupaBosta) return kupaUzun >= 4;
+            return ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4 &&
+                   ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4;
         }
 
         public string TeklifVer(IhaleDurumu durum)

@@ -35,16 +35,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
-            // 1. Partner (açıcı) reverse yaptı mı?
-            if (durum.PartnerTeklifleri.Count < 2) return false;
+            // 1. Partner (açıcı) reverse yaptı mı? (Pas'lar sayılmaz; reverse ortağın 2. gerçek teklifi)
+            var ortakGercek = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            var benGercek = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            if (ortakGercek.Count < 2) return false;
 
-            string partnerIlk = durum.PartnerTeklifleri[0];
-            string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
+            string partnerIlk = ortakGercek[0];
+            string partnerSon = ortakGercek[1];
 
             // 2. Ben ilk konuşmamı yaptım mı?
-            if (durum.KendiTeklifleri.Count == 0) return false;
+            if (benGercek.Count == 0) return false;
 
-            string benIlk = durum.KendiTeklifleri[0];
+            string benIlk = benGercek[0];
 
             // 3. Reverse senaryoları:
             //    - 1♣ - 1♠ - 2♠
@@ -78,7 +80,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.KendiTeklifleri.Contains("2NT"))
             {
                 // DURUM 2: 2NT sonrası, partner 3♣ dedi mi?
-                if (durum.PartnerTeklifleri.LastOrDefault() == "3♣")
+                if (ortakGercek.LastOrDefault() == "3♣")
                     return true;
                 return false;
             }
@@ -95,10 +97,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // DURUM 2: 2NT yaptım, partner 3♣ dedi → sign-off veya düzelt
             // ═══════════════════════════════════════════════════════════════
             if (durum.KendiTeklifleri.Contains("2NT") &&
-                durum.PartnerTeklifleri.LastOrDefault() == "3♣")
+                durum.PartnerTeklifleri.Where(t => t != "Pas").LastOrDefault() == "3♣")
             {
                 // 5'li ilk rengimi tekrar göstermek için
-                string benIlk = durum.KendiTeklifleri[0];
+                string benIlk = durum.KendiTeklifleri.First(t => t != "Pas");
 
                 // 5'li ♠ (1♠ cevabıysa)
                 if (benIlk == "1♠")

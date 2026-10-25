@@ -31,7 +31,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 1. Rakip zayıf 2 açtı mı?
             if (durum.RakipTeklifleri.Count == 0) return false;
-            string rakipSon = durum.RakipTeklifleri.LastOrDefault();
+            // Zayıf 2, AÇILIŞ olmalı (ör. 1♠ - Dbl - 2♠ bir zayıf iki değildir)
+            var ilkGercek = durum.Gecmis.FirstOrDefault(h => h.GercekTeklifMi);
+            if (ilkGercek == null) return false;
+            if (ilkGercek.Oyuncu == durum.AktifOyuncu || ilkGercek.Oyuncu == durum.Partner) return false;
+            string rakipSon = ilkGercek.Teklif;
             if (rakipSon != "2♥" && rakipSon != "2♠") return false;
 
             // 2. Partner DBL attı mı?

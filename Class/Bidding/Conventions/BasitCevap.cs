@@ -78,6 +78,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ─── 10-15 HP → limit raise, yeni renk, sonra 2NT ───
             if (hp < 16)
             {
+                // Majör açılışında 4+ destek ve limit raise gücü (10-12): önce destek göster
+                if (hp <= 12 && partnerSeviye == 1 && (partnerKozu == "Maça" || partnerKozu == "Kupa")
+                    && ElDegerlendirici.RenkUzunlugu(el, partnerKozu) >= 4)
+                    return "3" + KozYardimcisi.KozSembolu(partnerKozu);
                 if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
                     return "1♠";
                 if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)

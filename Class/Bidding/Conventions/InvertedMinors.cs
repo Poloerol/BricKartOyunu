@@ -85,11 +85,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(el);
             int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
 
-            // 0-8 HP → 3m (zayıf, preemptive)
-            if (hp <= 8)
+            // 0-9 HP → 3m (zayıf, preemptive)
+            if (hp <= 9)
                 return "3" + sembol;
 
-            // 9+ HP → 2m (forcing). Partnerin minörü ne ise o: 1♣ → 2♣, 1♦ → 2♦.
+            // 10+ HP → 2m (forcing). Partnerin minörü ne ise o: 1♣ → 2♣, 1♦ → 2♦.
             // (Eskiden 10-12 HP için "2♦" sabit yazılıydı; 1♣ açılışında yanlıştı,
             //  9 HP ise hiç karşılanmıyor ve Pas dönüyordu.)
             return "2" + sembol;

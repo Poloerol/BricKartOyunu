@@ -45,7 +45,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Ben henüz konuşmadım
             if (durum.KendiTeklifleri.Count > 0) return false;
-
+            // Partner gerçek teklif vermediyse (direkt/balancing oturuş)
+            if (durum.PartnerTeklifleri.Any(t => t != "Pas" && t != "Dbl" && t != "Rdbl")) return false;
             // Rakip rengini çıkar
             string rakipKozu = KozYardimcisi.TekliftenKozCikar(rakipSon);
             if (string.IsNullOrEmpty(rakipKozu)) return false;

@@ -23,20 +23,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Partner 5NT dedi → cevap veriyoruz
             if (durum.SonGercekTeklif == "5NT" && durum.SonGercekTeklifSahibi == durum.Partner)
             {
-                // Eğer bu bir Pick-a-Slam ise (partner daha önce 3+ seviyede rebid yaptıysa)
-                // Grand Slam Force devreye girmesin.
-                bool pickASlamSekansi = durum.PartnerTeklifleri.Any(t => {
-                    int sev = KozYardimcisi.TekliftenSeviyeCikar(t);
-                    return sev >= 3;
-                });
-
-                if (pickASlamSekansi) return false;
-
-                // 4NT veya Kickback sonrası 5NT ise Grand Slam Force'tur
+                // 4NT / Kickback sonrası 5NT = standart PAPAZ SORUSU → KozQSorusu.cs cevaplar.
                 bool oncekiSoruVar = durum.PartnerTeklifleri.Any(t =>
                     t == "4NT" || t == "4♠" || t == "4♥" || t == "4♦");
+                if (oncekiSoruVar) return false;
 
-                return oncekiSoruVar;
+                // Aksi halde DOĞRUDAN Grand Slam Force: koz anlaşılmış olmalı
+                string kozGsf = durum.AnlasilanKoz();
+                return !string.IsNullOrEmpty(kozGsf) && kozGsf != "NT";
             }
 
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
@@ -58,26 +52,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (durum.SonGercekTeklif == "5NT" && durum.SonGercekTeklifSahibi == durum.Partner)
             {
-                int papazSayisi = 0;
-                string[] renkler = { "Maça", "Kupa", "Karo", "Sinek" };
-                foreach (var renk in renkler)
-                {
-                    if (ElDegerlendirici.PapazVar(el, renk)) papazSayisi++;
-                }
-
-                switch (papazSayisi)
-                {
-                    case 0:
-                    case 3:
-                        return "6♣";
-                    case 1:
-                    case 4:
-                        return "6♦";
-                    case 2:
-                        return "6♥";
-                    default:
-                        return "6♠";
-                }
+                // Grand Slam Force: kozun en üst 3 onöründen (A, K, Q) en az ikisi → 7 koz, aksi halde 6 koz
+                string koz = durum.AnlasilanKoz();
+                int onor = 0;
+                foreach (var c in el.Where(c => c.Suit == koz))
+                    if (c.Value >= 12) onor++;
+                return (onor >= 2 ? "7" : "6") + KozYardimcisi.KozSembolu(koz);
             }
 
             return "5NT";

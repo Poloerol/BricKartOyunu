@@ -38,7 +38,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
-            string koz = durum.AnlasilanKoz();
+            string koz = KozBul(durum);
             if (string.IsNullOrEmpty(koz)) return false;
             if (koz == "NT") return false;
 
@@ -88,7 +88,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var el = durum.AktifOyuncuEli;
             if (el == null) return "Pas";
 
-            string koz = durum.AnlasilanKoz();
+            string koz = KozBul(durum);
             if (string.IsNullOrEmpty(koz)) return "Pas";
 
             string kickbackTeklif = KickbackTeklifi(koz);
@@ -102,6 +102,45 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ─── Soru: Biz Kickback yapacağız ─────────────────────────
             return kickbackTeklif;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // YARDIMCI: Koz Tespiti
+        // ═══════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Anlaşılan kozu bulur. Cevap sırasında durum.AnlasilanKoz() partnerin
+        /// Kickback teklifini (4♠ / 4♥ / 4♦) koz sanar; bu yüzden önce her aday
+        /// koz için "partner bu kozun Kickback'ini mi sordu" diye bakılır.
+        /// Hiçbiri tutmazsa (soru tarafı) AnlasilanKoz() kullanılır.
+        /// </summary>
+        private static string KozBul(IhaleDurumu durum)
+        {
+            foreach (var aday in new[] { "Kupa", "Karo", "Sinek" })
+            {
+                if (PartnerKickbackYaptiMi(durum, KickbackTeklifi(aday)) &&
+                    OrtaklikKozuSoyledi(durum, aday))
+                    return aday;
+            }
+            return durum.AnlasilanKoz();
+        }
+
+        /// <summary>
+        /// Kickback sorusundan ÖNCE ortaklık (ben + partner) bu rengi
+        /// en az 2 kez söylemiş mi? (Ör. 1♥ - 3♥ - 4♠ → ♥ iki kez söylendi.)
+        /// </summary>
+        private static bool OrtaklikKozuSoyledi(IhaleDurumu durum, string koz)
+        {
+            if (durum.Gecmis == null) return false;
+
+            var bizim = durum.Gecmis
+                .Where(h => h.GercekTeklifMi &&
+                            (h.Oyuncu == durum.AktifOyuncu || h.Oyuncu == durum.Partner))
+                .ToList();
+            if (bizim.Count < 3) return false;
+
+            bizim.RemoveAt(bizim.Count - 1);   // son teklif = Kickback sorusunun kendisi
+            return bizim.Count(h => h.Koz == koz) >= 2;
         }
 
         // ═══════════════════════════════════════════════════════════════

@@ -35,12 +35,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli == null || durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
-            // 5-5 majör şartı
-            int s = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Maça");
-            int h = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Kupa");
-
-            if (s >= 5 && h >= 5 && durum.RakipActiMi())
-                return true;
+            // (Genel 5-5 kısayolu kaldırıldı: yalnızca gerçek cue-bid / cevap durumları)
 
             // Eğer özel CueBid veya Cevap koşulları varsa onları da çağırarak kontrol et
             if (CueBidUygunMu(durum)) return true;

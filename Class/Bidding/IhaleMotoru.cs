@@ -19,6 +19,7 @@ namespace BricKartOyunu.Class.Bidding
         public bool KorumaAktif { get; set; } = true;       // IhaleKoruma denetimi
         public bool SeviyeYukseltme { get; set; } = false;  // eski "yasadışı teklifi 1 üst seviyeye çıkar" hilesi
         public bool PasiAtla { get; set; } = true;          // konvansiyon "Pas" derse görüşü yok say
+                                                            // (IBilincliPas işaretli konvansiyonlar hariç)
 
         public IhaleMotoru(OrtaklikAnlasmasi anlasma)
         {
@@ -120,6 +121,9 @@ namespace BricKartOyunu.Class.Bidding
                         string yeniTeklif = gelisim.TeklifVer(durum.AktifOyuncuEli, durum);
                         if (string.IsNullOrEmpty(yeniTeklif)) continue;
 
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AcilisGelismi] {gelisim.GetType().Name} uygun → {yeniTeklif}");
+
                         string yasalYeni = YasalSeviyeyeYukselt(durum, yeniTeklif);
                         if (!GecerliTeklifMi(durum, yasalYeni)) continue;
 
@@ -145,15 +149,29 @@ namespace BricKartOyunu.Class.Bidding
                 string teklif = konvansiyon.TeklifVer(durum);
                 if (string.IsNullOrEmpty(teklif)) continue;
 
+                // Konvansiyonların koruma satırlarındaki "Pas" (ör. el == null) görüş sayılmaz;
+                // ama IBilincliPas ile işaretlenmiş konvansiyonun Pas'ı gerçek bir karardır.
                 if (PasiAtla && teklif.Equals("Pas", StringComparison.OrdinalIgnoreCase) &&
-                    !(konvansiyon is TemelMantik))
+                    !(konvansiyon is TemelMantik) && !(konvansiyon is IBilincliPas))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[PAS-ATLANDI] {konvansiyon.Ad} Pas dedi, sıradakine geçiliyor.");
                     continue;
+                }
 
                 string yasal = SeviyeYukseltme ? YasalSeviyeyeYukselt(durum, teklif) : teklif;
                 if (KorumaAktif && !IhaleKoruma.Izin(durum, yasal, konvansiyon.Ad))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[KORUMA-RED] {konvansiyon.Ad} → {yasal}");
                     continue;
+                }
                 if (!GecerliTeklifMi(durum, yasal))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[GECERSIZ-RED] {konvansiyon.Ad} → {yasal} (son teklif: {durum.SonGercekTeklif})");
                     continue;
+                }
 
 
                 System.Diagnostics.Debug.WriteLine(
@@ -431,4 +449,12 @@ namespace BricKartOyunu.Class.Bidding
                    $"({string.Join(", ", aktifler)})";
         }
     }
+
+    /// <summary>
+    /// İşaret arayüzü: bu konvansiyon UygunMu = true iken "Pas" döndürürse bu
+    /// BİLİNÇLİ bir karardır (ör. DOPI/ROPI'de 1 anahtar kart = Pas).
+    /// IhaleMotoru bu Pas'ı atlamaz, doğrudan teklif olarak kabul eder.
+    /// Kullanım: public class DopiRopi : IKonvansiyon, IBilincliPas
+    /// </summary>
+    public interface IBilincliPas { }
 }

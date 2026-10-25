@@ -119,7 +119,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// </summary>
         private static bool ExclusionOrtami(IhaleDurumu durum, out string koz)
         {
-            koz = durum.AnlasilanKoz();
+            // AnlasilanKoz() partnerin 5♣/5♦ gibi Exclusion teklifini koz sanabiliyor;
+            // önce ortaklığın gerçekten anlaştığı majöre bakılır.
+            koz = OrtaklikMajorKozu(durum) ?? durum.AnlasilanKoz();
             if (koz != "Maça" && koz != "Kupa") return false;
 
             // Benim ve ortağımın gerçek teklifleri (sırayla)
@@ -142,6 +144,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static bool EsBesSeviyeRenk(string t)
         {
             return t == "5♣" || t == "5♦" || t == "5♥" || t == "5♠";
+        }
+
+        /// <summary>
+        /// Ortaklığın (ben + partner) en az 2 kez söylediği son majör.
+        /// 5 seviyesindeki renk teklifleri (Exclusion sorusu ve kademeli cevaplar)
+        /// yapay olduğu için sayılmaz. Bulunamazsa null.
+        /// </summary>
+        private static string OrtaklikMajorKozu(IhaleDurumu durum)
+        {
+            if (durum.Gecmis == null) return null;
+
+            var bizim = durum.Gecmis
+                .Where(h => h.GercekTeklifMi &&
+                            (h.Oyuncu == durum.AktifOyuncu || h.Oyuncu == durum.Partner) &&
+                            !EsBesSeviyeRenk(h.Teklif))
+                .ToList();
+
+            for (int i = bizim.Count - 1; i >= 0; i--)
+            {
+                string k = bizim[i].Koz;
+                if (k != "Maça" && k != "Kupa") continue;
+                if (bizim.Count(h => h.Koz == k) >= 2) return k;
+            }
+            return null;
         }
 
         // ═══════════════════════════════════════════════════════════════
