@@ -211,7 +211,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ── Fit varsa: fit rengiyle hedef ──
             if (fit != null && fit != "NT")
             {
-                int T = HedefFit(fit, est, dengeli && NTOlur(el, rakipRenkleri), dar);
+                int T = HedefFit(fit, est, dengeli && NTOlur(el, rakipRenkleri), dar, fitToplam);
                 if (T == -1) // 3NT tercih
                     return cur < 3 ? Seviye(d, "NT", 3) : (zorunlu ? EnUcuz(d, fit) : "Pas");
                 // Ortağın son teklifi fit renginde ve hedefin altına ulaştık mı
@@ -440,7 +440,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         }
 
         /// <summary>Fit kontratı için hedef seviye (-1: 3NT tercih edilir).</summary>
-        private int HedefFit(string fit, double est, bool ntSecenegi, bool dar = false)
+        private int HedefFit(string fit, double est, bool ntSecenegi, bool dar = false, int fitToplam = 0)
         {
             est += dar ? 2.5 : 0;     // dar aralıkta tahmin güvenilir: eşikleri aşağı çek
             if (Major(fit))
@@ -452,7 +452,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
             // minör
             if (est >= 36) return 6;
-            if (est >= 29) return 5;
+            // 8 kartlık minör uyumda dengeli el + durdurucular varken 3NT (9 el) 5m'den (11 el) çok daha kolay.
+            // 5m ancak 9+ kartlık uyumda ya da slam'a yakın güçte (est>=34) seçilir.
+            if (est >= 29) return (ntSecenegi && fitToplam <= 8 && est < 34) ? -1 : 5;
             if (est >= 27.5) return ntSecenegi ? -1 : 4;
             if (est >= 25.5) return 3;
             return 2;
