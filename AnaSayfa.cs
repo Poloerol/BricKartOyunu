@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace BricKartOyunu.Forms
@@ -648,6 +649,9 @@ namespace BricKartOyunu.Forms
                 }
                 finally
                 {
+                    // Pratiği başlatan Konvansiyon Pratiği formu açık kalmasın
+                    foreach (var kf in Application.OpenForms.Cast<Form>().Where(x => x is Konvansiyon).ToList())
+                        kf.Close();
                     this.Show();
                     this.Activate();
                     ResetToInitialState();

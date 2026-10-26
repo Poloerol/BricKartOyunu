@@ -2536,6 +2536,37 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        public static void Test_YakinKacis()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.2 — Konvansiyon pratiği: yakın kaçışlar");
+            Yaz("════════════════════════════════════════");
+            bool ok = true; int bulunanYakin = 0;
+            var motor = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan());
+            foreach (var ad in new[] { "Stayman", "Jacoby Transfer" })
+            {
+                int gecerli = 0;
+                for (int seed = 958097384; seed < 958097384 + 3000 && gecerli < 3; seed++)
+                {
+                    if (!KonvansiyonPratigi.Gecerli(motor, seed, ad)) continue;
+                    gecerli++;
+                    int v = KonvansiyonPratigi.YakinKacisBul(motor, seed, DagitimProfili.Rastgele, ad);
+                    if (v == 0) continue;
+                    bulunanYakin++;
+                    // Yakın kaçışta konvansiyon kullanılmamalı; aynı varyant aynı desteyi vermeli
+                    var m2 = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan());
+                    var d1 = KonvansiyonPratigi.Deste(seed, DagitimProfili.Rastgele, v);
+                    var d2 = KonvansiyonPratigi.Deste(seed, DagitimProfili.Rastgele, v);
+                    if (!d1.SequenceEqual(d2) || d1.Distinct().Count() != 52) ok = false;
+                    if (!KonvansiyonPratigi.YakinKacis(m2, seed, DagitimProfili.Rastgele, ad, v)) ok = false;
+                }
+            }
+            if (bulunanYakin == 0) ok = false;
+            Yaz("Bulunan yakın kaçış: " + bulunanYakin);
+            Yaz(ok ? "✅ DOĞRU" : "❌ YANLIŞ (yakın kaçış)");
+            Yaz("════════════════════════════════════════");
+        }
+
         public static void Test_Slam_Dizisi_2_1()
         {
             // Güney ♠AQ10874 ♥94 ♣AK2 ♦Q4  /  Kuzey ♠K ♥AKQ3 ♣J74 ♦AK972
@@ -2626,6 +2657,46 @@ namespace BricKartOyunu
                     new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♠",  Sira = 6, GecerliMi = true },
                     new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 7, GecerliMi = true },
                 }, "Pas");
+        }
+
+        public static void Test_4SF_XYZ_Sonrasi_Degil()
+        {
+            // 1♦–1♥–1♠–2♣(XYZ)–2♦ sonrası: son dört teklif 4SF cevabı sayılmamalı (3♣ çıkmamalı)
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 12 },
+                new Card { Suit = "Maça", Value = 10 },
+                new Card { Suit = "Maça", Value = 2 },
+                new Card { Suit = "Kupa", Value = 13 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Kupa", Value = 5 },
+                new Card { Suit = "Kupa", Value = 2 },
+                new Card { Suit = "Karo", Value = 8 },
+                new Card { Suit = "Karo", Value = 6 },
+                new Card { Suit = "Karo", Value = 2 },
+                new Card { Suit = "Sinek", Value = 14 },
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 5 }
+            };
+            var g = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♦",  Sira = 2, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥",  Sira = 4, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 5, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 6, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 7, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♣",  Sira = 8, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 9, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♦",  Sira = 10, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 11, GecerliMi = true },
+            };
+            var durum = new IhaleDurumu { AktifOyuncu = Player.Kuzey, AktifOyuncuEli = el, Anlasma = OrtaklikAnlasmasi.Varsayilan(), Gecmis = g };
+            var motor = new IhaleMotoru(durum.Anlasma);
+            string sonuc = motor.TeklifVer(durum);
+            Yaz("TEST 11.9 — 1♦–1♥–1♠–2♣–2♦ sonrası 9 HP: motor → " + sonuc + " (" + motor.SonKonvansiyonAdi + ")");
+            Yaz(motor.SonKonvansiyonAdi != "4. Renk Forsingi" ? "✅ DOĞRU (4SF değil)" : "❌ YANLIŞ (4SF olarak yorumlandı)");
         }
 
         public static void Test_Rebid2NT_Cevap()
@@ -13842,9 +13913,11 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_KoltukHaritasi();
             Test_Rebid2NT_Cevap();
             Test_Destek_Reverse_Degil();
+            Test_4SF_XYZ_Sonrasi_Degil();
             Test_Ikinci_Renk_2_1_Sonrasi();
             Test_Slam_Dizisi_2_1();
             Test_KonvansiyonPratigi();
+            Test_YakinKacis();
             Test_DagitimUretici();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");

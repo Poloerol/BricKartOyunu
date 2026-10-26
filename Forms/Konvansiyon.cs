@@ -49,6 +49,11 @@ namespace BricKartOyunu
             MevcutListeyiDoldur();
         }
 
+        // Tasarımcı (Konvansiyon.Designer.cs) Load olayına bu işleyiciyi bağlar
+        private void Konvansiyon_Load(object sender, EventArgs e)
+        {
+        }
+
         // ═════════════════════════════════════════════════════════════
         // ARAYÜZ
         // ═════════════════════════════════════════════════════════════
@@ -71,7 +76,7 @@ namespace BricKartOyunu
 
             _chkDuyur = new CheckBox { Text = "Dağıtımdan önce konvansiyonu duyur", Left = 192, Top = 10, Width = 220, Checked = true };
             Controls.Add(_chkDuyur);
-            _chkYakinKacis = new CheckBox { Text = "Yakın kaçışları da üret ++ (yakında)", Left = 192, Top = 38, Width = 220, Enabled = false };
+            _chkYakinKacis = new CheckBox { Text = "Yakın kaçışları da üret ++", Left = 192, Top = 38, Width = 220 };
             Controls.Add(_chkYakinKacis);
 
             Controls.Add(new Label { Text = "Denenen:", Left = 424, Top = 10, Width = 60 });
@@ -183,9 +188,19 @@ namespace BricKartOyunu
                 foreach (var pd in liste) _lstDagitimlar.Items.Add(DagitimMetni(pd));
         }
 
+        private void Goster(string ad, PratikDagitim pd)
+        {
+            if (_lstSecili.SelectedItem != null && (string)_lstSecili.SelectedItem == ad)
+            {
+                _lstDagitimlar.Items.Add(DagitimMetni(pd));
+                _lstDagitimlar.Refresh();
+            }
+        }
+
         private static string DagitimMetni(PratikDagitim pd)
         {
-            return pd.Profil == DagitimProfili.Rastgele ? pd.Seed.ToString() : pd.Seed + " (" + pd.Profil + ")";
+            string m = pd.Profil == DagitimProfili.Rastgele ? pd.Seed.ToString() : pd.Seed + " (" + pd.Profil + ")";
+            return pd.YakinKacis ? m + " ~yakın" : m;
         }
 
         private void PratikDugmeleriniGuncelle()
@@ -230,12 +245,14 @@ namespace BricKartOyunu
             int denenen = 0, gecerli = 0;
             var eksik = new List<string>();
             string otoSecilen = null;
+            bool yakinIstendi = _chkYakinKacis.Checked;
             try
             {
                 var motor = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan());
                 foreach (var ad in _lstSecili.Items.Cast<string>().ToList())
                 {
                     var bulunan = new List<PratikDagitim>();
+                    int gecerliAdet = 0;
                     _sonuclar[ad] = bulunan;   // canlı: seçilince o ana kadar bulunan eller görünür
                     // Kullanıcı kendi seçmediyse, üretilen konvansiyonu seçili göster
                     if (_lstSecili.SelectedItem == null || (string)_lstSecili.SelectedItem == otoSecilen)
@@ -247,21 +264,28 @@ namespace BricKartOyunu
                     }
                     foreach (var asama in Asamalar)
                     {
-                        if (bulunan.Count >= adet || _iptal) break;
+                        if (gecerliAdet >= adet || _iptal) break;
                         long seed = baslangic;
                         int bu = 0;
-                        while (bulunan.Count < adet && bu < asama.Value && !_iptal)
+                        while (gecerliAdet < adet && bu < asama.Value && !_iptal)
                         {
                             if (seed > int.MaxValue) seed = 1;
                             if (KonvansiyonPratigi.Gecerli(motor, (int)seed, ad, asama.Key))
                             {
                                 var pd = new PratikDagitim { Seed = (int)seed, Konvansiyon = ad, Profil = asama.Key };
                                 bulunan.Add(pd);
+                                gecerliAdet++;
                                 gecerli++;
-                                if (_lstSecili.SelectedItem != null && (string)_lstSecili.SelectedItem == ad)
+                                Goster(ad, pd);
+                                if (yakinIstendi)
                                 {
-                                    _lstDagitimlar.Items.Add(DagitimMetni(pd));
-                                    _lstDagitimlar.Refresh();
+                                    int v = KonvansiyonPratigi.YakinKacisBul(motor, (int)seed, asama.Key, ad);
+                                    if (v > 0)
+                                    {
+                                        var yk = new PratikDagitim { Seed = (int)seed, Konvansiyon = ad, Profil = asama.Key, Varyant = v };
+                                        bulunan.Add(yk);
+                                        Goster(ad, yk);
+                                    }
                                 }
                             }
                             seed++; bu++; denenen++;
@@ -273,7 +297,7 @@ namespace BricKartOyunu
                             }
                         }
                     }
-                    if (bulunan.Count < adet && !_iptal) eksik.Add(ad + " (" + bulunan.Count + "/" + adet + ")");
+                    if (gecerliAdet < adet && !_iptal) eksik.Add(ad + " (" + gecerliAdet + "/" + adet + ")");
                     if (_iptal) break;
                 }
             }
@@ -308,7 +332,18 @@ namespace BricKartOyunu
             {
                 List<PratikDagitim> bulunanlar;
                 if (!_sonuclar.TryGetValue(ad, out bulunanlar)) continue;
-                liste.AddRange(bulunanlar);
+                var grup = new List<PratikDagitim>(bulunanlar);
+                // Yakın kaçışlar varsa sıra karıştırılır (hangisinin yakın kaçış olduğu anlaşılmasın)
+                if (grup.Any(p => p.YakinKacis))
+                {
+                    var r = new Random(grup.Count * 31 + grup[0].Seed);
+                    for (int i = grup.Count - 1; i > 0; i--)
+                    {
+                        int j = r.Next(i + 1);
+                        var t = grup[i]; grup[i] = grup[j]; grup[j] = t;
+                    }
+                }
+                liste.AddRange(grup);
             }
             return liste;
         }
@@ -338,7 +373,7 @@ namespace BricKartOyunu
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
                 try
                 {
-                    File.WriteAllLines(dlg.FileName, liste.Select(p => p.Konvansiyon + ";" + p.Seed + ";" + p.Profil), new UTF8Encoding(true));
+                    File.WriteAllLines(dlg.FileName, liste.Select(p => p.Konvansiyon + ";" + p.Seed + ";" + p.Profil + ";" + p.Varyant), new UTF8Encoding(true));
                 }
                 catch (Exception ex)
                 {

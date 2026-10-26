@@ -165,6 +165,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             };
             if (renkler.Count != 4) return false;
 
+            // Bu dört teklif ortaklığın TÜM gerçek teklifleri olmalı: 1♦–1♥–1♠–2♣–2♦ gibi daha uzun
+            // dizilerin (XYZ vb.) son dört teklifi 4SF sayılmaz.
+            int ortaklikSayisi = gercekTeklifler.Count(h => h.Oyuncu == durum.AktifOyuncu || h.Oyuncu == durum.Partner);
+            if (ortaklikSayisi != 4) return false;
+
             return true;
         }
 
