@@ -216,12 +216,21 @@ namespace BricKartOyunu
 
             int denenen = 0, gecerli = 0;
             var eksik = new List<string>();
+            string otoSecilen = null;
             try
             {
                 var motor = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan());
                 foreach (var ad in _lstSecili.Items.Cast<string>().ToList())
                 {
                     var bulunan = new List<int>();
+                    _sonuclar[ad] = bulunan;   // canlı: seçilince o ana kadar bulunan eller görünür
+                    // Kullanıcı kendi seçmediyse, üretilen konvansiyonu seçili göster
+                    if (_lstSecili.SelectedItem == null || (string)_lstSecili.SelectedItem == otoSecilen)
+                    {
+                        _lstSecili.ClearSelected();
+                        _lstSecili.SelectedItem = ad;   // SelectedIndexChanged listeyi yeniler
+                        otoSecilen = ad;
+                    }
                     long seed = baslangic;
                     int bu = 0;
                     while (bulunan.Count < adet && bu < AzamiDenemeKonvansiyonBasina && !_iptal)
@@ -231,6 +240,8 @@ namespace BricKartOyunu
                         {
                             bulunan.Add((int)seed);
                             gecerli++;
+                            if (_lstSecili.SelectedItem != null && (string)_lstSecili.SelectedItem == ad)
+                                _lstDagitimlar.Items.Add(((int)seed).ToString());
                         }
                         seed++; bu++; denenen++;
                         if (denenen % 25 == 0)
@@ -240,7 +251,6 @@ namespace BricKartOyunu
                             Application.DoEvents();
                         }
                     }
-                    _sonuclar[ad] = bulunan;
                     if (bulunan.Count < adet && !_iptal) eksik.Add(ad + " (" + bulunan.Count + "/" + adet + ")");
                     if (_iptal) break;
                 }
@@ -251,6 +261,7 @@ namespace BricKartOyunu
                 _txtGecerli.Text = gecerli.ToString();
                 _uretiyor = false;
                 _btnUret.Enabled = _btnEkle.Enabled = _btnCikar.Enabled = true;
+                if (_lstSecili.SelectedItem == null && _lstSecili.Items.Count > 0) _lstSecili.SelectedIndex = 0;
                 DagitimListesiniGoster();
                 PratikDugmeleriniGuncelle();
             }

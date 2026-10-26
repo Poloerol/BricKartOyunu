@@ -2596,6 +2596,38 @@ namespace BricKartOyunu
                 }, "3♥");
         }
 
+        public static void Test_Destek_Reverse_Degil()
+        {
+            // ♠J 9 7 3 2  ♥3 2  ♣A Q 5  ♦10 8 4  (7 HP) — 1♣–1♠–2♠ (basit destek) sonrası: Lebensohl 2NT DEĞİL, Pas
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 11 },
+                new Card { Suit = "Maça", Value = 9 },
+                new Card { Suit = "Maça", Value = 7 },
+                new Card { Suit = "Maça", Value = 3 },
+                new Card { Suit = "Maça", Value = 2 },
+                new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Kupa", Value = 2 },
+                new Card { Suit = "Sinek", Value = 14 },
+                new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 5 },
+                new Card { Suit = "Karo", Value = 10 },
+                new Card { Suit = "Karo", Value = 8 },
+                new Card { Suit = "Karo", Value = 4 }
+            };
+            SeviyeTesti("TEST 11.8 — 1♣–1♠–2♠ (destek, reverse değil) sonrası 7 HP → Pas", el, Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣",  Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♠",  Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♠",  Sira = 6, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 7, GecerliMi = true },
+                }, "Pas");
+        }
+
         public static void Test_Rebid2NT_Cevap()
         {
             // ♠J 9  ♥10 8 7 4  ♣A J 10 4  ♦Q J 4  (9 HP)  — 1♦ (18 HP) – 1♥ – 2NT (18-19) sonrası
@@ -3673,10 +3705,10 @@ namespace BricKartOyunu
         public static void Test_Lebensohl_Reverse_Zayif()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 15.1 — Lebensohl Reverse: 1♣-1♠-2♠-2NT (zayıf)");
+            Yaz("TEST 15.1 — Lebensohl Reverse: 1♦-1♠-2♥-2NT (zayıf)");
             Yaz("════════════════════════════════════════");
 
-            // 1♣ (Kuzey) - 1♠ (Güney) - 2♠ (Kuzey) - ? (Güney)
+            // 1♦ (Kuzey) - 1♠ (Güney) - 2♥ reverse (Kuzey) - ? (Güney)
             // Güney: 5-8 OP → 2NT Lebensohl
             var guneyEli = new List<Card>
     {
@@ -3702,11 +3734,11 @@ namespace BricKartOyunu
 
             var gecmis = new List<IhaleHamlesi>
     {
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦", Sira = 1, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠", Sira = 3, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠", Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♥", Sira = 5, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
     };
 
@@ -3768,7 +3800,7 @@ namespace BricKartOyunu
             Yaz("TEST 15.3 — Lebensohl Reverse: 2NT sonrası 3♠ sign-off");
             Yaz("════════════════════════════════════════");
 
-            // 1♣ - 1♠ - 2♠ - 2NT - Pas - 3♣ - Pas - ? (Güney)
+            // 1♦ - 1♠ - 2♥ - 2NT - Pas - 3♣ - Pas - ? (Güney)
             // Güney: 5'li ♠ ile 3♠ sign-off
             var guneyEli = new List<Card>
     {
@@ -3793,11 +3825,11 @@ namespace BricKartOyunu
 
             var gecmis = new List<IhaleHamlesi>
     {
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣",  Sira = 1, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦",  Sira = 1, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 3, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
-        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠",  Sira = 5, GecerliMi = true },
+        new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♥",  Sira = 5, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2NT", Sira = 7, GecerliMi = true },
         new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 8, GecerliMi = true },
@@ -13809,6 +13841,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Preempt_Cevap_Ve_ZayifIki();
             Test_KoltukHaritasi();
             Test_Rebid2NT_Cevap();
+            Test_Destek_Reverse_Degil();
             Test_Ikinci_Renk_2_1_Sonrasi();
             Test_Slam_Dizisi_2_1();
             Test_KonvansiyonPratigi();
