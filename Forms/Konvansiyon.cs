@@ -80,10 +80,10 @@ namespace BricKartOyunu
             Controls.Add(_lstSecili);
 
             _btnCikar = new Button { Text = "<-----", Left = 186, Top = 150, Width = 80, Height = 24 };
-            _btnCikar.Click += (s, e) => Cikar();
+            _btnCikar.Click += (s, e) => Ekle();   // "<-----": secili konvansiyonu sol listeye ekler
             Controls.Add(_btnCikar);
             _btnEkle = new Button { Text = "----->", Left = 186, Top = 182, Width = 80, Height = 24 };
-            _btnEkle.Click += (s, e) => Ekle();
+            _btnEkle.Click += (s, e) => Cikar();   // "----->": sol listeden cikarir
             Controls.Add(_btnEkle);
 
             Controls.Add(new Label { Text = "Kullanılabilir konvansiyonlar", Left = 274, Top = 84, Width = 170 });
