@@ -210,6 +210,33 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (fit != null && fit != "NT" && sonOrtak && son.Koz != fit && son.Koz != "NT" && son.Seviye >= 3 && Cheapest(d, fit) <= 5)
                 zorunlu = true;   // ortak kontrol (cue) teklifi verdi: fit renginde oyuna git
 
+            // Kendi 4NT (RKCB) sorumun cevabı geldi: toplam kilit kartı say, slam karar ver.
+            if (sonOrtak && son.Seviye == 5 && son.Koz != "NT" &&
+                gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT"))
+            {
+                string rk = RkcbKarari(d, el, son, est);
+                if (rk != null) return rk;
+            }
+
+            // Ortak 4. seviyede kontrol (cue) teklifi verdi ve majör koz anlaşıldı (ör. 1♠–2♦–2♠–3♥–3♠–4♦):
+            // Pas yasak. Slam ilgisine karşılık: 13+ HP ile 4NT (RKCB), değilse 4M ile kapat.
+            {
+                string ak = d.AnlasilanKoz();
+                if (sonOrtak && ak != null && Major(ak) && son.Seviye == 4 && son.Koz != "NT" && son.Koz != ak &&
+                    RenkSira(son.Koz) < RenkSira(ak) &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi) &&
+                    !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT"))
+                    return hp >= 13 ? "4NT" : Seviye(d, ak, 4);
+            }
+
+            // Tek taraflı koz: ortak majör rengini ≥2 kez söyledi (6+), bende o renkte onur var ve
+            // güç slam bölgesinde → 4. seviyede kontrol teklifi (4M ile kapatma, slam ara).
+            if (sonOrtak && est >= 31 && cur <= 3)
+            {
+                string cue = KontrolTeklifi(d, el, gercek);
+                if (cue != null) return cue;
+            }
+
             // Ters çevrilmiş minör (1m-2m): açıcı en az bir tur daha konuşmalı
             if (IMZorunlu(d, gercek)) return IMDevam(d, el, hp, dengeli, rakipRenkleri);
 
@@ -229,6 +256,67 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ── Fit yok: NT / uzun renk ──
             return FitsizDevam(d, el, hp, dengeli, est, cur, rakipRenkleri, gercek, zorunlu, benNTAcildi, dar);
+        }
+
+        /// <summary>
+        /// Sorduğum 4NT'nin cevabı (5. seviye) geldi. Kilit kart toplamıma göre 6M / 5M / Pas.
+        /// RKCB 1430 (varsayılan): 5♣=1 ya da 4, 5♦=0 ya da 3, 5♥=2 (Q yok), 5♠=2 (Q var).
+        /// Belirsiz cevapta toplamı 5'i aşmayan yorum seçilir.
+        /// </summary>
+        private string RkcbKarari(IhaleDurumu d, List<Card> el, IhaleHamlesi cevap, double est)
+        {
+            string koz = d.AnlasilanKoz();
+            if (koz == null || koz == "NT" || !Major(koz)) return null;
+            bool k1430 = d.Anlasma == null || d.Anlasma.RKCB1430;
+            int ben = ElDegerlendirici.KilitKartSayisi(el, koz);
+
+            int a, b;   // olası kilit kart sayıları
+            switch (cevap.Teklif)
+            {
+                case "5♣": a = k1430 ? 1 : 0; b = k1430 ? 4 : 3; break;
+                case "5♦": a = k1430 ? 0 : 1; b = k1430 ? 3 : 4; break;
+                case "5♥": case "5♠": a = b = 2; break;
+                default: return null;
+            }
+            int ort = (ben + b <= 5) ? b : a;
+            int toplam = ben + ort;
+
+            // Cevap 5M'yi geçtiyse (ör. koz ♥, cevap 5♠) 6M dışında seçenek yok
+            int ucuz5 = Cheapest(d, koz);
+            if (toplam >= 5) return Seviye(d, koz, 6);
+            if (toplam == 4) return est >= 32 ? Seviye(d, koz, 6) : (ucuz5 <= 5 ? Seviye(d, koz, 5) : "Pas");
+            return ucuz5 <= 5 ? Seviye(d, koz, 5) : "Pas";
+        }
+
+        /// <summary>
+        /// Ortak bir majörü en az iki kez söylediyse (6+ kart), ben o rengi hiç söylemedim ve o renkte
+        /// A/K/Q taşıyorsam koz kabul edilir. 4M'nin altında, ilk turda kontrolüm olan (A veya
+        /// kısalık) en ucuz renkte 4. seviye kontrol teklifi döndürür; yoksa null.
+        /// </summary>
+        private string KontrolTeklifi(IhaleDurumu d, List<Card> el, List<IhaleHamlesi> gercek)
+        {
+            string koz = null;
+            foreach (var r in new[] { "Maça", "Kupa" })
+            {
+                int ort = gercek.Count(h => h.Oyuncu == d.Partner && h.Koz == r);
+                bool benBu = gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == r);
+                if (ort >= 2 && !benBu && el.Any(c => c.Suit == r && c.Value >= 12)) { koz = r; break; }
+            }
+            if (koz == null) return null;
+
+            // Daha önce 4. seviyede kontrol teklifi vermişsem tekrarlama
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Seviye == 4 && h.Koz != "NT")) return null;
+
+            foreach (var r in Renkler)
+            {
+                if (r == koz || RenkSira(r) > RenkSira(koz)) continue;
+                int uz = ElDegerlendirici.RenkUzunlugu(el, r);
+                bool kontrol = uz == 0 || el.Any(c => c.Suit == r && c.Value == 14);
+                if (!kontrol) continue;
+                if (Cheapest(d, r) != 4) continue;
+                return Seviye(d, r, 4);
+            }
+            return null;
         }
 
         // ── Ters çevrilmiş minör (1m–2m): açıcı rebid yapmak zorunda ──
@@ -301,6 +389,42 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 gercek.Any(h => h.Oyuncu == d.Partner && h.Koz == "NT" && h.Seviye == 2) &&
                 !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Seviye >= 2))
                 return Seviye(d, "NT", 3);
+
+            // 2/1 sonrası ikinci renk: ortak açtı, ben yeni renkle (2. seviye) cevap verdim, ortak kendi
+            // açış rengini tekrarladı (ör. 1♠–2♦–2♠). Oyun gücündeyim ve henüz söylemediğim 4+ kartlık
+            // bir renk var → 3NT ile ihaleyi kapatmadan o rengi göster (fit/slam aranır).
+            {
+                var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (benim.Count == 1 && ortagim.Count == 2 && gercek.First().Oyuncu == d.Partner &&
+                    gercek.First().Koz != "NT" && benim[0].Koz != "NT" && benim[0].Seviye == 2 &&
+                    ortagim[1].Koz == ortagim[0].Koz && ortagim[1].Seviye == 2 &&
+                    gercek.Last().Oyuncu == d.Partner && !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
+                    est >= 26 && hp >= 12)
+                {
+                    string ikinci = null; int ikinciUz = 3;
+                    foreach (var r in new[] { "Maça", "Kupa", "Sinek", "Karo" })
+                    {
+                        if (r == ortagim[0].Koz || r == benim[0].Koz) continue;
+                        int rUz = ElDegerlendirici.RenkUzunlugu(el, r);
+                        if (rUz > ikinciUz || (rUz == ikinciUz && rUz >= 4 && ikinci != null && Major(r) && !Major(ikinci))) { ikinci = r; ikinciUz = rUz; }
+                    }
+                    if (ikinci != null && ikinciUz >= 4 && Cheapest(d, ikinci) <= 3)
+                        return Seviye(d, ikinci, Cheapest(d, ikinci));
+                }
+            }
+
+            // Zorlayıcı durumda 6+ kartlık kendi rengim var ve ortağın son gösterdiği renkte durdurucum yok:
+            // 3NT yerine rengi tekrarla (ör. 1♠–2♦–2♠–3♥ sonrası ♠AQ10874, ♥94 → 3♠).
+            if (zorunlu && cur <= 3 && gercek.Last().Oyuncu == d.Partner && gercek.Last().Koz != "NT")
+            {
+                string ur = EnUzunRenk(el);
+                if (ElDegerlendirici.RenkUzunlugu(el, ur) >= 6 && ur != gercek.Last().Koz &&
+                    gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == ur) &&
+                    !ElDegerlendirici.StopperVar(el, gercek.Last().Koz) &&
+                    !rakipRenkleri.Contains(ur) && Cheapest(d, ur) <= 3)
+                    return Seviye(d, ur, Cheapest(d, ur));
+            }
 
             // Oyun gücü: 3NT (veya 6+ majörde 4)
             double oyunEsik = dar ? 26 : 27.5, davetEsik = dar ? 24 : 25.5;
@@ -447,6 +571,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 son == ortakIlk && son.Koz != "NT" && son.Seviye <= 2 &&
                 !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == son.Koz) &&
                 !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && gercek.IndexOf(h) > gercek.IndexOf(ortakIlk)))
+                return true;
+
+            // 2/1 oyun zorlaması: ortak 2. seviyede yeni renkle cevap verdi, sonra 3. seviyede başka bir yeni
+            // renk gösterdi (ör. 1♠–2♦–2♠–3♥) → oyuna ulaşana dek Pas yasak.
+            if (benimIlk != null && ortakIlk != null && gercek.IndexOf(benimIlk) < gercek.IndexOf(ortakIlk) &&
+                ortakIlk.Koz != "NT" && ortakIlk.Seviye == 2 && son != ortakIlk &&
+                son.Koz != "NT" && son.Seviye <= 3 && son.Koz != ortakIlk.Koz &&
+                !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == son.Koz) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)))
                 return true;
             return false;
         }

@@ -250,6 +250,43 @@ namespace BricKartOyunu
         /// </summary>
         private int _seed = 0;
 
+        // ── Konvansiyon pratiği: bu liste doluysa dağıtımlar sırayla buradan gelir ──
+        public List<PratikDagitim> PratikDagitimlari { get; set; }
+        public bool PratikDuyur { get; set; } = true;
+        private int _pratikIndeks = 0;
+
+        private bool PratikModu
+        {
+            get { return PratikDagitimlari != null && _pratikIndeks >= 0 && _pratikIndeks < PratikDagitimlari.Count; }
+        }
+
+        /// <summary>Pratik listesinde sıradaki dağıtıma geçer; liste bitince pratik modu kapanır.</summary>
+        private void PratikIlerlet()
+        {
+            if (PratikDagitimlari == null) return;
+            _pratikIndeks++;
+            if (_pratikIndeks >= PratikDagitimlari.Count)
+            {
+                PratikDagitimlari = null;
+                MessageBox.Show(this, "Pratik tamamlandı. Bundan sonra normal (rastgele) dağıtımla devam edilir.",
+                    "Konvansiyon Pratiği", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            _seed = PratikDagitimlari[_pratikIndeks].Seed;
+        }
+
+        private void PratikDuyurusu()
+        {
+            if (!PratikModu || !PratikDuyur) return;
+            var p = PratikDagitimlari[_pratikIndeks];
+            MessageBox.Show(this,
+                "Pratik " + (_pratikIndeks + 1) + "/" + PratikDagitimlari.Count + "\n\n" +
+                "Konvansiyon: " + p.Konvansiyon + "\n" +
+                "Dağıtım no: " + p.Seed + "\n" +
+                "Dağıtıcı: " + PlayerIsmiTurkce(_dealer),
+                "Konvansiyon Pratiği", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         /// <summary>
         /// Son kullanılan seed (UI'da göstermek için).
         /// </summary>
@@ -484,9 +521,18 @@ namespace BricKartOyunu
             this.BackColor = AnaSayfa.MasaRengi;
 
             // Bord numarası ve dağıtıcı Oyun Planı'ndan gelir
-            var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
-            _currentTour = plan.YeniBordNumaralari ? 1 : Math.Max(1, plan.SonBordNo + 1);
-            DagiticiyiAyarla();
+            if (PratikModu)
+            {
+                _seed = PratikDagitimlari[_pratikIndeks].Seed;
+                _currentTour = _pratikIndeks + 1;
+                DagiticiyiAyarla();
+            }
+            else
+            {
+                var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
+                _currentTour = plan.YeniBordNumaralari ? 1 : Math.Max(1, plan.SonBordNo + 1);
+                DagiticiyiAyarla();
+            }
             activePlayer = _dealer;
             _declarer = _dealer;   // İhale henüz yok; geçici
 
@@ -516,6 +562,7 @@ namespace BricKartOyunu
             }
             finally { EkranYardimci.CizimiAc(this); }
 
+            PratikDuyurusu();
             YeniDekBasFormAc();
         }
 
@@ -2289,6 +2336,11 @@ namespace BricKartOyunu
         /// </summary>
         private void DagiticiyiAyarla()
         {
+            if (PratikModu)
+            {
+                _dealer = KonvansiyonPratigi.Dagitici(PratikDagitimlari[_pratikIndeks].Seed);
+                return;
+            }
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             _dealer = KoltukHaritasi.Ic(plan.FizikselDagitici(_currentTour));
             try
@@ -2326,6 +2378,7 @@ namespace BricKartOyunu
         /// <summary>Dağıtım kaynağı ve en iyi el ayarlarına göre 52 kartı üretir (Kuzey, Doğu, Güney, Batı).</summary>
         private List<string> DagitimiUret()
         {
+            if (PratikModu) return DagitimUretici.Uret(DagitimProfili.Rastgele, null, _seed);
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             DagitimProfili profil;
             int seed = _seed;
@@ -2375,6 +2428,7 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[YeniBord] Yeni bord başlatılıyor...");
 
+            PratikIlerlet();
             BordDurumunuSifirla();
 
             // 4) Aktif oyuncu, dealer, kontrat vs. sıfırlanır — DortPasSonrasiYeniEliBaslat ile aynı
@@ -2399,6 +2453,7 @@ namespace BricKartOyunu
             KartlariDagitRastgele(AnaSayfa.SeciliKartSeti);
 
             // 8) Yeni DekBasForm aç
+            PratikDuyurusu();
             YeniDekBasFormAc();
         }
 
@@ -2499,7 +2554,7 @@ namespace BricKartOyunu
         /// </summary>
         public void KartlariDagitRastgele(string kartSeti)
         {
-            _seed = YeniSeed();
+            if (!PratikModu) _seed = YeniSeed();
             KartlariDagit(kartSeti);
             System.Diagnostics.Debug.WriteLine(
                 $"[KartlariDagitRastgele] Yeni seed: {_seed}");
@@ -3998,6 +4053,7 @@ namespace BricKartOyunu
 
         public void DortPasSonrasiYeniEliBaslat()
         {
+            PratikIlerlet();
             BordDurumunuSifirla();
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
             _currentTour++;
@@ -4012,12 +4068,13 @@ namespace BricKartOyunu
 
             ButonlariInaktifYap();
             UpdateInfoBoard(_dealer);
-            _seed++;  // 🔹 Yeni el → yeni seed
+            if (!PratikModu) _seed++;  // 🔹 Yeni el → yeni seed (pratikte liste belirler)
             KartlariDagit(AnaSayfa.SeciliKartSeti);
 
             // 🔹 YENİ: Bilgi panelini güncelle (yeni Dealer ve Zon görünsün)
             OyunBilgiPaneliniGuncelle();
 
+            PratikDuyurusu();
             YeniDekBasFormAc();
         }
 

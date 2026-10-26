@@ -627,6 +627,34 @@ namespace BricKartOyunu.Forms
         /// Alt formları görev çubuğunda göstermeden açar.
         /// AnaSayfa açık kalır, alt form onun önünde gösterilir.
         /// </summary>
+        /// <summary>
+        /// Konvansiyon pratiği: BricOyna'yı verilen dağıtımlarla açar (AnaSayfa gizlenir,
+        /// BricOyna kapanınca geri gelir ve durum sıfırlanır).
+        /// </summary>
+        public void PratikOyunuAc(List<PratikDagitim> liste, bool duyur)
+        {
+            if (liste == null || liste.Count == 0) return;
+            using (var bricOynaForm = new BricOyna
+            {
+                CurrentBackImage = currentBackImage,
+                PratikDagitimlari = liste,
+                PratikDuyur = duyur
+            })
+            {
+                this.Hide();
+                try
+                {
+                    bricOynaForm.ShowDialog();
+                }
+                finally
+                {
+                    this.Show();
+                    this.Activate();
+                    ResetToInitialState();
+                }
+            }
+        }
+
         private void ShowChildForm(Form childForm)
         {
             if (childForm == null) return;

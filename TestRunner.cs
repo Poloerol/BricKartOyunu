@@ -2510,6 +2510,92 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        public static void Test_KonvansiyonPratigi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.1 — Konvansiyon pratiği: dağıtım üretimi");
+            Yaz("════════════════════════════════════════");
+            bool ok = true;
+            var adlar = KonvansiyonPratigi.Konvansiyonlar();
+            foreach (var gerekli in new[] { "Stayman", "Jacoby Transfer", "Blackwood" })
+                if (!adlar.Contains(gerekli)) ok = false;
+            if (adlar.Contains("Temel Mantık (Fallback)") || adlar.Contains("Basit Cevap")) ok = false;
+
+            var motor = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan());
+            foreach (var ad in new[] { "Stayman", "Jacoby Transfer" })
+            {
+                var bulunan = new List<int>();
+                for (int seed = 958097384; seed < 958097384 + 3000 && bulunan.Count < 3; seed++)
+                    if (KonvansiyonPratigi.Gecerli(motor, seed, ad)) bulunan.Add(seed);
+                if (bulunan.Count < 3) ok = false;
+                // Tekrarlanabilirlik: aynı seed aynı sonucu vermeli
+                foreach (int s in bulunan)
+                    if (!KonvansiyonPratigi.Gecerli(new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan()), s, ad)) ok = false;
+            }
+            Yaz(ok ? "✅ DOĞRU" : "❌ YANLIŞ (konvansiyon pratiği)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Slam_Dizisi_2_1()
+        {
+            // Güney ♠AQ10874 ♥94 ♣AK2 ♦Q4  /  Kuzey ♠K ♥AKQ3 ♣J74 ♦AK972
+            // 1♠ – Pas – 2♦ – Pas – 2♠ – Pas – 3♥ – Pas – 3♠ – Pas – 4♦ – Pas – 4NT – Pas – 5♦ – Pas – 6♠
+            Func<string, List<Card>> el = s =>
+            {
+                var l = new List<Card>();
+                foreach (var g in s.Split(' '))
+                {
+                    string suit = g[0] == 'S' ? "Maça" : g[0] == 'H' ? "Kupa" : g[0] == 'D' ? "Karo" : "Sinek";
+                    string r = g.Substring(2);
+                    for (int i = 0; i < r.Length; i++)
+                    {
+                        int v;
+                        if (r[i] == '1') { v = 10; i++; }
+                        else v = "23456789".IndexOf(r[i]) >= 0 ? r[i] - '0' : r[i] == 'J' ? 11 : r[i] == 'Q' ? 12 : r[i] == 'K' ? 13 : 14;
+                        l.Add(new Card { Suit = suit, Value = v });
+                    }
+                }
+                return l;
+            };
+            var guney = el("S:AQ10874 H:94 C:AK2 D:Q4");
+            var kuzey = el("S:K H:AKQ3 C:J74 D:AK972");
+            string[] seq = { "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♥", "Pas", "3♠", "Pas", "4♦", "Pas", "4NT", "Pas", "5♦", "Pas", "6♠" };
+            Player[] sira = { Player.Guney, Player.Bati, Player.Kuzey, Player.Dogu };
+            int[] kontrol = { 4, 6, 8, 10, 14, 16 };   // Güney ve Kuzey'in kendi motor kararlarını denetle
+            int[] ayni = { 4, 6, 8, 10, 12, 14, 16 };
+            foreach (int i in new[] { 4, 6, 8, 10, 12, 16 })
+            {
+                var gecmis = new List<IhaleHamlesi>();
+                for (int k = 0; k < i; k++)
+                    gecmis.Add(new IhaleHamlesi { Oyuncu = sira[k % 4], Teklif = seq[k], Sira = k + 1, GecerliMi = true });
+                var oy = sira[i % 4];
+                SeviyeTesti("TEST 11.7." + i + " — slam dizisi: " + oy + " " + seq[i] + " demeli",
+                    oy == Player.Guney ? guney : kuzey, oy, gecmis, seq[i]);
+            }
+        }
+
+        public static void Test_Ikinci_Renk_2_1_Sonrasi()
+        {
+            // ♠K  ♥A K Q 3  ♣J 7 4  ♦A K 9 7 2 (20 HP) — 1♠ – Pas – 2♦ – Pas – 2♠ – Pas → 3♥ (3NT değil)
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 13 },
+                new Card { Suit = "Kupa", Value = 14 }, new Card { Suit = "Kupa", Value = 13 }, new Card { Suit = "Kupa", Value = 12 }, new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Sinek", Value = 11 }, new Card { Suit = "Sinek", Value = 7 }, new Card { Suit = "Sinek", Value = 4 },
+                new Card { Suit = "Karo", Value = 14 }, new Card { Suit = "Karo", Value = 13 }, new Card { Suit = "Karo", Value = 9 }, new Card { Suit = "Karo", Value = 7 }, new Card { Suit = "Karo", Value = 2 }
+            };
+            SeviyeTesti("TEST 11.6 — 1♠–2♦–2♠ sonrası 20 HP, 5♦ 4♥ → 3♥ (3NT ile kapatma)", el, Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♠",  Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♦",  Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♠",  Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+                }, "3♥");
+        }
+
         public static void Test_Rebid2NT_Cevap()
         {
             // ♠J 9  ♥10 8 7 4  ♣A J 10 4  ♦Q J 4  (9 HP)  — 1♦ (18 HP) – 1♥ – 2NT (18-19) sonrası
@@ -13723,6 +13809,9 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Preempt_Cevap_Ve_ZayifIki();
             Test_KoltukHaritasi();
             Test_Rebid2NT_Cevap();
+            Test_Ikinci_Renk_2_1_Sonrasi();
+            Test_Slam_Dizisi_2_1();
+            Test_KonvansiyonPratigi();
             Test_DagitimUretici();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");

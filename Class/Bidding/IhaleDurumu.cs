@@ -316,6 +316,26 @@ namespace BricKartOyunu.Class.Bidding
                 return ortakRenkler.Last();
             }
 
+            // 1b. Tek taraflı anlaşma: biri majör rengi ≥2 kez söyledi (3. seviye veya üstü), diğeri
+            //     o rengi hiç söylemedi ama 4. seviyede (majörün altında) yeni renk teklif etti = kontrol.
+            foreach (var r in new[] { "Maça", "Kupa" })
+            {
+                foreach (bool benim in new[] { true, false })
+                {
+                    var sahip = benim ? AktifOyuncu : Partner;
+                    var diger = benim ? Partner : AktifOyuncu;
+                    var gercekler = Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                    if (gercekler.Count(h => h.Oyuncu == sahip && h.Koz == r) < 2) continue;
+                    if (gercekler.Any(h => h.Oyuncu == diger && h.Koz == r)) continue;
+                    if (!gercekler.Any(h => h.Oyuncu == sahip && h.Koz == r && h.Seviye >= 3)) continue;
+                    string[] s = { "Sinek", "Karo", "Kupa", "Maça" };
+                    bool kontrolVar = gercekler.Any(h => h.Oyuncu == diger && h.Seviye == 4 && h.Koz != "NT" &&
+                                                         h.Koz != r && Array.IndexOf(s, h.Koz) < Array.IndexOf(s, r));
+                    if (!kontrolVar) continue;
+                    return r;
+                }
+            }
+
             // 2. Sadece majör bir renk anlaşması var mı?
             //    (Örn. partner 1♠ açtı, ben 2♠ dedim — bu ortakRenkler'e girer)
 

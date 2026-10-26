@@ -436,6 +436,15 @@ namespace BricKartOyunu.Class.Bidding
 
             // Bozucu / zayıf iki cevapları ve müdahalesi dağılıma (koz uzunluğu) dayanır; toplam HCP
             // tahmini burada anlamsız (ör. 3♠ bozucuya 3 kart destekle 4♠). Kendi kuralları yeterli.
+            // Kendi 4NT (RKCB) sorumun 5. seviye cevabından sonra TemelMantik'in kilit kart sayımına
+            // dayalı slam kararı (6M): ortağın kural dışı kalan HCP aralığı tahmini bunu veto etmesin.
+            if (ad.StartsWith("Temel Mant") && teklif.Length == 2 && teklif[0] == '6' && teklif != "6NT")
+            {
+                var benim4 = (d.Gecmis ?? new List<IhaleHamlesi>()).Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT");
+                var ortSon5 = SonGercek(d, true);
+                if (benim4 && ortSon5 != null && Gercek(ortSon5.Teklif) && Sev(ortSon5.Teklif) == 5) return true;
+            }
+
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale")
                 return true;
 
