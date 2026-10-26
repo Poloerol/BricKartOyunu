@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using BricKartOyunu.Class;
 
 namespace BricKartOyunu.Forms
 {
@@ -37,10 +38,10 @@ namespace BricKartOyunu.Forms
             };
 
             // Kolon genişlikleri "Güney" kelimesinin sığması için 41 piksel yapıldı
-            lstGecmis.Columns.Add("Batı", 41, HorizontalAlignment.Center);
-            lstGecmis.Columns.Add("Kuzey", 41, HorizontalAlignment.Center);
-            lstGecmis.Columns.Add("Doğu", 41, HorizontalAlignment.Center);
-            lstGecmis.Columns.Add("Güney", 41, HorizontalAlignment.Center);
+            lstGecmis.Columns.Add(KoltukHaritasi.Ad(Player.Bati), 41, HorizontalAlignment.Center);
+            lstGecmis.Columns.Add(KoltukHaritasi.Ad(Player.Kuzey), 41, HorizontalAlignment.Center);
+            lstGecmis.Columns.Add(KoltukHaritasi.Ad(Player.Dogu), 41, HorizontalAlignment.Center);
+            lstGecmis.Columns.Add(KoltukHaritasi.Ad(Player.Guney), 41, HorizontalAlignment.Center);
 
             lstGecmis.DrawColumnHeader += LstGecmis_DrawColumnHeader;
             lstGecmis.DrawSubItem += LstGecmis_DrawSubItem;

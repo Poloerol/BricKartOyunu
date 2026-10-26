@@ -271,8 +271,60 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private string FitsizDevam(IhaleDurumu d, List<Card> el, int hp, bool dengeli, double est, int cur,
                                    List<string> rakipRenkleri, List<IhaleHamlesi> gercek, bool zorunlu, bool benNTAcildi, bool dar)
         {
+            // İlk cevap: ortak (NT/2♣ dışında) açtı ve ben henüz konuşmadım → 1 seviyede 4+ kartlık
+            // majör varsa NT davetinden/oyun gücünden ÖNCE o majörü göster (fit aranır).
+            // Örn. 1♣ - ? ile 5♠ + 11 HP: 2NT değil 1♠.
+            if (!gercek.Any(h => h.Oyuncu == d.AktifOyuncu) && gercek.Count > 0 &&
+                gercek.First().Oyuncu == d.Partner && gercek.First().Koz != "NT" &&
+                gercek.First().Teklif != "2♣" && hp >= 6)
+            {
+                int sL = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                int hL = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                string major = null;
+                if (sL >= 4 || hL >= 4)
+                {
+                    if (sL > hL) major = "Maça";
+                    else if (hL > sL) major = "Kupa";
+                    else major = sL >= 5 ? "Maça" : "Kupa";   // 5-5: ♠, 4-4: ♥ (en ucuzdan)
+                }
+                if (major != null && !rakipRenkleri.Contains(major) && Cheapest(d, major) == 1)
+                    return Seviye(d, major, 1);
+            }
+
             bool nt = dengeli || EnUzunUzunluk(el) <= 5;
             bool ntOlur = NTOlur(el, rakipRenkleri);
+
+            // Ortağın aralığı dar (örn. 1♦–1♥–2NT = 18-19) ve kendi elimle toplam en az 25 HP:
+            // tahmin eşiğine takılmadan 3NT'ye taşı (18+9=27 HP'de Pas demek hatadır).
+            var ortAr = IhaleKoruma.PartnerAraligi(d);
+            if ((ortAr.Max - ortAr.Min) <= 3 && ortAr.Min + hp >= 25 && ntOlur && nt && cur <= 2 &&
+                gercek.Any(h => h.Oyuncu == d.Partner && h.Koz == "NT" && h.Seviye == 2) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Seviye >= 2))
+                return Seviye(d, "NT", 3);
+
+            // 2/1 sonrası ikinci renk: ortak açtı, ben yeni renkle (2. seviye) cevap verdim, ortak kendi
+            // açış rengini tekrarladı (ör. 1♠–2♦–2♠). Oyun gücündeyim ve henüz söylemediğim 4+ kartlık
+            // bir renk var → 3NT ile ihaleyi kapatmadan o rengi göster (fit/slam aranır).
+            {
+                var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (benim.Count == 1 && ortagim.Count == 2 && gercek.First().Oyuncu == d.Partner &&
+                    gercek.First().Koz != "NT" && benim[0].Koz != "NT" && benim[0].Seviye == 2 &&
+                    ortagim[1].Koz == ortagim[0].Koz && ortagim[1].Seviye == 2 &&
+                    gercek.Last().Oyuncu == d.Partner && !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
+                    est >= 26 && hp >= 12)
+                {
+                    string ikinci = null; int ikinciUz = 3;
+                    foreach (var r in new[] { "Maça", "Kupa", "Sinek", "Karo" })
+                    {
+                        if (r == ortagim[0].Koz || r == benim[0].Koz) continue;
+                        int rUz = ElDegerlendirici.RenkUzunlugu(el, r);
+                        if (rUz > ikinciUz || (rUz == ikinciUz && rUz >= 4 && ikinci != null && Major(r) && !Major(ikinci))) { ikinci = r; ikinciUz = rUz; }
+                    }
+                    if (ikinci != null && ikinciUz >= 4 && Cheapest(d, ikinci) <= 3)
+                        return Seviye(d, ikinci, Cheapest(d, ikinci));
+                }
+            }
 
             // Oyun gücü: 3NT (veya 6+ majörde 4)
             double oyunEsik = dar ? 26 : 27.5, davetEsik = dar ? 24 : 25.5;

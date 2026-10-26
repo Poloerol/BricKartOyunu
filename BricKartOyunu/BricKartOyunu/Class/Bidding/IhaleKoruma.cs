@@ -434,6 +434,11 @@ namespace BricKartOyunu.Class.Bidding
 
             if (!Gercek(teklif)) return true;       // Pas / RDbl: dokunma
 
+            // Bozucu / zayıf iki cevapları ve müdahalesi dağılıma (koz uzunluğu) dayanır; toplam HCP
+            // tahmini burada anlamsız (ör. 3♠ bozucuya 3 kart destekle 4♠). Kendi kuralları yeterli.
+            if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale")
+                return true;
+
             int sev = Sev(teklif);
             string renk = KozYardimcisi.TekliftenKozCikar(teklif);
             int ben = ElDegerlendirici.HCP(d.AktifOyuncuEli);

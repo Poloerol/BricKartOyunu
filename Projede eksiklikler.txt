@@ -1,0 +1,32 @@
+Aþaðýdaki liste, bu oturumda gördüklerime dayanýyor. Projenin tamamýný satýr satýr incelemedim. Öncelik sýrasýyla yazdým.
+
+Doðruluk (en önemli)
+
+Bord geçiþinde durum sýfýrlama: Bugünkü löve sayacý hatasý, baþka sayaçlarda da olabilir. Örnekler: dummy açýk bayraðý, geri al/ileri al yýðýný, claim durumu, kontr durumu. Ýki bordu art arda oynayýp durumu denetleyen bir test yok. Bunu TestRunner’a eklemeliyiz.
+Titreme düzeltmesi: Henüz sizde doðrulanmadý. Hangi anda hâlâ titrediðini görmem gerekiyor.
+Skor ve kontrat sýnýrlarý: Dört pas, claim ve oyun sýrasýnda geri al durumlarýnda skorun doðru çýktýðýný test etmedim. Sadece normal akýþta denedik.
+
+Ýkili turnuva için eksikler
+4. 2. masa, Fark ve IMP boþ: Skor formunda bu alanlar yer tutucu. Karþýlaþtýrma için ayný bordun baþka bir sonucu gerekiyor. Matchpoint veya IMP hesabý da yok.
+5. PBN Aç: Ertelemiþtik. Bu olmadan hazýr bord setlerini (turnuva, öðrenme elleri) oynayamýyoruz.
+6. Oturum kaydý: Oyun kaydetme/yükleme, bord geçmiþi ve istatistik yok. Oturum toplamý þimdilik sadece bellekte tutuluyor.
+
+Oyun yapay zekâsý
+7. Savunma: Sinyal (sayý/tutum), atak seçimi ve oyun ortasý planlamasý zayýf olabilir. Çakma kuralýný ancak bugün düzelttik, daha çok elde denenmedi.
+8. Deklaran oyunu: Finesse, endplay, squeeze ve koz çekme planý büyük ihtimalle sezgisel kurallarla çalýþýyor. Çift görünür çözücüyle karþýlaþtýrma yapýlmadý.
+9. Ýhale: Rekabetçi ihale, fedakârlýk, ceza kontrü kararý ve cue-bid gibi konular için emin deðilim. Bunlarý tek tek test etmedim.
+
+Kullanýcý arayüzü
+10. Ýpucu ve analiz yok: Bord sonunda “þu hamle daha iyiydi” gibi bir deðerlendirme, oyun sýrasýnda ipucu düðmesi yok.
+11. Ekran ölçeklemesi: Yüksek DPI’lý ekranlarda yerleþimin bozulup bozulmadýðýný bilmiyorum. Skor formunda pencere ölçeðinden dolayý kýrpýlma riski vardý.
+
+Kod saðlýðý
+12. Dosya boyutlarý: BricOyna.cs yaklaþýk 4.800 satýr ve 230 KB, TestRunner.cs 685 KB. Skor, PBN ve ekran yerleþimi ayrý sýnýflara bölünmeli. Þimdi her deðiþiklik bu dev dosyada risk taþýyor.
+13. Günlük çýktýsý: Çok fazla Debug.WriteLine var. Yayýn sürümünde kapatýlmalý.
+14. Genel hata yakalama yok: Program.cs içinde beklenmeyen hata için bir koruma görmedim. Uygulama sessizce kapanabilir.
+15. Dosya yazma yeri: seedler.txt uygulama klasörüne yazýlýyor. Program Files altýna kurulursa izin hatasý verir. AppData’ya taþýnmalý.
+
+Sizden bekleyenler
+16. Rebuild, testler ve son deðiþiklikler için git add -A, git commit, git push. Bugünkü sayaç düzeltmesi, titreme ve PDF deðiþiklikleri henüz gönderilmedi.
+
+Ýsterseniz önce 1, 4 ve 5'i yapalým. Turnuva akýþý için en çok bunlar gerekiyor.

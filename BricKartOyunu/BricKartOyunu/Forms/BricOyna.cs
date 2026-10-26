@@ -291,6 +291,7 @@ namespace BricKartOyunu
                     ControlStyles.UserPaint |
                     ControlStyles.OptimizedDoubleBuffer, true);
                 this.UpdateStyles();
+                EkranYardimci.TumKontrollerdeCiftTampon(this);
             }
             this.Load += BricOyna_Load;
             this.Resize += BricOyna_Resize;
@@ -448,19 +449,20 @@ namespace BricKartOyunu
         /// </summary>
         private void BricOyna_Resize(object sender, EventArgs e)
         {
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 KartYerlesimiHazirla();
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
         private void BricOyna_Load(object sender, EventArgs e)
         {
+            KoltukHaritasi.Uygula(AnaSayfa.OyunPlani == null ? null : AnaSayfa.OyunPlani.InsanMi);
             if (this.DesignMode) return;
 
             // 🔹 ToolStrip butonlarının görsel boyutunu büyüt (32x32 → 48x48)
@@ -481,8 +483,10 @@ namespace BricKartOyunu
 
             this.BackColor = AnaSayfa.MasaRengi;
 
-            // İlk elin dağıtanı Güney'dir
-            _dealer = Player.Guney;
+            // Bord numarası ve dağıtıcı Oyun Planı'ndan gelir
+            var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
+            _currentTour = plan.YeniBordNumaralari ? 1 : Math.Max(1, plan.SonBordNo + 1);
+            DagiticiyiAyarla();
             activePlayer = _dealer;
             _declarer = _dealer;   // İhale henüz yok; geçici
 
@@ -497,6 +501,9 @@ namespace BricKartOyunu
             SeedHafizasiniYukle();
 
 
+            EkranYardimci.CizimiDondur(this);
+            try
+            {
             KartlariDagit(AnaSayfa.SeciliKartSeti);
             UpdateInfoBoard(_dealer);
             UpdatePlayerBadges();
@@ -506,7 +513,8 @@ namespace BricKartOyunu
 
             // 🔹 TEST: İhale motoru çalışıyor mu?
             TestIhaleMotoru();
-
+            }
+            finally { EkranYardimci.CizimiAc(this); }
 
             YeniDekBasFormAc();
         }
@@ -1331,8 +1339,13 @@ namespace BricKartOyunu
             // Kuzey elini dizip bittiği dinamik ucu alıyoruz
             int kuzeyBitisX = BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, kuzeyX, _kuzeyY, false, false);
 
-            // Doğu eli, Kuzey'in bitiş hizasına göre simetrik konumlanıyor
-            int doguX = kuzeyBitisX + yanBosluk;
+            // Doğu eli: konumu elde kalan kart sayısına göre DEĞİŞMEMELİ (Hepsi/NS/EW geçişlerinde
+            // ve oyun sırasında Doğu sütunu kaymasın). Kuzey elinin en geniş hali (13 kart, renk
+            // grupları arası boşluklu) esas alınır; oyun alanının sağ kenarının da dışında kalır.
+            int kuzeyEnGenisBitisX = kuzeyX + (9 * 18) + (3 * (_kartGenislik + 10)) + _kartGenislik;
+            int doguX = kuzeyEnGenisBitisX + yanBosluk;
+            int oyunAlaniSagKenar = ((this.ClientSize.Width - 500) / 6) + 30 + 500;
+            if (doguX < oyunAlaniSagKenar + 40) doguX = oyunAlaniSagKenar + 40;
 
             // 3. DOĞU KARTLARI
             for (int i = 0; i < 13; i++)
@@ -1775,7 +1788,7 @@ namespace BricKartOyunu
 
             _oyunAsamasi = OyunAsamasi.Baslangic;
             _currentTour++;
-            _dealer = SonrakiOyuncu(_dealer);
+            DagiticiyiAyarla();
             activePlayer = _dealer;
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
@@ -1904,7 +1917,7 @@ namespace BricKartOyunu
 
             // Kontrat
             if (lblBilgiKontrat != null)
-                lblBilgiKontrat.Text = string.IsNullOrEmpty(_kontrat) ? "—" : _kontrat;
+                lblBilgiKontrat.Text = string.IsNullOrEmpty(_kontrat) ? "—" : _kontrat + KontrEki();
 
             // Deklaran
             if (lblBilgiDeklaran != null)
@@ -1952,10 +1965,12 @@ namespace BricKartOyunu
                             boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
 
             // "D" harfi HER ZAMAN dağıtıcıyı (dealer) gösterir
-            UpdateBox(lblNorth, nsZonda, _dealer == Player.Kuzey);
-            UpdateBox(lblSouth, nsZonda, _dealer == Player.Guney);
-            UpdateBox(lblEast, ewZonda, _dealer == Player.Dogu);
-            UpdateBox(lblWest, ewZonda, _dealer == Player.Bati);
+            // Kutular fiziksel pusulayı gösterir (zon bord numarasından, dağıtıcı eşlemeden)
+            Player fizDagitici = KoltukHaritasi.Fiz(_dealer);
+            UpdateBox(lblNorth, nsZonda, fizDagitici == Player.Kuzey);
+            UpdateBox(lblSouth, nsZonda, fizDagitici == Player.Guney);
+            UpdateBox(lblEast, ewZonda, fizDagitici == Player.Dogu);
+            UpdateBox(lblWest, ewZonda, fizDagitici == Player.Bati);
 
             // 🔹 YENİ: Oyun bilgi panelindeki Zon ve Dealer'ı da güncelle
             OyunBilgiPaneliniGuncelle();
@@ -2014,8 +2029,27 @@ namespace BricKartOyunu
             lblE_Dir.Location = new Point(doguX, gercekEwY_Alt);
             lblE_Name.Location = new Point(doguX + 22, gercekEwY_Alt);
 
+            RozetHarfleriniGuncelle();
+
             // Aktif oyuncunun rengini güncelle
             UpdatePlayerBadges();
+        }
+
+        /// <summary>Ekrandaki yön harflerini insanın fiziksel koltuğuna göre yazar.</summary>
+        private void RozetHarfleriniGuncelle()
+        {
+            if (lblN_Dir == null) return;
+            lblN_Dir.Text = KoltukHaritasi.Harf(KoltukHaritasi.Fiz(Player.Kuzey));
+            lblS_Dir.Text = KoltukHaritasi.Harf(KoltukHaritasi.Fiz(Player.Guney));
+            lblW_Dir.Text = KoltukHaritasi.Harf(KoltukHaritasi.Fiz(Player.Bati));
+            lblE_Dir.Text = KoltukHaritasi.Harf(KoltukHaritasi.Fiz(Player.Dogu));
+        }
+
+        /// <summary>Oyun Planı'ndaki insan koltuğunu uygular (yeni bord başında / açılışta).</summary>
+        private void OyunPlaniniUygula()
+        {
+            KoltukHaritasi.Uygula(AnaSayfa.OyunPlani == null ? null : AnaSayfa.OyunPlani.InsanMi);
+            RozetHarfleriniGuncelle();
         }
 
         private void CreateBadge(out Label dirLbl, out Label nameLbl, string dir, string name, int x, int y)
@@ -2151,14 +2185,14 @@ namespace BricKartOyunu
 
             MasadakiKartlariTemizle();
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 HepsiniGoster();
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
 
             this.Refresh();
@@ -2218,18 +2252,106 @@ namespace BricKartOyunu
         /// Replay: aynı bord (aynı seed, aynı dealer) ilk dağıtım konumuna döner,
         /// yalnızca Güney açık, DekBasForm açılır.
         /// </summary>
-        public void BordTekrariBaslat()
+        /// <summary>
+        /// Bir bord başlarken (yeni bord, tekrar, dört pas sonrası) bordun TÜM oyun durumunu
+        /// tek yerden sıfırlar. Yeni bir bord-bazlı alan eklenirse buraya eklenmelidir.
+        /// </summary>
+        private void BordDurumunuSifirla()
         {
+            OyunPlaniniUygula();
+            // Oynanan eller ve geri al / ileri al geçmişi
             _oynananTumEller.Clear();
-            OyunGecmisiniSifirla();
+            OyunGecmisiniSifirla();            // geçmiş + ileri al yığını + otomatik oyun durdurma
+
+            // Sayaçlar ve skor girdileri
             _oynananToplamEl = 0;
             _kazanilanElNS = 0;
             _kazanilanElEW = 0;
+            _kontrDurumu = KontrDurumu.Yok;
+
+            // Masa ve el durumu
             MasadakiKartlariTemizle();
             _buEldeOynananlar.Clear();
             _buEldeAtakRengi = null;
             _elBittiBekliyor = false;
             _dummyAcildi = false;
+
+            // Eller ihale sonrası takas edildiyse (Kuzey deklaran) bayrağı geri al
+            _ellerIhaleSonrasiTakasli = false;
+
+            // Önceki bordun ihale kaydı yeni bordda görünmesin
+            _sonIhaleGecmisi = new List<string>();
+        }
+
+        /// <summary>
+        /// Oyun Planı'ndaki dağıtıcı ayarına göre (_currentTour'a bakarak) iç dağıtıcıyı belirler
+        /// ve bord numarasını kalıcı olarak kaydeder.
+        /// </summary>
+        private void DagiticiyiAyarla()
+        {
+            var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
+            _dealer = KoltukHaritasi.Ic(plan.FizikselDagitici(_currentTour));
+            try
+            {
+                if (plan.SonBordNo != _currentTour)
+                {
+                    plan.SonBordNo = _currentTour;
+                    plan.Kaydet();
+                }
+            }
+            catch { /* kayıt başarısızsa oyun sürer */ }
+        }
+
+        /// <summary>"En iyi el" ayarını iç koltuk dizisine (Kuzey, Doğu, Güney, Batı) çevirir; null = fark etmez.</summary>
+        private bool[] EnIyiElIzinli(EnIyiEl secim)
+        {
+            Player[] fizikselListe;
+            switch (secim)
+            {
+                case EnIyiEl.KuzeyGuney: fizikselListe = new[] { Player.Kuzey, Player.Guney }; break;
+                case EnIyiEl.DoguBati: fizikselListe = new[] { Player.Dogu, Player.Bati }; break;
+                case EnIyiEl.Kuzey: fizikselListe = new[] { Player.Kuzey }; break;
+                case EnIyiEl.Dogu: fizikselListe = new[] { Player.Dogu }; break;
+                case EnIyiEl.Guney: fizikselListe = new[] { Player.Guney }; break;
+                case EnIyiEl.Bati: fizikselListe = new[] { Player.Bati }; break;
+                default: return null;
+            }
+            Player[] sira = { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            var izin = new bool[4];
+            foreach (var f in fizikselListe)
+                izin[Array.IndexOf(sira, KoltukHaritasi.Ic(f))] = true;
+            return izin;
+        }
+
+        /// <summary>Dağıtım kaynağı ve en iyi el ayarlarına göre 52 kartı üretir (Kuzey, Doğu, Güney, Batı).</summary>
+        private List<string> DagitimiUret()
+        {
+            var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
+            DagitimProfili profil;
+            int seed = _seed;
+            switch (plan.DagitimKaynagi)
+            {
+                case DagitimKaynagi.RastgeleParsiyel: profil = DagitimProfili.Parsiyel; break;
+                case DagitimKaynagi.RastgeleOyun: profil = DagitimProfili.Oyun; break;
+                case DagitimKaynagi.RastgeleSlam: profil = DagitimProfili.Slam; break;
+                case DagitimKaynagi.Kozsuz: profil = DagitimProfili.Kozsuz; break;
+                case DagitimKaynagi.NumaraliRastgele:
+                    profil = DagitimProfili.Rastgele;
+                    seed = _currentTour * 7919 + 17;   // aynı bord numarası = aynı el
+                    break;
+                case DagitimKaynagi.Uretilmis:
+                    // Bord numarasına göre sırayla parsiyel, oyun, kozsuz, slam elleri
+                    DagitimProfili[] dongu = { DagitimProfili.Parsiyel, DagitimProfili.Oyun, DagitimProfili.Kozsuz, DagitimProfili.Slam };
+                    profil = dongu[(((_currentTour - 1) % 4) + 4) % 4];
+                    break;
+                default: profil = DagitimProfili.Rastgele; break;   // Rastgele ve Kullanıcı girişi
+            }
+            return DagitimUretici.Uret(profil, EnIyiElIzinli(plan.EnIyiEl), seed);
+        }
+
+        public void BordTekrariBaslat()
+        {
+            BordDurumunuSifirla();
 
             _oyunAsamasi = OyunAsamasi.Baslangic;
             activePlayer = _dealer;
@@ -2253,25 +2375,12 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[YeniBord] Yeni bord başlatılıyor...");
 
-            // 🔹 Oynanan tüm eller listesini temizle
-            _oynananTumEller.Clear();
-            OyunGecmisiniSifirla();
-
-            // 1) El sayacını sıfırla
-            _oynananToplamEl = 0;
-
-            // 2) Masadaki kartları temizle
-            MasadakiKartlariTemizle();
-
-            // 3) Bu elde oynananları sıfırla
-            _buEldeOynananlar.Clear();
-            _buEldeAtakRengi = null;
-            _elBittiBekliyor = false;
+            BordDurumunuSifirla();
 
             // 4) Aktif oyuncu, dealer, kontrat vs. sıfırlanır — DortPasSonrasiYeniEliBaslat ile aynı
             _oyunAsamasi = OyunAsamasi.Baslangic;
             _currentTour++;
-            _dealer = SonrakiOyuncu(_dealer);
+            DagiticiyiAyarla();
             activePlayer = _dealer;
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
@@ -2307,28 +2416,15 @@ namespace BricKartOyunu
             }
 
             // 🔹 Seed'e bağlı deterministik Random
-            var rng = new Random(_seed);
-
             System.Diagnostics.Debug.WriteLine(
                 $"[KartlariDagit] Seed: {_seed}");
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 // ─── 1. Kartları karıştır ve 4 oyuncuya böl ───
-                List<string> kartlar = new List<string>();
-                string[] rank = { "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K" };
-                string[] suit = { "S", "H", "D", "C" };
-                foreach (var s in suit)
-                    foreach (var r in rank)
-                        kartlar.Add(r + s + ".png");
-
-                // 🔹 Fisher-Yates shuffle (seed'li rng)
-                for (int i = kartlar.Count - 1; i > 0; i--)
-                {
-                    int j = rng.Next(i + 1);
-                    (kartlar[i], kartlar[j]) = (kartlar[j], kartlar[i]);
-                }
+                // Dağıtım kaynağı + en iyi el ayarlarına göre (varsayılan: eski rastgele dağıtımla aynı)
+                List<string> kartlar = DagitimiUret();
 
                 var kuzey = kartlar.Take(13).ToList();
                 var dogu = kartlar.Skip(13).Take(13).ToList();
@@ -2375,7 +2471,7 @@ namespace BricKartOyunu
 
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -2434,14 +2530,14 @@ namespace BricKartOyunu
             digerEl.Clear();
             digerEl.AddRange(guneyGecici);
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 SadeceGuneyiGoster();
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -2875,7 +2971,7 @@ namespace BricKartOyunu
             eWGösterToolStripMenuItem.Checked = false;
             nSGösterToolStripMenuItem.Checked = false;
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 if (hepsiniGösterToolStripMenuItem.Checked)
@@ -2885,7 +2981,7 @@ namespace BricKartOyunu
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -2896,7 +2992,7 @@ namespace BricKartOyunu
             {
                 BtnGuney.Checked = false; BtnHepsi.Checked = false; BtnNS.Checked = false;
                 hepsiniGösterToolStripMenuItem.Checked = false; nSGösterToolStripMenuItem.Checked = false; eWGösterToolStripMenuItem.Checked = true;
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     KartYerlesimiHazirla();
@@ -2910,21 +3006,21 @@ namespace BricKartOyunu
                     BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, ewStartingY);
                     SetupPlayerBadges();
                 }
-                finally { this.ResumeLayout(true); }
+                finally { this.ResumeLayout(true); EkranYardimci.CizimiAc(this); }
             }
             else
             {
                 eWGösterToolStripMenuItem.Checked = false;
                 BtnGuney.Checked = false;
 
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     SadeceGuneyiGoster();
                 }
                 finally
                 {
-                    this.ResumeLayout(true);
+                    this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
                 }
             }
         }
@@ -2937,7 +3033,7 @@ namespace BricKartOyunu
             {
                 BtnGuney.Checked = false; BtnHepsi.Checked = false; BtnEW.Checked = false;
                 hepsiniGösterToolStripMenuItem.Checked = false; eWGösterToolStripMenuItem.Checked = false; nSGösterToolStripMenuItem.Checked = true;
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     KartYerlesimiHazirla();
@@ -2951,21 +3047,21 @@ namespace BricKartOyunu
                     BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
                     SetupPlayerBadges();
                 }
-                finally { this.ResumeLayout(true); }
+                finally { this.ResumeLayout(true); EkranYardimci.CizimiAc(this); }
             }
             else
             {
                 nSGösterToolStripMenuItem.Checked = false;
                 BtnGuney.Checked = false;
 
-                this.SuspendLayout();
+                this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
                 try
                 {
                     SadeceGuneyiGoster();
                 }
                 finally
                 {
-                    this.ResumeLayout(true);
+                    this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
                 }
             }
 
@@ -2983,7 +3079,7 @@ namespace BricKartOyunu
             eWGösterToolStripMenuItem.Checked = false;
             nSGösterToolStripMenuItem.Checked = false;
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 if (BtnGuney.Checked)
@@ -3026,7 +3122,7 @@ namespace BricKartOyunu
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
         }
 
@@ -3293,6 +3389,9 @@ namespace BricKartOyunu
                 _elBittiBekliyor = true;
                 GeriAlIleriAlButonlariniGuncelle();
                 if (_tumAI && _tumAIDuraklamasiz) TumAIYeniEleZamanla();
+                else if (!_tumAI && AnaSayfa.OyunPlani != null && !AnaSayfa.OyunPlani.ElSonrasiDuraklat)
+                    ElSonrasiOtomatikDevamZamanla();   // "El sonrası duraklat: Hayır"
+
 
                 System.Diagnostics.Debug.WriteLine(
                     "[KartOyna] El bitti. PlayZone'a tıklayınca yeni el başlayacak.");
@@ -3498,6 +3597,49 @@ namespace BricKartOyunu
         /// Aktif oyuncu AI ise, kısa bir gecikme ile AI'ın oynamasını tetikler.
         /// Timer sınıf alanı olarak tutulur — yoksa GC toplayıp oyun takılır.
         /// </summary>
+        /// <summary>
+        /// "Tek kartı otomatik oyna": insan kontrolündeki oyuncunun yalnızca bir yasal kartı varsa
+        /// (renk takibi mecburi veya son kart) kısa gecikmeyle o kartı kendisi oynar.
+        /// </summary>
+        private void TekKartiOtomatikOynatDene()
+        {
+            var plan = AnaSayfa.OyunPlani;
+            if (plan == null || !plan.TekKartiOtomatikOyna) return;
+            if (_oyunAsamasi != OyunAsamasi.Oyun || _tumAI || _elBittiBekliyor || _oynananToplamEl >= 13) return;
+
+            Player oyuncu = activePlayer;
+            var el = OyuncuEli(oyuncu);
+            if (el == null) return;
+            var yasal = el.Where(c => YasalKartMi(oyuncu, c)).ToList();
+            if (yasal.Count != 1) return;
+
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = new System.Windows.Forms.Timer { Interval = plan.AiGecikmesiMs() };
+            _aiTimer.Tick += (s, e) =>
+            {
+                _aiTimer?.Stop();
+                _aiTimer?.Dispose();
+                _aiTimer = null;
+                if (IsDisposed || _oyunAsamasi != OyunAsamasi.Oyun || _tumAI || _elBittiBekliyor) return;
+                if (activePlayer != oyuncu || !InsanKontrolundeMi(oyuncu)) return;
+
+                var kartlar = oyuncu == Player.Guney ? guneyKartlar : oyuncu == Player.Kuzey ? kuzeyKartlar : null;
+                if (kartlar == null) return;
+                var kart = yasal[0];
+                foreach (var pb in kartlar)
+                {
+                    var c = pb == null ? null : pb.Tag as Card;
+                    if (pb != null && pb.Visible && c != null && c.Suit == kart.Suit && c.Value == kart.Value)
+                    {
+                        KartOyna(oyuncu, c, pb.Image);
+                        return;
+                    }
+                }
+            };
+            _aiTimer.Start();
+        }
+
         private void AITetikle()
         {
             System.Diagnostics.Debug.WriteLine(
@@ -3509,6 +3651,7 @@ namespace BricKartOyunu
             {
                 System.Diagnostics.Debug.WriteLine(
                     $"[AITetikle] {activePlayer} insan kontrolünde, AI yok.");
+                TekKartiOtomatikOynatDene();
                 return;
             }
 
@@ -3519,7 +3662,7 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[AITetikle] Yeni timer oluşturuluyor (800ms).");
 
-            _aiTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            _aiTimer = new System.Windows.Forms.Timer { Interval = (AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri()).AiGecikmesiMs() };
             _aiTimer.Tick += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine(
@@ -3855,9 +3998,10 @@ namespace BricKartOyunu
 
         public void DortPasSonrasiYeniEliBaslat()
         {
+            BordDurumunuSifirla();
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
             _currentTour++;
-            _dealer = SonrakiOyuncu(_dealer);
+            DagiticiyiAyarla();
             activePlayer = _dealer;
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
@@ -3912,6 +4056,7 @@ namespace BricKartOyunu
         // 🔹 UI'ya yansıtmak için public erişim
         public string Kontrat => _kontrat;
         public Player KontratDeklaran => _kontratDeklaran;
+        public int BordNo => _currentTour;
         public Player AtakYapacakOyuncu => _atakYapacakOyuncu;
         public int KazanilanElNS => _kazanilanElNS;
         public int KazanilanElEW => _kazanilanElEW;
@@ -3953,7 +4098,7 @@ namespace BricKartOyunu
         /// </summary>
         public static string PlayerIsmiTurkce(Player p)
         {
-            switch (p)
+            switch (KoltukHaritasi.Fiz(p))
             {
                 case Player.Kuzey: return "Kuzey";
                 case Player.Guney: return "Güney";
@@ -4048,8 +4193,9 @@ namespace BricKartOyunu
         /// DeklarasyonForm'da ihale normal şekilde bittiğinde çağrılır.
         /// Kontratı ve deklaranı saklar; sırayı atak yapacak rakibe (deklaranın solu) verir.
         /// </summary>
-        public void IhaleTamamlandiBaslat(string kontrat, string deklaran, string solRakip)
+        public void IhaleTamamlandiBaslat(string kontrat, string deklaran, string solRakip, int kontrCarpani = 0)
         {
+            _kontrDurumu = kontrCarpani == 2 ? KontrDurumu.SKontr : kontrCarpani == 1 ? KontrDurumu.Kontr : KontrDurumu.Yok;
             _oyunAsamasi = OyunAsamasi.Oyun;
             OyunGecmisiniSifirla();
 
@@ -4077,7 +4223,7 @@ namespace BricKartOyunu
 
             OyunBilgiPaneliniGuncelle();
 
-            this.SuspendLayout();
+            this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
                 // 🔹 1. ADIM: TÜM PictureBox'ları gizle ve görseli temizle
@@ -4128,7 +4274,7 @@ namespace BricKartOyunu
             }
             finally
             {
-                this.ResumeLayout(true);
+                this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
 
             // 🔹 7. ADIM: AI'ı tetikle
@@ -4158,6 +4304,156 @@ namespace BricKartOyunu
         // Bridge Baron Deal Library, Deep Finesse vb. programlar okuyabilir.
         // ═══════════════════════════════════════════════════════════════════
 
+        // ═══════════════════════════════════════════════════════════════════
+        // SKOR HESABI (duplicate) VE BORD ÖZETİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        private KontrDurumu _kontrDurumu = KontrDurumu.Yok;
+
+        private string KontrEki()
+        {
+            return _kontrDurumu == KontrDurumu.SKontr ? " XX" : _kontrDurumu == KontrDurumu.Kontr ? " X" : "";
+        }
+
+        /// <summary>16'lı bord döngüsüne göre zon (risk) durumu.</summary>
+        private void ZonDurumu(out bool ns, out bool ew)
+        {
+            int boardMod = ((_currentTour - 1) % 16) + 1;
+            ns = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
+                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            ew = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
+                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            // İnsan Doğu/Batı ise iç K-G çifti fiziksel D-B çiftidir
+            if (KoltukHaritasi.CiftlerTers) { bool gecici = ns; ns = ew; ew = gecici; }
+        }
+
+        /// <summary>
+        /// Bitmiş bordun skorunu hesaplar (deklaran tarafı açısından).
+        /// Kontrat yoksa (dört pas) PasGecildi işaretli sonuç döner.
+        /// </summary>
+        public SkorSonucu SkorHesapla()
+        {
+            if (string.IsNullOrEmpty(_kontrat))
+                return new SkorSonucu { PasGecildi = true };
+
+            int seviye = _kontrat[0] - '0';
+            string koz = _kontrat.IndexOf("NT", StringComparison.OrdinalIgnoreCase) >= 0
+                ? "NT" : _kontrat.Substring(1, 1);
+
+            bool deklaranNS = _kontratDeklaran == Player.Kuzey || _kontratDeklaran == Player.Guney;
+            bool nsZon, ewZon;
+            ZonDurumu(out nsZon, out ewZon);
+            bool zonda = deklaranNS ? nsZon : ewZon;
+            int alinan = deklaranNS ? _kazanilanElNS : _kazanilanElEW;
+
+            return Skorlama.Hesapla(seviye, koz, _kontrDurumu, zonda, alinan);
+        }
+
+        /// <summary>Skor penceresi için metin: deklaran tarafı ve N-S / E-W açısından toplam.</summary>
+        public string SkorMetni()
+        {
+            var s = SkorHesapla();
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Bord " + _currentTour);
+            if (!s.PasGecildi)
+                sb.AppendLine("Deklaran: " + PlayerIsmiTurkce(_kontratDeklaran));
+            sb.AppendLine();
+            sb.Append(Skorlama.Aciklama(s));
+
+            if (!s.PasGecildi)
+            {
+                bool deklaranNS = _kontratDeklaran == Player.Kuzey || _kontratDeklaran == Player.Guney;
+                int ns = deklaranNS ? s.Toplam : -s.Toplam;
+                if (KoltukHaritasi.CiftlerTers) ns = -ns; // fiziksel K-G = iç D-B
+                sb.AppendLine();
+                sb.AppendLine("Kuzey-Güney: " + (ns > 0 ? "+" : "") + ns);
+                sb.AppendLine("Doğu-Batı  : " + (-ns > 0 ? "+" : "") + (-ns));
+            }
+            return sb.ToString();
+        }
+
+        private static string KartMetniSatiri(List<Card> el, string renk)
+        {
+            var dizi = el.Where(c => c.Suit == renk).OrderByDescending(c => c.Value)
+                         .Select(c => c.Value == 10 ? "10" : PbnDeger(c.Value).ToString());
+            string metin = string.Join(" ", dizi);
+            return string.IsNullOrEmpty(metin) ? "—" : metin;
+        }
+
+        /// <summary>Yazdırma için bordun düz metin özeti (eller, ihale, sonuç, skor).</summary>
+        public string BordOzetiMetni()
+        {
+            var sb = new System.Text.StringBuilder();
+            Player dagitici = _ellerIhaleSonrasiTakasli ? Karsi(_dealer) : _dealer;
+
+            bool nsZon, ewZon;
+            ZonDurumu(out nsZon, out ewZon);
+            if (KoltukHaritasi.CiftlerTers) { bool g = nsZon; nsZon = ewZon; ewZon = g; }
+            string zon = nsZon && ewZon ? "Herkes zonda" : nsZon ? "K-G zonda" : ewZon ? "D-B zonda" : "Zonsuz";
+
+            sb.AppendLine("BRİÇ KART OYUNU — Bord " + _currentTour);
+            sb.AppendLine("Dağıtıcı: " + PlayerIsmiTurkce(dagitici) + "   " + zon);
+            sb.AppendLine(new string('─', 52));
+            sb.AppendLine();
+
+            string[] renkler = { "Maça", "Kupa", "Karo", "Sinek" };
+            string[] semboller = { "♠", "♥", "♦", "♣" };
+
+            Func<Player, List<string>> blok = oyuncu =>
+            {
+                var el = BaslangicEli(oyuncu);
+                var satirlar = new List<string> { PlayerIsmiTurkce(oyuncu).ToUpper() };
+                for (int i = 0; i < 4; i++)
+                    satirlar.Add(semboller[i] + " " + KartMetniSatiri(el, renkler[i]));
+                return satirlar;
+            };
+
+            // Fiziksel koltuğa denk gelen iç oyuncunun eli yazdırılır
+            var kuzey = blok(KoltukHaritasi.Ic(Player.Kuzey));
+            var bati = blok(KoltukHaritasi.Ic(Player.Bati));
+            var dogu = blok(KoltukHaritasi.Ic(Player.Dogu));
+            var guney = blok(KoltukHaritasi.Ic(Player.Guney));
+
+            foreach (var satir in kuzey) sb.AppendLine(new string(' ', 20) + satir);
+            sb.AppendLine();
+            for (int i = 0; i < bati.Count; i++)
+                sb.AppendLine(bati[i].PadRight(30) + dogu[i]);
+            sb.AppendLine();
+            foreach (var satir in guney) sb.AppendLine(new string(' ', 20) + satir);
+            sb.AppendLine();
+            sb.AppendLine(new string('─', 52));
+
+            // İhale tablosu
+            sb.AppendLine("İhale:");
+            sb.AppendLine("Batı".PadRight(10) + "Kuzey".PadRight(10) + "Doğu".PadRight(10) + "Güney");
+            var bids = _sonIhaleGecmisi ?? new List<string>();
+            int sutun = 0;
+            switch (KoltukHaritasi.Fiz(dagitici))
+            {
+                case Player.Bati: sutun = 0; break;
+                case Player.Kuzey: sutun = 1; break;
+                case Player.Dogu: sutun = 2; break;
+                default: sutun = 3; break;
+            }
+            var satirSb = new System.Text.StringBuilder(new string(' ', sutun * 10));
+            foreach (var b in bids)
+            {
+                satirSb.Append(b.PadRight(10));
+                sutun++;
+                if (sutun == 4)
+                {
+                    sb.AppendLine(satirSb.ToString().TrimEnd());
+                    satirSb.Clear();
+                    sutun = 0;
+                }
+            }
+            if (satirSb.Length > 0) sb.AppendLine(satirSb.ToString().TrimEnd());
+            sb.AppendLine();
+            sb.AppendLine(new string('─', 52));
+            sb.Append(SkorMetni());
+            return sb.ToString();
+        }
+
         private static string PbnTemiz(string t)
         {
             return (t ?? "").Replace("\"", "'").Replace("\r", " ").Replace("\n", " ");
@@ -4165,7 +4461,7 @@ namespace BricKartOyunu
 
         private static char PbnKoltuk(Player p)
         {
-            switch (p)
+            switch (KoltukHaritasi.Fiz(p))
             {
                 case Player.Kuzey: return 'N';
                 case Player.Dogu: return 'E';
@@ -4274,8 +4570,8 @@ namespace BricKartOyunu
             sb.Append("[Vulnerable \"" + zon + "\"]" + nlx);
 
             // Deal: ilk elin koltuğu N, saat yönünde N E S W
-            sb.Append("[Deal \"N:" + PbnEl(Player.Kuzey) + " " + PbnEl(Player.Dogu) + " " +
-                      PbnEl(Player.Guney) + " " + PbnEl(Player.Bati) + "\"]" + nlx);
+            sb.Append("[Deal \"N:" + PbnEl(KoltukHaritasi.Ic(Player.Kuzey)) + " " + PbnEl(KoltukHaritasi.Ic(Player.Dogu)) + " " +
+                      PbnEl(KoltukHaritasi.Ic(Player.Guney)) + " " + PbnEl(KoltukHaritasi.Ic(Player.Bati)) + "\"]" + nlx);
 
             // İhale
             var bids = _sonIhaleGecmisi ?? new List<string>();
@@ -4554,12 +4850,29 @@ namespace BricKartOyunu
             else AITetikle();                        // sıradaki oyuncu (insan olsa da) AI gibi oynar
         }
 
+        /// <summary>"El sonrası duraklat" kapalıyken, el bitince oyun alanına tıklanmadan devam eder.</summary>
+        private void ElSonrasiOtomatikDevamZamanla()
+        {
+            _tumAIElTimer?.Stop();
+            _tumAIElTimer?.Dispose();
+            _tumAIElTimer = new System.Windows.Forms.Timer { Interval = AnaSayfa.OyunPlani.OtomatikOynaGecikmesiMs() < 600 ? 600 : AnaSayfa.OyunPlani.OtomatikOynaGecikmesiMs() };
+            _tumAIElTimer.Tick += (s, e) =>
+            {
+                _tumAIElTimer?.Stop();
+                _tumAIElTimer?.Dispose();
+                _tumAIElTimer = null;
+                if (!IsDisposed && !_tumAI && _elBittiBekliyor && _oyunAsamasi == OyunAsamasi.Oyun)
+                    PlayZonePanel_Click(null, EventArgs.Empty);
+            };
+            _tumAIElTimer.Start();
+        }
+
         /// <summary>Tam AI modunda el bitince kısa bekleyip (oyun alanına tıklanmadan) yeni ele geçer.</summary>
         private void TumAIYeniEleZamanla()
         {
             _tumAIElTimer?.Stop();
             _tumAIElTimer?.Dispose();
-            _tumAIElTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            _tumAIElTimer = new System.Windows.Forms.Timer { Interval = (AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri()).OtomatikOynaGecikmesiMs() };
             _tumAIElTimer.Tick += (s, e) =>
             {
                 _tumAIElTimer?.Stop();

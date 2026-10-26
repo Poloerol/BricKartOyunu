@@ -53,10 +53,10 @@ namespace BricKartOyunu.Forms
 
             // Sütunlar
             listView1.Columns.Add("Tur", 40, HorizontalAlignment.Center);
-            listView1.Columns.Add("Batı", 60, HorizontalAlignment.Center);
-            listView1.Columns.Add("Kuzey", 60, HorizontalAlignment.Center);
-            listView1.Columns.Add("Doğu", 60, HorizontalAlignment.Center);
-            listView1.Columns.Add("Güney", 60, HorizontalAlignment.Center);
+            listView1.Columns.Add(KoltukHaritasi.Ad(Player.Bati), 60, HorizontalAlignment.Center);
+            listView1.Columns.Add(KoltukHaritasi.Ad(Player.Kuzey), 60, HorizontalAlignment.Center);
+            listView1.Columns.Add(KoltukHaritasi.Ad(Player.Dogu), 60, HorizontalAlignment.Center);
+            listView1.Columns.Add(KoltukHaritasi.Ad(Player.Guney), 60, HorizontalAlignment.Center);
 
             listView1.View = View.Details;
             listView1.FullRowSelect = true;
