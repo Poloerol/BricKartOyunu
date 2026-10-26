@@ -2492,6 +2492,80 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        public static void Test_DagitimUretici()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 12.2 — Dağıtım profilleri ve en iyi el");
+            Yaz("════════════════════════════════════════");
+            bool ok = true;
+            foreach (DagitimProfili pr in Enum.GetValues(typeof(DagitimProfili)))
+                foreach (var iz in new bool[][] { null, new[] { true, false, true, false }, new[] { false, false, true, false } })
+                    for (int s = 1; s <= 20; s++)
+                    {
+                        var d = DagitimUretici.Uret(pr, iz, s);
+                        var d2 = DagitimUretici.Uret(pr, iz, s);
+                        if (d.Count != 52 || d.Distinct().Count() != 52 || !d.SequenceEqual(d2) || !DagitimUretici.Uygun(d, pr, iz)) ok = false;
+                    }
+            Yaz(ok ? "✅ DOĞRU" : "❌ YANLIŞ (dağıtım profili)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_Rebid2NT_Cevap()
+        {
+            // ♠J 9  ♥10 8 7 4  ♣A J 10 4  ♦Q J 4  (9 HP)  — 1♦ (18 HP) – 1♥ – 2NT (18-19) sonrası
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 11 }, new Card { Suit = "Maça", Value = 9 },
+                new Card { Suit = "Kupa", Value = 10 }, new Card { Suit = "Kupa", Value = 8 }, new Card { Suit = "Kupa", Value = 7 }, new Card { Suit = "Kupa", Value = 4 },
+                new Card { Suit = "Sinek", Value = 14 }, new Card { Suit = "Sinek", Value = 11 }, new Card { Suit = "Sinek", Value = 10 }, new Card { Suit = "Sinek", Value = 4 },
+                new Card { Suit = "Karo", Value = 12 }, new Card { Suit = "Karo", Value = 11 }, new Card { Suit = "Karo", Value = 4 }
+            };
+            SeviyeTesti("TEST 11.5 — 1♦–1♥–2NT (18-19) sonrası 9 HP → 3NT", el, Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♦",  Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥",  Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2NT", Sira = 7, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Pas", Sira = 8, GecerliMi = true },
+                }, "3NT");
+        }
+
+        public static void Test_KoltukHaritasi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 12.1 — İnsan koltuğu eşlemesi (Fiz/Ic)");
+            Yaz("════════════════════════════════════════");
+            Player[] hepsi = { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            bool ok = true;
+            foreach (var insan in hepsi)
+            {
+                KoltukHaritasi.Insan = insan;
+                if (KoltukHaritasi.Fiz(Player.Guney) != insan) ok = false;
+                foreach (var p in hepsi)
+                    if (KoltukHaritasi.Ic(KoltukHaritasi.Fiz(p)) != p) ok = false;
+                // Ortak karşıda kalmalı
+                if (KoltukHaritasi.Fiz(Player.Kuzey) == insan) ok = false;
+            }
+            KoltukHaritasi.Insan = Player.Kuzey;
+            if (KoltukHaritasi.Fiz(Player.Kuzey) != Player.Guney) ok = false;   // ortak karşıda
+            if (KoltukHaritasi.Fiz(Player.Bati) != Player.Dogu) ok = false;
+            if (KoltukHaritasi.CiftlerTers) ok = false;
+            KoltukHaritasi.Insan = Player.Dogu;
+            if (!KoltukHaritasi.CiftlerTers) ok = false;
+            if (KoltukHaritasi.Fiz(Player.Kuzey) != Player.Bati) ok = false;    // saat yönü: G→D, B→K ... Kuzey→Batı
+            KoltukHaritasi.Uygula(new bool[] { false, false, true, false });   // varsayılan: Güney
+            if (KoltukHaritasi.Insan != Player.Guney || KoltukHaritasi.Fiz(Player.Bati) != Player.Bati) ok = false;
+            KoltukHaritasi.Uygula(new bool[] { false, false, false, true });   // Batı
+            if (KoltukHaritasi.Insan != Player.Bati) ok = false;
+            KoltukHaritasi.Uygula(new bool[] { false, false, true, false });
+            Yaz(ok ? "✅ DOĞRU" : "❌ YANLIŞ (koltuk eşlemesi)");
+            Yaz("════════════════════════════════════════");
+        }
+
         public static void Test_Preempt_Cevap_Ve_ZayifIki()
         {
             // ♠K 7 4  ♥Q 8 5 3  ♦A 6 2  ♣9 7 5  (9 HP, 3 maça)
@@ -13647,6 +13721,9 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Puppet_KeyCard_4_1Q();
             Test_Cevap_BesliMajor_1MacaYerine2NT();
             Test_Preempt_Cevap_Ve_ZayifIki();
+            Test_KoltukHaritasi();
+            Test_Rebid2NT_Cevap();
+            Test_DagitimUretici();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();

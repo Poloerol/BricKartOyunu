@@ -234,6 +234,8 @@
     <Compile Include="Class\CardSorter.cs" />
     <Compile Include="Class\OyunZekasi.cs" />
     <Compile Include="Class\AyarDeposu.cs" />
+    <Compile Include="Class\KoltukHaritasi.cs" />
+    <Compile Include="Class\DagitimUretici.cs" />
     <Compile Include="Class\EkranYardimci.cs" />
     <Compile Include="Class\Skorlama.cs" />
     <Compile Include="Class\Player.cs" />
@@ -390,9 +392,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\OynananElleriGosterForm.resx">
       <DependentUpon>OynananElleriGosterForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\OyunPlaniAyarlari.resx">
-      <DependentUpon>OyunPlaniAyarlari.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\TestForm.resx">
       <DependentUpon>TestForm.cs</DependentUpon>

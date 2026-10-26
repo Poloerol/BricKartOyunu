@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using BricKartOyunu.Class;
 
 namespace BricKartOyunu.Forms
 {
@@ -59,16 +60,16 @@ namespace BricKartOyunu.Forms
 
             // ─── Kutuları Yerleştir ───
             // Kuzey (Üst kutu) — kuzey verisi
-            EkleKutu("Kuzey", kuzey, kuzeyYorum, 110, 25, 200, 60);
+            EkleKutu(KoltukHaritasi.Ad(Player.Kuzey), kuzey, kuzeyYorum, 110, 25, 200, 60);
 
             // Batı (Sol alt kutu) — bati verisi
-            EkleKutu("Batı", bati, batiYorum, 10, 135, 190, 60);
+            EkleKutu(KoltukHaritasi.Ad(Player.Bati), bati, batiYorum, 10, 135, 190, 60);
 
             // Doğu (Sağ alt kutu) — dogu verisi
-            EkleKutu("Doğu", dogu, doguYorum, 210, 135, 190, 60);
+            EkleKutu(KoltukHaritasi.Ad(Player.Dogu), dogu, doguYorum, 210, 135, 190, 60);
 
             // Güney (En alt orta kutu) — guney verisi
-            EkleKutu("Güney", guney, guneyYorum, 110, 245, 200, 60);
+            EkleKutu(KoltukHaritasi.Ad(Player.Guney), guney, guneyYorum, 110, 245, 200, 60);
 
             // OK Butonu
             Button btnOk = new Button

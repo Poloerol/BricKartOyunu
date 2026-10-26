@@ -54,6 +54,9 @@ namespace BricKartOyunu.Forms
         public bool OyunVeIhaleyiSesliDuyur = false;
         public bool Selamlamalar = true;
 
+        // Bord numaralaması: son oynanan bord (Yeni numara kapalıysa sonraki oturum buradan devam eder)
+        public int SonBordNo = 0;
+
         // Oyuncu türleri: sıra Kuzey, Doğu, Güney, Batı (true = insan)
         public bool[] InsanMi = { false, false, true, false };
 
@@ -105,6 +108,32 @@ namespace BricKartOyunu.Forms
             if (YapayZekaGecikmesiSn < 0) YapayZekaGecikmesiSn = 0;
             if (YapayZekaGecikmesiSn > 2) YapayZekaGecikmesiSn = 2;
             if (SurumNo < 1) SurumNo = 1;
+        }
+
+        /// <summary>Yapay zekâ kart/ihale gecikmesi (ms). 0 sn = anlık sayılır (30 ms).</summary>
+        public int AiGecikmesiMs()
+        {
+            return YapayZekaGecikmesiSn <= 0 ? 30 : YapayZekaGecikmesiSn * 1000;
+        }
+
+        /// <summary>Otomatik oynatma (tüm eller AI) adım gecikmesi (ms).</summary>
+        public int OtomatikOynaGecikmesiMs()
+        {
+            return HizliOtomatikOyna ? 10 : AiGecikmesiMs();
+        }
+
+        /// <summary>Bord numarasına göre fiziksel dağıtıcı (Dönüşümlü: 1=Kuzey, 2=Doğu, 3=Güney, 4=Batı...).</summary>
+        public Player FizikselDagitici(int bordNo)
+        {
+            switch (Dagitici)
+            {
+                case DagiticiSecimi.Kuzey: return Player.Kuzey;
+                case DagiticiSecimi.Dogu: return Player.Dogu;
+                case DagiticiSecimi.Guney: return Player.Guney;
+                case DagiticiSecimi.Bati: return Player.Bati;
+            }
+            Player[] sira = { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            return sira[(((bordNo - 1) % 4) + 4) % 4];
         }
 
         public OyunPlaniSecenekleri Klonla()

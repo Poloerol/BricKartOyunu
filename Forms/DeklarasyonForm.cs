@@ -228,17 +228,17 @@ namespace BricKartOyunu.Forms
         private void IsaretleAktifOyuncu()
         {
             // DeklarasyonForm üzerindeki etiketler
-            if (lblWest != null) lblWest.Text = "Batı";
-            if (lblNorth != null) lblNorth.Text = "Kuzey";
-            if (lblEast != null) lblEast.Text = "Doğu";
-            if (lblSouth != null) lblSouth.Text = "Güney";
+            if (lblWest != null) lblWest.Text = KoltukHaritasi.Ad(Player.Bati);
+            if (lblNorth != null) lblNorth.Text = KoltukHaritasi.Ad(Player.Kuzey);
+            if (lblEast != null) lblEast.Text = KoltukHaritasi.Ad(Player.Dogu);
+            if (lblSouth != null) lblSouth.Text = KoltukHaritasi.Ad(Player.Guney);
 
             switch (_aktifOyuncu)
             {
-                case "Bati": if (lblWest != null) lblWest.Text = "Batı*"; break;
-                case "Kuzey": if (lblNorth != null) lblNorth.Text = "Kuzey*"; break;
-                case "Dogu": if (lblEast != null) lblEast.Text = "Doğu*"; break;
-                case "Guney": if (lblSouth != null) lblSouth.Text = "Güney*"; break;
+                case "Bati": if (lblWest != null) lblWest.Text = KoltukHaritasi.Ad(Player.Bati) + "*"; break;
+                case "Kuzey": if (lblNorth != null) lblNorth.Text = KoltukHaritasi.Ad(Player.Kuzey) + "*"; break;
+                case "Dogu": if (lblEast != null) lblEast.Text = KoltukHaritasi.Ad(Player.Dogu) + "*"; break;
+                case "Guney": if (lblSouth != null) lblSouth.Text = KoltukHaritasi.Ad(Player.Guney) + "*"; break;
             }
 
             // Ana oyun formundaki (BricOyna) kart altı isim etiketini SARI yap
@@ -759,11 +759,11 @@ namespace BricKartOyunu.Forms
             if (deklaran == "Kuzey")
             {
                 MessageBox.Show(
-                    "Kontrat Kuzey'de kaldı.\n\n" +
+                    "Kontrat " + KoltukHaritasi.Ad(Player.Kuzey) + " oyuncusunda kaldı.\n\n" +
                     "El değişimi yapılacak:\n" +
                     "•  Kuzey ile Güney elleri yer değiştirecek\n" +
                     "•  Doğu ile Batı elleri yer değiştirecek\n\n" +
-                    "Böylece siz (Güney) deklaran olacak, Kuzey dummy olacak\n" +
+                    "Böylece siz deklaran olacak, " + KoltukHaritasi.Ad(Player.Kuzey) + " dummy olacak\n" +
                     "ve Batı ilk kartını oynayacaktır.",
                     "El Değişimi",
                     MessageBoxButtons.OK,
@@ -870,10 +870,10 @@ namespace BricKartOyunu.Forms
         {
             switch (oyuncu)
             {
-                case "Bati": return "Batı";
-                case "Kuzey": return "Kuzey";
-                case "Dogu": return "Doğu";
-                case "Guney": return "Güney";
+                case "Bati": return KoltukHaritasi.Ad(Player.Bati);
+                case "Kuzey": return KoltukHaritasi.Ad(Player.Kuzey);
+                case "Dogu": return KoltukHaritasi.Ad(Player.Dogu);
+                case "Guney": return KoltukHaritasi.Ad(Player.Guney);
                 default: return oyuncu;
             }
         }
@@ -1047,8 +1047,8 @@ namespace BricKartOyunu.Forms
             _aiTimer?.Stop();
             _aiTimer?.Dispose();
 
-            // 800ms sonra AI oynasın
-            _aiTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            // Oyun Planı'ndaki yapay zekâ gecikmesi kadar bekleyip AI oynasın
+            _aiTimer = new System.Windows.Forms.Timer { Interval = (AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri()).AiGecikmesiMs() };
             _aiTimer.Tick += (s, e) =>
             {
                 _aiTimer.Stop();

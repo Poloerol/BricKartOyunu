@@ -294,6 +294,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool nt = dengeli || EnUzunUzunluk(el) <= 5;
             bool ntOlur = NTOlur(el, rakipRenkleri);
 
+            // Ortağın aralığı dar (örn. 1♦–1♥–2NT = 18-19) ve kendi elimle toplam en az 25 HP:
+            // tahmin eşiğine takılmadan 3NT'ye taşı (18+9=27 HP'de Pas demek hatadır).
+            var ortAr = IhaleKoruma.PartnerAraligi(d);
+            if ((ortAr.Max - ortAr.Min) <= 3 && ortAr.Min + hp >= 25 && ntOlur && nt && cur <= 2 &&
+                gercek.Any(h => h.Oyuncu == d.Partner && h.Koz == "NT" && h.Seviye == 2) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Seviye >= 2))
+                return Seviye(d, "NT", 3);
+
             // Oyun gücü: 3NT (veya 6+ majörde 4)
             double oyunEsik = dar ? 26 : 27.5, davetEsik = dar ? 24 : 25.5;
             if (est >= oyunEsik)

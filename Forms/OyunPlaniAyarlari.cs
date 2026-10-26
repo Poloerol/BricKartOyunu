@@ -51,29 +51,11 @@ namespace BricKartOyunu.Forms
             Yukle(Secenekler);
         }
 
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            // 
-            // OyunPlaniAyarlari
-            // 
-            this.ClientSize = new System.Drawing.Size(284, 261);
-            this.Name = "OyunPlaniAyarlari";
-            this.Load += new System.EventHandler(this.OyunPlaniAyarlari_Load);
-            this.ResumeLayout(false);
-
-        }
-
-        private void OyunPlaniAyarlari_Load(object sender, EventArgs e)
-        {
-
-        }
-
         // ───────────────────────────── kurulum ─────────────────────────────
 
         private void Kurulum()
         {
-            Text = "Oyun Planı Ayarları";
+            Text = "Oyun Planı";
             Font = _yazi;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
@@ -102,7 +84,27 @@ namespace BricKartOyunu.Forms
             _btnTamam = Dugme("Tamam", 134, 208);
             _btnIptal = Dugme("İptal", 218, 208);
             _btnYardim = Dugme("Yardım", 302, 208);
-            _btnTamam.Click += (s, e) => { Kaydet(); DialogResult = DialogResult.OK; Close(); };
+            _btnTamam.Click += (s, e) =>
+            {
+                int insanSayisi = 0;
+                for (int k = 0; k < 4; k++) if (_rbInsan[k] != null && _rbInsan[k].Checked) insanSayisi++;
+                if (insanSayisi != 1)
+                {
+                    MessageBox.Show(this, "Masada tam olarak bir insan oyuncu olmalıdır.\n(Oyuncu Türleri sekmesinden bir koltuk seçin.)",
+                        "Oyuncu Türleri", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                Kaydet();
+                string eksik = "";
+                if (Secenekler.OyunTuru != OyunTuru.Duplicate)
+                    eksik += "• Oyun türü: yalnızca Duplicate kullanılabilir (diğerleri henüz yok).\n";
+                if (Secenekler.DagitimKaynagi == DagitimKaynagi.KullaniciGirisi)
+                    eksik += "• Kullanıcı girişi: henüz yok, rastgele dağıtım kullanılacak.\n";
+                if (eksik.Length > 0)
+                    MessageBox.Show(this, "Seçimleriniz kaydedildi, ancak şu ayarlar henüz oyunda etkin değil:\n\n" + eksik,
+                        "Oyun Planı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK; Close();
+            };
             _btnIptal.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
             _btnYardim.Click += (s, e) => MessageBox.Show(
                 "Dağıtım: kartların nasıl dağıtılacağı.\nOyun: oyun türü ve oyun akışı.\n" +
@@ -164,8 +166,8 @@ namespace BricKartOyunu.Forms
 
             var g1 = Grup(s, "Dağıtım Kaynağı", 4, 2, 152, 160);
             _rbKaynak = RadyoDizisi(g1, new[] {
-                "Kullanıcı Girişli Dağıtım", "Rastgele Dağıtım", "Rastgele Part Skor", "Rastgele Oyun Eli",
-                "Rastgele Şlem Eli", "Üretilmiş Dağılım", "Numaralı Rastgele Eller", "Sanzatu Dağılımları" },
+                "Kullanıcı girişi", "Rastgele dağıtım", "Rastgele parsiyel skor", "Rastgele oyun eli",
+                "Rastgele slam eli", "Üretilmiş dağıtım", "Numaralı rastgele", "Kozsuz dağıtımlar" },
                 8, 16, 17, 140);
 
             var g2 = Grup(s, "En İyi El", 162, 2, 98, 160);
@@ -252,6 +254,16 @@ namespace BricKartOyunu.Forms
                 _rbInsan[i] = new RadioButton { Left = 122, Top = 3, Width = 18, Height = 18, AutoSize = false };
                 panel.Controls.Add(_rbBilgisayar[i]);
                 panel.Controls.Add(_rbInsan[i]);
+
+                // Masada tek insan oyuncu olur: biri "İnsan" seçilince diğerleri "Bilgisayar" olur
+                int sira = i;
+                _rbInsan[i].CheckedChanged += (snd, ev) =>
+                {
+                    if (!_rbInsan[sira].Checked) return;
+                    for (int k = 0; k < 4; k++)
+                        if (k != sira && _rbInsan[k] != null && _rbInsan[k].Checked)
+                            _rbBilgisayar[k].Checked = true;
+                };
                 s.Controls.Add(panel);
             }
         }
