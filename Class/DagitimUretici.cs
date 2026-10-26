@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace BricKartOyunu.Class
 {
     /// <summary>Dağıtım profili (Oyun Planı > Dağıtım Kaynağı).</summary>
-    public enum DagitimProfili { Rastgele, Parsiyel, Oyun, Slam, Kozsuz }
+    public enum DagitimProfili { Rastgele, Parsiyel, Oyun, Slam, Kozsuz, KgOyun, KgDavet, KgSlam }
 
     /// <summary>
     /// Seed'e bağlı (tekrarlanabilir) dağıtım üretir. Profil ve "en iyi el" koşulu
@@ -102,6 +102,10 @@ namespace BricKartOyunu.Class
 
             switch (profil)
             {
+                // Güney-Kuzey (insan tarafı) güçlü: konvansiyon pratiği için yönlendirilmiş dağıtımlar
+                case DagitimProfili.KgDavet: return ns >= 22 && ns <= 25 && ew <= 18;
+                case DagitimProfili.KgOyun: return ns >= 25 && ns <= 31 && ew <= 14;
+                case DagitimProfili.KgSlam: return ns >= 32 && ew <= 10;
                 case DagitimProfili.Parsiyel: return guclu >= 20 && guclu <= 24;
                 case DagitimProfili.Oyun: return guclu >= 25 && guclu <= 31;
                 case DagitimProfili.Slam: return guclu >= 33;

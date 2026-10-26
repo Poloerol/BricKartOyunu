@@ -20,7 +20,15 @@ namespace BricKartOyunu
     /// </summary>
     public partial class Konvansiyon : Form
     {
-        private const int AzamiDenemeKonvansiyonBasina = 20000;
+        // Önce rastgele dağıtım; yetmezse güçlü/özel profillerle Güney-Kuzey'in güçlü olduğu yönlendirilmiş dağıtım (nadir konvansiyonlar için).
+        private static readonly KeyValuePair<DagitimProfili, int>[] Asamalar =
+        {
+            new KeyValuePair<DagitimProfili, int>(DagitimProfili.Rastgele, 1000),
+            new KeyValuePair<DagitimProfili, int>(DagitimProfili.KgOyun, 5000),
+            new KeyValuePair<DagitimProfili, int>(DagitimProfili.KgSlam, 4000),
+            new KeyValuePair<DagitimProfili, int>(DagitimProfili.KgDavet, 3000),
+        };
+        private static int AzamiDenemeKonvansiyonBasina { get { return Asamalar.Sum(a => a.Value); } }
 
         private TextBox _txtAdet, _txtBaslangic, _txtGecerli;
         private CheckBox _chkDuyur, _chkYakinKacis;
@@ -29,7 +37,7 @@ namespace BricKartOyunu
         private Button _btnEkle, _btnCikar, _btnUret, _btnPratik, _btnKaydet;
 
         private readonly List<string> _tumKonvansiyonlar;
-        private readonly Dictionary<string, List<int>> _sonuclar = new Dictionary<string, List<int>>();
+        private readonly Dictionary<string, List<PratikDagitim>> _sonuclar = new Dictionary<string, List<PratikDagitim>>();
         private bool _uretiyor, _iptal;
 
         public Konvansiyon()
@@ -170,9 +178,14 @@ namespace BricKartOyunu
         {
             _lstDagitimlar.Items.Clear();
             if (_lstSecili.SelectedItem == null) return;
-            List<int> liste;
+            List<PratikDagitim> liste;
             if (_sonuclar.TryGetValue((string)_lstSecili.SelectedItem, out liste))
-                foreach (var seed in liste) _lstDagitimlar.Items.Add(seed.ToString());
+                foreach (var pd in liste) _lstDagitimlar.Items.Add(DagitimMetni(pd));
+        }
+
+        private static string DagitimMetni(PratikDagitim pd)
+        {
+            return pd.Profil == DagitimProfili.Rastgele ? pd.Seed.ToString() : pd.Seed + " (" + pd.Profil + ")";
         }
 
         private void PratikDugmeleriniGuncelle()
@@ -222,33 +235,42 @@ namespace BricKartOyunu
                 var motor = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan());
                 foreach (var ad in _lstSecili.Items.Cast<string>().ToList())
                 {
-                    var bulunan = new List<int>();
+                    var bulunan = new List<PratikDagitim>();
                     _sonuclar[ad] = bulunan;   // canlı: seçilince o ana kadar bulunan eller görünür
                     // Kullanıcı kendi seçmediyse, üretilen konvansiyonu seçili göster
                     if (_lstSecili.SelectedItem == null || (string)_lstSecili.SelectedItem == otoSecilen)
                     {
                         _lstSecili.ClearSelected();
-                        _lstSecili.SelectedItem = ad;   // SelectedIndexChanged listeyi yeniler
+                        _lstSecili.SetSelected(_lstSecili.Items.IndexOf(ad), true);
                         otoSecilen = ad;
+                        _lstDagitimlar.Items.Clear();   // yeni konvansiyon: liste baştan dolacak
                     }
-                    long seed = baslangic;
-                    int bu = 0;
-                    while (bulunan.Count < adet && bu < AzamiDenemeKonvansiyonBasina && !_iptal)
+                    foreach (var asama in Asamalar)
                     {
-                        if (seed > int.MaxValue) seed = 1;
-                        if (KonvansiyonPratigi.Gecerli(motor, (int)seed, ad))
+                        if (bulunan.Count >= adet || _iptal) break;
+                        long seed = baslangic;
+                        int bu = 0;
+                        while (bulunan.Count < adet && bu < asama.Value && !_iptal)
                         {
-                            bulunan.Add((int)seed);
-                            gecerli++;
-                            if (_lstSecili.SelectedItem != null && (string)_lstSecili.SelectedItem == ad)
-                                _lstDagitimlar.Items.Add(((int)seed).ToString());
-                        }
-                        seed++; bu++; denenen++;
-                        if (denenen % 25 == 0)
-                        {
-                            _lblDenenen.Text = denenen.ToString();
-                            _txtGecerli.Text = gecerli.ToString();
-                            Application.DoEvents();
+                            if (seed > int.MaxValue) seed = 1;
+                            if (KonvansiyonPratigi.Gecerli(motor, (int)seed, ad, asama.Key))
+                            {
+                                var pd = new PratikDagitim { Seed = (int)seed, Konvansiyon = ad, Profil = asama.Key };
+                                bulunan.Add(pd);
+                                gecerli++;
+                                if (_lstSecili.SelectedItem != null && (string)_lstSecili.SelectedItem == ad)
+                                {
+                                    _lstDagitimlar.Items.Add(DagitimMetni(pd));
+                                    _lstDagitimlar.Refresh();
+                                }
+                            }
+                            seed++; bu++; denenen++;
+                            if (denenen % 25 == 0 || bu == 1)
+                            {
+                                _lblDenenen.Text = denenen.ToString();
+                                _txtGecerli.Text = gecerli.ToString();
+                                Application.DoEvents();
+                            }
                         }
                     }
                     if (bulunan.Count < adet && !_iptal) eksik.Add(ad + " (" + bulunan.Count + "/" + adet + ")");
@@ -284,9 +306,9 @@ namespace BricKartOyunu
             var liste = new List<PratikDagitim>();
             foreach (var ad in _lstSecili.Items.Cast<string>())
             {
-                List<int> seedler;
-                if (!_sonuclar.TryGetValue(ad, out seedler)) continue;
-                foreach (var s in seedler) liste.Add(new PratikDagitim { Seed = s, Konvansiyon = ad });
+                List<PratikDagitim> bulunanlar;
+                if (!_sonuclar.TryGetValue(ad, out bulunanlar)) continue;
+                liste.AddRange(bulunanlar);
             }
             return liste;
         }
@@ -316,7 +338,7 @@ namespace BricKartOyunu
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
                 try
                 {
-                    File.WriteAllLines(dlg.FileName, liste.Select(p => p.Konvansiyon + ";" + p.Seed), new UTF8Encoding(true));
+                    File.WriteAllLines(dlg.FileName, liste.Select(p => p.Konvansiyon + ";" + p.Seed + ";" + p.Profil), new UTF8Encoding(true));
                 }
                 catch (Exception ex)
                 {

@@ -10,6 +10,8 @@ namespace BricKartOyunu.Class
     {
         public int Seed;
         public string Konvansiyon;
+        /// <summary>Dağıtımın üretildiği profil (nadir konvansiyonlar için yönlendirilmiş dağıtım).</summary>
+        public DagitimProfili Profil = DagitimProfili.Rastgele;
     }
 
     /// <summary>
@@ -62,7 +64,12 @@ namespace BricKartOyunu.Class
         /// </summary>
         public static Dictionary<string, int> KullanilanKonvansiyonlar(IhaleMotoru motor, int seed, out List<string> ihale)
         {
-            var deste = DagitimUretici.Uret(DagitimProfili.Rastgele, null, seed);
+            return KullanilanKonvansiyonlar(motor, seed, DagitimProfili.Rastgele, out ihale);
+        }
+
+        public static Dictionary<string, int> KullanilanKonvansiyonlar(IhaleMotoru motor, int seed, DagitimProfili profil, out List<string> ihale)
+        {
+            var deste = DagitimUretici.Uret(profil, null, seed);
             var eller = new Dictionary<Player, List<Card>>();
             for (int k = 0; k < 4; k++) eller[Sira[k]] = KartlarinElleri(deste, k);
 
@@ -104,8 +111,13 @@ namespace BricKartOyunu.Class
         /// <summary>Seed bu konvansiyon için geçerli mi?</summary>
         public static bool Gecerli(IhaleMotoru motor, int seed, string konvansiyon)
         {
+            return Gecerli(motor, seed, konvansiyon, DagitimProfili.Rastgele);
+        }
+
+        public static bool Gecerli(IhaleMotoru motor, int seed, string konvansiyon, DagitimProfili profil)
+        {
             List<string> ihale;
-            var kullanilan = KullanilanKonvansiyonlar(motor, seed, out ihale);
+            var kullanilan = KullanilanKonvansiyonlar(motor, seed, profil, out ihale);
             return kullanilan.ContainsKey(konvansiyon);
         }
     }

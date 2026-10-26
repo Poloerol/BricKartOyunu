@@ -2378,7 +2378,7 @@ namespace BricKartOyunu
         /// <summary>Dağıtım kaynağı ve en iyi el ayarlarına göre 52 kartı üretir (Kuzey, Doğu, Güney, Batı).</summary>
         private List<string> DagitimiUret()
         {
-            if (PratikModu) return DagitimUretici.Uret(DagitimProfili.Rastgele, null, _seed);
+            if (PratikModu) return DagitimUretici.Uret(PratikDagitimlari[_pratikIndeks].Profil, null, _seed);
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             DagitimProfili profil;
             int seed = _seed;
