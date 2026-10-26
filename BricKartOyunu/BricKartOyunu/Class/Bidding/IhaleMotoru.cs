@@ -16,6 +16,39 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool HatalardaFirlat { get; set; } = false;
 
+        /// <summary>Son TeklifVer çağrısında teklifi üreten konvansiyon/gelişim adı (yoksa null).</summary>
+        public string SonKonvansiyonAdi { get; private set; }
+
+        private static string AcilisGelisimAdi(IAcilisGelisimi g)
+        {
+            string ad = g.GetType().Name;
+            if (ad.StartsWith("OneClub_OneDiamond", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
+            if (ad.StartsWith("OneClub_", StringComparison.Ordinal)) return "1♣ Açılış Sistemi";
+            if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Açılış Sistemi";
+            return ad;
+        }
+
+        /// <summary>
+        /// Pratik edilebilecek (ortaklık anlaşmasında AÇIK) konvansiyon adları; yedek (fallback) kurallar hariç.
+        /// </summary>
+        public List<string> PratikKonvansiyonAdlari()
+        {
+            var liste = new List<string>();
+            foreach (var g in _acilisGelismleri)
+            {
+                if (!AcilisGelisimiAktifMi(g)) continue;
+                string ad = AcilisGelisimAdi(g);
+                if (!liste.Contains(ad)) liste.Add(ad);
+            }
+            foreach (var k in _konvansiyonlar)
+            {
+                if (!k.AktifMi) continue;
+                if (k is TemelMantik || k is BasitCevap) continue;
+                if (!liste.Contains(k.Ad)) liste.Add(k.Ad);
+            }
+            return liste;
+        }
+
         public bool KorumaAktif { get; set; } = true;       // IhaleKoruma denetimi
         public bool SeviyeYukseltme { get; set; } = false;  // eski "yasadışı teklifi 1 üst seviyeye çıkar" hilesi
         public bool PasiAtla { get; set; } = true;          // konvansiyon "Pas" derse görüşü yok say
@@ -109,6 +142,7 @@ namespace BricKartOyunu.Class.Bidding
 
         public string TeklifVer(IhaleDurumu durum)
         {
+            SonKonvansiyonAdi = null;
             if (durum == null) return "Pas";
 
             // 1. Aşama: Açılış Gelişimleri
@@ -132,6 +166,7 @@ namespace BricKartOyunu.Class.Bidding
 
                         System.Diagnostics.Debug.WriteLine(
                             $"[KAZANAN-AcilisGelismi] {gelisim.GetType().Name} → {yasalYeni}");
+                        SonKonvansiyonAdi = AcilisGelisimAdi(gelisim);
                         return yasalYeni;
                     }
                     catch (Exception ex)
@@ -196,6 +231,7 @@ namespace BricKartOyunu.Class.Bidding
                     System.Diagnostics.Debug.WriteLine(
                         $"[IhaleMotoru] {konvansiyon.Ad} seviye yükseltildi: {teklif} → {yasal}");
 
+                SonKonvansiyonAdi = konvansiyon.Ad;
                 return yasal;
             }
 

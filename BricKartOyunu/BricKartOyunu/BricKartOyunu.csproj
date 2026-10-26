@@ -236,6 +236,7 @@
     <Compile Include="Class\AyarDeposu.cs" />
     <Compile Include="Class\KoltukHaritasi.cs" />
     <Compile Include="Class\DagitimUretici.cs" />
+    <Compile Include="Class\KonvansiyonPratigi.cs" />
     <Compile Include="Class\EkranYardimci.cs" />
     <Compile Include="Class\Skorlama.cs" />
     <Compile Include="Class\Player.cs" />
