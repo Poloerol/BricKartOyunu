@@ -488,19 +488,44 @@ namespace BricKartOyunu.Class
             }
 
             // 2) Sağlam (boss) kartları bozdur
+            bool uzunOnce = false;
+            if (koz == null && x.HedefVar)
+            {
+                int gerek2 = x.Gerek;
+                if (x.GuvenliEl() < gerek2)
+                {
+                    var uz = OyunKurallari.Renkler
+                        .Where(sv => el.Any(c => c.Suit == sv) &&
+                                     el.Count(c => c.Suit == sv) + ortak.Count(c => c.Suit == sv) >= 7)
+                        .FirstOrDefault();
+                    if (uz != null) uzunOnce = true;
+                }
+            }
             var bossGrup = el.Where(c => c.Suit != koz && x.Boss(c))
                              .GroupBy(c => c.Suit)
                              .OrderByDescending(g => RenkKartlari(el, g.Key).Count + ortak.Count(c => c.Suit == g.Key))
                              .FirstOrDefault();
-            if (bossGrup != null)
+            if (bossGrup != null && !uzunOnce)
             {
+                var enUst = bossGrup.OrderByDescending(c => c.Value).First();
+                // Karşı elde (dummy) bu kartın üstünde bir kart varsa ve kısa ise (tek/çift),
+                // üst kartı oynarsak dummy'nin sağlamı aynı ele yanar → alçak kart oyna.
+                var ortakSuit = ortak.Where(c => c.Suit == bossGrup.Key).ToList();
+                var elSuit = RenkKartlari(el, bossGrup.Key);
+                if (ortakSuit.Count > 0 && ortakSuit.Count <= 2 && elSuit.Count > 1 &&
+                    ortakSuit.Any(c => c.Value > enUst.Value))
+                {
+                    neden = "Dummy'nin sağlam kartı yanmasın: alçak kart (" + bossGrup.Key + ")";
+                    return elSuit.Last();
+                }
                 neden = "Sağlam el bozduruluyor: " + bossGrup.Key;
-                return bossGrup.OrderByDescending(c => c.Value).First();
+                return enUst;
             }
 
             // 3) Ortağın sağlam kartına doğru alçak oyna
             var ortakBoss = ortak.Where(c => c.Suit != koz && x.Boss(c) &&
-                                             el.Any(e => e.Suit == c.Suit))
+                                             el.Any(e => e.Suit == c.Suit) &&
+                                             !(koz == null && el.Count(e => e.Suit == c.Suit) + ortak.Count(e => e.Suit == c.Suit) <= 5 && x.GorunmeyenSayi(c.Suit) >= 7))
                                  .GroupBy(c => c.Suit)
                                  .OrderByDescending(g => g.Count())
                                  .FirstOrDefault();
