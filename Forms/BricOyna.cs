@@ -332,6 +332,22 @@ namespace BricKartOyunu
                     ControlStyles.OptimizedDoubleBuffer, true);
                 this.UpdateStyles();
                 EkranYardimci.TumKontrollerdeCiftTampon(this);
+
+                // Açılışta beyaz kare görünmesin: masa rengiyle başla
+                this.BackColor = AnaSayfa.MasaRengi;
+
+                // Görev çubuğunda ayrı simge göstermesin (AnaSayfa'nın simgesi yeterli)
+                this.ShowInTaskbar = false;
+
+                // Açılışta yarım çizilmiş (beyaz zeminli) ara kare görünmesin:
+                // form şeffaf açılır, ilk tam çizimden sonra görünür olur.
+                this.Opacity = 0;
+                this.Shown += (s, ev) =>
+                {
+                    this.Invalidate(true);
+                    this.Update();
+                    this.BeginInvoke((Action)(() => this.Opacity = 1));
+                };
             }
             this.Load += BricOyna_Load;
             this.Resize += BricOyna_Resize;
@@ -527,6 +543,7 @@ namespace BricKartOyunu
 
             this.BackColor = AnaSayfa.MasaRengi;
             DurumCubuguRenginiSabitle();
+            PlayZoneRenginiGuncelle();
 
             // Bord numarası ve dağıtıcı Oyun Planı'ndan gelir
             if (PratikModu)
@@ -566,7 +583,7 @@ namespace BricKartOyunu
             OyunBilgiPaneliniGuncelle();
 
             // 🔹 TEST: İhale motoru çalışıyor mu?
-            TestIhaleMotoru();
+            if (IhaleMotoruTestiAcik) TestIhaleMotoru();   // her açılışta yüzlerce yapay el çalıştırıyordu (beyaz ekran gecikmesi)
             }
             finally { EkranYardimci.CizimiAc(this); }
 
@@ -577,6 +594,9 @@ namespace BricKartOyunu
         /// <summary>
         /// Test amaçlı — ihale motorunu çalıştırır ve Debug'a yazar.
         /// </summary>
+        /// <summary>İhale motoru yapay el testi (geliştirme için). Açılışı yavaşlattığı için varsayılan kapalı.</summary>
+        private const bool IhaleMotoruTestiAcik = false;
+
         private void TestIhaleMotoru()
         {
             try
@@ -1974,6 +1994,15 @@ namespace BricKartOyunu
             }
         }
 
+        /// <summary>Oyun alanı (playZonePanel) masa renginin biraz koyusu olur; masa rengi değişince birlikte değişir.</summary>
+        private void PlayZoneRenginiGuncelle()
+        {
+            if (playZonePanel == null) return;
+            Color m = AnaSayfa.MasaRengi;
+            const double k = 0.78;   // varsayılan masa (0,128,0) → panel (0,100,0) oranı
+            playZonePanel.BackColor = Color.FromArgb((int)(m.R * k), (int)(m.G * k), (int)(m.B * k));
+        }
+
         private void DurumCubuguRenginiSabitle()
         {
             if (statusStrip1 == null) return;
@@ -2243,6 +2272,7 @@ namespace BricKartOyunu
                 };
                 EnableDoubleBuffer(playZonePanel);
                 this.Controls.Add(playZonePanel);
+                PlayZoneRenginiGuncelle();
 
                 // 🔹 YENİ: Panel tıklaması — el bittiğinde yeni el başlatır
                 playZonePanel.Click += PlayZonePanel_Click;
@@ -3005,6 +3035,7 @@ namespace BricKartOyunu
                     AnaSayfa.MasaRengi = cd.Color;
                     this.BackColor = AnaSayfa.MasaRengi;
             DurumCubuguRenginiSabitle();
+            PlayZoneRenginiGuncelle();
                 }
             }
         }

@@ -591,7 +591,8 @@ namespace BricKartOyunu.Forms
                         CurrentBackImage = currentBackImage
                     })
                     {
-                        this.Hide();
+                        // Hide() yerine: oyun penceresi çizildikten sonra şeffaflaştır (geçişte ara kare/solma görünmesin)
+                        bricOynaForm.Shown += (s2, e2) => this.Opacity = 0;
 
                         try
                         {
@@ -600,6 +601,7 @@ namespace BricKartOyunu.Forms
                         finally
                         {
                             SonElBilgisiniGoster(bricOynaForm);
+                            this.Opacity = 1;
                             this.Show();
                             this.Activate();
                             ResetToInitialState();
@@ -658,7 +660,7 @@ namespace BricKartOyunu.Forms
                 PratikDuyur = duyur
             })
             {
-                this.Hide();
+                bricOynaForm.Shown += (s2, e2) => this.Opacity = 0;
                 try
                 {
                     bricOynaForm.ShowDialog();
@@ -669,6 +671,7 @@ namespace BricKartOyunu.Forms
                     foreach (var kf in Application.OpenForms.Cast<Form>().Where(x => x is Konvansiyon).ToList())
                         kf.Close();
                     SonElBilgisiniGoster(bricOynaForm);
+                    this.Opacity = 1;
                     this.Show();
                     this.Activate();
                     ResetToInitialState();
