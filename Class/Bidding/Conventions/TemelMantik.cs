@@ -197,6 +197,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return c3 <= 3 ? KozYardimcisi.TeklifOlustur(c3, m) : "Pas";
             }
 
+            // Ortak, benim majörümü 3. seviyeye sıçrayarak destekledi (davet: 16-18 HP) →
+            // kendi gücümle toplam 24+ ise oyunu (4M) kabul et: 1♣–1♥–(1♠)–3♥ sonrası 8 HP → 4♥.
+            if (sonOrtak && son.Koz != "NT" && Major(son.Koz) && son.Seviye == 3 && cur == 3 &&
+                gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == son.Koz) &&
+                gercek.IndexOf(son) > 0 && ElDegerlendirici.RenkUzunlugu(el, son.Koz) >= 3 &&
+                hp + ar.Min >= 24)
+                return Seviye(d, son.Koz, 4);
+
             // ── Fit bul ──
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int fitToplam);
 

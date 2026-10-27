@@ -2973,6 +2973,37 @@ namespace BricKartOyunu
                 }, "Dbl");
         }
 
+        public static void Test_Sicramali_Destek_Kabul()
+        {
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 9 },
+                new Card { Suit = "Maça", Value = 8 },
+                new Card { Suit = "Kupa", Value = 12 },
+                new Card { Suit = "Kupa", Value = 10 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Kupa", Value = 4 },
+                new Card { Suit = "Sinek", Value = 13 },
+                new Card { Suit = "Sinek", Value = 10 },
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 2 },
+                new Card { Suit = "Karo", Value = 13 },
+                new Card { Suit = "Karo", Value = 10 },
+                new Card { Suit = "Karo", Value = 6 }
+            };
+            SeviyeTesti("TEST 11.21 — 1♣–1♥–(1♠)–3♥ (16-18) sonrası 8 HP + 4'lü ♥ → 4♥", el, Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "1♠", Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♥", Sira = 6, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 7, GecerliMi = true },
+                }, "4♥");
+        }
+
         public static void Test_Slam_JumpShift_Buyuk()
         {
             var el = new List<Card>
@@ -14233,6 +14264,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Acilis_6liMajor_15HP_1NT_Degil();
             Test_Mudahale_Sonrasi_2NT_ve_Destek();
             Test_ZayifIki_Karsi_Takeout();
+            Test_Sicramali_Destek_Kabul();
             Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();
