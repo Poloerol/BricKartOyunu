@@ -2946,6 +2946,33 @@ namespace BricKartOyunu
                 }, "3NT");
         }
 
+        public static void Test_ZayifIki_Karsi_Takeout()
+        {
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 13 },
+                new Card { Suit = "Maça", Value = 12 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Maça", Value = 3 },
+                new Card { Suit = "Kupa", Value = 14 },
+                new Card { Suit = "Kupa", Value = 13 },
+                new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Kupa", Value = 2 },
+                new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 4 },
+                new Card { Suit = "Karo", Value = 14 },
+                new Card { Suit = "Karo", Value = 9 }
+            };
+            SeviyeTesti("TEST 11.20 — (2♦)–Pas–Pas–? 18 HP, 4-4 majör, ♦ kısa → Dbl", el, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "2♦", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "Pas", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                }, "Dbl");
+        }
+
         public static void Test_Slam_JumpShift_Buyuk()
         {
             var el = new List<Card>
@@ -14205,6 +14232,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Slam_JumpShift_Buyuk();
             Test_Acilis_6liMajor_15HP_1NT_Degil();
             Test_Mudahale_Sonrasi_2NT_ve_Destek();
+            Test_ZayifIki_Karsi_Takeout();
             Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();
