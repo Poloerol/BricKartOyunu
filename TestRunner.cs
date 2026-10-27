@@ -2786,6 +2786,93 @@ namespace BricKartOyunu
                 }, "1♦");
         }
 
+        public static void Test_Slam_JumpShift_Destek()
+        {
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 10 },
+                new Card { Suit = "Maça", Value = 7 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Kupa", Value = 14 },
+                new Card { Suit = "Kupa", Value = 13 },
+                new Card { Suit = "Kupa", Value = 5 },
+                new Card { Suit = "Sinek", Value = 14 },
+                new Card { Suit = "Sinek", Value = 13 },
+                new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 3 },
+                new Card { Suit = "Karo", Value = 13 },
+                new Card { Suit = "Karo", Value = 6 }
+            };
+            SeviyeTesti("TEST 11.13 — 1♣–2♠ (jump shift) sonrası 19 HP, 3 maça → 3♠ (4♠ ile kapatma yok)", el, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 5, GecerliMi = true },
+                }, "3♠");
+        }
+
+        public static void Test_Acilis_6liMajor_15HP_1NT_Degil()
+        {
+            // ♠KQJ843 ♥A5 ♣K3 ♦Q42 → 15 HP, 6-2-2-3: 1♠ açılır, 1NT değil
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 13 }, new Card { Suit = "Maça", Value = 12 },
+                new Card { Suit = "Maça", Value = 11 }, new Card { Suit = "Maça", Value = 8 },
+                new Card { Suit = "Maça", Value = 4 }, new Card { Suit = "Maça", Value = 3 },
+                new Card { Suit = "Kupa", Value = 14 }, new Card { Suit = "Kupa", Value = 5 },
+                new Card { Suit = "Sinek", Value = 13 }, new Card { Suit = "Sinek", Value = 3 },
+                new Card { Suit = "Karo", Value = 12 }, new Card { Suit = "Karo", Value = 4 },
+                new Card { Suit = "Karo", Value = 2 }
+            };
+            SeviyeTesti("TEST 11.15 — 6'lı majör + 15 HP → 1♠ (1NT değil)", el, Player.Kuzey,
+                new List<IhaleHamlesi>(), "1♠");
+        }
+
+        public static void Test_Slam_JumpShift_Buyuk()
+        {
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 10 },
+                new Card { Suit = "Maça", Value = 7 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Kupa", Value = 14 },
+                new Card { Suit = "Kupa", Value = 13 },
+                new Card { Suit = "Kupa", Value = 5 },
+                new Card { Suit = "Sinek", Value = 14 },
+                new Card { Suit = "Sinek", Value = 13 },
+                new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 3 },
+                new Card { Suit = "Karo", Value = 13 },
+                new Card { Suit = "Karo", Value = 6 }
+            };
+            SeviyeTesti("TEST 11.14 — 5NT papaz sorusu cevabı 6♣ (0 papaz) + benim 3 papazım → 7♠", el, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♠", Sira = 6, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 7, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "4♦", Sira = 8, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 9, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "4NT", Sira = 10, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 11, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "5♦", Sira = 12, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 13, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "5NT", Sira = 14, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 15, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "6♣", Sira = 16, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 17, GecerliMi = true },
+                }, "7♠");
+        }
+
         public static void Test_Rebid2NT_Cevap()
         {
             // ♠J 9  ♥10 8 7 4  ♣A J 10 4  ♦Q J 4  (9 HP)  — 1♦ (18 HP) – 1♥ – 2NT (18-19) sonrası
@@ -14000,6 +14087,9 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_KoltukHaritasi();
             Test_Rebid2NT_Cevap();
             Test_Destek_Reverse_Degil();
+            Test_Slam_JumpShift_Destek();
+            Test_Slam_JumpShift_Buyuk();
+            Test_Acilis_6liMajor_15HP_1NT_Degil();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();
             Test_Acici_Cevapcinin_Majorunu_Destekledi();

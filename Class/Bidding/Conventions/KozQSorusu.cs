@@ -18,6 +18,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
+            // Ben 5NT (papaz sorusu) sordum, ortak 6. seviyede cevap verdi → papaz sayısına göre 6M / 7M
+            if (durum.KendiTeklifleri.Contains("5NT") && durum.SonGercekTeklifSahibi == durum.Partner &&
+                KozYardimcisi.TekliftenSeviyeCikar(durum.SonGercekTeklif) == 6)
+            {
+                string k = durum.AnlasilanKoz();
+                if (!string.IsNullOrEmpty(k) && k != "NT" && PapazCevabi(durum.SonGercekTeklif) >= 0) return true;
+            }
+
             // Partner 5NT dediyse → Koz Q cevabı veriyoruz
             if (durum.SonGercekTeklif == "5NT" && durum.SonGercekTeklifSahibi == durum.Partner)
             {
@@ -56,11 +64,38 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return false;
         }
 
+        /// <summary>Papaz sorusunun cevabından yan renk papaz sayısı: 6♣=0, 6♦=1, 6♥=2, 6♠=3, 6NT=4; diğerleri -1.</summary>
+        private static int PapazCevabi(string teklif)
+        {
+            switch (teklif)
+            {
+                case "6♣": return 0;
+                case "6♦": return 1;
+                case "6♥": return 2;
+                case "6♠": return 3;
+                case "6NT": return 4;
+                default: return -1;
+            }
+        }
+
         public string TeklifVer(IhaleDurumu durum)
         {
             var el = durum.AktifOyuncuEli;
             string koz = durum.AnlasilanKoz();
             if (string.IsNullOrEmpty(koz)) koz = "Maça";
+
+            // Papaz sorusunu ben sordum, cevap geldi: yan renklerde toplam 3+ papaz → büyük slam (7M), değilse 6M
+            if (durum.KendiTeklifleri.Contains("5NT") && durum.SonGercekTeklifSahibi == durum.Partner &&
+                KozYardimcisi.TekliftenSeviyeCikar(durum.SonGercekTeklif) == 6 && PapazCevabi(durum.SonGercekTeklif) >= 0)
+            {
+                int benimPapaz = 0;
+                foreach (var renk in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                    if (renk != koz && ElDegerlendirici.PapazVar(el, renk)) benimPapaz++;
+                int toplam = benimPapaz + PapazCevabi(durum.SonGercekTeklif);
+                string sembol = KozYardimcisi.KozSembolu(koz);
+                string hedef = (toplam >= 3 ? "7" : "6") + sembol;
+                return KozYardimcisi.YasalaYukselt(hedef, durum.SonGercekTeklif);
+            }
 
             // Partner 5NT dedi → Koz Q cevabı veriyoruz
             if (durum.SonGercekTeklif == "5NT" && durum.SonGercekTeklifSahibi == durum.Partner)

@@ -291,6 +291,19 @@ namespace BricKartOyunu.Class.Bidding
         /// Örnek: 1♠ (Partner) - 3♠ (Ben) → "Maça"
         ///        1NT (Partner) - 2♣ (Ben, Stayman) → "NT"
         /// </summary>
+        /// <summary>Oyuncunun ilk teklifi, rakip müdahalesiz, ortağın 1. seviye açışına sıçramalı majör (1♣–2♠, 1♦–2♥) mu?</summary>
+        public static bool SicramaliMajor(List<IhaleHamlesi> gercekler, Player sahip, string renk)
+        {
+            if (gercekler == null || gercekler.Count < 2) return false;
+            if (renk != "Maça" && renk != "Kupa") return false;
+            var acilis = gercekler[0];
+            if (acilis.Oyuncu == sahip || acilis.Seviye != 1 || acilis.Koz == "NT") return false;
+            var ilkSahip = gercekler.FirstOrDefault(h => h.Oyuncu == sahip);
+            if (ilkSahip == null || ilkSahip.Koz != renk || ilkSahip.Seviye != 2) return false;
+            string[] sira = { "Sinek", "Karo", "Kupa", "Maça" };
+            return Array.IndexOf(sira, renk) > Array.IndexOf(sira, acilis.Koz);
+        }
+
         public string AnlasilanKoz()
         {
             if (Gecmis == null || Gecmis.Count == 0) return null;
@@ -325,9 +338,15 @@ namespace BricKartOyunu.Class.Bidding
                     var sahip = benim ? AktifOyuncu : Partner;
                     var diger = benim ? Partner : AktifOyuncu;
                     var gercekler = Gecmis.Where(h => h.GercekTeklifMi).ToList();
-                    if (gercekler.Count(h => h.Oyuncu == sahip && h.Koz == r) < 2) continue;
                     if (gercekler.Any(h => h.Oyuncu == diger && h.Koz == r)) continue;
-                    if (!gercekler.Any(h => h.Oyuncu == sahip && h.Koz == r && h.Seviye >= 3)) continue;
+                    // Tek taraflı koz: ya renk ≥2 kez (3. seviye+) söylendi ya da ortağın açışından sonra
+                    // sıçramalı yeni renk (jump shift) olarak söylendi (1♣–2♠)
+                    bool sicrama = SicramaliMajor(gercekler, sahip, r);
+                    if (!sicrama)
+                    {
+                        if (gercekler.Count(h => h.Oyuncu == sahip && h.Koz == r) < 2) continue;
+                        if (!gercekler.Any(h => h.Oyuncu == sahip && h.Koz == r && h.Seviye >= 3)) continue;
+                    }
                     string[] s = { "Sinek", "Karo", "Kupa", "Maça" };
                     bool kontrolVar = gercekler.Any(h => h.Oyuncu == diger && h.Seviye == 4 && h.Koz != "NT" &&
                                                          h.Koz != r && Array.IndexOf(s, h.Koz) < Array.IndexOf(s, r));

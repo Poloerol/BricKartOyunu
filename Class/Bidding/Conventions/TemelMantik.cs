@@ -80,7 +80,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             if (hp >= 22) return "2♣";
             if (hp >= 20 && hp <= 21 && dengeli) return "2NT";
-            if (hp >= 15 && hp <= 17 && dengeli) return "1NT";
+            if (hp >= 15 && hp <= 17 && dengeli && ElDegerlendirici.RenkUzunlugu(el, "Maça") < 6 && ElDegerlendirici.RenkUzunlugu(el, "Kupa") < 6) return "1NT";
             if (ElDegerlendirici.AcilisGucuVarMi(el)) return EnUzunRengiAc(el);   // 12+ HCP veya 11 HCP + 20 kuralı
             // 3. / 4. el: 11 HCP + güçlü 5'li renk (Rule of 20 benzeri)
             if (onceki >= 2 && hp == 11 && EnUzunUzunluk(el) >= 5) return EnUzunRengiAc(el);
@@ -301,6 +301,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int ort = gercek.Count(h => h.Oyuncu == d.Partner && h.Koz == r);
                 bool benBu = gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == r);
                 if (ort >= 2 && !benBu && el.Any(c => c.Suit == r && c.Value >= 12)) { koz = r; break; }
+                // Ortak majörde sıçramalı yeni renk (1♣–2♠) yaptı, bende 3+ kart destek var
+                if (!benBu && IhaleDurumu.SicramaliMajor(gercek, d.Partner, r) &&
+                    ElDegerlendirici.RenkUzunlugu(el, r) >= 3) { koz = r; break; }
             }
             if (koz == null) return null;
 
@@ -316,6 +319,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (Cheapest(d, r) != 4) continue;
                 return Seviye(d, r, 4);
             }
+            // Sıçramalı majöre (1♣–2♠) 4. seviyede kontrol teklifi mümkün değilse: slam ilgisiyle
+            // 3M (destek, forsing) göster; 4M ile kapatma. Ortak 4NT/kontrol ile devam eder.
+            if (IhaleDurumu.SicramaliMajor(gercek, d.Partner, koz) && Cheapest(d, koz) == 3)
+                return Seviye(d, koz, 3);
             return null;
         }
 
