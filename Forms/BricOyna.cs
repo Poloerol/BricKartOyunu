@@ -507,6 +507,7 @@ namespace BricKartOyunu
 
             // İpucu: oynanması önerilen kartı sarıyla işaretler (araç çubuğu düğmesi ve menü)
             BtnIpucu.Click += BtnIpucu_Click;
+            BtnMasaRenk.Click += MasaRengiToolStripMenuItem_Click;
             ipucuToolStripMenuItem.Click += BtnIpucu_Click;
 
             // 🔹 ToolStrip butonlarının görsel boyutunu büyüt (32x32 → 48x48)

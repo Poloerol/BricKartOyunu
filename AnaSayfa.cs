@@ -186,6 +186,7 @@ namespace BricKartOyunu.Forms
         {
             InitializeDynamicControls();
             WireMainButtonEvents();
+            toolStripButton3.Click += MasaRengiToolStripMenuItem_Click;
             toolStripStatusLabel1.Text = "Hazır";
             toolStripStatusLabel2.Text = "";
             LoadBackgroundImage();
