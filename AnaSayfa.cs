@@ -592,7 +592,7 @@ namespace BricKartOyunu.Forms
                     })
                     {
                         // Hide() yerine: oyun penceresi çizildikten sonra şeffaflaştır (geçişte ara kare/solma görünmesin)
-                        bricOynaForm.Shown += (s2, e2) => this.Opacity = 0;
+                        bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
 
                         try
                         {
@@ -660,7 +660,7 @@ namespace BricKartOyunu.Forms
                 PratikDuyur = duyur
             })
             {
-                bricOynaForm.Shown += (s2, e2) => this.Opacity = 0;
+                bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
                 try
                 {
                     bricOynaForm.ShowDialog();

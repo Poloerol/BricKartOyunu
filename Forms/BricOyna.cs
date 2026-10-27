@@ -320,6 +320,12 @@ namespace BricKartOyunu
         // 🔹 EKLE: Seed'lerin kaydedileceği dosya yolu
         private static readonly string SeedDosyaYolu = Path.Combine(Application.StartupPath, "seedler.txt");
 
+        private Panel _acilisKapagi;
+
+        /// <summary>Form tamamen çizilip görünür olduğunda (açılış geçişi bittiğinde) tetiklenir.</summary>
+        public event EventHandler Hazir;
+        private Action _acilisSonrasi;
+
         public BricOyna()
         {
             InitializeComponent();
@@ -339,14 +345,39 @@ namespace BricKartOyunu
                 // Görev çubuğunda ayrı simge göstermesin (AnaSayfa'nın simgesi yeterli)
                 this.ShowInTaskbar = false;
 
-                // Açılışta yarım çizilmiş (beyaz zeminli) ara kare görünmesin:
-                // form şeffaf açılır, ilk tam çizimden sonra görünür olur.
+                // Tam çizilene kadar görünmez; böylece AnaSayfa ile karışan ara kare olmaz.
                 this.Opacity = 0;
+
+                // Açılışta yarım çizilmiş ara kareler (beyaz zemin, kontrol çerçeveleri) görünmesin:
+                // form yüklenirken her şeyi örten masa renginde bir kapak durur, yükleme bitince kalkar.
+                _acilisKapagi = new Panel
+                {
+                    BackColor = AnaSayfa.MasaRengi,
+                    Location = Point.Empty,
+                    Size = this.ClientSize,
+                    Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+                };
+                this.Controls.Add(_acilisKapagi);
+                _acilisKapagi.BringToFront();
                 this.Shown += (s, ev) =>
                 {
-                    this.Invalidate(true);
-                    this.Update();
-                    this.BeginInvoke((Action)(() => this.Opacity = 1));
+                    if (_acilisKapagi != null) _acilisKapagi.BringToFront();
+                    var t = new System.Windows.Forms.Timer { Interval = 250 };
+                    t.Tick += (s2, e2) =>
+                    {
+                        t.Stop(); t.Dispose();
+                        if (this.IsDisposed || _acilisKapagi == null) return;
+                        this.Controls.Remove(_acilisKapagi);
+                        _acilisKapagi.Dispose();
+                        _acilisKapagi = null;
+                        this.Invalidate(true);
+                        this.Update();
+                        this.Opacity = 1;
+                        Hazir?.Invoke(this, EventArgs.Empty);
+                        var sonra = _acilisSonrasi; _acilisSonrasi = null;
+                        if (sonra != null) sonra();
+                    };
+                    t.Start();
                 };
             }
             this.Load += BricOyna_Load;
@@ -587,8 +618,10 @@ namespace BricKartOyunu
             }
             finally { EkranYardimci.CizimiAc(this); }
 
-            PratikDuyurusu();
-            YeniDekBasFormAc();
+            if (_acilisKapagi != null) _acilisKapagi.BringToFront();   // yükleme sırasında öne alınan kontrollerin üstünde kalsın
+
+            // Duyuru ve DekBasForm, form görünür olduktan sonra açılır (geçişte tek başlarına belirmesinler)
+            _acilisSonrasi = () => { PratikDuyurusu(); YeniDekBasFormAc(); };
         }
 
         /// <summary>
