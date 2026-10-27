@@ -510,10 +510,9 @@ namespace BricKartOyunu
             BtnMasaRenk.Click += MasaRengiToolStripMenuItem_Click;
             ipucuToolStripMenuItem.Click += BtnIpucu_Click;
 
-            // 🔹 ToolStrip butonlarının görsel boyutunu büyüt (32x32 → 48x48)
-            toolStrip1.ImageScalingSize = new Size(32, 32);
-            toolStrip1.AutoSize = false;
-            toolStrip1.Height = 40;
+            // 🔹 Araç çubuğu AnaSayfa ile aynı boyutta: 16x16 simge, otomatik yükseklik
+            toolStrip1.ImageScalingSize = new Size(16, 16);
+            toolStrip1.AutoSize = true;
 
             ////Seed numarası
             //_seed = 1196129724;  // TEST: aynı seed
