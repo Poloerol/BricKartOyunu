@@ -129,6 +129,7 @@ namespace BricKartOyunu
                 }
 
                 UpdatePlayerBadges();
+                DurumCubuguGuncelle();
             }
         }
         private Player _declarer = Player.Guney;
@@ -291,6 +292,8 @@ namespace BricKartOyunu
         /// Son kullanılan seed (UI'da göstermek için).
         /// </summary>
         public int Seed => _seed;
+        public string DealerAdi => PlayerIsmiTurkce(_dealer);
+        public string ZonAdi => ZonDurumuMetni();
 
         /// <summary>
         /// Yeni bir seed üretir (rastgele).
@@ -1950,8 +1953,44 @@ namespace BricKartOyunu
         /// <summary>
         /// Oyun bilgi panelini günceller.
         /// </summary>
+        private ToolStripStatusLabel _sbSira, _sbEl, _sbDealer, _sbZon, _sbKontrat, _sbNS, _sbEW;
+
+        private void DurumCubuguGuncelle()
+        {
+            if (statusStrip1 == null) return;
+            if (_sbSira == null)
+            {
+                Func<ToolStripStatusLabel> kutu = () => new ToolStripStatusLabel { BorderSides = ToolStripStatusLabelBorderSides.Left };
+                _sbSira = new ToolStripStatusLabel { Spring = true, TextAlign = ContentAlignment.MiddleLeft };
+                _sbEl = kutu(); _sbDealer = kutu(); _sbZon = kutu();
+                _sbKontrat = kutu(); _sbNS = kutu(); _sbEW = kutu();
+                statusStrip1.Items.AddRange(new ToolStripItem[] { _sbSira, _sbEl, _sbDealer, _sbZon, _sbKontrat, _sbNS, _sbEW });
+            }
+
+            string oyuncu = PlayerIsmiTurkce(_activePlayer);
+            if (_oyunAsamasi == OyunAsamasi.Oyun)
+            {
+                bool atak = _kazanilanElNS + _kazanilanElEW == 0 && _activePlayer == _atakYapacakOyuncu;
+                _sbSira.Text = atak ? oyuncu + " atakta" : "Sıra: " + oyuncu;
+            }
+            else if (_oyunAsamasi == OyunAsamasi.Deklarasyon)
+                _sbSira.Text = "Teklif sırası: " + oyuncu;
+            else
+                _sbSira.Text = "";
+
+            _sbEl.Text = "El no: " + _seed;
+            _sbDealer.Text = "Dağıtıcı: " + PlayerIsmiTurkce(_dealer);
+            _sbZon.Text = "Zon: " + ZonDurumuMetni();
+            _sbKontrat.Text = string.IsNullOrEmpty(_kontrat)
+                ? "Kontrat: —"
+                : _kontrat + KontrEki() + " – " + PlayerIsmiTurkce(_kontratDeklaran);
+            _sbNS.Text = "Alınan K/G: " + _kazanilanElNS;
+            _sbEW.Text = "Alınan D/B: " + _kazanilanElEW;
+        }
+
         private void OyunBilgiPaneliniGuncelle()
         {
+            DurumCubuguGuncelle();
             if (oyunBilgiPanel == null) return;
 
             // 🔹 Tur
@@ -4885,6 +4924,7 @@ namespace BricKartOyunu
         public void DeklarasyonAsamasindaButonlariAktifEt()
         {
             _oyunAsamasi = OyunAsamasi.Deklarasyon;   // ← EKLE
+            DurumCubuguGuncelle();
             BtnOtoOyna.Enabled = true;
             BtnIpucu.Enabled = true;
             BtnSonrakiEl.Enabled = true;

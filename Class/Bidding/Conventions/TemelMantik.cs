@@ -161,6 +161,20 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (son.Teklif == "2NT") return Seviye(d, "Karo", 3);
             }
 
+            // Ben minör transferi yaptım (1NT – 2♠/2NT), ortak tamamladı → güce göre devam
+            {
+                var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (ilk.Oyuncu == d.Partner && ilk.Teklif == "1NT" && sonOrtak &&
+                    benim.Count == 1 && ortagim.Count == 2 &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
+                    ((benim[0].Teklif == "2♠" && son.Teklif == "3♣") || (benim[0].Teklif == "2NT" && son.Teklif == "3♦")))
+                {
+                    // Ortak 15-17: 10+ HP ile oyun (3NT), daha zayıfsa transferde dur
+                    return hp >= 10 ? Seviye(d, "NT", 3) : "Pas";
+                }
+            }
+
             // Ortak 2♣ (güçlü) açtı, ben ilk kez cevap veriyorum
             if (ortak2C && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
                 return Cevap2C(d, el, hp, dengeli, rakipRenkleri);

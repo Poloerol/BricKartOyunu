@@ -170,10 +170,24 @@ namespace BricKartOyunu.Forms
         // FORM YÜKLEME
         // ====================================================================
 
+        /// <summary>Durum çubuğunda son oynanan elin bilgisini gösterir.</summary>
+        private void SonElBilgisiniGoster(BricOyna f)
+        {
+            try
+            {
+                if (f == null) return;
+                toolStripStatusLabel1.Text = "Son el no: " + f.Seed;
+                toolStripStatusLabel2.Text = "Dağıtıcı: " + f.DealerAdi + "   Zon: " + f.ZonAdi;
+            }
+            catch { }
+        }
+
         private void AnaSayfa_Load(object sender, EventArgs e)
         {
             InitializeDynamicControls();
             WireMainButtonEvents();
+            toolStripStatusLabel1.Text = "Hazır";
+            toolStripStatusLabel2.Text = "";
             LoadBackgroundImage();
 
             // İlk konumlandırmayı yap
@@ -584,6 +598,7 @@ namespace BricKartOyunu.Forms
                         }
                         finally
                         {
+                            SonElBilgisiniGoster(bricOynaForm);
                             this.Show();
                             this.Activate();
                             ResetToInitialState();
@@ -652,6 +667,7 @@ namespace BricKartOyunu.Forms
                     // Pratiği başlatan Konvansiyon Pratiği formu açık kalmasın
                     foreach (var kf in Application.OpenForms.Cast<Form>().Where(x => x is Konvansiyon).ToList())
                         kf.Close();
+                    SonElBilgisiniGoster(bricOynaForm);
                     this.Show();
                     this.Activate();
                     ResetToInitialState();

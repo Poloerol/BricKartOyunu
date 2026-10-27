@@ -2832,6 +2832,64 @@ namespace BricKartOyunu
                 new List<IhaleHamlesi>(), "1♠");
         }
 
+        public static void Test_MinorTransfer_Sonrasi_Devam()
+        {
+            var guclu = new List<Card>
+            {
+                new Card { Suit = "Sinek", Value = 13 },
+                new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 10 },
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 2 },
+                new Card { Suit = "Kupa", Value = 13 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Maça", Value = 12 },
+                new Card { Suit = "Maça", Value = 10 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Karo", Value = 11 },
+                new Card { Suit = "Karo", Value = 2 }
+            };
+            SeviyeTesti("TEST 11.16 — Minör transfer + 11 HP, ortak tamamladı → 3NT", guclu, Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1NT", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♣", Sira = 6, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 7, GecerliMi = true },
+                }, "3NT");
+            var zayif = new List<Card>
+            {
+                new Card { Suit = "Sinek", Value = 13 },
+                new Card { Suit = "Sinek", Value = 11 },
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 5 },
+                new Card { Suit = "Sinek", Value = 2 },
+                new Card { Suit = "Kupa", Value = 11 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Maça", Value = 8 },
+                new Card { Suit = "Maça", Value = 4 },
+                new Card { Suit = "Karo", Value = 12 },
+                new Card { Suit = "Karo", Value = 2 }
+            };
+            SeviyeTesti("TEST 11.17 — Minör transfer + 7 HP, ortak tamamladı → Pas", zayif, Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1NT", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "3♣", Sira = 6, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 7, GecerliMi = true },
+                }, "Pas");
+        }
+
         public static void Test_Slam_JumpShift_Buyuk()
         {
             var el = new List<Card>
@@ -14090,6 +14148,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Slam_JumpShift_Destek();
             Test_Slam_JumpShift_Buyuk();
             Test_Acilis_6liMajor_15HP_1NT_Degil();
+            Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();
             Test_Acici_Cevapcinin_Majorunu_Destekledi();
