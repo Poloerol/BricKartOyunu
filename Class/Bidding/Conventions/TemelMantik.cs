@@ -623,7 +623,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (partnerSayi == 1)
                 {
                     bool acilis = gercek.First() == h;
-                    if (benOnceBu) uz = Major(renk) ? 3 : 4;                 // destek verdi
+                    if (benOnceBu)
+                    {
+                        // Destek verdi. Ben ortağın AÇTIĞI bir sekansta bu rengi cevap olarak söylediysem ve
+                        // ortak (açıcı) onu destekliyorsa 4+ kart vaat eder (1♦–1♥–2♥: açıcıda ♥4+);
+                        // kendi açtığım/müdahale ettiğim rengi ortak destekliyorsa majörde 3+ yeter.
+                        var ilkGercek = gercek.First();
+                        bool benCevapladim = ilkGercek.Oyuncu == d.Partner && ilkGercek.Koz != renk;
+                        uz = benCevapladim ? 4 : (Major(renk) ? 3 : 4);
+                    }
                     else if (acilis) uz = renk == "Maça" || renk == "Kupa" ? 5 : (renk == "Karo" ? 4 : 3);
                     else uz = h.Seviye >= 2 ? 5 : 4;
                 }

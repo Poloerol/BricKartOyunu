@@ -91,13 +91,28 @@ namespace BricKartOyunu.Forms
 
         // Türkçe Briç Terimleri ve Simgeleri
         private static readonly string[] KozLabel = { "♣", "♦", "♥", "♠", "NT" };
+        // ♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah, NT siyah
+        private static readonly Color SinekRengi = Color.FromArgb(0, 140, 0);
+        private static readonly Color KaroRengi = Color.FromArgb(235, 120, 0);
+        private static readonly Color KupaRengi = Color.FromArgb(220, 0, 0);
         private static readonly Color[] KozRenk = {
-            Color.Black,
-            Color.FromArgb(220, 0, 0),
-            Color.FromArgb(220, 0, 0),
+            SinekRengi,
+            KaroRengi,
+            KupaRengi,
             Color.Black,
             Color.Black
         };
+
+        private static Color SembolRengi(char c)
+        {
+            switch (c)
+            {
+                case '♣': return SinekRengi;
+                case '♦': return KaroRengi;
+                case '♥': return KupaRengi;
+                default: return Color.Black;
+            }
+        }
 
         public DeklarasyonForm(BricOyna bricOyna)
         {
@@ -208,7 +223,7 @@ namespace BricKartOyunu.Forms
             if (btnPass != null) btnPass.Enabled = true;
 
             this.BackColor = Color.FromArgb(236, 233, 216);
-            if (lstIhale != null) lstIhale.BackColor = Color.White;
+            if (lstIhale != null) { lstIhale.BackColor = Color.White; lstIhale.Font = new Font(lstIhale.Font.FontFamily, 9.25F, lstIhale.Font.Style); }
             if (panelGrid != null) panelGrid.BackColor = Color.FromArgb(236, 233, 216);
 
             _bricOyna?.SetGameControlsEnabled(false);
@@ -415,45 +430,32 @@ namespace BricKartOyunu.Forms
             string text = e.SubItem.Text;
             if (string.IsNullOrEmpty(text)) return;
 
-            // Özel Çizim Ayarları
             Graphics g = e.Graphics;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-            // Varsayılan font ve hizalama
             Font font = e.Header.ListView.Font;
             Rectangle rect = e.Bounds;
+            char son = text[text.Length - 1];
 
-            // Pas, Dbl, RDbl veya Kozsuz (NT) / Siyah Simgeler (♣, ♠)
-            if (text.Contains("♦") || text.Contains("♥"))
+            if (text.Length > 1 && (son == '♣' || son == '♦' || son == '♥' || son == '♠'))
             {
-                // Karo ve Kupa içeren tekliflerde metni parçalayarak renklendiriyoruz
-                // Örn: "1♦" -> '1' Siyah, '♦' Kırmızı
+                // "1♦" → '1' siyah, '♦' kendi renginde (♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah)
                 string level = text.Substring(0, text.Length - 1);
                 string suit = text.Substring(text.Length - 1);
 
-                // Seviye rakamını siyah çiz
                 SizeF levelSize = g.MeasureString(level, font);
                 using (SolidBrush blackBrush = new SolidBrush(Color.Black))
-                {
                     g.DrawString(level, font, blackBrush, rect.X + 2, rect.Y + 4);
-                }
 
-                // Karo veya Kupa simgesini kırmızı çiz
-                using (SolidBrush redBrush = new SolidBrush(Color.FromArgb(220, 0, 0)))
-                {
-                    using (Font suitFont = new Font("Arial", 10F, FontStyle.Bold))
-                    {
-                        g.DrawString(suit, suitFont, redBrush, rect.X + 2 + (int)levelSize.Width - 3, rect.Y + 3);
-                    }
-                }
+                using (SolidBrush suitBrush = new SolidBrush(SembolRengi(son)))
+                using (Font suitFont = new Font("Arial", font.Size + 1.5F, FontStyle.Bold))
+                    g.DrawString(suit, suitFont, suitBrush, rect.X + 2 + (int)levelSize.Width - 3, rect.Y + 3);
             }
             else
             {
-                // Diğer tüm teklifler (Pas, Dbl, RDbl, ♣, ♠, NT) standart siyah çizilir
+                // Pas, Dbl, RDbl, NT: siyah
                 using (SolidBrush textBrush = new SolidBrush(Color.Black))
-                {
                     g.DrawString(text, font, textBrush, rect.X + 2, rect.Y + 4);
-                }
             }
         }
 
@@ -487,7 +489,53 @@ namespace BricKartOyunu.Forms
 
         private void BtnHint_Click(object sender, EventArgs e)
         {
-            // İpucu gösterimi
+            // İpucu: sırası gelen oyuncu için ihale motorunun önerdiği teklif
+            try
+            {
+                var aktifP = OyuncuyaCevir(_aktifOyuncu);
+                var el = _bricOyna?.GetOyuncuEli(aktifP) ?? new List<Card>();
+                if (el.Count != 13)
+                {
+                    MessageBox.Show(this, "İpucu için el bulunamadı.", "İpucu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                SyncHumanVsAiSession();
+                var durum = IhaleDurumuOlustur();
+                if (_ihaleMotoru == null)
+                    _ihaleMotoru = new IhaleMotoru(_anlasma);
+
+                string teklif = _ihaleMotoru.TeklifVer(durum);
+                if (string.IsNullOrEmpty(teklif)) teklif = "Pas";
+
+                // Yasallık kontrolü: yasadışıysa Pas önerilir
+                try
+                {
+                    var aday = Bid.Parse(teklif);
+                    if (_humanVsAiSession != null &&
+                        !BidValidator.IsLegal(_humanVsAiSession.State, aktifP, aday))
+                        teklif = "Pas";
+                }
+                catch { teklif = "Pas"; }
+
+                string kural = _ihaleMotoru.SonKonvansiyonAdi;
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("Önerilen teklif: " + (teklif == "Pas" ? "Pas" : teklif));
+                if (!string.IsNullOrEmpty(kural))
+                    sb.AppendLine("Kural: " + kural);
+                sb.AppendLine();
+                sb.AppendLine("Elinizin değeri: " + ElDegerlendirici.HCP(el) + " HP");
+                sb.AppendLine("Dağılım: ♠" + ElDegerlendirici.RenkUzunlugu(el, "Maça") +
+                              " ♥" + ElDegerlendirici.RenkUzunlugu(el, "Kupa") +
+                              " ♦" + ElDegerlendirici.RenkUzunlugu(el, "Karo") +
+                              " ♣" + ElDegerlendirici.RenkUzunlugu(el, "Sinek"));
+                MessageBox.Show(this, sb.ToString(), "İpucu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[İpucu] HATA: " + ex.Message);
+                MessageBox.Show(this, "İpucu hesaplanamadı.", "İpucu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void BtnDouble_Click(object sender, EventArgs e)

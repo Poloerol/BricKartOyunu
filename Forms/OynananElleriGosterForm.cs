@@ -58,6 +58,7 @@ namespace BricKartOyunu.Forms
             listView1.Columns.Add(KoltukHaritasi.Ad(Player.Dogu), 60, HorizontalAlignment.Center);
             listView1.Columns.Add(KoltukHaritasi.Ad(Player.Guney), 60, HorizontalAlignment.Center);
 
+            listView1.Font = new Font("Segoe UI", 10F);
             listView1.View = View.Details;
             listView1.FullRowSelect = true;
             listView1.GridLines = true;
@@ -102,7 +103,7 @@ namespace BricKartOyunu.Forms
 
             // Boyut
             listView1.Width = 40 + 60 * 4 + 25;
-            listView1.Height = Math.Min(13 * 22 + 30, 400);
+            listView1.Height = Math.Min(13 * 24 + 30, 420);
         }
 
         /// <summary>
@@ -190,14 +191,14 @@ namespace BricKartOyunu.Forms
             }
 
             // Renk belirle
+            // ♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah
             Color foreColor = Color.Black;
-            if (text.Contains("♥") || text.Contains("♦"))
-                foreColor = Color.FromArgb(200, 0, 0);   // Kırmızı
-            else
-                foreColor = Color.Black;
+            if (text.Contains("♣")) foreColor = Color.FromArgb(0, 140, 0);
+            else if (text.Contains("♦")) foreColor = Color.FromArgb(235, 120, 0);
+            else if (text.Contains("♥")) foreColor = Color.FromArgb(200, 0, 0);
 
             // Font
-            Font font = new Font("Segoe UI", 9F,
+            Font font = new Font("Segoe UI", 10F,
                 text.StartsWith("*") ? FontStyle.Bold : FontStyle.Regular);
 
             // Metin çiz

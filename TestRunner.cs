@@ -2699,6 +2699,93 @@ namespace BricKartOyunu
             Yaz(motor.SonKonvansiyonAdi != "4. Renk Forsingi" ? "✅ DOĞRU (4SF değil)" : "❌ YANLIŞ (4SF olarak yorumlandı)");
         }
 
+        public static void Test_Acici_Cevapcinin_Majorunu_Destekledi()
+        {
+            // ♠A52 ♥QJ96 ♣AQ104 ♦Q7 (15 HP) — 1♦ – 1♥ – (1♠) – 2♥ (açıcı 4+ ♥ destek): 8 kartlık majör uyum → 4♥, 3NT değil
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 14 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Maça", Value = 2 },
+                new Card { Suit = "Kupa", Value = 12 },
+                new Card { Suit = "Kupa", Value = 11 },
+                new Card { Suit = "Kupa", Value = 9 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Sinek", Value = 14 },
+                new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 10 },
+                new Card { Suit = "Sinek", Value = 4 },
+                new Card { Suit = "Karo", Value = 12 },
+                new Card { Suit = "Karo", Value = 7 }
+            };
+            SeviyeTesti("TEST 11.10 — 1♦–1♥–(1♠)–2♥ sonrası 15 HP, 4 kupa → 4♥", el, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♦",  Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♥",  Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "1♠",  Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♥",  Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 6, GecerliMi = true },
+                }, "4♥");
+        }
+
+        public static void Test_MinorTransfer_Tamamla_Kontra_Sonrasi()
+        {
+            // 1NT – (Kontra) – 2♠ (sinek transferi) – Pas: açıcı 3♣ ile transferi tamamlar, Pas demez
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 14 },
+                new Card { Suit = "Maça", Value = 4 },
+                new Card { Suit = "Kupa", Value = 5 },
+                new Card { Suit = "Kupa", Value = 4 },
+                new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Sinek", Value = 14 },
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 3 },
+                new Card { Suit = "Karo", Value = 14 },
+                new Card { Suit = "Karo", Value = 13 },
+                new Card { Suit = "Karo", Value = 11 },
+                new Card { Suit = "Karo", Value = 8 },
+                new Card { Suit = "Karo", Value = 7 }
+            };
+            SeviyeTesti("TEST 11.11 — 1NT–(Dbl)–2♠–Pas: minör transferi tamamla → 3♣", el, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1NT", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati,  Teklif = "Dbl", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠",  Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 4, GecerliMi = true },
+                }, "3♣");
+        }
+
+        public static void Test_Cevap_16HP_Sicrama_Degil()
+        {
+            // ♠A4 ♥543 ♣A83 ♦AKJ87 (16 HP) — 1♣ sonrası: 2♦ sıçramalı yeni renk 18+ HP ister, 16 HP'de 1♦
+            var el = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 14 },
+                new Card { Suit = "Maça", Value = 4 },
+                new Card { Suit = "Kupa", Value = 5 },
+                new Card { Suit = "Kupa", Value = 4 },
+                new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Sinek", Value = 14 },
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 3 },
+                new Card { Suit = "Karo", Value = 14 },
+                new Card { Suit = "Karo", Value = 13 },
+                new Card { Suit = "Karo", Value = 11 },
+                new Card { Suit = "Karo", Value = 8 },
+                new Card { Suit = "Karo", Value = 7 }
+            };
+            SeviyeTesti("TEST 11.12 — 1♣ sonrası 16 HP, 5 karo → 1♦ (2♦ sıçrama değil)", el, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣",  Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu,  Teklif = "Pas", Sira = 2, GecerliMi = true },
+                }, "1♦");
+        }
+
         public static void Test_Rebid2NT_Cevap()
         {
             // ♠J 9  ♥10 8 7 4  ♣A J 10 4  ♦Q J 4  (9 HP)  — 1♦ (18 HP) – 1♥ – 2NT (18-19) sonrası
@@ -13913,6 +14000,9 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_KoltukHaritasi();
             Test_Rebid2NT_Cevap();
             Test_Destek_Reverse_Degil();
+            Test_Cevap_16HP_Sicrama_Degil();
+            Test_MinorTransfer_Tamamla_Kontra_Sonrasi();
+            Test_Acici_Cevapcinin_Majorunu_Destekledi();
             Test_4SF_XYZ_Sonrasi_Degil();
             Test_Ikinci_Renk_2_1_Sonrasi();
             Test_Slam_Dizisi_2_1();

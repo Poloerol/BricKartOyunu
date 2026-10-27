@@ -10,6 +10,18 @@ namespace BricKartOyunu.Forms
     {
         private readonly ListView lstGecmis;
 
+        // ♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah
+        private static Color SembolRengi(char c)
+        {
+            switch (c)
+            {
+                case '♣': return Color.FromArgb(0, 140, 0);
+                case '♦': return Color.FromArgb(235, 120, 0);
+                case '♥': return Color.FromArgb(220, 0, 0);
+                default: return Color.Black;
+            }
+        }
+
         public IhaleGecmisiForm(List<string> teklifler, string baslangicOyuncusu)
         {
             InitializeComponent();
@@ -34,7 +46,8 @@ namespace BricKartOyunu.Forms
                 HeaderStyle = ColumnHeaderStyle.Nonclickable,
                 OwnerDraw = true,
                 BorderStyle = BorderStyle.FixedSingle,
-                GridLines = false
+                GridLines = false,
+                Font = new Font("Arial", 9.5F)
             };
 
             // Kolon genişlikleri "Güney" kelimesinin sığması için 41 piksel yapıldı
@@ -108,7 +121,7 @@ namespace BricKartOyunu.Forms
         private void LstGecmis_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
         {
             e.DrawBackground();
-            using (Font headerFont = new Font("Arial", 8.5F, FontStyle.Regular))
+            using (Font headerFont = new Font("Arial", 9.5F, FontStyle.Regular))
             using (StringFormat sf = new StringFormat
             {
                 Alignment = StringAlignment.Center,
@@ -128,9 +141,10 @@ namespace BricKartOyunu.Forms
 
             Graphics g = e.Graphics;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-            Font font = new Font("Arial", 8.5F, FontStyle.Bold);
+            Font font = new Font("Arial", 9.5F, FontStyle.Bold);
 
-            if (text.Length > 1 && (text.EndsWith("♦") || text.EndsWith("♥")))
+            char sonKarakter = text[text.Length - 1];
+            if (text.Length > 1 && (sonKarakter == '♣' || sonKarakter == '♦' || sonKarakter == '♥' || sonKarakter == '♠'))
             {
                 string seviye = text.Substring(0, text.Length - 1);
                 string simge = text.Substring(text.Length - 1);
@@ -143,9 +157,9 @@ namespace BricKartOyunu.Forms
                     g.DrawString(seviye, font, blackBrush, startX, e.Bounds.Y + 2);
                 }
 
-                using (SolidBrush redBrush = new SolidBrush(Color.FromArgb(220, 0, 0)))
+                using (SolidBrush simgeBrush = new SolidBrush(SembolRengi(sonKarakter)))
                 {
-                    g.DrawString(simge, font, redBrush, startX + (int)levelSize.Width - 3, e.Bounds.Y + 2);
+                    g.DrawString(simge, font, simgeBrush, startX + (int)levelSize.Width - 3, e.Bounds.Y + 2);
                 }
             }
             else

@@ -445,6 +445,19 @@ namespace BricKartOyunu.Class.Bidding
                 if (benim4 && ortSon5 != null && Gercek(ortSon5.Teklif) && Sev(ortSon5.Teklif) == 5) return true;
             }
 
+            // 1NT açıcısı olarak ortağın minör transferini tamamlama (2♠→3♣, 2NT→3♦): rakip kontrası dahil
+            // her durumda yapılır; ortağın güç aralığı tahmini bu zorunlu cevabı veto etmesin.
+            if (ad.StartsWith("Temel Mant") && (teklif == "3♣" || teklif == "3♦"))
+            {
+                var gg = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gg.Count >= 2 && gg[0].Oyuncu == d.AktifOyuncu && gg[0].Teklif == "1NT" &&
+                    gg.Count(h => h.Oyuncu == d.AktifOyuncu) == 1 && gg.Count(h => h.Oyuncu == d.Partner) == 1)
+                {
+                    var ortT = gg.First(h => h.Oyuncu == d.Partner);
+                    if ((ortT.Teklif == "2♠" && teklif == "3♣") || (ortT.Teklif == "2NT" && teklif == "3♦")) return true;
+                }
+            }
+
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale")
                 return true;
 

@@ -502,6 +502,10 @@ namespace BricKartOyunu
             KoltukHaritasi.Uygula(AnaSayfa.OyunPlani == null ? null : AnaSayfa.OyunPlani.InsanMi);
             if (this.DesignMode) return;
 
+            // İpucu: oynanması önerilen kartı sarıyla işaretler (araç çubuğu düğmesi ve menü)
+            BtnIpucu.Click += BtnIpucu_Click;
+            ipucuToolStripMenuItem.Click += BtnIpucu_Click;
+
             // 🔹 ToolStrip butonlarının görsel boyutunu büyüt (32x32 → 48x48)
             toolStrip1.ImageScalingSize = new Size(32, 32);
             toolStrip1.AutoSize = false;
@@ -3317,6 +3321,7 @@ namespace BricKartOyunu
         {
             if (kart == null) return;
             if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+            IpucuVurgusunuKaldir();
 
             // El bitti, masadaki 4 kart henüz temizlenmedi (PlayZone tıklaması bekleniyor).
             // Bu durumda kart oynanırsa önceki elin kartlarıyla karışır, oyuncular
@@ -4701,6 +4706,100 @@ namespace BricKartOyunu
         private void BricOyna_Load_1(object sender, EventArgs e)
         {
 
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // İPUCU: oynanması gereken kartı sarı işaretle
+        // ═════════════════════════════════════════════════════════════
+        private PictureBox _ipucuKarti;
+
+        private PictureBox[] KartKutulari(Player oyuncu)
+        {
+            switch (oyuncu)
+            {
+                case Player.Kuzey: return kuzeyKartlar;
+                case Player.Guney: return guneyKartlar;
+                case Player.Dogu: return doguKartlar;
+                default: return batiKartlar;
+            }
+        }
+
+        /// <summary>Önceki ipucu vurgusunu kaldırır (kartın özgün resmini geri koyar).</summary>
+        private void IpucuVurgusunuKaldir()
+        {
+            var pb = _ipucuKarti;
+            _ipucuKarti = null;
+            if (pb == null || pb.IsDisposed) return;
+            var kart = pb.Tag as Card;
+            var eski = pb.Image;
+            if (kart != null && kart.Image != null && !ReferenceEquals(eski, kart.Image))
+            {
+                pb.Image = kart.Image;
+                if (eski != null) eski.Dispose();   // sarı tonlu kopya
+            }
+        }
+
+        private void BtnIpucu_Click(object sender, EventArgs e)
+        {
+            if (_oyunAsamasi != OyunAsamasi.Oyun)
+            {
+                // İhale sırasında ipucu, deklarasyon penceresindeki İpucu düğmesinden alınır
+                return;
+            }
+            if (_elBittiBekliyor || _oynananToplamEl >= 13) return;
+
+            IpucuVurgusunuKaldir();
+
+            Player oyuncu = activePlayer;
+            if (!InsanKontrolundeMi(oyuncu)) return;   // AI sırasındaysa ipucu verilmez
+
+            var el = OyuncuEli(oyuncu);
+            if (el == null || el.Count == 0) return;
+
+            string neden;
+            Card oneri = null;
+            try { oneri = OyunZekasi.KartSec(OyunBaglamiOlustur(oyuncu), out neden); }
+            catch { oneri = null; }
+            if (oneri == null)
+                oneri = OyunKurallari.LegalKartlar(el, _buEldeAtakRengi).OrderBy(c => c.Value).FirstOrDefault();
+            if (oneri == null) return;
+
+            // Önerilen kartın görünen PictureBox'ı: Tag'inde Card nesnesi, aynı renk/değer
+            PictureBox hedef = null;
+            foreach (var pb in KartKutulari(oyuncu))
+            {
+                var c = pb == null ? null : pb.Tag as Card;
+                if (pb != null && pb.Visible && c != null && c.Suit == oneri.Suit && c.Value == oneri.Value)
+                { hedef = pb; break; }
+            }
+            if (hedef == null || hedef.Image == null) return;
+
+            try
+            {
+                var src = hedef.Image;
+                var tinted = new Bitmap(src.Width, src.Height);
+                using (var g = Graphics.FromImage(tinted))
+                using (var ia = new System.Drawing.Imaging.ImageAttributes())
+                {
+                    var cm = new System.Drawing.Imaging.ColorMatrix(new float[][]
+                    {
+                        new float[] {1f, 0f, 0f,    0f, 0f},
+                        new float[] {0f, 1f, 0f,    0f, 0f},
+                        new float[] {0f, 0f, 0.45f, 0f, 0f},   // maviyi kıs → sarı ton
+                        new float[] {0f, 0f, 0f,    1f, 0f},
+                        new float[] {0f, 0f, 0f,    0f, 1f}
+                    });
+                    ia.SetColorMatrix(cm);
+                    g.DrawImage(src, new Rectangle(0, 0, tinted.Width, tinted.Height),
+                                0, 0, src.Width, src.Height, GraphicsUnit.Pixel, ia);
+                }
+                hedef.Image = tinted;
+                _ipucuKarti = hedef;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[İpucu] " + ex.Message);
+            }
         }
 
         // Kullanıcı oyun esnasında ihale geçmişini görmek istediğinde çağrılacak metot

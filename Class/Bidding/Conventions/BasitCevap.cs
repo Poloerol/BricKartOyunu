@@ -126,10 +126,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ─── 16+ HP → 2/1 Game Force ───
             string gfRenk = YeniRenkBul(el, partnerKozu, 5, "2");
-            if (!string.IsNullOrEmpty(gfRenk)) return gfRenk;
+            if (!string.IsNullOrEmpty(gfRenk)) return SicramaKontrolu(gfRenk, partnerKozu, partnerSeviye, hp);
 
             gfRenk = YeniRenkBul(el, partnerKozu, 4, "2");
-            if (!string.IsNullOrEmpty(gfRenk)) return gfRenk;
+            if (!string.IsNullOrEmpty(gfRenk)) return SicramaKontrolu(gfRenk, partnerKozu, partnerSeviye, hp);
 
             if (!string.IsNullOrEmpty(partnerKozu))
             {
@@ -138,6 +138,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             return "2NT";
+        }
+
+        /// <summary>
+        /// 2. seviyede söylenecek yeni renk, ortağın açış renginden YÜKSEK sıradaysa (1♣–2♦, 1♦–2♥, 1♥–2♠ ...)
+        /// 2/1 değil sıçramalı yeni renktir (jump shift): güçlü el (18+ HP) gerektirir. 16-17 HP'de renk
+        /// 1. seviyeden söylenir (1♣–1♦); ortağın renginden düşük sıradaki renkler gerçek 2/1'dir (1♠–2♦).
+        /// </summary>
+        private static string SicramaKontrolu(string cagri, string partnerKozu, int partnerSeviye, int hp)
+        {
+            if (string.IsNullOrEmpty(cagri) || cagri.Length != 2 || cagri[0] != '2' || partnerSeviye != 1) return cagri;
+            string[] sira = { "Sinek", "Karo", "Kupa", "Maça" };
+            int pr = Array.IndexOf(sira, partnerKozu);
+            if (pr < 0) return cagri;
+            string sembol = cagri.Substring(1);
+            string renk = sembol == "♣" ? "Sinek" : sembol == "♦" ? "Karo" : sembol == "♥" ? "Kupa" : "Maça";
+            bool sicrama = Array.IndexOf(sira, renk) > pr;
+            if (sicrama && hp < 18) return "1" + sembol;
+            return cagri;
         }
 
         private string YeniRenkBul(List<Card> el, string partnerKozu, int minUzunluk, string seviye)
