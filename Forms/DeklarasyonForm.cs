@@ -801,12 +801,25 @@ namespace BricKartOyunu.Forms
             string deklaran = DeklaraniBul(_sonKontratVeren, _kontratKozu);
             bool elDegisimiYapildi = false;
 
+            // 🔹 İhale bitti bilgi mesajı: kontrat, deklaran, atak, dağıtıcı, zon
+            string kontrEk = KontrDurumunuBul() == 2 ? " XX" : KontrDurumunuBul() == 1 ? " X" : "";
+            string ihaleBilgi =
+                "Kontrat: " + _sonKontratTeklifi + kontrEk + "\n" +
+                "Deklaran: " + KoltukHaritasi.Ad(OyuncuyaCevir(deklaran)) + "\n" +
+                "Atak: " + KoltukHaritasi.Ad(OyuncuyaCevir(SolRakipBul(deklaran))) + "\n" +
+                (_bricOyna != null ? "Dağıtıcı: " + _bricOyna.DealerAdi + "\n" +
+                                     "Zon: " + _bricOyna.ZonAdi + "\n" +
+                                     "El no: " + _bricOyna.Seed + "\n" : "");
+            if (deklaran != "Kuzey")
+                MessageBox.Show(this, ihaleBilgi, "İhale Bitti", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             // ═══════════════════════════════════════════════════════════════
             // 🔹 SADECE Deklaran Kuzey ise: bilgi mesajı → Tamam → takas
             // ═══════════════════════════════════════════════════════════════
             if (deklaran == "Kuzey")
             {
                 MessageBox.Show(
+                    ihaleBilgi + "\n" +
                     "Kontrat " + KoltukHaritasi.Ad(Player.Kuzey) + " oyuncusunda kaldı.\n\n" +
                     "El değişimi yapılacak:\n" +
                     "•  Kuzey ile Güney elleri yer değiştirecek\n" +

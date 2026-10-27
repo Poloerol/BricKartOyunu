@@ -2890,6 +2890,62 @@ namespace BricKartOyunu
                 }, "Pas");
         }
 
+        public static void Test_Mudahale_Sonrasi_2NT_ve_Destek()
+        {
+            var guney = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 13 },
+                new Card { Suit = "Maça", Value = 12 },
+                new Card { Suit = "Maça", Value = 5 },
+                new Card { Suit = "Maça", Value = 3 },
+                new Card { Suit = "Kupa", Value = 14 },
+                new Card { Suit = "Kupa", Value = 13 },
+                new Card { Suit = "Kupa", Value = 3 },
+                new Card { Suit = "Kupa", Value = 2 },
+                new Card { Suit = "Sinek", Value = 12 },
+                new Card { Suit = "Sinek", Value = 8 },
+                new Card { Suit = "Sinek", Value = 4 },
+                new Card { Suit = "Karo", Value = 14 },
+                new Card { Suit = "Karo", Value = 9 }
+            };
+            SeviyeTesti("TEST 11.18 — 1♣–1♥–(1♠) 18 HP + 4'lü ♥ desteği → 3♥ (sıçramalı)", guney, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "1♠", Sira = 5, GecerliMi = true },
+                }, "3♥");
+            var kuzey = new List<Card>
+            {
+                new Card { Suit = "Maça", Value = 9 },
+                new Card { Suit = "Maça", Value = 8 },
+                new Card { Suit = "Kupa", Value = 12 },
+                new Card { Suit = "Kupa", Value = 10 },
+                new Card { Suit = "Kupa", Value = 6 },
+                new Card { Suit = "Kupa", Value = 4 },
+                new Card { Suit = "Sinek", Value = 13 },
+                new Card { Suit = "Sinek", Value = 10 },
+                new Card { Suit = "Sinek", Value = 9 },
+                new Card { Suit = "Sinek", Value = 2 },
+                new Card { Suit = "Karo", Value = 13 },
+                new Card { Suit = "Karo", Value = 10 },
+                new Card { Suit = "Karo", Value = 6 }
+            };
+            SeviyeTesti("TEST 11.19 — 1♣–1♥–(1♠)–2NT (18-19), 8 HP, ♠ durdurucum yok → 3NT", kuzey, Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "1♣", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 4, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "1♠", Sira = 5, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2NT", Sira = 6, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 7, GecerliMi = true },
+                }, "3NT");
+        }
+
         public static void Test_Slam_JumpShift_Buyuk()
         {
             var el = new List<Card>
@@ -14148,6 +14204,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Slam_JumpShift_Destek();
             Test_Slam_JumpShift_Buyuk();
             Test_Acilis_6liMajor_15HP_1NT_Degil();
+            Test_Mudahale_Sonrasi_2NT_ve_Destek();
             Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();

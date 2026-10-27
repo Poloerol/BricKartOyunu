@@ -402,6 +402,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             bool nt = dengeli || EnUzunUzunluk(el) <= 5;
             bool ntOlur = NTOlur(el, rakipRenkleri);
+            // Ortak rakibin rengi söylendikten SONRA NT dediyse o rengi durdurduğunu vaat eder:
+            // 1♣–1♥–(1♠)–2NT'de ortağın ♠ durdurucusu var, bende olmasa da 3NT oynanır.
+            if (!ntOlur)
+            {
+                var ortakNTh = gercek.FirstOrDefault(h => h.Oyuncu == d.Partner && h.Koz == "NT" && h.Seviye >= 2);
+                if (ortakNTh != null)
+                {
+                    int ix = gercek.IndexOf(ortakNTh);
+                    ntOlur = rakipRenkleri.All(r =>
+                        ElDegerlendirici.StopperVar(el, r) ||
+                        gercek.Take(ix).Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Koz == r));
+                }
+            }
 
             // Ortağın aralığı dar (örn. 1♦–1♥–2NT = 18-19) ve kendi elimle toplam en az 25 HP:
             // tahmin eşiğine takılmadan 3NT'ye taşı (18+9=27 HP'de Pas demek hatadır).
@@ -538,6 +551,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Yarış: ancak yeterli puan + LOTT izin veriyorsa ve ortak zaten güç gösterdiyse
             bool ortakGuc = ar.Min >= 6;
+            // Güçlü el (davet+): ortağın cevabını sıçramalı destekle (1♣–1♥–(1♠)–3♥), 2. seviyede kalma
+            if (ortakGuc && Major(fit) && est >= 23 && ucuz == 2) return Seviye(d, fit, 3);
             if (ortakGuc && est >= 19 && ucuz <= lott && ucuz <= 3) return Seviye(d, fit, ucuz);
             return "Pas";
         }
