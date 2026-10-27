@@ -487,6 +487,95 @@ namespace BricKartOyunu.Forms
             // Akış Şeması gösterimi
         }
 
+        /// <summary>
+        /// Metindeki ♣ ♦ ♥ ♠ sembollerini kendi renginde (♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah)
+        /// gösteren küçük bilgi penceresi. MessageBox renk desteklemediği için kullanılır.
+        /// </summary>
+        public static void RenkliMesajGoster(IWin32Window sahip, string baslik, string metin)
+        {
+            using (var f = RenkliMesajFormuKur(baslik, metin))
+            {
+                if (sahip != null) f.ShowDialog(sahip); else f.ShowDialog();
+            }
+        }
+
+        /// <summary>
+        /// Aynı renkli mesaj, ama modal DEĞİL: açıkken diğer pencereler (ör. Oynanan Eller) kullanılabilir.
+        /// Mesaj kapanınca <paramref name="kapandi"/> çağrılır.
+        /// </summary>
+        public static void RenkliMesajGosterModelsiz(Form sahip, string baslik, string metin, Action kapandi, Control ortala = null)
+        {
+            var f = RenkliMesajFormuKur(baslik, metin);
+            f.FormClosed += (s, e) => { f.Dispose(); if (kapandi != null) kapandi(); };
+            if (ortala != null)
+            {
+                f.StartPosition = FormStartPosition.Manual;
+                // Boyut, kendi Shown olayında güncelleniyor; ondan sonra verilen kontrolün ortasına al
+                f.Shown += (s, e) =>
+                {
+                    try
+                    {
+                        var merkez = ortala.PointToScreen(new Point(ortala.Width / 2, ortala.Height / 2));
+                        f.Location = new Point(merkez.X - f.Width / 2, merkez.Y - f.Height / 2);
+                    }
+                    catch { }
+                };
+            }
+            if (sahip != null) f.Show(sahip); else f.Show();
+        }
+
+        private static Form RenkliMesajFormuKur(string baslik, string metin)
+        {
+            {
+                var f = new Form();
+                f.Text = baslik;
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.StartPosition = FormStartPosition.CenterParent;
+                f.MaximizeBox = false; f.MinimizeBox = false; f.ShowInTaskbar = false;
+                f.ClientSize = new Size(400, 200);
+
+                var rtb = new RichTextBox
+                {
+                    ReadOnly = true,
+                    BorderStyle = BorderStyle.None,
+                    BackColor = f.BackColor,
+                    Font = new Font("Segoe UI", 10F),
+                    ScrollBars = RichTextBoxScrollBars.None,
+                    TabStop = false,
+                    Location = new Point(16, 14),
+                    Size = new Size(368, 140),
+                    Cursor = Cursors.Default
+                };
+                rtb.Text = metin;
+                for (int i = 0; i < rtb.TextLength; i++)
+                {
+                    char c = rtb.Text[i];
+                    if (c == '♣' || c == '♦' || c == '♥' || c == '♠')
+                    {
+                        rtb.Select(i, 1);
+                        rtb.SelectionColor = SembolRengi(c);
+                        rtb.SelectionFont = new Font("Arial", 11.5F, FontStyle.Bold);
+                    }
+                }
+                rtb.Select(0, 0);
+                rtb.ContentsResized += (s, e) => { rtb.Height = e.NewRectangle.Height + 6; };
+                f.Controls.Add(rtb);
+
+                var tamam = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Size = new Size(90, 28) };
+                tamam.Click += (s, e) => f.Close();   // modal olmayan pencerede DialogResult tek başına kapatmaz
+                f.Controls.Add(tamam);
+                f.AcceptButton = tamam;
+                f.CancelButton = tamam;
+
+                f.Shown += (s, e) =>
+                {
+                    f.ClientSize = new Size(400, rtb.Bottom + 14 + tamam.Height + 14);
+                    tamam.Location = new Point((f.ClientSize.Width - tamam.Width) / 2, rtb.Bottom + 14);
+                };
+                return f;
+            }
+        }
+
         private void BtnHint_Click(object sender, EventArgs e)
         {
             // İpucu: sırası gelen oyuncu için ihale motorunun önerdiği teklif
@@ -520,7 +609,7 @@ namespace BricKartOyunu.Forms
 
                 string kural = _ihaleMotoru.SonKonvansiyonAdi;
                 var sb = new System.Text.StringBuilder();
-                sb.AppendLine("Önerilen teklif: " + (teklif == "Pas" ? "Pas" : teklif));
+                sb.AppendLine("Önerilen teklif: " + teklif);
                 if (!string.IsNullOrEmpty(kural))
                     sb.AppendLine("Kural: " + kural);
                 sb.AppendLine();
@@ -529,7 +618,7 @@ namespace BricKartOyunu.Forms
                               " ♥" + ElDegerlendirici.RenkUzunlugu(el, "Kupa") +
                               " ♦" + ElDegerlendirici.RenkUzunlugu(el, "Karo") +
                               " ♣" + ElDegerlendirici.RenkUzunlugu(el, "Sinek"));
-                MessageBox.Show(this, sb.ToString(), "İpucu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RenkliMesajGoster(this, "İpucu", sb.ToString());
             }
             catch (Exception ex)
             {

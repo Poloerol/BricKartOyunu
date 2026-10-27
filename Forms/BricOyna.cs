@@ -628,7 +628,7 @@ namespace BricKartOyunu
         /// Test amaçlı — ihale motorunu çalıştırır ve Debug'a yazar.
         /// </summary>
         /// <summary>İhale motoru yapay el testi (geliştirme için). Açılışı yavaşlattığı için varsayılan kapalı.</summary>
-        private const bool IhaleMotoruTestiAcik = false;
+        private static bool IhaleMotoruTestiAcik = false;
 
         private void TestIhaleMotoru()
         {
@@ -2375,8 +2375,8 @@ namespace BricKartOyunu
                     if (!el.Contains(k)) el.Add(k);
             }
 
-            MasadakiKartlariTemizle();
-
+            // Son elin kartları masada kalır (sonuç mesajı sırasında görülebilsin);
+            // masa, mesaj kapandıktan sonra BordTamamlandiFormuAc içinde temizlenir.
             this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
@@ -2390,6 +2390,58 @@ namespace BricKartOyunu
             this.Refresh();
         }
 
+        /// <summary>Kontrat metni: "4♣", "4♦", "3NT" (semboller renkli pencerede kendi rengiyle görünür).</summary>
+        private static string KontratYazisi(SkorSonucu s)
+        {
+            return s.Seviye + s.Koz + (s.KontrEki != "" ? " " + s.KontrEki : "");
+        }
+
+        /// <summary>
+        /// Bord bitince DealCompleteForm'dan önce küçük bir sonuç mesajı gösterir:
+        /// kontrat yapıldı mı / kaç batıldı ve skor (kullanıcı açısından).
+        /// </summary>
+        private void BordSonucuBilgisiGoster(Action sonra)
+        {
+            try
+            {
+                var s = SkorHesapla();
+                if (s.PasGecildi) { sonra?.Invoke(); return; }
+
+                string kontrat = KontratYazisi(s);
+                bool deklaranNS = _kontratDeklaran == Player.Kuzey || _kontratDeklaran == Player.Guney;
+                // Kullanıcı (iç Güney) K-G tarafında: deklaran onunla aynı taraftaysa "biz" deklaranız
+                bool bizDeklaran = deklaranNS;
+                int fark = s.AlinanLove - s.GerekenLove;   // + fazla löve, - batış
+                int bizimSkor = bizDeklaran ? s.Toplam : -s.Toplam;
+                string skor = "Skor: " + (bizimSkor > 0 ? "+" : "") + bizimSkor;
+
+                string govde;
+                if (s.Yapildi)
+                {
+                    string fazla = fark > 0 ? " (+" + fark + " fazla löve)" : "";
+                    govde = bizDeklaran
+                        ? "Tebrikler!\nİhaleyi " + kontrat + " olarak gerçekleştirdiniz." + fazla
+                        : "Rakipler " + kontrat + " kontratını gerçekleştirdi." + fazla;
+                }
+                else
+                {
+                    int bat = -fark;
+                    govde = bizDeklaran
+                        ? "Maalesef kontratı yapamadınız. Oyun " + bat + " battı."
+                        : "Rakiplerin " + kontrat + " kontratı " + bat + " battı. Tebrikler!";
+                }
+
+                // Modal değil: mesaj açıkken "Oynanan Eller" gibi pencereler kullanılabilir.
+                DeklarasyonForm.RenkliMesajGosterModelsiz(this, "Bord Sonucu",
+                    "İhale = " + kontrat + "\n\n" + govde + "\n\n" + skor, sonra, playZonePanel);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[BordSonucuBilgisi] " + ex.Message);
+                sonra?.Invoke();
+            }
+        }
+
         /// <summary>
         /// 13 el tamamlandığında Deal Complete formunu açar.
         /// Form kapandığında ne olacağını form kendi belirler
@@ -2397,22 +2449,89 @@ namespace BricKartOyunu
         /// </summary>
         private void BordTamamlandiFormuAc()
         {
+            // Son kart bir tıklama/zamanlayıcı olayının içinde oynanır; modal pencereyi
+            // o olay bitmeden açmak fare yakalamasını (capture) pencerede bırakır ve
+            // pencere tıklanamaz kalır. Bu yüzden mesaj döngüsüne bırakıp sonra aç.
             _aiTimer?.Stop();
             _aiTimer?.Dispose();
             _aiTimer = null;
-
             _elBittiBekliyor = false;
 
-            System.Diagnostics.Debug.WriteLine(
-                "[BordTamamlandi] DealCompleteForm açılıyor...");
+            if (IsHandleCreated)
+                BeginInvoke(new Action(BordTamamlandiFormuAcGercek));
+            else
+                BordTamamlandiFormuAcGercek();
+        }
 
-            // Bord bitti: dört elin tamamı açık, masa boş olsun (form açılmadan önce çizilir)
-            BordSonuElleriniGoster();
+        private Dictionary<Control, bool> _girisDurumu;
 
-            using (var form = new DealCompleteForm(this))
+        /// <summary>Ana pencerenin kontrollerini kapatır/açar. Form kendisi etkin kalır; böylece sahip olunan pencereler ("Oynanan Eller" vb.) tıklanabilir.</summary>
+        private void AnaPencereGirisi(bool acik)
+        {
+            try
             {
-                form.StartPosition = FormStartPosition.CenterParent;
-                var sonuc = form.ShowDialog(this);
+                if (IsDisposed) return;
+                if (!acik)
+                {
+                    if (_girisDurumu != null) return;
+                    _girisDurumu = new Dictionary<Control, bool>();
+                    foreach (Control c in Controls)
+                    {
+                        _girisDurumu[c] = c.Enabled;
+                        c.Enabled = false;
+                    }
+                }
+                else if (_girisDurumu != null)
+                {
+                    foreach (var kv in _girisDurumu)
+                        if (!kv.Key.IsDisposed) kv.Key.Enabled = kv.Value;
+                    _girisDurumu = null;
+                }
+            }
+            catch { }
+        }
+
+        // Bir önceki bordun oynanan elleri: yeni bord dağıtılınca da "Oynanan Eller"den görülebilsin
+        private List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> _oncekiBordEller;
+        private string _oncekiBordBaslik;
+
+        private void BordTamamlandiFormuAcGercek()
+        {
+            if (IsDisposed) return;
+            this.Capture = false;
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
+            _elBittiBekliyor = false;
+
+            System.Diagnostics.Debug.WriteLine("[BordTamamlandi] sonuç mesajı ve DealCompleteForm açılıyor...");
+
+            // Bord bitti: dört elin tamamı açık, masada hiç kart kalmasın
+            BordSonuElleriniGoster();
+            MasadakiKartlariTemizle();
+            this.Refresh();
+
+            // Oynanan eller saklanır (yeni bord dağıtılınca da incelenebilsin)
+            _oncekiBordEller = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>(_oynananTumEller);
+            _oncekiBordBaslik = "Oynanan Eller — son bord (Seed " + _seed + ")";
+
+            // Sonuç mesajı ve DealCompleteForm modal DEĞİL: ana pencerenin girişi kapatılır,
+            // fakat "Oynanan Eller" penceresi her zaman tıklanabilir.
+            AnaPencereGirisi(false);
+            BordSonucuBilgisiGoster(DealCompleteFormunuAc);
+        }
+
+        private void DealCompleteFormunuAc()
+        {
+            if (IsDisposed) { return; }
+            var form = new DealCompleteForm(this);
+            form.StartPosition = FormStartPosition.CenterParent;
+            form.FormClosed += (s, e) =>
+            {
+                var sonuc = form.DialogResult;
+                AnaPencereGirisi(true);
+                if (IsDisposed) return;
+                this.Activate();
 
                 if (sonuc == DialogResult.Retry)
                 {
@@ -2422,19 +2541,19 @@ namespace BricKartOyunu
                 else if (sonuc == DialogResult.OK)
                 {
                     // "Go to Next Deal" → yeni bord
-                    System.Diagnostics.Debug.WriteLine(
-                        "[BordTamamlandi] Kullanıcı yeni bord seçti.");
+                    System.Diagnostics.Debug.WriteLine("[BordTamamlandi] Kullanıcı yeni bord seçti.");
                     YeniBordBaslat();
                 }
                 else
                 {
                     // "Return to Main Menu" veya X → AnaSayfa
-                    System.Diagnostics.Debug.WriteLine(
-                        "[BordTamamlandi] Kullanıcı ana menüye döndü.");
+                    System.Diagnostics.Debug.WriteLine("[BordTamamlandi] Kullanıcı ana menüye döndü.");
                     this.Close();
                 }
-            }
+            };
+            form.Show(this);
         }
+
         /// <summary>
         /// "Go to Next Deal" basıldığında çağrılır.
         /// Yeni bord başlatır: sayaçları sıfırlar, kartları yeniden dağıtır,
@@ -2454,6 +2573,7 @@ namespace BricKartOyunu
             // Oynanan eller ve geri al / ileri al geçmişi
             _oynananTumEller.Clear();
             OyunGecmisiniSifirla();            // geçmiş + ileri al yığını + otomatik oyun durdurma
+            OynananElleriFormlariniGuncelle();   // açık pencere önceki bordu göstermeye devam eder
 
             // Sayaçlar ve skor girdileri
             _oynananToplamEl = 0;
@@ -4998,7 +5118,8 @@ namespace BricKartOyunu
         /// </summary>
         public void OynananElleriGoster()
         {
-            if (_oynananTumEller == null || _oynananTumEller.Count == 0)
+            if ((_oynananTumEller == null || _oynananTumEller.Count == 0) &&
+                (_oncekiBordEller == null || _oncekiBordEller.Count == 0))
             {
                 MessageBox.Show(
                     "Henüz oynanmış bir el bulunmuyor.",
@@ -5008,10 +5129,34 @@ namespace BricKartOyunu
                 return;
             }
 
-            using (var form = new OynananElleriGosterForm(_oynananTumEller))
+            // Modal değil: sonuç mesajı / DealCompleteForm açıkken de kullanılabilir.
+            var liste = _oynananTumEller;
+            string baslik = null;
+            if (liste.Count == 0 && _oncekiBordEller != null && _oncekiBordEller.Count > 0)
             {
-                form.ShowDialog(this);
+                liste = _oncekiBordEller; baslik = _oncekiBordBaslik;
             }
+
+            var acik = Application.OpenForms.OfType<OynananElleriGosterForm>().FirstOrDefault();
+            if (acik != null)
+            {
+                acik.Guncelle(liste, baslik);
+                acik.Show(); acik.BringToFront(); acik.Activate();
+                return;
+            }
+
+            var form = new OynananElleriGosterForm(liste, baslik);
+            form.StartPosition = FormStartPosition.Manual;
+            try
+            {
+                var pz = playZonePanel.PointToScreen(new Point(10, 10));
+                var wa = Screen.FromControl(this).WorkingArea;
+                int x = Math.Max(wa.Left, Math.Min(pz.X, wa.Right - form.Width));
+                int y = Math.Max(wa.Top, Math.Min(pz.Y, wa.Bottom - form.Height));
+                form.Location = new Point(x, y);
+            }
+            catch { form.StartPosition = FormStartPosition.CenterParent; }
+            form.Show(this);
         }
         private void ButonlariInaktifYap()
         {
@@ -5436,8 +5581,14 @@ namespace BricKartOyunu
         /// <summary>Açık OynananElleriGosterForm varsa içeriğini güncel eller listesiyle yeniler.</summary>
         private void OynananElleriFormlariniGuncelle()
         {
+            var liste = _oynananTumEller;
+            string baslik = null;
+            if (liste.Count == 0 && _oncekiBordEller != null && _oncekiBordEller.Count > 0)
+            {
+                liste = _oncekiBordEller; baslik = _oncekiBordBaslik;
+            }
             foreach (var f in Application.OpenForms.OfType<OynananElleriGosterForm>().ToList())
-                f.Guncelle(_oynananTumEller);
+                f.Guncelle(liste, baslik);
         }
 
         /// <summary>

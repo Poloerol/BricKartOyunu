@@ -15,11 +15,14 @@ namespace BricKartOyunu.Forms
     {
         private List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> _eller;
 
+        private string _baslik;
+
         public OynananElleriGosterForm(
-            List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> eller)
+            List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> eller, string baslik = null)
         {
             InitializeComponent();
             _eller = eller;
+            _baslik = baslik;
 
             this.ShowInTaskbar = false;
 
@@ -29,17 +32,19 @@ namespace BricKartOyunu.Forms
         /// <summary>
         /// Oynanan eller değiştiğinde (kart geri alma / ileri alma) listeyi yeniler.
         /// </summary>
-        public void Guncelle(List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> eller)
+        public void Guncelle(List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> eller, string baslik = null)
         {
             _eller = eller ?? new List<(int, Player, Card, bool)>();
+            this.Text = string.IsNullOrEmpty(baslik) ? "Oynanan Eller" : baslik;
             ListeyiDoldur();
         }
 
         private void OynananElleriGosterForm_Load(object sender, EventArgs e)
         {
             // Başlık
-            this.Text = "Oynanan Eller";
-            this.StartPosition = FormStartPosition.CenterParent;
+            this.Text = string.IsNullOrEmpty(_baslik) ? "Oynanan Eller" : _baslik;
+            if (this.StartPosition != FormStartPosition.Manual)
+                this.StartPosition = FormStartPosition.CenterParent;
         }
 
         /// <summary>
