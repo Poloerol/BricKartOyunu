@@ -3004,6 +3004,101 @@ namespace BricKartOyunu
                 }, "4♥");
         }
 
+        public static void Test_Deklaran_Dummy_Tek_Kral_Yakma()
+        {
+            Func<string, string, List<Card>> mk = (suit, r) =>
+            {
+                var l = new List<Card>();
+                foreach (char ch in r)
+                {
+                    int v = ch == 'T' ? 10 : ch == 'J' ? 11 : ch == 'Q' ? 12 : ch == 'K' ? 13 : ch == 'A' ? 14 : ch - '0';
+                    l.Add(new Card { Suit = suit, Value = v });
+                }
+                return l;
+            };
+            var guney = new List<Card>();
+            guney.AddRange(mk("Maça", "Q98")); guney.AddRange(mk("Kupa", "9"));
+            guney.AddRange(mk("Sinek", "6543")); guney.AddRange(mk("Karo", "AJ"));
+            var kuzey = new List<Card>();
+            kuzey.AddRange(mk("Maça", "K")); kuzey.AddRange(mk("Kupa", "QT"));
+            kuzey.AddRange(mk("Sinek", "QJT92")); kuzey.AddRange(mk("Karo", "K7"));
+            var b = new OyunBaglami
+            {
+                Ben = Player.Guney, Deklaran = Player.Guney, Koz = null,
+                Elim = guney, OrtakEli = kuzey, ElNo = 3, Seviye = 0
+            };
+            b.Gecmis.Add((1, Player.Bati, new Card { Suit = "Maça", Value = 14 }, false));
+            string neden;
+            var k = OyunZekasi.KartSec(b, out neden);
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 11.22 — Dummy'de tek ♠K varken deklaran ♠Q ile çıkmaz");
+            Yaz(k != null && !(k.Suit == "Maça" && k.Value == 12)
+                ? $"✅ DOĞRU ({k.Suit} {k.Value}: {neden})"
+                : $"❌ YANLIŞ (♠Q oynandı: {neden})");
+        }
+
+        public static void Test_Jacoby_Transfer_Onceki_Pas()
+        {
+            Func<string, List<Card>> mk = (spec) =>
+            {
+                var l = new List<Card>();
+                foreach (var g in spec.Split(' '))
+                {
+                    string suit = g[0] == 'S' ? "Maça" : g[0] == 'H' ? "Kupa" : g[0] == 'D' ? "Karo" : "Sinek";
+                    foreach (char ch in g.Substring(2))
+                    {
+                        int v = ch == 'T' ? 10 : ch == 'J' ? 11 : ch == 'Q' ? 12 : ch == 'K' ? 13 : ch == 'A' ? 14 : ch - '0';
+                        l.Add(new Card { Suit = suit, Value = v });
+                    }
+                }
+                return l;
+            };
+            var el = mk("S:AKT54 H:J4 D:K84 C:732");
+            var gecmis1 = new List<IhaleHamlesi>
+            {
+                new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "Pas", Sira = 2, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1NT", Sira = 4, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 5, GecerliMi = true },
+            };
+            SeviyeTesti("TEST 11.23 — Önce Pas, sonra 1NT: 5♠ + 11 HP → 2♥ (♠ transferi)", el, Player.Guney, gecmis1, "2♥");
+            var gecmis2 = new List<IhaleHamlesi>(gecmis1)
+            {
+                new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♥", Sira = 6, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 7, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "2♠", Sira = 8, GecerliMi = true },
+                new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 9, GecerliMi = true },
+            };
+            SeviyeTesti("TEST 11.24 — 1NT–2♥–2♠ sonrası 5♠ + 11 HP, tekil yok → 3NT", el, Player.Guney, gecmis2, "3NT");
+        }
+
+        public static void Test_Unusual2NT_Cevap()
+        {
+            Func<string, List<Card>> mk = (spec) =>
+            {
+                var l = new List<Card>();
+                foreach (var g in spec.Split(' '))
+                {
+                    string suit = g[0] == 'S' ? "Maça" : g[0] == 'H' ? "Kupa" : g[0] == 'D' ? "Karo" : "Sinek";
+                    foreach (char ch in g.Substring(2))
+                    {
+                        int v = ch == 'T' ? 10 : ch == 'J' ? 11 : ch == 'Q' ? 12 : ch == 'K' ? 13 : ch == 'A' ? 14 : ch - '0';
+                        l.Add(new Card { Suit = suit, Value = v });
+                    }
+                }
+                return l;
+            };
+            var el = mk("S:KQ75 H:KT8 D:AKT C:742");
+            SeviyeTesti("TEST 11.25 — (Pas) 1♣ (2NT Unusual ♦♥): 15 HP, ♥ ve ♦ tutuk → 3NT", el, Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 1, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♣", Sira = 2, GecerliMi = true },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "2NT", Sira = 3, GecerliMi = true },
+                }, "3NT");
+        }
+
         public static void Test_Slam_JumpShift_Buyuk()
         {
             var el = new List<Card>
@@ -14265,6 +14360,9 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Mudahale_Sonrasi_2NT_ve_Destek();
             Test_ZayifIki_Karsi_Takeout();
             Test_Sicramali_Destek_Kabul();
+            Test_Deklaran_Dummy_Tek_Kral_Yakma();
+            Test_Jacoby_Transfer_Onceki_Pas();
+            Test_Unusual2NT_Cevap();
             Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();
