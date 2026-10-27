@@ -182,6 +182,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Rakip son sözü söylemiş → rekabet
             if (!sonBizim)
             {
+                // Rakip, ortağımın 1 seviye renk açılışına 2NT (Unusual: en düşük iki renk) dedi,
+                // ben henüz konuşmadım: güçlü elle 3NT (iki rakip rengi de tutulmuşsa) ya da doğal renk
+                if (son.Teklif == "2NT" && ilk.Oyuncu == d.Partner && ilk.Seviye == 1 && ilk.Koz != "NT" &&
+                    !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
+                {
+                    string un = UnusualNTCevap(d, el, hp, ar, ilk.Koz);
+                    if (un != null) return un;
+                }
+
                 string rk = Rekabet(d, el, hp, dengeli, ar, son, rakipRenkleri, gercek);
                 if (rk == "Pas") rk = RekabetYeniRenk(d, el, hp, rakipRenkleri, gercek);
                 return rk;
@@ -278,6 +287,39 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ── Fit yok: NT / uzun renk ──
             return FitsizDevam(d, el, hp, dengeli, est, cur, rakipRenkleri, gercek, zorunlu, benNTAcildi, dar);
+        }
+
+        private static bool Tutuk(List<Card> el, string r)
+        {
+            var k = el.Where(c => c.Suit == r).Select(c => c.Value).ToList();
+            int n = k.Count;
+            if (k.Contains(14)) return true;
+            if (k.Contains(13) && n >= 2) return true;
+            if (k.Contains(12) && n >= 3) return true;
+            if (k.Contains(11) && n >= 4) return true;
+            return n >= 5;
+        }
+
+        /// <summary>
+        /// 1x – (2NT Unusual) – ?  Rakip iki rengi (en düşük iki açılmamış renk) gösterdi.
+        /// Toplam güç ≥ 25 ve iki rakip rengi de tutuluysa 3NT; kalan açılmamış renkte
+        /// uzun (5+, ya da 4 ve güçlü) renk varsa onu doğal söyle. Aksi halde null.
+        /// </summary>
+        private string UnusualNTCevap(IhaleDurumu d, List<Card> el, int hp, IhaleKoruma.Aralik ar, string ortakRengi)
+        {
+            var acilmamis = Renkler.Where(r => r != ortakRengi).OrderBy(RenkSira).ToList();
+            if (acilmamis.Count != 3) return null;
+            var rakip = acilmamis.Take(2).ToList();
+            string serbest = acilmamis[2];
+
+            double est = hp + ar.Min;
+            if (est < 25) return null;
+
+            if (rakip.All(r => Tutuk(el, r)) && ElDegerlendirici.DengeliEl(el)) return Seviye(d, "NT", 3);
+
+            int u = ElDegerlendirici.RenkUzunlugu(el, serbest);
+            if (u >= 5 || (u == 4 && hp >= 12 && Major(serbest))) return Seviye(d, serbest, Cheapest(d, serbest) <= 3 ? Cheapest(d, serbest) : 3);
+            return null;
         }
 
         /// <summary>
