@@ -1955,18 +1955,39 @@ namespace BricKartOyunu
         /// Oyun bilgi panelini günceller.
         /// </summary>
         /// <summary>Durum çubuğu masa rengini almasın: üstteki menü çubuğuyla aynı görünüm/renk.</summary>
+        /// <summary>Durum çubuğunu masa renginden bağımsız, sabit açık gri çizer.</summary>
+        private class SabitDurumCubuguRenderer : ToolStripProfessionalRenderer
+        {
+            protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+            {
+                using (var br = new SolidBrush(SystemColors.Control))
+                    e.Graphics.FillRectangle(br, e.AffectedBounds);
+            }
+            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+            {
+                e.Graphics.DrawLine(SystemPens.ControlDark, 0, 0, e.ToolStrip.Width, 0);
+            }
+            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+            {
+                e.TextColor = Color.Black;
+                base.OnRenderItemText(e);
+            }
+        }
+
         private void DurumCubuguRenginiSabitle()
         {
             if (statusStrip1 == null) return;
             // menuStrip1.BackColor formdan (masa rengi) devralındığı için ondan okunmaz;
             // menünün sistem görünümüyle aynı sabit renkler kullanılır.
-            statusStrip1.RenderMode = ToolStripRenderMode.System;
+            statusStrip1.Dock = DockStyle.Bottom;
+            statusStrip1.Renderer = new SabitDurumCubuguRenderer();
             statusStrip1.BackColor = SystemColors.Control;
-            statusStrip1.ForeColor = SystemColors.ControlText;
+            statusStrip1.ForeColor = Color.Black;
+            statusStrip1.BringToFront();
             foreach (ToolStripItem it in statusStrip1.Items)
             {
                 it.BackColor = SystemColors.Control;
-                it.ForeColor = SystemColors.ControlText;
+                it.ForeColor = Color.Black;
             }
         }
 
@@ -3379,6 +3400,11 @@ namespace BricKartOyunu
         {
             if (kart == null) return;
             if (_oyunAsamasi != OyunAsamasi.Oyun) return;
+
+            // İpucu sarı tonlu kopyayı kartın resmi yapmıştı; masaya özgün resim gitmeli
+            // (sarı kopya aşağıda dispose edilir, masada kullanılırsa "Parametre geçerli değil" olur).
+            if (_ipucuKarti != null && ReferenceEquals(kartResmi, _ipucuKarti.Image) && kart.Image != null)
+                kartResmi = kart.Image;
             IpucuVurgusunuKaldir();
 
             // El bitti, masadaki 4 kart henüz temizlenmedi (PlayZone tıklaması bekleniyor).
