@@ -49,6 +49,21 @@ namespace BricKartOyunu.Class.Bidding
             return liste;
         }
 
+        /// <summary>true: her teklifte ayrıntılı Debug çıktısı yazılır (Visual Studio'da yavaşlatır; varsayılan kapalı).</summary>
+        public static bool Ayrinti = false;
+
+        private List<IKonvansiyon> _siraliKonvansiyonlar;
+        private List<IAcilisGelisimi> _siraliGelismeler;
+        private int _siraliSayi = -1;
+
+        private void SirayiHazirla()
+        {
+            if (_siraliSayi == _konvansiyonlar.Count + _acilisGelismleri.Count && _siraliKonvansiyonlar != null) return;
+            _siraliKonvansiyonlar = _konvansiyonlar.OrderBy(k => k.Oncelik).ToList();
+            _siraliGelismeler = _acilisGelismleri.OrderByDescending(g => g.Oncelik).ToList();
+            _siraliSayi = _konvansiyonlar.Count + _acilisGelismleri.Count;
+        }
+
         public bool KorumaAktif { get; set; } = true;       // IhaleKoruma denetimi
         public bool SeviyeYukseltme { get; set; } = false;  // eski "yasadışı teklifi 1 üst seviyeye çıkar" hilesi
         public bool PasiAtla { get; set; } = true;          // konvansiyon "Pas" derse görüşü yok say
@@ -135,7 +150,7 @@ namespace BricKartOyunu.Class.Bidding
 
             AnlasmayiUygula();
 
-            System.Diagnostics.Debug.WriteLine(
+            if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                 $"[IhaleMotoru] Oluşturuldu. Aktif konvansiyon sayısı: " +
                 $"{_konvansiyonlar.Count(k => k.AktifMi)}");
         }
@@ -144,11 +159,12 @@ namespace BricKartOyunu.Class.Bidding
         {
             SonKonvansiyonAdi = null;
             if (durum == null) return "Pas";
+            SirayiHazirla();
 
             // 1. Aşama: Açılış Gelişimleri
             if (durum.AktifOyuncuEli != null)
             {
-                foreach (var gelisim in _acilisGelismleri.OrderByDescending(g => g.Oncelik))
+                foreach (var gelisim in _siraliGelismeler)
                 {
                     try
                     {
@@ -158,20 +174,20 @@ namespace BricKartOyunu.Class.Bidding
                         string yeniTeklif = gelisim.TeklifVer(durum.AktifOyuncuEli, durum);
                         if (string.IsNullOrEmpty(yeniTeklif)) continue;
 
-                        System.Diagnostics.Debug.WriteLine(
+                        if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                             $"[AcilisGelismi] {gelisim.GetType().Name} uygun → {yeniTeklif}");
 
                         string yasalYeni = YasalSeviyeyeYukselt(durum, yeniTeklif);
                         if (!GecerliTeklifMi(durum, yasalYeni)) continue;
 
-                        System.Diagnostics.Debug.WriteLine(
+                        if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                             $"[KAZANAN-AcilisGelismi] {gelisim.GetType().Name} → {yasalYeni}");
                         SonKonvansiyonAdi = AcilisGelisimAdi(gelisim);
                         return yasalYeni;
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine(
+                        if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                             $"[AcilisGelismi] {gelisim.GetType().Name} hata: {ex.Message}");
                         if (HatalardaFirlat) throw;
                     }
@@ -179,7 +195,7 @@ namespace BricKartOyunu.Class.Bidding
             }
 
             // 2. Aşama: Standart Konvansiyonlar (TemelMantik dahil)
-            foreach (var konvansiyon in _konvansiyonlar.OrderBy(k => k.Oncelik))
+            foreach (var konvansiyon in _siraliKonvansiyonlar)
             {
                 if (!konvansiyon.AktifMi) continue;
 
@@ -192,7 +208,7 @@ namespace BricKartOyunu.Class.Bidding
                 catch (Exception ex)
                 {
                     // Tek bir konvansiyondaki hata tüm ihaleyi çökertmesin
-                    System.Diagnostics.Debug.WriteLine(
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                         $"[IhaleMotoru] {konvansiyon.Ad} hata: {ex.Message}");
                     if (HatalardaFirlat) throw;
                     continue;
@@ -204,7 +220,7 @@ namespace BricKartOyunu.Class.Bidding
                 if (PasiAtla && teklif.Equals("Pas", StringComparison.OrdinalIgnoreCase) &&
                     !(konvansiyon is TemelMantik) && !(konvansiyon is IBilincliPas))
                 {
-                    System.Diagnostics.Debug.WriteLine(
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                         $"[PAS-ATLANDI] {konvansiyon.Ad} Pas dedi, sıradakine geçiliyor.");
                     continue;
                 }
@@ -212,23 +228,23 @@ namespace BricKartOyunu.Class.Bidding
                 string yasal = SeviyeYukseltme ? YasalSeviyeyeYukselt(durum, teklif) : teklif;
                 if (KorumaAktif && !IhaleKoruma.Izin(durum, yasal, konvansiyon.Ad))
                 {
-                    System.Diagnostics.Debug.WriteLine(
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                         $"[KORUMA-RED] {konvansiyon.Ad} → {yasal}");
                     continue;
                 }
                 if (!GecerliTeklifMi(durum, yasal))
                 {
-                    System.Diagnostics.Debug.WriteLine(
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                         $"[GECERSIZ-RED] {konvansiyon.Ad} → {yasal} (son teklif: {durum.SonGercekTeklif})");
                     continue;
                 }
 
 
-                System.Diagnostics.Debug.WriteLine(
+                if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                     $"[KAZANAN] {konvansiyon.Ad} (Oncelik={konvansiyon.Oncelik}) → {yasal}");
 
                 if (yasal != teklif)
-                    System.Diagnostics.Debug.WriteLine(
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                         $"[IhaleMotoru] {konvansiyon.Ad} seviye yükseltildi: {teklif} → {yasal}");
 
                 SonKonvansiyonAdi = konvansiyon.Ad;
@@ -236,7 +252,7 @@ namespace BricKartOyunu.Class.Bidding
             }
 
             // 3. Aşama: Hiçbir şey uymadıysa
-            System.Diagnostics.Debug.WriteLine("[IhaleMotoru] Hiçbir konvansiyon uygun değil → Pas");
+            if (Ayrinti) System.Diagnostics.Debug.WriteLine("[IhaleMotoru] Hiçbir konvansiyon uygun değil → Pas");
             return "Pas";
         }
 
@@ -255,7 +271,7 @@ namespace BricKartOyunu.Class.Bidding
 
         private static bool GecerliTeklifMi(IhaleDurumu durum, string teklif)
         {
-            System.Diagnostics.Debug.WriteLine(
+            if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                 $"[GecerliTeklifMi] teklif={teklif}, SonGercekTeklif={durum?.SonGercekTeklif}");
 
             if (string.IsNullOrEmpty(teklif)) return false;
@@ -344,7 +360,7 @@ namespace BricKartOyunu.Class.Bidding
             if (cappelletti != null && dont != null && cappelletti.AktifMi && dont.AktifMi)
             {
                 dont.AktifMi = false;
-                System.Diagnostics.Debug.WriteLine(
+                if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                     "[IhaleMotoru] UYARI: Cappelletti ve DONT birlikte aktifti, DONT kapatıldı.");
             }
         }
@@ -467,7 +483,7 @@ namespace BricKartOyunu.Class.Bidding
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine(
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
                         $"[IhaleMotoru] {k.Ad} UygunMu hatası: {ex}");
                     if (HatalardaFirlat) throw;
                 }
