@@ -526,6 +526,7 @@ namespace BricKartOyunu
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
 
             this.BackColor = AnaSayfa.MasaRengi;
+            DurumCubuguRenginiSabitle();
 
             // Bord numarası ve dağıtıcı Oyun Planı'ndan gelir
             if (PratikModu)
@@ -1953,6 +1954,22 @@ namespace BricKartOyunu
         /// <summary>
         /// Oyun bilgi panelini günceller.
         /// </summary>
+        /// <summary>Durum çubuğu masa rengini almasın: üstteki menü çubuğuyla aynı görünüm/renk.</summary>
+        private void DurumCubuguRenginiSabitle()
+        {
+            if (statusStrip1 == null) return;
+            // menuStrip1.BackColor formdan (masa rengi) devralındığı için ondan okunmaz;
+            // menünün sistem görünümüyle aynı sabit renkler kullanılır.
+            statusStrip1.RenderMode = ToolStripRenderMode.System;
+            statusStrip1.BackColor = SystemColors.Control;
+            statusStrip1.ForeColor = SystemColors.ControlText;
+            foreach (ToolStripItem it in statusStrip1.Items)
+            {
+                it.BackColor = SystemColors.Control;
+                it.ForeColor = SystemColors.ControlText;
+            }
+        }
+
         private ToolStripStatusLabel _sbSira, _sbEl, _sbDealer, _sbZon, _sbKontrat, _sbNS, _sbEW;
 
         private void DurumCubuguGuncelle()
@@ -1965,6 +1982,7 @@ namespace BricKartOyunu
                 _sbEl = kutu(); _sbDealer = kutu(); _sbZon = kutu();
                 _sbKontrat = kutu(); _sbNS = kutu(); _sbEW = kutu();
                 statusStrip1.Items.AddRange(new ToolStripItem[] { _sbSira, _sbEl, _sbDealer, _sbZon, _sbKontrat, _sbNS, _sbEW });
+                DurumCubuguRenginiSabitle();
             }
 
             string oyuncu = PlayerIsmiTurkce(_activePlayer);
@@ -2965,6 +2983,7 @@ namespace BricKartOyunu
                 {
                     AnaSayfa.MasaRengi = cd.Color;
                     this.BackColor = AnaSayfa.MasaRengi;
+            DurumCubuguRenginiSabitle();
                 }
             }
         }
