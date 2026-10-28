@@ -44,11 +44,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             var el = durum.AktifOyuncuEli;
 
-            // 5+ Sinek veya 5+ Karo
+            // 6+ Sinek veya 6+ Karo
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
             int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
 
-            return sinek >= 5 || karo >= 5;
+            return sinek >= 6 || karo >= 6;
         }
 
         public string TeklifVer(IhaleDurumu durum)
@@ -58,10 +58,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
 
             // Sinek daha uzunsa → 2♠ (Sinek transfer)
-            if (sinek >= 5 && sinek >= karo) return "2♠";
+            if (sinek >= 6 && sinek >= karo) return "2♠";
 
             // Karo → 2NT (Karo transfer)
-            if (karo >= 5) return "2NT";
+            if (karo >= 6) return "2NT";
 
             return "Pas";
         }
