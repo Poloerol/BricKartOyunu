@@ -97,31 +97,36 @@ namespace BricKartOyunu.Forms
             BricKartOyunu.Class.EkranYardimci.TumKontrollerdeCiftTampon(this);
 
             oyunAyarlarıToolStripMenuItem.Click += OyunAyarlariToolStripMenuItem_Click;
-            OgrenmeMenuleriniEkle();
+            nSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => OrtaklikProfiliAc(Taraf.NS);
+            eWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => OrtaklikProfiliAc(Taraf.EW);
+            basitNSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.NS);
+            basitEWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.EW);
         }
 
         // ====================================================================
         // MENÜ — ORTAKLIK ANLAŞMASI VE ÖĞRENME MODU
         // ====================================================================
 
-        private void OgrenmeMenuleriniEkle()
+        private void OrtaklikProfiliAc(Taraf taraf)
         {
-            var anlasma = new ToolStripMenuItem("Ortaklık Anlaşması...");
-            anlasma.Click += (s, e) =>
-            {
-                using (var f = new AnlasmaForm())
-                    f.ShowDialog(this);
-            };
+            using (var f = new AnlasmaForm(taraf))
+                f.ShowDialog(this);
+        }
 
-            var mod = new ToolStripMenuItem("Öğrenme Modu") { CheckOnClick = true };
-            mod.Checked = AnlasmaYonetici.OgrenmeModuAcik;
-            mod.CheckedChanged += (s, e) => AnlasmaYonetici.OgrenmeModuAcik = mod.Checked;
-
-            öğrenmeToolStripMenuItem.DropDownItems.Add(new ToolStripSeparator());
-            öğrenmeToolStripMenuItem.DropDownItems.Add(anlasma);
-            öğrenmeToolStripMenuItem.DropDownItems.Add(mod);
-            // Anlaşma ekranında mod değişirse menü işareti güncel kalsın
-            öğrenmeToolStripMenuItem.DropDownOpening += (s, e) => mod.Checked = AnlasmaYonetici.OgrenmeModuAcik;
+        private void BasitAnlasmaUygula(Taraf taraf)
+        {
+            string ad = taraf == Taraf.NS ? "NS" : "EW";
+            string profil = AnlasmaYonetici.AktifProfilAdi(taraf);
+            if (MessageBox.Show(this,
+                    ad + " tarafının etkin profiline (" + profil + ") basit anlaşma uygulansın mı?\n" +
+                    "Konvansiyon seçimi basit anlaşmayla değişir; agresiflik ve beceri düzeyi korunur.",
+                    ad + " basit ortaklık ayarları", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+            bool kaydedildi = AnlasmaYonetici.BasitUygula(taraf);
+            MessageBox.Show(this,
+                kaydedildi ? ad + " için basit anlaşma uygulandı." : ad + " için basit anlaşma bu oturumda uygulandı ama dosyaya kaydedilemedi.",
+                ad + " basit ortaklık ayarları", MessageBoxButtons.OK,
+                kaydedildi ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
         }
 
         // ====================================================================

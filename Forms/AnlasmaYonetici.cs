@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding;
 
@@ -11,50 +13,141 @@ namespace BricKartOyunu.Forms
         public bool Acik { get; set; }
     }
 
+    /// <summary>Adlandırılmış ortaklık profili (anlaşma + agresiflik + beceri).</summary>
+    public sealed class AnlasmaProfil
+    {
+        public string Ad { get; set; } = "Varsayılan";
+        public OrtaklikAnlasmasi Anlasma { get; set; } = OrtaklikAnlasmasi.Varsayilan();
+
+        public AnlasmaProfil Kopya(string yeniAd = null)
+        {
+            return new AnlasmaProfil { Ad = yeniAd ?? Ad, Anlasma = Anlasma.Kopya() };
+        }
+    }
+
+    /// <summary>Masanın iki tarafı: Kuzey-Güney ve Doğu-Batı. Her tarafın ayrı ortaklık profilleri vardır.</summary>
+    public enum Taraf { NS, EW }
+
+    public sealed class ProfilDeposu
+    {
+        public List<AnlasmaProfil> Profiller { get; set; } = new List<AnlasmaProfil>();
+        public string Aktif { get; set; }
+    }
+
     /// <summary>
-    /// Oyuncunun seçtiği ortaklık anlaşmasını ve öğrenme modunu yükler / kaydeder
-    /// (kullanıcı klasöründe, AyarDeposu aracılığıyla). Dosya yoksa varsayılan anlaşma kullanılır.
+    /// Ortaklık profillerini ve öğrenme modunu yükler / kaydeder (kullanıcı klasöründe, AyarDeposu aracılığıyla).
+    /// NS ve EW için ayrı profil depoları vardır. Dosya yoksa tek profilli varsayılan depo kullanılır;
+    /// eski tek depo veya tek anlaşma dosyası varsa ilk açılışta her iki tarafa kopyalanır.
     /// </summary>
     public static class AnlasmaYonetici
     {
-        private const string AnlasmaAdi = "ortaklik_anlasmasi";
+        private const string EskiAnlasmaAdi = "ortaklik_anlasmasi";
+        private const string EskiProfilAdi = "ortaklik_profilleri";
         private const string OgrenmeAdi = "ogrenme_modu";
 
-        private static OrtaklikAnlasmasi _mevcut;
+        private static readonly Dictionary<Taraf, ProfilDeposu> _depolar = new Dictionary<Taraf, ProfilDeposu>();
         private static OgrenmeAyari _ogrenme;
         private static readonly object _kilit = new object();
 
-        /// <summary>Geçerli ortaklık anlaşmasının kopyası (değiştirmek güvenlidir).</summary>
-        public static OrtaklikAnlasmasi Mevcut()
+        public static Taraf TarafOf(Player oyuncu)
+        {
+            return (oyuncu == Player.Kuzey || oyuncu == Player.Guney) ? Taraf.NS : Taraf.EW;
+        }
+
+        private static string DepoAdi(Taraf t)
+        {
+            return EskiProfilAdi + (t == Taraf.NS ? "_ns" : "_ew");
+        }
+
+        private static ProfilDeposu Yukle(string ad)
+        {
+            try
+            {
+                if (File.Exists(AyarDeposu.DosyaYolu(ad)))
+                    return AyarDeposu.Yukle<ProfilDeposu>(ad);
+            }
+            catch { }
+            return null;
+        }
+
+        private static ProfilDeposu Depo(Taraf t)
         {
             lock (_kilit)
             {
-                if (_mevcut == null)
+                ProfilDeposu d;
+                if (_depolar.TryGetValue(t, out d)) return d;
+
+                d = Yukle(DepoAdi(t)) ?? Yukle(EskiProfilAdi);
+                if (d == null || d.Profiller == null || d.Profiller.Count == 0)
                 {
+                    d = new ProfilDeposu();
+                    OrtaklikAnlasmasi eski = null;
                     try
                     {
-                        _mevcut = File.Exists(AyarDeposu.DosyaYolu(AnlasmaAdi))
-                            ? AyarDeposu.Yukle<OrtaklikAnlasmasi>(AnlasmaAdi)
-                            : OrtaklikAnlasmasi.Varsayilan();
+                        if (File.Exists(AyarDeposu.DosyaYolu(EskiAnlasmaAdi)))
+                            eski = AyarDeposu.Yukle<OrtaklikAnlasmasi>(EskiAnlasmaAdi);
                     }
-                    catch
-                    {
-                        _mevcut = OrtaklikAnlasmasi.Varsayilan();
-                    }
+                    catch { eski = null; }
+                    d.Profiller.Add(new AnlasmaProfil { Ad = "Varsayılan", Anlasma = eski ?? OrtaklikAnlasmasi.Varsayilan() });
                 }
-                return _mevcut.Kopya();
+                foreach (var p in d.Profiller)
+                    if (p.Anlasma == null) p.Anlasma = OrtaklikAnlasmasi.Varsayilan();
+                if (d.Profiller.All(p => p.Ad != d.Aktif)) d.Aktif = d.Profiller[0].Ad;
+                _depolar[t] = d;
+                return d;
             }
         }
 
-        /// <summary>Anlaşmayı kaydeder ve geçerli yapar. Sonraki ihale oturumları bunu kullanır.</summary>
-        public static bool Kaydet(OrtaklikAnlasmasi anlasma)
+        /// <summary>Etkin profilin anlaşmasının kopyası (değiştirmek güvenlidir).</summary>
+        public static OrtaklikAnlasmasi Mevcut(Taraf t)
         {
-            if (anlasma == null) return false;
             lock (_kilit)
             {
-                _mevcut = anlasma.Kopya();
-                return AyarDeposu.Kaydet(AnlasmaAdi, anlasma);
+                var d = Depo(t);
+                return d.Profiller.First(p => p.Ad == d.Aktif).Anlasma.Kopya();
             }
+        }
+
+        public static string AktifProfilAdi(Taraf t)
+        {
+            lock (_kilit) { return Depo(t).Aktif; }
+        }
+
+        /// <summary>Bir tarafın tüm profillerinin kopyası (form bunlar üzerinde çalışır, Kaydet ile geri yazılır).</summary>
+        public static List<AnlasmaProfil> Profiller(Taraf t)
+        {
+            lock (_kilit) { return Depo(t).Profiller.Select(p => p.Kopya()).ToList(); }
+        }
+
+        /// <summary>Profilleri ve etkin profili kaydeder; sonraki ihaleler etkin profili kullanır.</summary>
+        public static bool Kaydet(Taraf t, List<AnlasmaProfil> profiller, string aktif)
+        {
+            if (profiller == null || profiller.Count == 0) return false;
+            lock (_kilit)
+            {
+                var d = new ProfilDeposu
+                {
+                    Profiller = profiller.Select(p => p.Kopya()).ToList(),
+                    Aktif = profiller.Any(p => p.Ad == aktif) ? aktif : profiller[0].Ad
+                };
+                _depolar[t] = d;
+                return AyarDeposu.Kaydet(DepoAdi(t), d);
+            }
+        }
+
+        /// <summary>Etkin profile hazır basit anlaşmayı (OrtaklikAnlasmasi.Basit) uygular; agresiflik ve beceri korunur.</summary>
+        public static bool BasitUygula(Taraf t)
+        {
+            var liste = Profiller(t);
+            string aktif = AktifProfilAdi(t);
+            var p = liste.First(x => x.Ad == aktif);
+            var basit = OrtaklikAnlasmasi.Basit();
+            basit.AcilisAgresifligi = p.Anlasma.AcilisAgresifligi;
+            basit.MudahaleAgresifligi = p.Anlasma.MudahaleAgresifligi;
+            basit.PreemptAgresifligi = p.Anlasma.PreemptAgresifligi;
+            basit.BeceriDuzeyi = p.Anlasma.BeceriDuzeyi;
+            p.Anlasma = basit;
+            return Kaydet(t, liste, aktif);
         }
 
         private static OgrenmeAyari Ogrenme()

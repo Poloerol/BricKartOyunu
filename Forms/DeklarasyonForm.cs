@@ -23,7 +23,16 @@ namespace BricKartOyunu.Forms
         /// <summary>
         /// Ortaklık anlaşması (konvansiyon ayarları).
         /// </summary>
-        private OrtaklikAnlasmasi _anlasma;
+        private OrtaklikAnlasmasi _anlasmaNS;
+        private OrtaklikAnlasmasi _anlasmaEW;
+        private IhaleMotoru _motorNS;
+        private IhaleMotoru _motorEW;
+
+        /// <summary>Sırası gelen oyuncunun tarafının ortaklık anlaşması (NS ve EW ayrı profil kullanır).</summary>
+        private OrtaklikAnlasmasi _anlasma
+        {
+            get { return AnlasmaYonetici.TarafOf(OyuncuyaCevir(_aktifOyuncu)) == Taraf.NS ? _anlasmaNS : _anlasmaEW; }
+        }
 
         /// <summary>
         /// AI hamlesini geciktirmek için timer (düşünme efekti).
@@ -34,7 +43,17 @@ namespace BricKartOyunu.Forms
         /// AI oynayacak mı? (test için kapatılabilir)
         /// </summary>
         private bool _aiAktif = true;
-        private IhaleMotoru _ihaleMotoru;
+        /// <summary>Sırası gelen oyuncunun tarafının ihale motoru (ilk kullanımda kurulur).</summary>
+        private IhaleMotoru _ihaleMotoru
+        {
+            get
+            {
+                if (AnlasmaYonetici.TarafOf(OyuncuyaCevir(_aktifOyuncu)) == Taraf.NS)
+                    return _motorNS ?? (_motorNS = new IhaleMotoru(_anlasmaNS));
+                return _motorEW ?? (_motorEW = new IhaleMotoru(_anlasmaEW));
+            }
+            set { /* motor taraf başına _motorNS/_motorEW'de tutulur */ }
+        }
 
         private int _sonTeklifIndex = -1;
 
@@ -136,7 +155,8 @@ namespace BricKartOyunu.Forms
             this.FormClosed += DeklarasyonForm_FormClosed;
 
             // 🔹 Yeni ihale oturumunu hazırla
-            _anlasma = AnlasmaYonetici.Mevcut();
+            _anlasmaNS = AnlasmaYonetici.Mevcut(Taraf.NS);
+            _anlasmaEW = AnlasmaYonetici.Mevcut(Taraf.EW);
             _humanVsAiSession = null;
             _biddingPresenter = null;
 

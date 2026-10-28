@@ -9,295 +9,387 @@ using BricKartOyunu.Class.Bidding;
 namespace BricKartOyunu.Forms
 {
     /// <summary>
-    /// Ortaklık anlaşması ekranı: hangi açılış sistemi ve konvansiyonların kullanılacağını seçer.
-    /// Seçim kaydedilir; sonraki ihaleler (yapay zekâ ortak ve rakipler dahil) bu anlaşmayla oynanır.
+    /// Ortaklık profili ekranı (Bridge Baron "Pair Profile" düzeninde): profil seçimi/yönetimi,
+    /// sistem ön ayarı, beceri düzeyi, agresiflik ve seçili konvansiyonların kategori özetleri.
+    /// Konvansiyonların ayrıntılı seçimi "Düzenle" ile açılır. Tamam ile tüm profiller kaydedilir.
     /// </summary>
     public sealed class AnlasmaForm : Form
     {
-        private sealed class Madde
+        private const string Ozel = "Özel";
+
+        private sealed class OnAyar
         {
-            public string Alan, Baslik, Aciklama;
-            public Madde(string alan, string baslik, string aciklama) { Alan = alan; Baslik = baslik; Aciklama = aciklama; }
+            public string Ad; public Func<OrtaklikAnlasmasi> Uret;
+            public OnAyar(string ad, Func<OrtaklikAnlasmasi> uret) { Ad = ad; Uret = uret; }
         }
 
-        private sealed class Grup
+        private static readonly OnAyar[] OnAyarlar =
         {
-            public string Ad;
-            public Madde[] Maddeler;
-            public Grup(string ad, params Madde[] m) { Ad = ad; Maddeler = m; }
+            new OnAyar("Standart (5'li majör, güçlü NT)", () => OrtaklikAnlasmasi.Varsayilan()),
+            new OnAyar("Başlangıç (basit)", () => OrtaklikAnlasmasi.Basit()),
+            new OnAyar("Zayıf NT (12–14)", () => { var a = OrtaklikAnlasmasi.Varsayilan(); a.StrongNT = false; return a; })
+        };
+
+        // (özellik adı, görünen ad) — özet kutularında seçili olanlar listelenir
+        private static readonly string[] AgrAdlari = { "Temkinli", "Orta", "Atak" };
+
+        private sealed class Kutu
+        {
+            public string Baslik; public GroupBox Grup; public Label Metin;
+            public Func<OrtaklikAnlasmasi, string> Ozet;
         }
 
-        private static readonly Grup[] Gruplar =
-        {
-            new Grup("Açılış sistemi",
-                new Madde("BesliMajor", "5'li majör açılışı", "1♥/1♠ açılışı 5+ kart ister. Kapalıysa 4'lü majör açılır."),
-                new Madde("StrongNT", "Güçlü 1NT (15–17 HP)", "Kapalıysa zayıf 1NT (12–14 HP) oynanır."),
-                new Madde("IkiliSinekGuclu", "2♣ güçlü açılış", "22+ HP ya da oyun zorlayan eller."),
-                new Madde("ZayifIki", "Zayıf iki açılışları", "2♦/2♥/2♠ ile 6 kartlık zayıf el gösterilir."),
-                new Madde("Multi2D", "Multi 2♦", "Zayıf iki majörünü 2♦ altında toplar; Zayıf İki'nin yerini alır."),
-                new Madde("Preempt", "Önleyici açılışlar", "3. ve 4. seviyede 7+ kartlık zayıf eller."),
-                new Madde("Namyats", "Namyats", "4♣/4♦ açılışları güçlü 4♥/4♠ önleyicilerini gösterir."),
-                new Madde("OneClub_AnswerSistemi", "1♣ cevap sistemi (Polish hibrit)", "1♣ açılışına özel cevap tablosu."),
-                new Madde("Reverse", "Reverse gelişimi", "Açıcının ikinci rengi daha yüksekse güçlü el (16+) gösterir."),
-                new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır.")),
-            new Grup("Cevap ve gelişim",
-                new Madde("InvertedMinors", "Ters minörler", "1m–2m destek davetidir (1m–3m önleyici)."),
-                new Madde("BergenRaises", "Bergen destekleri", "Majör açılışına 3♣/3♦ ile 4'lü destek gösterir."),
-                new Madde("Jacoby2NT", "Jacoby 2NT", "Majör açılışına 2NT: oyun zorlayan 4'lü destek."),
-                new Madde("Splinter", "Splinter", "Atlayan yeni renk: fit + o renkte kısalık."),
-                new Madde("TrialBid", "Deneme teklifi", "Fit sonrası oyun davetini renkle sorar."),
-                new Madde("Drury", "Drury", "3. ve 4. el majör açılışına 2♣ ile destekli davet."),
-                new Madde("ReverseDrury", "Ters Drury", "Drury'nin ters biçimi (2♦ destekli, 2♣ doğal)."),
-                new Madde("ThirdSuitForcing", "Üçüncü renk zorlaması", "Söylenmemiş rengin teklifi zorlayıcı soru olur."),
-                new Madde("FourthSuitForcing", "Dördüncü renk zorlaması", "Dördüncü renk oyun zorlayan soru olur."),
-                new Madde("TwoWayCheckback", "İki yönlü checkback", "1NT sonrası 2♣/2♦ ile majör sorgusu."),
-                new Madde("XYZ", "XYZ", "1♣/1♦–1M–1NT gibi dizilerde yapay devam teklifleri.")),
-            new Grup("NT yapıları",
-                new Madde("Stayman", "Stayman", "1NT'ye 2♣: 4'lü majör sorusu."),
-                new Madde("JacobyTransfer", "Jacoby transfer", "1NT'ye 2♦/2♥: 5'li majöre transfer."),
-                new Madde("Smolen", "Smolen", "Stayman'a 2♦ cevabı sonrası 3♥/3♠ ile uzun majörü gösterir (Stayman gerekir)."),
-                new Madde("PuppetStayman", "Puppet Stayman", "2NT/3NT açılışında 5'li majör sorusu."),
-                new Madde("MinorTransfer", "Minör transferi", "1NT'ye 2♠/2NT ile minöre transfer."),
-                new Madde("Lebensohl", "Lebensohl", "Rakip müdahalesinde 2NT ile zayıf/güçlü ayrımı.")),
-            new Grup("Slam konvansiyonları",
-                new Madde("Blackwood", "Blackwood", "4NT: as sorusu."),
-                new Madde("RKCB", "RKCB", "Koz kilit kart sorusu (4NT)."),
-                new Madde("RKCB1430", "RKCB 1430", "Cevaplar 1 / 4 · 3 / 0 olarak okunur (RKCB gerekir)."),
-                new Madde("Gerber", "Gerber", "NT'ye karşı 4♣ ile as sorusu."),
-                new Madde("CueBid", "Cue bid (kontrol gösterme)", "Fit sonrası yan renkte as/kontrol gösterir."),
-                new Madde("Serious3NT", "Ciddi 3NT", "Slam ilgisi gösteren 3NT."),
-                new Madde("NonSerious3NT", "Ciddi olmayan 3NT", "Slam ilgisi olmadığını gösteren 3NT.")),
-            new Grup("Rekabet ve savunma",
-                new Madde("NegativeDouble", "Negatif kontr", "Müdahaleden sonra cevapçının kontrü: kalan majör(ler)."),
-                new Madde("TakeoutDouble", "Takeout kontr", "Rakip açılışına kontr: kalan renkleri ister."),
-                new Madde("SupportDouble", "Support kontr", "Açıcının kontrü: ortağın majöründe tam 3'lü destek."),
-                new Madde("ResponsiveDouble", "Responsive kontr", "Rakipler fit bulunca kontr: kalan iki renk."),
-                new Madde("Michaels", "Michaels cue bid", "Rakip rengi: iki renkli el (majör+minör)."),
-                new Madde("Unusual2NT", "Unusual 2NT", "Rakip açılışına 2NT: iki en düşük renk."),
-                new Madde("Cappelletti", "Cappelletti", "1NT'ye karşı müdahale sistemi (tek seçilir)."),
-                new Madde("Dont", "DONT", "1NT'ye karşı müdahale sistemi (tek seçilir)."),
-                new Madde("MultiLandy", "Multi-Landy", "1NT'ye karşı müdahale sistemi (tek seçilir)."))
-        };
+        private readonly Taraf _taraf;
+        private List<AnlasmaProfil> _profiller;
+        private AnlasmaProfil _secili;
+        private bool _yukleniyor;
 
-        // Aynı anda yalnızca biri açık olabilen alan grupları
-        private static readonly string[][] Dislayan =
-        {
-            new[] { "Cappelletti", "Dont", "MultiLandy" },
-            new[] { "Serious3NT", "NonSerious3NT" },
-            new[] { "Drury", "ReverseDrury" },
-            new[] { "ZayifIki", "Multi2D" }
-        };
-
-        // alan → onsuz anlamsız olduğu alan
-        private static readonly Dictionary<string, string> Gerektirir = new Dictionary<string, string>
-        {
-            { "Smolen", "Stayman" },
-            { "RKCB1430", "RKCB" }
-        };
-
-        private readonly OrtaklikAnlasmasi _anlasma;
-        private readonly Dictionary<string, CheckBox> _kutular = new Dictionary<string, CheckBox>();
+        private ComboBox _cmbProfil, _cmbSistem, _cmbAcilis, _cmbMudahale, _cmbPreempt;
+        private TrackBar _beceri;
+        private Label _lblBeceri;
         private CheckBox _chkOgrenme;
-        private bool _guncelleniyor;
+        private Button _btnSil, _btnDuzenle;
+        private readonly List<Kutu> _kutular = new List<Kutu>();
 
-        public AnlasmaForm()
+        public AnlasmaForm(Taraf taraf)
         {
-            _anlasma = AnlasmaYonetici.Mevcut();
+            _taraf = taraf;
+            _profiller = AnlasmaYonetici.Profiller(taraf);
+            string aktif = AnlasmaYonetici.AktifProfilAdi(taraf);
+            _secili = _profiller.FirstOrDefault(p => p.Ad == aktif) ?? _profiller[0];
             Kur();
-            KutulariDoldur();
+            ProfilListesiniDoldur();
+            SeciliyiGoster();
         }
 
-        private static PropertyInfo Ozellik(string ad)
+        // ───────────────────────── Özet metinleri ─────────────────────────
+
+        private static string Liste(OrtaklikAnlasmasi a, params string[] oge)
         {
-            return typeof(OrtaklikAnlasmasi).GetProperty(ad);
+            // oge: "Alan=Görünen ad" çiftleri; yalnız açık olanlar
+            var secili = new List<string>();
+            foreach (var o in oge)
+            {
+                int i = o.IndexOf('=');
+                var p = typeof(OrtaklikAnlasmasi).GetProperty(o.Substring(0, i));
+                if (p != null && (bool)p.GetValue(a, null)) secili.Add(o.Substring(i + 1));
+            }
+            return secili.Count == 0 ? "—" : string.Join(", ", secili);
+        }
+
+        private void KutulariTanimla()
+        {
+            Ekle("1NT açılışı", a =>
+                (a.StrongNT ? "15–17 HP" : "12–14 HP") + ", " + Liste(a,
+                    "Stayman=Stayman", "JacobyTransfer=Jacoby transfer", "Smolen=Smolen", "MinorTransfer=Minör transferi",
+                    "Lebensohl=Lebensohl", "Cappelletti=Cappelletti", "Dont=DONT", "MultiLandy=Multi-Landy"));
+            Ekle("Minör açılış ve gelişimler", a => Liste(a,
+                "InvertedMinors=Ters minörler", "OneClub_AnswerSistemi=1♣ cevap sistemi", "Reverse=Reverse",
+                "XYZ=XYZ", "TwoWayCheckback=İki yönlü checkback", "ThirdSuitForcing=3. renk zorlaması", "FourthSuitForcing=4. renk zorlaması"));
+            Ekle("Majör açılış ve gelişimler", a =>
+                (a.BesliMajor ? "5'li majör" : "4'lü majör") + ", " + Liste(a,
+                    "BergenRaises=Bergen", "Jacoby2NT=Jacoby 2NT", "Splinter=Splinter", "TrialBid=Deneme teklifi",
+                    "Drury=Drury", "ReverseDrury=Ters Drury", "ForcingNT=Zorlayıcı 1NT"));
+            Ekle("2NT / 3NT", a => "2NT: 20–21 HP, " + Liste(a, "PuppetStayman=Puppet Stayman"));
+            Ekle("Yüksek seviye açılışlar", a => Liste(a,
+                "IkiliSinekGuclu=2♣ güçlü", "ZayifIki=Zayıf iki", "Multi2D=Multi 2♦", "Preempt=Önleyici açılışlar", "Namyats=Namyats"));
+            Ekle("Slam konvansiyonları", a => Liste(a,
+                "Blackwood=Blackwood", "RKCB=RKCB", "RKCB1430=RKCB 1430", "Gerber=Gerber", "CueBid=Cue bid",
+                "Serious3NT=Ciddi 3NT", "NonSerious3NT=Ciddi olmayan 3NT", "LastTrain=Last Train"));
+            Ekle("Rekabet ve savunma", a => Liste(a,
+                "NegativeDouble=Negatif kontr", "TakeoutDouble=Takeout kontr", "SupportDouble=Support kontr",
+                "ResponsiveDouble=Responsive kontr", "Michaels=Michaels", "Unusual2NT=Unusual 2NT"));
+            Ekle("İşaretleşme", a => Liste(a, "StandartSignal=Standart", "UDCA=UDCA"));
+        }
+
+        private void Ekle(string baslik, Func<OrtaklikAnlasmasi, string> ozet)
+        {
+            var k = new Kutu { Baslik = baslik, Ozet = ozet };
+            k.Grup = new GroupBox { Text = baslik, Dock = DockStyle.Fill, Margin = new Padding(4) };
+            k.Metin = new Label { Dock = DockStyle.Fill, AutoSize = false, Padding = new Padding(4, 2, 4, 2) };
+            k.Grup.Controls.Add(k.Metin);
+            _kutular.Add(k);
+        }
+
+        // ───────────────────────── Arayüz ─────────────────────────
+
+        private static ComboBox AgrKutusu()
+        {
+            var c = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 110 };
+            c.Items.AddRange(AgrAdlari);
+            return c;
         }
 
         private void Kur()
         {
-            Text = "Ortaklık Anlaşması";
+            Text = (_taraf == Taraf.NS ? "NS" : "EW") + " Ortaklık Profili";
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.Sizable;
-            MinimumSize = new Size(700, 520);
-            ClientSize = new Size(820, 700);
-            Font = new Font("Segoe UI", 9.5F);
-            BackColor = Color.FromArgb(244, 246, 244);
+            MinimumSize = new Size(860, 600);
+            ClientSize = new Size(940, 640);
+            Font = new Font("Segoe UI", 9F);
 
-            // Üst: açıklama + hazır ayarlar
-            var ust = new Panel { Dock = DockStyle.Top, Height = 74, Padding = new Padding(12, 8, 12, 4) };
-            var baslik = new Label
-            {
-                Text = "Hangi sistem ve konvansiyonları oynuyorsunuz?",
-                Font = new Font(Font, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point(12, 8)
-            };
-            var alt = new Label
-            {
-                Text = "Yapay zekâ ortağınız ve rakipler aynı anlaşmayı kullanır. Varsayılan dışındaki bileşimler daha az denenmiştir.",
-                ForeColor = Color.DimGray,
-                AutoSize = true,
-                Location = new Point(12, 30)
-            };
-            var btnStandart = new Button { Text = "Standart (önerilen)", Size = new Size(150, 26), Location = new Point(12, 46) };
-            btnStandart.Click += (s, e) => HazirAyar(OrtaklikAnlasmasi.Varsayilan());
-            var btnBasit = new Button { Text = "Başlangıç (basit)", Size = new Size(130, 26), Location = new Point(170, 46) };
-            btnBasit.Click += (s, e) => HazirAyar(OrtaklikAnlasmasi.Basit());
-            ust.Controls.Add(baslik);
-            ust.Controls.Add(alt);
-            ust.Controls.Add(btnStandart);
-            ust.Controls.Add(btnBasit);
+            // Sol sütun
+            var sol = new Panel { Dock = DockStyle.Left, Width = 330, Padding = new Padding(10) };
 
-            // Alt: öğrenme modu + düğmeler
-            var alta = new Panel { Dock = DockStyle.Bottom, Height = 56, Padding = new Padding(12, 8, 12, 8) };
+            var btnYeni = new Button { Text = "Yeni", Location = new Point(10, 10), Size = new Size(70, 28) };
+            var btnKopya = new Button { Text = "Kopyala", Location = new Point(86, 10), Size = new Size(70, 28) };
+            _btnDuzenle = new Button { Text = "Düzenle", Location = new Point(162, 10), Size = new Size(76, 28) };
+            _btnSil = new Button { Text = "Sil", Location = new Point(244, 10), Size = new Size(70, 28) };
+            btnYeni.Click += (s, e) => YeniProfil(false);
+            btnKopya.Click += (s, e) => YeniProfil(true);
+            _btnDuzenle.Click += (s, e) => KonvansiyonlariDuzenle();
+            _btnSil.Click += (s, e) => ProfilSil();
+
+            var lblProfil = new Label { Text = "Profil:", AutoSize = true, Location = new Point(10, 52) };
+            _cmbProfil = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(10, 70), Width = 304 };
+            _cmbProfil.SelectedIndexChanged += (s, e) => ProfilDegisti();
+
+            var lblSistem = new Label { Text = "İhale sistemi:", AutoSize = true, Location = new Point(10, 104) };
+            _cmbSistem = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(10, 122), Width = 304 };
+            _cmbSistem.Items.AddRange(OnAyarlar.Select(o => (object)o.Ad).ToArray());
+            _cmbSistem.Items.Add(Ozel);
+            _cmbSistem.SelectionChangeCommitted += (s, e) => OnAyarUygula();
+
+            _lblBeceri = new Label { AutoSize = true, Location = new Point(10, 160) };
+            _beceri = new TrackBar { Minimum = 1, Maximum = 20, TickFrequency = 1, Location = new Point(4, 180), Width = 316, Height = 40 };
+            _beceri.ValueChanged += (s, e) => BeceriDegisti();
+            var lblBeceriIpucu = new Label
+            {
+                Text = "20 = hatasız. Düşük değerde yapay zekâ kart oynarken arada hata yapar.",
+                AutoSize = false, Size = new Size(304, 32), Location = new Point(10, 220), ForeColor = Color.DimGray
+            };
+
+            var gAgr = new GroupBox { Text = "Agresiflik", Location = new Point(10, 262), Size = new Size(304, 120) };
+            gAgr.Controls.Add(new Label { Text = "Müdahale:", AutoSize = true, Location = new Point(10, 28) });
+            gAgr.Controls.Add(new Label { Text = "Önleyici açılış:", AutoSize = true, Location = new Point(10, 60) });
+            gAgr.Controls.Add(new Label { Text = "Açılış:", AutoSize = true, Location = new Point(10, 92) });
+            _cmbMudahale = AgrKutusu(); _cmbMudahale.Location = new Point(170, 24);
+            _cmbPreempt = AgrKutusu(); _cmbPreempt.Location = new Point(170, 56);
+            _cmbAcilis = AgrKutusu(); _cmbAcilis.Location = new Point(170, 88);
+            foreach (var c in new[] { _cmbMudahale, _cmbPreempt, _cmbAcilis })
+            {
+                c.SelectedIndexChanged += (s, e) => AgresiflikDegisti();
+                gAgr.Controls.Add(c);
+            }
+
             _chkOgrenme = new CheckBox
             {
-                Text = "Öğrenme modu (teklifleri motor önerisiyle karşılaştır, anlamlarını açıkla)",
-                AutoSize = true,
-                Location = new Point(12, 17),
+                Text = "Öğrenme modu (teklifleri motor önerisiyle karşılaştır)",
+                AutoSize = false, Size = new Size(304, 36), Location = new Point(10, 396),
                 Checked = AnlasmaYonetici.OgrenmeModuAcik
             };
-            var btnKaydet = new Button { Text = "Kaydet", Size = new Size(96, 30), Anchor = AnchorStyles.Right | AnchorStyles.Top };
-            var btnVazgec = new Button { Text = "Vazgeç", Size = new Size(96, 30), Anchor = AnchorStyles.Right | AnchorStyles.Top };
-            btnKaydet.Location = new Point(alta.Width - 2 * 96 - 24, 12);
-            btnVazgec.Location = new Point(alta.Width - 96 - 12, 12);
-            btnKaydet.Click += BtnKaydet_Click;
-            btnVazgec.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
-            alta.Controls.Add(_chkOgrenme);
-            alta.Controls.Add(btnKaydet);
-            alta.Controls.Add(btnVazgec);
-            AcceptButton = btnKaydet;
-            CancelButton = btnVazgec;
 
-            // Orta: kaydırmalı gruplar
-            var orta = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Color.White };
-            var ipucu = new ToolTip();
-            int y = 8;
-            foreach (var g in Gruplar)
-            {
-                var gb = new GroupBox
-                {
-                    Text = g.Ad,
-                    Location = new Point(10, y),
-                    Width = 770,
-                    Font = new Font(Font, FontStyle.Bold),
-                    Anchor = AnchorStyles.Top | AnchorStyles.Left
-                };
-                int iy = 24;
-                foreach (var m in g.Maddeler)
-                {
-                    var chk = new CheckBox
-                    {
-                        Text = m.Baslik,
-                        Font = new Font(Font.FontFamily, 9.5F, FontStyle.Bold),
-                        AutoSize = true,
-                        Location = new Point(14, iy),
-                        Tag = m.Alan
-                    };
-                    chk.CheckedChanged += Kutu_CheckedChanged;
-                    var acik = new Label
-                    {
-                        Text = m.Aciklama,
-                        Font = new Font(Font.FontFamily, 9F, FontStyle.Regular),
-                        ForeColor = Color.DimGray,
-                        AutoSize = false,
-                        Size = new Size(720, 18),
-                        Location = new Point(34, iy + 20)
-                    };
-                    ipucu.SetToolTip(chk, m.Aciklama);
-                    gb.Controls.Add(chk);
-                    gb.Controls.Add(acik);
-                    _kutular[m.Alan] = chk;
-                    iy += 46;
-                }
-                gb.Height = iy + 6;
-                orta.Controls.Add(gb);
-                y += gb.Height + 8;
-            }
+            sol.Controls.AddRange(new Control[] { btnYeni, btnKopya, _btnDuzenle, _btnSil, lblProfil, _cmbProfil,
+                lblSistem, _cmbSistem, _lblBeceri, _beceri, lblBeceriIpucu, gAgr, _chkOgrenme });
 
-            Controls.Add(orta);
-            Controls.Add(alta);
-            Controls.Add(ust);
+            // Alt: Tamam / İptal
+            var alt = new Panel { Dock = DockStyle.Bottom, Height = 48 };
+            var btnTamam = new Button { Text = "Tamam", Size = new Size(96, 30), Anchor = AnchorStyles.Right | AnchorStyles.Top };
+            var btnIptal = new Button { Text = "İptal", Size = new Size(96, 30), Anchor = AnchorStyles.Right | AnchorStyles.Top };
+            btnTamam.Location = new Point(alt.Width - 216, 9);
+            btnIptal.Location = new Point(alt.Width - 108, 9);
+            btnTamam.Click += BtnTamam_Click;
+            btnIptal.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
+            alt.Controls.Add(btnTamam);
+            alt.Controls.Add(btnIptal);
+            AcceptButton = btnTamam;
+            CancelButton = btnIptal;
+
+            // Sağ: kategori özet kutuları (iki sütun)
+            KutulariTanimla();
+            var tablo = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = (_kutular.Count + 1) / 2, Padding = new Padding(4) };
+            tablo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            tablo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            for (int i = 0; i < tablo.RowCount; i++) tablo.RowStyles.Add(new RowStyle(SizeType.Percent, 100f / tablo.RowCount));
+            for (int i = 0; i < _kutular.Count; i++)
+                tablo.Controls.Add(_kutular[i].Grup, i % 2, i / 2);
+
+            Controls.Add(tablo);
+            Controls.Add(sol);
+            Controls.Add(alt);
         }
 
-        private void KutulariDoldur()
+        // ───────────────────────── Davranış ─────────────────────────
+
+        private void ProfilListesiniDoldur()
         {
-            _guncelleniyor = true;
+            _yukleniyor = true;
             try
             {
-                foreach (var kv in _kutular)
-                {
-                    var p = Ozellik(kv.Key);
-                    kv.Value.Checked = p != null && (bool)p.GetValue(_anlasma, null);
-                }
+                _cmbProfil.Items.Clear();
+                foreach (var p in _profiller) _cmbProfil.Items.Add(p.Ad);
+                _cmbProfil.SelectedItem = _secili.Ad;
             }
-            finally { _guncelleniyor = false; }
-            BagimliligiGuncelle();
+            finally { _yukleniyor = false; }
+            _btnSil.Enabled = _profiller.Count > 1;
         }
 
-        private void HazirAyar(OrtaklikAnlasmasi hazir)
+        private void ProfilDegisti()
         {
-            foreach (var kv in _kutular)
-            {
-                var p = Ozellik(kv.Key);
-                if (p != null) p.SetValue(_anlasma, p.GetValue(hazir, null), null);
-            }
-            KutulariDoldur();
+            if (_yukleniyor) return;
+            var p = _profiller.FirstOrDefault(x => x.Ad == (string)_cmbProfil.SelectedItem);
+            if (p == null) return;
+            _secili = p;
+            SeciliyiGoster();
         }
 
-        private void Kutu_CheckedChanged(object sender, EventArgs e)
+        private void SeciliyiGoster()
         {
-            if (_guncelleniyor) return;
-            var chk = (CheckBox)sender;
-            string alan = (string)chk.Tag;
-
-            _guncelleniyor = true;
+            _yukleniyor = true;
             try
             {
-                if (chk.Checked)
+                var a = _secili.Anlasma;
+                _beceri.Value = Math.Max(1, Math.Min(20, a.BeceriDuzeyi));
+                _cmbAcilis.SelectedIndex = Math.Max(0, Math.Min(2, a.AcilisAgresifligi + 1));
+                _cmbMudahale.SelectedIndex = Math.Max(0, Math.Min(2, a.MudahaleAgresifligi + 1));
+                _cmbPreempt.SelectedIndex = Math.Max(0, Math.Min(2, a.PreemptAgresifligi + 1));
+                _lblBeceri.Text = "Beceri düzeyi: " + _beceri.Value;
+                SistemEtiketiniGuncelle();
+            }
+            finally { _yukleniyor = false; }
+            OzetleriGuncelle();
+        }
+
+        private static readonly string[] BayrakAdlari = typeof(OrtaklikAnlasmasi).GetProperties()
+            .Where(p => p.PropertyType == typeof(bool) && p.CanWrite).Select(p => p.Name).ToArray();
+
+        private static bool AyniBayraklar(OrtaklikAnlasmasi x, OrtaklikAnlasmasi y)
+        {
+            foreach (var n in BayrakAdlari)
+            {
+                var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
+                if ((bool)p.GetValue(x, null) != (bool)p.GetValue(y, null)) return false;
+            }
+            return true;
+        }
+
+        private void SistemEtiketiniGuncelle()
+        {
+            for (int i = 0; i < OnAyarlar.Length; i++)
+            {
+                if (AyniBayraklar(_secili.Anlasma, OnAyarlar[i].Uret()))
                 {
-                    // Birbirini dışlayan seçeneklerden yalnızca biri açık kalır
-                    foreach (var grup in Dislayan)
+                    _cmbSistem.SelectedIndex = i;
+                    return;
+                }
+            }
+            _cmbSistem.SelectedItem = Ozel;
+        }
+
+        private void OnAyarUygula()
+        {
+            int i = _cmbSistem.SelectedIndex;
+            if (i < 0 || i >= OnAyarlar.Length) return;   // "Özel" seçimi bir şey değiştirmez
+            var yeni = OnAyarlar[i].Uret();
+            var hedef = _secili.Anlasma;
+            foreach (var n in BayrakAdlari)
+            {
+                var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
+                p.SetValue(hedef, p.GetValue(yeni, null), null);
+            }
+            OzetleriGuncelle();
+        }
+
+        private void BeceriDegisti()
+        {
+            if (_yukleniyor) return;
+            _secili.Anlasma.BeceriDuzeyi = _beceri.Value;
+            _lblBeceri.Text = "Beceri düzeyi: " + _beceri.Value;
+        }
+
+        private void AgresiflikDegisti()
+        {
+            if (_yukleniyor) return;
+            var a = _secili.Anlasma;
+            a.AcilisAgresifligi = _cmbAcilis.SelectedIndex - 1;
+            a.MudahaleAgresifligi = _cmbMudahale.SelectedIndex - 1;
+            a.PreemptAgresifligi = _cmbPreempt.SelectedIndex - 1;
+        }
+
+        private void OzetleriGuncelle()
+        {
+            foreach (var k in _kutular) k.Metin.Text = k.Ozet(_secili.Anlasma);
+        }
+
+        private void KonvansiyonlariDuzenle()
+        {
+            using (var f = new KonvansiyonSecimForm(_secili.Anlasma))
+            {
+                if (f.ShowDialog(this) == DialogResult.OK && f.Sonuc != null)
+                {
+                    // Agresiflik/beceri bu ekranda; yalnız konvansiyon bayrakları geri alınır
+                    foreach (var n in BayrakAdlari)
                     {
-                        if (!grup.Contains(alan)) continue;
-                        foreach (var diger in grup)
-                            if (diger != alan && _kutular.ContainsKey(diger)) _kutular[diger].Checked = false;
+                        var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
+                        p.SetValue(_secili.Anlasma, p.GetValue(f.Sonuc, null), null);
                     }
-                    // Gerekli konvansiyon kapalıysa onu da aç
-                    string gerek;
-                    if (Gerektirir.TryGetValue(alan, out gerek) && _kutular.ContainsKey(gerek))
-                        _kutular[gerek].Checked = true;
+                    _yukleniyor = true;
+                    try { SistemEtiketiniGuncelle(); } finally { _yukleniyor = false; }
+                    OzetleriGuncelle();
                 }
-                else
-                {
-                    // Bu konvansiyona bağlı olanları kapat
-                    foreach (var kv in Gerektirir)
-                        if (kv.Value == alan && _kutular.ContainsKey(kv.Key)) _kutular[kv.Key].Checked = false;
-                }
-            }
-            finally { _guncelleniyor = false; }
-            BagimliligiGuncelle();
-        }
-
-        private void BagimliligiGuncelle()
-        {
-            foreach (var kv in Gerektirir)
-            {
-                if (!_kutular.ContainsKey(kv.Key) || !_kutular.ContainsKey(kv.Value)) continue;
-                _kutular[kv.Key].Enabled = _kutular[kv.Value].Checked;
             }
         }
 
-        private void BtnKaydet_Click(object sender, EventArgs e)
+        private string BenzersizAd(string ad)
         {
-            foreach (var kv in _kutular)
-            {
-                var p = Ozellik(kv.Key);
-                if (p != null) p.SetValue(_anlasma, kv.Value.Checked, null);
-            }
+            string aday = ad; int n = 2;
+            while (_profiller.Any(p => string.Equals(p.Ad, aday, StringComparison.CurrentCultureIgnoreCase)))
+                aday = ad + " " + n++;
+            return aday;
+        }
 
-            if (!AnlasmaYonetici.Kaydet(_anlasma))
+        private void YeniProfil(bool kopya)
+        {
+            string onerilen = kopya ? _secili.Ad + " (kopya)" : "Yeni profil";
+            string ad = AdSor(kopya ? "Kopyanın adı:" : "Yeni profilin adı:", onerilen);
+            if (string.IsNullOrWhiteSpace(ad)) return;
+            ad = BenzersizAd(ad.Trim());
+            var yeni = kopya ? _secili.Kopya(ad)
+                             : new AnlasmaProfil { Ad = ad, Anlasma = OrtaklikAnlasmasi.Varsayilan() };
+            _profiller.Add(yeni);
+            _secili = yeni;
+            ProfilListesiniDoldur();
+            SeciliyiGoster();
+        }
+
+        private void ProfilSil()
+        {
+            if (_profiller.Count <= 1) return;
+            if (MessageBox.Show(this, "\"" + _secili.Ad + "\" profili silinsin mi?", "Profil sil",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            int i = _profiller.IndexOf(_secili);
+            _profiller.Remove(_secili);
+            _secili = _profiller[Math.Max(0, i - 1)];
+            ProfilListesiniDoldur();
+            SeciliyiGoster();
+        }
+
+        private string AdSor(string soru, string varsayilan)
+        {
+            using (var f = new Form())
             {
-                MessageBox.Show(this, "Anlaşma kaydedilemedi. Bu oturumda geçerli olacak.", "Ortaklık Anlaşması",
+                f.Text = "Profil adı";
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.StartPosition = FormStartPosition.CenterParent;
+                f.MinimizeBox = false; f.MaximizeBox = false;
+                f.ClientSize = new Size(320, 110);
+                var l = new Label { Text = soru, AutoSize = true, Location = new Point(12, 12) };
+                var t = new TextBox { Text = varsayilan, Location = new Point(12, 34), Width = 296 };
+                var ok = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(138, 70), Size = new Size(80, 28) };
+                var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(228, 70), Size = new Size(80, 28) };
+                f.Controls.AddRange(new Control[] { l, t, ok, iptal });
+                f.AcceptButton = ok; f.CancelButton = iptal;
+                t.SelectAll();
+                return f.ShowDialog(this) == DialogResult.OK ? t.Text : null;
+            }
+        }
+
+        private void BtnTamam_Click(object sender, EventArgs e)
+        {
+            if (!AnlasmaYonetici.Kaydet(_taraf, _profiller, _secili.Ad))
+            {
+                MessageBox.Show(this, "Profiller kaydedilemedi. Bu oturumda geçerli olacak.", "Ortaklık Profili",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             AnlasmaYonetici.OgrenmeModuAcik = _chkOgrenme.Checked;

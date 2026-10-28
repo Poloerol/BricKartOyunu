@@ -731,6 +731,11 @@ namespace BricKartOyunu
             string neden;
             Card secilen = OyunZekasi.KartSec(baglam, out neden);
 
+            // Beceri düzeyi (ortaklık profilinden): düşükse arada rastgele yasal kart
+            OyunZekasi.BeceriDuzeyi = AnlasmaYonetici.Mevcut(AnlasmaYonetici.TarafOf(oyuncu)).BeceriDuzeyi;
+            var hata = OyunZekasi.BeceriHatasi(OyunKurallari.LegalKartlar(el, _buEldeAtakRengi));
+            if (hata != null) { secilen = hata; neden = "Beceri düzeyi: hatalı oyun"; }
+
             if (secilen == null)
             {
                 secilen = OyunKurallari.LegalKartlar(el, _buEldeAtakRengi)
