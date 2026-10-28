@@ -359,6 +359,9 @@
     <Compile Include="Forms\IhaleGecmisiForm.Designer.cs">
       <DependentUpon>IhaleGecmisiForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\MacOpsiyonlari.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\IhaleBilgiForm.cs">
       <SubType>Form</SubType>
     </Compile>

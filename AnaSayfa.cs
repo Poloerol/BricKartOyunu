@@ -102,6 +102,7 @@ namespace BricKartOyunu.Forms
             basitNSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.NS);
             basitEWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.EW);
             kartDağıtıcıToolStripMenuItem.Click += (s, e) => ShowChildForm(new KartDagitici());
+            briçMaçıToolStripMenuItem.Click += (s, e) => ShowChildForm(new BricMaci());
         }
 
         // ====================================================================
