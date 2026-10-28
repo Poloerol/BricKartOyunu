@@ -10,6 +10,11 @@ namespace BricKartOyunu.Class
     {
         public int Seed;
         public string Konvansiyon;
+        /// <summary>Dağıtımın üretildiği profil (nadir konvansiyonlar için yönlendirilmiş dağıtım).</summary>
+        public DagitimProfili Profil = DagitimProfili.Rastgele;
+        /// <summary>0 = konvansiyonun kullanıldığı el; &gt;0 = o elin küçük değişikliğiyle üretilmiş yakın kaçış.</summary>
+        public int Varyant;
+        public bool YakinKacis { get { return Varyant > 0; } }
     }
 
     /// <summary>
@@ -62,14 +67,68 @@ namespace BricKartOyunu.Class
         /// </summary>
         public static Dictionary<string, int> KullanilanKonvansiyonlar(IhaleMotoru motor, int seed, out List<string> ihale)
         {
-            var deste = DagitimUretici.Uret(DagitimProfili.Rastgele, null, seed);
+            return KullanilanKonvansiyonlar(motor, seed, DagitimProfili.Rastgele, out ihale);
+        }
+
+        public static Dictionary<string, int> KullanilanKonvansiyonlar(IhaleMotoru motor, int seed, DagitimProfili profil, out List<string> ihale)
+        {
+            var cagrilar = Oyna(motor, DagitimUretici.Uret(profil, null, seed), seed);
+            var sayac = new Dictionary<string, int>();
+            ihale = new List<string>();
+            foreach (var c in cagrilar)
+            {
+                ihale.Add(c.Teklif);
+                if (c.Teklif != "Pas" && (c.Oyuncu == Player.Guney || c.Oyuncu == Player.Kuzey) && !string.IsNullOrEmpty(c.Konvansiyon))
+                {
+                    int n; sayac.TryGetValue(c.Konvansiyon, out n);
+                    sayac[c.Konvansiyon] = n + 1;
+                }
+            }
+            return sayac;
+        }
+
+        /// <summary>
+        /// Dağıtımın ihalesini taraf başına ortaklık anlaşmasıyla motordan geçirir; motorun verdiği teklifler
+        /// dağıtıcıdan başlayarak 'hedef' ihalenin tüm tekliflerine (kısmi ihale olabilir) eşitse true döner.
+        /// Kart Dağıtıcı "İhale Belirle" koşulu için; ilk uyuşmazlıkta durur.
+        /// </summary>
+        public static bool IhaleEslesir(IhaleMotoru motorNS, IhaleMotoru motorEW, OrtaklikAnlasmasi anlasmaNS, OrtaklikAnlasmasi anlasmaEW,
+                                        List<string> deste, int seed, List<string> hedef)
+        {
+            if (hedef == null || hedef.Count == 0) return true;
+            var eller = new Dictionary<Player, List<Card>>();
+            for (int k = 0; k < 4; k++) eller[Sira[k]] = KartlarinElleri(deste, k);
+            var gecmis = new List<IhaleHamlesi>();
+            int bas = Array.IndexOf(Sira, Dagitici(seed));
+            for (int i = 0; i < hedef.Count; i++)
+            {
+                Player p = Sira[(bas + i) % 4];
+                bool ns = p == Player.Kuzey || p == Player.Guney;
+                var d = new IhaleDurumu
+                {
+                    AktifOyuncu = p,
+                    AktifOyuncuEli = eller[p],
+                    Anlasma = ns ? anlasmaNS : anlasmaEW,
+                    Gecmis = new List<IhaleHamlesi>(gecmis)
+                };
+                string t = (ns ? motorNS : motorEW).TeklifVer(d);
+                if (t != hedef[i]) return false;
+                gecmis.Add(new IhaleHamlesi { Oyuncu = p, Teklif = t, Sira = i + 1, GecerliMi = true });
+            }
+            return true;
+        }
+
+        private class Cagri { public Player Oyuncu; public string Teklif; public string Konvansiyon; }
+
+        /// <summary>Dört eli de motorla oynatır; her çağrı ve onu üreten konvansiyon döner.</summary>
+        private static List<Cagri> Oyna(IhaleMotoru motor, List<string> deste, int seed)
+        {
             var eller = new Dictionary<Player, List<Card>>();
             for (int k = 0; k < 4; k++) eller[Sira[k]] = KartlarinElleri(deste, k);
 
             var anlasma = OrtaklikAnlasmasi.Varsayilan();
             var gecmis = new List<IhaleHamlesi>();
-            var sayac = new Dictionary<string, int>();
-            ihale = new List<string>();
+            var sonuc = new List<Cagri>();
 
             int bas = Array.IndexOf(Sira, Dagitici(seed));
             // Saat yönü: Kuzey → Doğu → Güney → Batı
@@ -86,26 +145,84 @@ namespace BricKartOyunu.Class
                 };
                 string t = motor.TeklifVer(d);
                 gecmis.Add(new IhaleHamlesi { Oyuncu = p, Teklif = t, Sira = i + 1, GecerliMi = true });
-                ihale.Add(t);
-
-                if (t != "Pas" && (p == Player.Guney || p == Player.Kuzey) && !string.IsNullOrEmpty(motor.SonKonvansiyonAdi))
-                {
-                    int c; sayac.TryGetValue(motor.SonKonvansiyonAdi, out c);
-                    sayac[motor.SonKonvansiyonAdi] = c + 1;
-                }
+                sonuc.Add(new Cagri { Oyuncu = p, Teklif = t, Konvansiyon = motor.SonKonvansiyonAdi });
 
                 if (t == "Pas") pas++; else { pas = 0; teklifVar = true; }
                 if (!teklifVar && pas == 4) break;
                 if (teklifVar && pas == 3) break;
             }
-            return sayac;
+            return sonuc;
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // YAKIN KAÇIŞLAR
+        // ═════════════════════════════════════════════════════════════
+        /// <summary>Pratik dağıtımının 52 kartı (yakın kaçışsa değişiklik uygulanmış hâliyle).</summary>
+        public static List<string> Deste(PratikDagitim pd)
+        {
+            return Deste(pd.Seed, pd.Profil, pd.Varyant);
+        }
+
+        public static List<string> Deste(int seed, DagitimProfili profil, int varyant)
+        {
+            var deste = DagitimUretici.Uret(profil, null, seed);
+            if (varyant > 0) Degistir(deste, seed, varyant);
+            return deste;
+        }
+
+        /// <summary>Güney veya Kuzey elinden 1-2 kartı rakip elleriyle takas eder (seed + varyanttan deterministik).</summary>
+        private static void Degistir(List<string> deste, int seed, int varyant)
+        {
+            var r = new Random(unchecked(seed * 7919 + varyant * 104729));
+            int adet = r.Next(2) + 1;
+            for (int n = 0; n < adet; n++)
+            {
+                int bizKoltuk = r.Next(2) == 0 ? 0 : 2;   // Kuzey veya Güney
+                int rakipKoltuk = r.Next(2) == 0 ? 1 : 3; // Doğu veya Batı
+                int i = bizKoltuk * 13 + r.Next(13);
+                int j = rakipKoltuk * 13 + r.Next(13);
+                string t = deste[i]; deste[i] = deste[j]; deste[j] = t;
+            }
+        }
+
+        /// <summary>
+        /// Varyant gerçek bir yakın kaçış mı? Orijinal el konvansiyonu kullanıyor; değiştirilmiş elde
+        /// ihale konvansiyon çağrısına kadar aynı gidiyor, o noktada farklı bir teklif veriliyor ve
+        /// Güney/Kuzey konvansiyonu hiç kullanmıyor.
+        /// </summary>
+        public static bool YakinKacis(IhaleMotoru motor, int seed, DagitimProfili profil, string konvansiyon, int varyant)
+        {
+            var a = Oyna(motor, DagitimUretici.Uret(profil, null, seed), seed);
+            int k = a.FindIndex(c => c.Teklif != "Pas" && (c.Oyuncu == Player.Guney || c.Oyuncu == Player.Kuzey) && c.Konvansiyon == konvansiyon);
+            if (k < 0) return false;
+            var b = Oyna(motor, Deste(seed, profil, varyant), seed);
+            if (b.Count <= k) return false;
+            foreach (var c in b)
+                if (c.Teklif != "Pas" && (c.Oyuncu == Player.Guney || c.Oyuncu == Player.Kuzey) && c.Konvansiyon == konvansiyon)
+                    return false;
+            for (int i = 0; i < k; i++)
+                if (a[i].Teklif != b[i].Teklif) return false;
+            return a[k].Teklif != b[k].Teklif;
+        }
+
+        /// <summary>Geçerli bir elin ilk yakın kaçış varyantını bulur; yoksa 0.</summary>
+        public static int YakinKacisBul(IhaleMotoru motor, int seed, DagitimProfili profil, string konvansiyon)
+        {
+            for (int v = 1; v <= 60; v++)
+                if (YakinKacis(motor, seed, profil, konvansiyon, v)) return v;
+            return 0;
         }
 
         /// <summary>Seed bu konvansiyon için geçerli mi?</summary>
         public static bool Gecerli(IhaleMotoru motor, int seed, string konvansiyon)
         {
+            return Gecerli(motor, seed, konvansiyon, DagitimProfili.Rastgele);
+        }
+
+        public static bool Gecerli(IhaleMotoru motor, int seed, string konvansiyon, DagitimProfili profil)
+        {
             List<string> ihale;
-            var kullanilan = KullanilanKonvansiyonlar(motor, seed, out ihale);
+            var kullanilan = KullanilanKonvansiyonlar(motor, seed, profil, out ihale);
             return kullanilan.ContainsKey(konvansiyon);
         }
     }

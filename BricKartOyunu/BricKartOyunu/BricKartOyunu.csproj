@@ -249,6 +249,38 @@
     <Compile Include="Forms\BricOyna.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\BricOyna.Bord.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.GeriAl.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Menu.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Oyun.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Paneller.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Skor.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Test.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Yardimcilar.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\BricOyna.Designer.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
     </Compile>
@@ -263,6 +295,21 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\DuplicateSkorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BordSonuAkisi.cs" />
+    <Compile Include="Forms\AnlasmaYonetici.cs" />
+    <Compile Include="Forms\KonvansiyonSecimForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AnlasmaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\OgrenmeNotlariForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\DeklarasyonForm.Ogrenme.cs">
+      <DependentUpon>DeklarasyonForm.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\DealCompleteForm.cs">
@@ -307,6 +354,7 @@
     <Compile Include="Forms\IhaleYorumuForm.Designer.cs">
       <DependentUpon>IhaleYorumuForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\IhaleBelirleForm.cs" />
     <Compile Include="Forms\KartDagitici.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -352,6 +400,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestRunner.cs" />
+    <EmbeddedResource Include="Forms\AnlasmaForm.resx">
+      <DependentUpon>AnlasmaForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\BricMaci.resx">
       <DependentUpon>BricMaci.cs</DependentUpon>
     </EmbeddedResource>
@@ -391,8 +442,14 @@
     <EmbeddedResource Include="AnaSayfa.resx">
       <DependentUpon>AnaSayfa.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OgrenmeNotlariForm.resx">
+      <DependentUpon>OgrenmeNotlariForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\OynananElleriGosterForm.resx">
       <DependentUpon>OynananElleriGosterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OyunPlaniAyarlari.resx">
+      <DependentUpon>OyunPlaniAyarlari.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\TestForm.resx">
       <DependentUpon>TestForm.cs</DependentUpon>
