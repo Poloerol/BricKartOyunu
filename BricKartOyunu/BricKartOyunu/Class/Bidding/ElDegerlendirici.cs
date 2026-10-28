@@ -231,10 +231,18 @@ namespace BricKartOyunu.Class.Bidding
         /// </summary>
         public static bool AcilisGucuVarMi(List<Card> el)
         {
+            return AcilisGucuVarMi(el, 0);
+        }
+
+        /// <summary>Agresiflik: -1 yalnız 12+ HP; 0 12+ HP veya 11 HP + 20 kuralı; +1 10 HP + 20 kuralı da.</summary>
+        public static bool AcilisGucuVarMi(List<Card> el, int agresiflik)
+        {
             if (el == null || el.Count != 13) return false;
             int hp = HCP(el);
             if (hp >= 12) return true;
-            if (hp < 11) return false;
+            if (agresiflik < 0) return false;
+            int alt = agresiflik > 0 ? 10 : 11;
+            if (hp < alt) return false;
             var s = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
             return hp + s[0] + s[1] >= 20;
         }

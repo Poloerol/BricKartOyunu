@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace BricKartOyunu.Forms
@@ -96,6 +97,37 @@ namespace BricKartOyunu.Forms
             BricKartOyunu.Class.EkranYardimci.TumKontrollerdeCiftTampon(this);
 
             oyunAyarlarıToolStripMenuItem.Click += OyunAyarlariToolStripMenuItem_Click;
+            nSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => OrtaklikProfiliAc(Taraf.NS);
+            eWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => OrtaklikProfiliAc(Taraf.EW);
+            basitNSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.NS);
+            basitEWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.EW);
+            kartDağıtıcıToolStripMenuItem.Click += (s, e) => ShowChildForm(new KartDagitici());
+        }
+
+        // ====================================================================
+        // MENÜ — ORTAKLIK ANLAŞMASI VE ÖĞRENME MODU
+        // ====================================================================
+
+        private void OrtaklikProfiliAc(Taraf taraf)
+        {
+            using (var f = new AnlasmaForm(taraf))
+                f.ShowDialog(this);
+        }
+
+        private void BasitAnlasmaUygula(Taraf taraf)
+        {
+            string ad = taraf == Taraf.NS ? "NS" : "EW";
+            string profil = AnlasmaYonetici.AktifProfilAdi(taraf);
+            if (MessageBox.Show(this,
+                    ad + " tarafının etkin profiline (" + profil + ") basit anlaşma uygulansın mı?\n" +
+                    "Konvansiyon seçimi basit anlaşmayla değişir; agresiflik ve beceri düzeyi korunur.",
+                    ad + " basit ortaklık ayarları", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+            bool kaydedildi = AnlasmaYonetici.BasitUygula(taraf);
+            MessageBox.Show(this,
+                kaydedildi ? ad + " için basit anlaşma uygulandı." : ad + " için basit anlaşma bu oturumda uygulandı ama dosyaya kaydedilemedi.",
+                ad + " basit ortaklık ayarları", MessageBoxButtons.OK,
+                kaydedildi ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
         }
 
         // ====================================================================
@@ -169,10 +201,25 @@ namespace BricKartOyunu.Forms
         // FORM YÜKLEME
         // ====================================================================
 
+        /// <summary>Durum çubuğunda son oynanan elin bilgisini gösterir.</summary>
+        private void SonElBilgisiniGoster(BricOyna f)
+        {
+            try
+            {
+                if (f == null) return;
+                toolStripStatusLabel1.Text = "Son el no: " + f.Seed;
+                toolStripStatusLabel2.Text = "Dağıtıcı: " + f.DealerAdi + "   Zon: " + f.ZonAdi;
+            }
+            catch { }
+        }
+
         private void AnaSayfa_Load(object sender, EventArgs e)
         {
             InitializeDynamicControls();
             WireMainButtonEvents();
+            toolStripButton3.Click += MasaRengiToolStripMenuItem_Click;
+            toolStripStatusLabel1.Text = "Hazır";
+            toolStripStatusLabel2.Text = "";
             LoadBackgroundImage();
 
             // İlk konumlandırmayı yap
@@ -575,7 +622,8 @@ namespace BricKartOyunu.Forms
                         CurrentBackImage = currentBackImage
                     })
                     {
-                        this.Hide();
+                        // Hide() yerine: oyun penceresi çizildikten sonra şeffaflaştır (geçişte ara kare/solma görünmesin)
+                        bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
 
                         try
                         {
@@ -583,6 +631,8 @@ namespace BricKartOyunu.Forms
                         }
                         finally
                         {
+                            SonElBilgisiniGoster(bricOynaForm);
+                            this.Opacity = 1;
                             this.Show();
                             this.Activate();
                             ResetToInitialState();
@@ -641,13 +691,18 @@ namespace BricKartOyunu.Forms
                 PratikDuyur = duyur
             })
             {
-                this.Hide();
+                bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
                 try
                 {
                     bricOynaForm.ShowDialog();
                 }
                 finally
                 {
+                    // Pratiği başlatan Konvansiyon Pratiği formu açık kalmasın
+                    foreach (var kf in Application.OpenForms.Cast<Form>().Where(x => x is Konvansiyon).ToList())
+                        kf.Close();
+                    SonElBilgisiniGoster(bricOynaForm);
+                    this.Opacity = 1;
                     this.Show();
                     this.Activate();
                     ResetToInitialState();

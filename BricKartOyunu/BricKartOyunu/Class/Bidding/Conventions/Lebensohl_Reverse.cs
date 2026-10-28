@@ -10,7 +10,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// SENARYO: Açıcı reverse yaptı (2♠/2♥), cevapçı 2NT Lebensohl der.
     /// 
     /// Örnek:
-    ///   1♣ - 1♠ - 2♠ - ?  (açıcı 1♠'e destek ile reverse)
     ///   1♦ - 1♠ - 2♥ - ?  (açıcı 2♥ reverse)
     ///   1♣ - 1♥ - 2♠ - ?  (açıcı 2♠ reverse)
     /// 
@@ -57,11 +56,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             bool reverseVar = false;
 
-            // 1♣ - 1♠ - 2♠
-            if (partnerIlk == "1♣" && benIlk == "1♠" && partnerSon == "2♠")
-                reverseVar = true;
+            // NOT: 1♣ - 1♠ - 2♠ reverse DEĞİL, cevapçının majörüne basit destektir (Lebensohl uygulanmaz).
             // 1♦ - 1♠ - 2♥
-            else if (partnerIlk == "1♦" && benIlk == "1♠" && partnerSon == "2♥")
+            if (partnerIlk == "1♦" && benIlk == "1♠" && partnerSon == "2♥")
                 reverseVar = true;
             // 1♣ - 1♥ - 2♠
             else if (partnerIlk == "1♣" && benIlk == "1♥" && partnerSon == "2♠")

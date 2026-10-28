@@ -215,6 +215,10 @@
     <Compile Include="Class\Bidding\Conventions\ZayifIki.cs" />
     <Compile Include="Class\Bidding\Conventions\XYZ.cs" />
     <Compile Include="Class\Bidding\Conventions\Zayifikicevapvemudahale.cs" />
+    <Compile Include="Class\Bidding\Conventions\YeniKonv1.cs" />
+    <Compile Include="Class\Bidding\Conventions\YeniKonv2.cs" />
+    <Compile Include="Class\Bidding\Conventions\YeniKonv3.cs" />
+    <Compile Include="Class\Bidding\IhaleYorumcusu.cs" />
     <Compile Include="Class\Bidding\ElDegerlendirici.cs" />
     <Compile Include="Class\Bidding\IhaleDurumu.cs" />
     <Compile Include="Class\Bidding\IhaleHamlesi.cs" />
@@ -354,7 +358,9 @@
     <Compile Include="Forms\IhaleYorumuForm.Designer.cs">
       <DependentUpon>IhaleYorumuForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\IhaleBelirleForm.cs" />
+    <Compile Include="Forms\IhaleBelirleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\KartDagitici.cs">
       <SubType>Form</SubType>
     </Compile>

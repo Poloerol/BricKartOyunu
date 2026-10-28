@@ -71,7 +71,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (rakipSon != "1♠" && rakipSon != "1♥" &&
                 rakipSon != "1♦" && rakipSon != "1♣") return false;
 
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            if (durum.KendiGercekTeklifSayisi > 0) return false;
 
             // Partner henüz gerçek teklif vermemiş olmalı (direkt oturuş)
             if (durum.PartnerTeklifleri.Any(t => t != "Pas" && t != "Dbl" && t != "Rdbl"))
@@ -114,7 +114,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static bool CevapUygunMu(IhaleDurumu durum)
         {
             if (durum.PartnerTeklifleri.Count == 0) return false;
-            if (durum.KendiTeklifleri.Count > 0) return false; // henüz konuşmadık
+            if (durum.KendiGercekTeklifSayisi > 0) return false; // henüz konuşmadık
 
             // Partner'ın son gerçek teklifi 2 seviye cue bid olmalı
             string partnerSon = durum.PartnerTeklifleri.LastOrDefault(t =>
@@ -126,10 +126,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (string.IsNullOrEmpty(partnerKoz) || partnerKoz == "NT") return false;
 
             // Rakip 1 seviyesinde AYNI rengi açmış olmalı (cue bid tanımı)
+            // (rakibin 1 seviyesindeki herhangi bir rengi olabilir: 1♣ – 1♥ – 2♥ gibi)
             var rakipAcilis = durum.Gecmis
-                .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
+                .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu)
+                            && h.Teklif != null && h.Teklif.StartsWith("1")
+                            && KozYardimcisi.TekliftenKozCikar(h.Teklif) == partnerKoz)
                 .Select(h => h.Teklif)
-                .FirstOrDefault(t => t != null && t.StartsWith("1"));
+                .LastOrDefault();
             if (string.IsNullOrEmpty(rakipAcilis)) return false;
 
             string rakipKoz = KozYardimcisi.TekliftenKozCikar(rakipAcilis);
@@ -168,8 +171,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
                 // 8+ HP, maça yok → 2NT (partner minörünü söylesin)
                 if (hp >= 8) return "2NT";
-                // Zayıf + maça fit yok → Pas (3 seviye minör tahmini riskli)
-                return "Pas";
+                // Zayıf + maça fit yok → ASLA Pas (2♥ rakip rengi, oynanacak kontrat değil):
+                // uzun minörü söyle, partner düzeltebilir
+                return karo >= sinek ? "3♦" : "3♣";
             }
 
             // ─── Rakip 1♠ / cue 2♠ → partner 5♥ + 5 minör ───────────────
@@ -182,9 +186,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     return "3♥"; // 2♥ cue sonrası kupa 3 seviyesinde
                 }
                 if (hp >= 8) return "2NT";
-                if (sinek >= karo && sinek >= 3) return "3♣";
-                if (karo >= 3) return "3♦";
-                return "Pas";
+                // ASLA Pas (2♠ rakip rengi): uzun minörü söyle
+                return karo >= sinek ? "3♦" : "3♣";
             }
 
             // ─── Rakip minör / cue 2♣ veya 2♦ → partner her iki majör ───
@@ -201,8 +204,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (hp >= 10 && kupa >= 4) return "3♥";
                     return "2♥";
                 }
-                if (hp >= 8) return "2NT";
-                return "Pas";
+                // Partner iki majörü de gösterdi (5+5): her durumda en az 7 kartlık majör uyumu var.
+                // ASLA Pas (2♣/2♦ rakip rengi): uzun majörü söyle
+                return maca >= kupa ? "2♠" : "2♥";
             }
 
             return "Pas";

@@ -35,7 +35,24 @@ namespace BricKartOyunu.Class
 
         public static List<string> Konvansiyonlar()
         {
-            return new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan()).PratikKonvansiyonAdlari();
+            var liste = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan()).PratikKonvansiyonAdlari();
+            foreach (var ad in BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Adlar)
+                if (!liste.Contains(ad)) liste.Add(ad);
+            return liste;
+        }
+
+        /// <summary>Pratik edilecek konvansiyon için motor: ek (yeni) konvansiyonlarda yalnız o konvansiyon açık, diğerleri varsayılan anlaşma.</summary>
+        [ThreadStatic] private static Dictionary<string, IhaleMotoru> _motorOnbellek;
+        public static IhaleMotoru MotorIcin(string ad)
+        {
+            if (_motorOnbellek == null) _motorOnbellek = new Dictionary<string, IhaleMotoru>();
+            string anahtar = ad ?? "";
+            IhaleMotoru m;
+            if (_motorOnbellek.TryGetValue(anahtar, out m)) return m;
+            m = new IhaleMotoru(BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad)
+                ? OrtaklikAnlasmasi.EkKonvansiyonIcin(ad) : OrtaklikAnlasmasi.Varsayilan());
+            _motorOnbellek[anahtar] = m;
+            return m;
         }
 
         private static List<Card> KartlarinElleri(List<string> deste, int koltuk)
@@ -126,7 +143,7 @@ namespace BricKartOyunu.Class
             var eller = new Dictionary<Player, List<Card>>();
             for (int k = 0; k < 4; k++) eller[Sira[k]] = KartlarinElleri(deste, k);
 
-            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            var anlasma = motor.Anlasma ?? OrtaklikAnlasmasi.Varsayilan();
             var gecmis = new List<IhaleHamlesi>();
             var sonuc = new List<Cagri>();
 

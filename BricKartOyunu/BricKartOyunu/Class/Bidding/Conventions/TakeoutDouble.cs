@@ -51,14 +51,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 5. Son teklif 1 seviyesinde mi? (2+ seviyesinde T/O DBL genelde farklı)
             int sonSeviye = durum.KacinciSeviye();
-            if (sonSeviye != 1) return false;
+            // 2. seviye yalnızca Zayıf İki açılışına karşı (açılıştan sonra yalnız Pas'lar) geçerli:
+            // direkt koltukta 13+ HP, son (pas-out) koltukta 10+ HP.
+            bool zayifIkiKarsi = false;
+            int zayifIkiMinHp = 12;
+            if (sonSeviye == 2)
+            {
+                var gercekler = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                if (gercekler.Count != 1 || !durum.Rakipler.Contains(gercekler[0].Oyuncu)) return false;
+                string t = gercekler[0].Teklif;
+                if (t != "2♦" && t != "2♥" && t != "2♠") return false;
+                if (durum.Anlasma != null && t == "2♦" && durum.Anlasma.Multi2D) return false;
+                int idx = durum.Gecmis.ToList().IndexOf(gercekler[0]);
+                int pas = durum.Gecmis.Count - idx - 1;
+                zayifIkiKarsi = true;
+                zayifIkiMinHp = pas >= 2 ? 10 : 13;
+            }
+            else if (sonSeviye != 1) return false;
 
             string rakipKozu = KozYardimcisi.TekliftenKozCikar(durum.SonGercekTeklif);
             if (string.IsNullOrEmpty(rakipKozu) || rakipKozu == "NT") return false;
 
             // 6. 12+ HP kontrolü (T/O DBL için minimum)
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
-            if (hp < 12) return false;
+            if (hp < (zayifIkiKarsi ? zayifIkiMinHp : 12)) return false;
 
             // 7. Rakip renkte 0-2 kart (kısa) olmalı
             int rakipRenkUzunluk = ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, rakipKozu);

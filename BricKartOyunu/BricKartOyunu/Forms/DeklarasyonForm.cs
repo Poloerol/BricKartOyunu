@@ -23,7 +23,16 @@ namespace BricKartOyunu.Forms
         /// <summary>
         /// Ortaklık anlaşması (konvansiyon ayarları).
         /// </summary>
-        private OrtaklikAnlasmasi _anlasma;
+        private OrtaklikAnlasmasi _anlasmaNS;
+        private OrtaklikAnlasmasi _anlasmaEW;
+        private IhaleMotoru _motorNS;
+        private IhaleMotoru _motorEW;
+
+        /// <summary>Sırası gelen oyuncunun tarafının ortaklık anlaşması (NS ve EW ayrı profil kullanır).</summary>
+        private OrtaklikAnlasmasi _anlasma
+        {
+            get { return AnlasmaYonetici.TarafOf(OyuncuyaCevir(_aktifOyuncu)) == Taraf.NS ? _anlasmaNS : _anlasmaEW; }
+        }
 
         /// <summary>
         /// AI hamlesini geciktirmek için timer (düşünme efekti).
@@ -34,7 +43,17 @@ namespace BricKartOyunu.Forms
         /// AI oynayacak mı? (test için kapatılabilir)
         /// </summary>
         private bool _aiAktif = true;
-        private IhaleMotoru _ihaleMotoru;
+        /// <summary>Sırası gelen oyuncunun tarafının ihale motoru (ilk kullanımda kurulur).</summary>
+        private IhaleMotoru _ihaleMotoru
+        {
+            get
+            {
+                if (AnlasmaYonetici.TarafOf(OyuncuyaCevir(_aktifOyuncu)) == Taraf.NS)
+                    return _motorNS ?? (_motorNS = new IhaleMotoru(_anlasmaNS));
+                return _motorEW ?? (_motorEW = new IhaleMotoru(_anlasmaEW));
+            }
+            set { /* motor taraf başına _motorNS/_motorEW'de tutulur */ }
+        }
 
         private int _sonTeklifIndex = -1;
 
@@ -91,13 +110,28 @@ namespace BricKartOyunu.Forms
 
         // Türkçe Briç Terimleri ve Simgeleri
         private static readonly string[] KozLabel = { "♣", "♦", "♥", "♠", "NT" };
+        // ♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah, NT siyah
+        private static readonly Color SinekRengi = Color.FromArgb(0, 140, 0);
+        private static readonly Color KaroRengi = Color.FromArgb(235, 120, 0);
+        private static readonly Color KupaRengi = Color.FromArgb(220, 0, 0);
         private static readonly Color[] KozRenk = {
-            Color.Black,
-            Color.FromArgb(220, 0, 0),
-            Color.FromArgb(220, 0, 0),
+            SinekRengi,
+            KaroRengi,
+            KupaRengi,
             Color.Black,
             Color.Black
         };
+
+        private static Color SembolRengi(char c)
+        {
+            switch (c)
+            {
+                case '♣': return SinekRengi;
+                case '♦': return KaroRengi;
+                case '♥': return KupaRengi;
+                default: return Color.Black;
+            }
+        }
 
         public DeklarasyonForm(BricOyna bricOyna)
         {
@@ -121,7 +155,8 @@ namespace BricKartOyunu.Forms
             this.FormClosed += DeklarasyonForm_FormClosed;
 
             // 🔹 Yeni ihale oturumunu hazırla
-            _anlasma = OrtaklikAnlasmasi.Varsayilan();
+            _anlasmaNS = AnlasmaYonetici.Mevcut(Taraf.NS);
+            _anlasmaEW = AnlasmaYonetici.Mevcut(Taraf.EW);
             _humanVsAiSession = null;
             _biddingPresenter = null;
 
@@ -178,6 +213,8 @@ namespace BricKartOyunu.Forms
 
         private void DeklarasyonForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            OgrenmeKapat();
+
             // Bekleyen AI zamanlayıcısı kapanmış forma teklif yazmaya çalışmasın
             _aiTimer?.Stop();
             _aiTimer?.Dispose();
@@ -208,7 +245,7 @@ namespace BricKartOyunu.Forms
             if (btnPass != null) btnPass.Enabled = true;
 
             this.BackColor = Color.FromArgb(236, 233, 216);
-            if (lstIhale != null) lstIhale.BackColor = Color.White;
+            if (lstIhale != null) { lstIhale.BackColor = Color.White; lstIhale.Font = new Font(lstIhale.Font.FontFamily, 9.25F, lstIhale.Font.Style); }
             if (panelGrid != null) panelGrid.BackColor = Color.FromArgb(236, 233, 216);
 
             _bricOyna?.SetGameControlsEnabled(false);
@@ -415,45 +452,32 @@ namespace BricKartOyunu.Forms
             string text = e.SubItem.Text;
             if (string.IsNullOrEmpty(text)) return;
 
-            // Özel Çizim Ayarları
             Graphics g = e.Graphics;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-            // Varsayılan font ve hizalama
             Font font = e.Header.ListView.Font;
             Rectangle rect = e.Bounds;
+            char son = text[text.Length - 1];
 
-            // Pas, Dbl, RDbl veya Kozsuz (NT) / Siyah Simgeler (♣, ♠)
-            if (text.Contains("♦") || text.Contains("♥"))
+            if (text.Length > 1 && (son == '♣' || son == '♦' || son == '♥' || son == '♠'))
             {
-                // Karo ve Kupa içeren tekliflerde metni parçalayarak renklendiriyoruz
-                // Örn: "1♦" -> '1' Siyah, '♦' Kırmızı
+                // "1♦" → '1' siyah, '♦' kendi renginde (♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah)
                 string level = text.Substring(0, text.Length - 1);
                 string suit = text.Substring(text.Length - 1);
 
-                // Seviye rakamını siyah çiz
                 SizeF levelSize = g.MeasureString(level, font);
                 using (SolidBrush blackBrush = new SolidBrush(Color.Black))
-                {
                     g.DrawString(level, font, blackBrush, rect.X + 2, rect.Y + 4);
-                }
 
-                // Karo veya Kupa simgesini kırmızı çiz
-                using (SolidBrush redBrush = new SolidBrush(Color.FromArgb(220, 0, 0)))
-                {
-                    using (Font suitFont = new Font("Arial", 10F, FontStyle.Bold))
-                    {
-                        g.DrawString(suit, suitFont, redBrush, rect.X + 2 + (int)levelSize.Width - 3, rect.Y + 3);
-                    }
-                }
+                using (SolidBrush suitBrush = new SolidBrush(SembolRengi(son)))
+                using (Font suitFont = new Font("Arial", font.Size + 1.5F, FontStyle.Bold))
+                    g.DrawString(suit, suitFont, suitBrush, rect.X + 2 + (int)levelSize.Width - 3, rect.Y + 3);
             }
             else
             {
-                // Diğer tüm teklifler (Pas, Dbl, RDbl, ♣, ♠, NT) standart siyah çizilir
+                // Pas, Dbl, RDbl, NT: siyah
                 using (SolidBrush textBrush = new SolidBrush(Color.Black))
-                {
                     g.DrawString(text, font, textBrush, rect.X + 2, rect.Y + 4);
-                }
             }
         }
 
@@ -463,6 +487,7 @@ namespace BricKartOyunu.Forms
 
         private void BtnPass_Click(object sender, EventArgs e)
         {
+            if (!OgrenmeInsanTeklifiOnayla("Pas")) return;
             EkleIhaleGecmisi(_aktifOyuncu, "Pas");
             _ustUstePasSayisi++;
 
@@ -485,13 +510,149 @@ namespace BricKartOyunu.Forms
             // Akış Şeması gösterimi
         }
 
+        /// <summary>
+        /// Metindeki ♣ ♦ ♥ ♠ sembollerini kendi renginde (♣ yeşil, ♦ turuncu, ♥ kırmızı, ♠ siyah)
+        /// gösteren küçük bilgi penceresi. MessageBox renk desteklemediği için kullanılır.
+        /// </summary>
+        public static void RenkliMesajGoster(IWin32Window sahip, string baslik, string metin)
+        {
+            using (var f = RenkliMesajFormuKur(baslik, metin))
+            {
+                if (sahip != null) f.ShowDialog(sahip); else f.ShowDialog();
+            }
+        }
+
+        /// <summary>
+        /// Aynı renkli mesaj, ama modal DEĞİL: açıkken diğer pencereler (ör. Oynanan Eller) kullanılabilir.
+        /// Mesaj kapanınca <paramref name="kapandi"/> çağrılır.
+        /// </summary>
+        public static void RenkliMesajGosterModelsiz(Form sahip, string baslik, string metin, Action kapandi, Control ortala = null)
+        {
+            var f = RenkliMesajFormuKur(baslik, metin);
+            f.FormClosed += (s, e) => { f.Dispose(); if (kapandi != null) kapandi(); };
+            if (ortala != null)
+            {
+                f.StartPosition = FormStartPosition.Manual;
+                // Boyut, kendi Shown olayında güncelleniyor; ondan sonra verilen kontrolün ortasına al
+                f.Shown += (s, e) =>
+                {
+                    try
+                    {
+                        var merkez = ortala.PointToScreen(new Point(ortala.Width / 2, ortala.Height / 2));
+                        f.Location = new Point(merkez.X - f.Width / 2, merkez.Y - f.Height / 2);
+                    }
+                    catch { }
+                };
+            }
+            if (sahip != null) f.Show(sahip); else f.Show();
+        }
+
+        private static Form RenkliMesajFormuKur(string baslik, string metin)
+        {
+            {
+                var f = new Form();
+                f.Text = baslik;
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.StartPosition = FormStartPosition.CenterParent;
+                f.MaximizeBox = false; f.MinimizeBox = false; f.ShowInTaskbar = false;
+                f.ClientSize = new Size(400, 200);
+
+                var rtb = new RichTextBox
+                {
+                    ReadOnly = true,
+                    BorderStyle = BorderStyle.None,
+                    BackColor = f.BackColor,
+                    Font = new Font("Segoe UI", 10F),
+                    ScrollBars = RichTextBoxScrollBars.None,
+                    TabStop = false,
+                    Location = new Point(16, 14),
+                    Size = new Size(368, 140),
+                    Cursor = Cursors.Default
+                };
+                rtb.Text = metin;
+                for (int i = 0; i < rtb.TextLength; i++)
+                {
+                    char c = rtb.Text[i];
+                    if (c == '♣' || c == '♦' || c == '♥' || c == '♠')
+                    {
+                        rtb.Select(i, 1);
+                        rtb.SelectionColor = SembolRengi(c);
+                        rtb.SelectionFont = new Font("Arial", 11.5F, FontStyle.Bold);
+                    }
+                }
+                rtb.Select(0, 0);
+                rtb.ContentsResized += (s, e) => { rtb.Height = e.NewRectangle.Height + 6; };
+                f.Controls.Add(rtb);
+
+                var tamam = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Size = new Size(90, 28) };
+                tamam.Click += (s, e) => f.Close();   // modal olmayan pencerede DialogResult tek başına kapatmaz
+                f.Controls.Add(tamam);
+                f.AcceptButton = tamam;
+                f.CancelButton = tamam;
+
+                f.Shown += (s, e) =>
+                {
+                    f.ClientSize = new Size(400, rtb.Bottom + 14 + tamam.Height + 14);
+                    tamam.Location = new Point((f.ClientSize.Width - tamam.Width) / 2, rtb.Bottom + 14);
+                };
+                return f;
+            }
+        }
+
         private void BtnHint_Click(object sender, EventArgs e)
         {
-            // İpucu gösterimi
+            // İpucu: sırası gelen oyuncu için ihale motorunun önerdiği teklif
+            try
+            {
+                var aktifP = OyuncuyaCevir(_aktifOyuncu);
+                var el = _bricOyna?.GetOyuncuEli(aktifP) ?? new List<Card>();
+                if (el.Count != 13)
+                {
+                    MessageBox.Show(this, "İpucu için el bulunamadı.", "İpucu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                SyncHumanVsAiSession();
+                var durum = IhaleDurumuOlustur();
+                if (_ihaleMotoru == null)
+                    _ihaleMotoru = new IhaleMotoru(_anlasma);
+
+                string teklif = _ihaleMotoru.TeklifVer(durum);
+                if (string.IsNullOrEmpty(teklif)) teklif = "Pas";
+
+                // Yasallık kontrolü: yasadışıysa Pas önerilir
+                try
+                {
+                    var aday = Bid.Parse(teklif);
+                    if (_humanVsAiSession != null &&
+                        !BidValidator.IsLegal(_humanVsAiSession.State, aktifP, aday))
+                        teklif = "Pas";
+                }
+                catch { teklif = "Pas"; }
+
+                string kural = _ihaleMotoru.SonKonvansiyonAdi;
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("Önerilen teklif: " + teklif);
+                if (!string.IsNullOrEmpty(kural))
+                    sb.AppendLine("Kural: " + kural);
+                sb.AppendLine();
+                sb.AppendLine("Elinizin değeri: " + ElDegerlendirici.HCP(el) + " HP");
+                sb.AppendLine("Dağılım: ♠" + ElDegerlendirici.RenkUzunlugu(el, "Maça") +
+                              " ♥" + ElDegerlendirici.RenkUzunlugu(el, "Kupa") +
+                              " ♦" + ElDegerlendirici.RenkUzunlugu(el, "Karo") +
+                              " ♣" + ElDegerlendirici.RenkUzunlugu(el, "Sinek"));
+                RenkliMesajGoster(this, "İpucu", sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[İpucu] HATA: " + ex.Message);
+                MessageBox.Show(this, "İpucu hesaplanamadı.", "İpucu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void BtnDouble_Click(object sender, EventArgs e)
         {
+            if (!OgrenmeInsanTeklifiOnayla("Dbl")) return;
             EkleIhaleGecmisi(_aktifOyuncu, "Dbl");
 
             // 🔹 Kontr da bir tekliftir → pas sayacını sıfırla
@@ -506,6 +667,7 @@ namespace BricKartOyunu.Forms
 
         private void BtnRedouble_Click(object sender, EventArgs e)
         {
+            if (!OgrenmeInsanTeklifiOnayla("RDbl")) return;
             EkleIhaleGecmisi(_aktifOyuncu, "RDbl");
 
             // 🔹 S.Kontr da bir tekliftir → pas sayacını sıfırla
@@ -753,12 +915,25 @@ namespace BricKartOyunu.Forms
             string deklaran = DeklaraniBul(_sonKontratVeren, _kontratKozu);
             bool elDegisimiYapildi = false;
 
+            // 🔹 İhale bitti bilgi mesajı: kontrat, deklaran, atak, dağıtıcı, zon
+            string kontrEk = KontrDurumunuBul() == 2 ? " XX" : KontrDurumunuBul() == 1 ? " X" : "";
+            string ihaleBilgi =
+                "Kontrat: " + _sonKontratTeklifi + kontrEk + "\n" +
+                "Deklaran: " + KoltukHaritasi.Ad(OyuncuyaCevir(deklaran)) + "\n" +
+                "Atak: " + KoltukHaritasi.Ad(OyuncuyaCevir(SolRakipBul(deklaran))) + "\n" +
+                (_bricOyna != null ? "Dağıtıcı: " + _bricOyna.DealerAdi + "\n" +
+                                     "Zon: " + _bricOyna.ZonAdi + "\n" +
+                                     "El no: " + _bricOyna.Seed + "\n" : "");
+            if (deklaran != "Kuzey")
+                MessageBox.Show(this, ihaleBilgi, "İhale Bitti", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             // ═══════════════════════════════════════════════════════════════
             // 🔹 SADECE Deklaran Kuzey ise: bilgi mesajı → Tamam → takas
             // ═══════════════════════════════════════════════════════════════
             if (deklaran == "Kuzey")
             {
                 MessageBox.Show(
+                    ihaleBilgi + "\n" +
                     "Kontrat " + KoltukHaritasi.Ad(Player.Kuzey) + " oyuncusunda kaldı.\n\n" +
                     "El değişimi yapılacak:\n" +
                     "•  Kuzey ile Güney elleri yer değiştirecek\n" +
@@ -890,6 +1065,8 @@ namespace BricKartOyunu.Forms
 
             int idx = LinearIndex(r, s);
             if (idx <= _sonTeklifIndex) return;
+
+            if (!OgrenmeInsanTeklifiOnayla((r + 1).ToString() + KozLabel[s])) return;
 
             _sonTeklifIndex = idx;
             _ustUstePasSayisi = 0;
@@ -1172,6 +1349,8 @@ namespace BricKartOyunu.Forms
                 System.Diagnostics.Debug.WriteLine(
                     $"[AI] {_aktifOyuncu} motor teklifi: {teklif}");
                 System.Diagnostics.Debug.WriteLine("════════════════════════════════════════");
+
+                OgrenmeAIKaydet(teklif, _ihaleMotoru.SonKonvansiyonAdi);
 
                 // 3. Teklifi uygula
                 AIHamlesiniUygula(teklif);

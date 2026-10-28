@@ -44,6 +44,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // UYGUNLUK KONTROLÜ
         // ═══════════════════════════════════════════════════════════════════
 
+        /// <summary>
+        /// NT sonrası 4NT (örn. 1NT–4NT, 1♥–3NT–4NT) kilit kart sorusu DEĞİL, niceliksel davettir:
+        /// "6NT'ye çıkar mısın?" Soran için: son gerçek teklif NT ise; cevap veren için: ortağın
+        /// 4NT'sinden önceki gerçek teklif NT ise true.
+        /// </summary>
+        public static bool NicelikselMi(IhaleDurumu durum)
+        {
+            var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (gercek.Count == 0) return false;
+            var son = gercek[gercek.Count - 1];
+            if (son.Teklif == "4NT")
+            {
+                if (gercek.Count < 2) return false;
+                return gercek[gercek.Count - 2].Koz == "NT";
+            }
+            return son.Koz == "NT";
+        }
+
         public bool UygunMu(IhaleDurumu durum)
         {
             if (durum == null) return false;
@@ -52,6 +70,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 1. İhale zaten bitmişse → hayır
             if (durum.IhaleBittiMi()) return false;
+
+            // 1b. NT sonrası 4NT niceliksel: ortağın 4NT'sine kilit kart değil, 6NT/Pas cevabı verilir
+            if (NicelikselMi(durum))
+                return durum.SonGercekTeklif == "4NT" && durum.SonGercekTeklifSahibi == durum.Partner;
 
             // 2. Bir koz anlaşması var mı?
             string koz = durum.AnlasilanKoz();
@@ -100,6 +122,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             var el = durum.AktifOyuncuEli;
             string koz = durum.AnlasilanKoz();
+
+            // Niceliksel 4NT'ye cevap: üst sınırdaysam 6NT, değilse Pas
+            if (NicelikselMi(durum))
+            {
+                int hp = ElDegerlendirici.HCP(el);
+                string ntTeklif = durum.KendiTeklifleri.LastOrDefault(t => t.EndsWith("NT")) ?? "3NT";
+                int esik = ntTeklif.StartsWith("1") ? 17 : ntTeklif.StartsWith("2") ? 19 : 15;
+                return hp >= esik ? "6NT" : "Pas";
+            }
 
             // Bu Blackwood sorusu mu, yoksa Blackwood cevabı mı?
             // Son gerçek teklif 4NT mi?

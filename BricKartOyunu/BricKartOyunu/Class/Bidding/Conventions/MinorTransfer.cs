@@ -35,7 +35,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.PartnerTeklifleri.Last() != "1NT") return false;
 
             // Ben henüz konuşmadım
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            if (durum.KendiTeklifleri.Any(t => t != "Pas")) return false;   // önceki Pas'lar sayılmaz
 
             // Rakip müdahale etmedi
             bool rakipGercekTeklifVerdi = durum.Gecmis.Any(h =>

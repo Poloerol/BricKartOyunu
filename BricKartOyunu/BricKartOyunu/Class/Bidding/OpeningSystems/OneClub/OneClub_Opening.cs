@@ -18,7 +18,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (!durum.IlkTeklifMi()) return false;
 
             int hp = ElDegerlendirici.HCP(el);
-            if (hp > 21 || !ElDegerlendirici.AcilisGucuVarMi(el)) return false;   // 12+ HCP veya 11 HCP + 20 kuralı
+            if (hp > 21 || !ElDegerlendirici.AcilisGucuVarMi(el, durum.Anlasma != null ? durum.Anlasma.AcilisAgresifligi : 0)) return false;   // 12+ HCP veya 11 HCP + 20 kuralı
             if (ElDegerlendirici.BesliMajorVar(el)) return false;
             bool dengeliEl = ElDegerlendirici.DengeliEl(el);
             if (hp >= 15 && hp <= 17 && dengeliEl) return false;   // 1NT açılışı

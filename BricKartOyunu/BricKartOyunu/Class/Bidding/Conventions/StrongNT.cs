@@ -55,6 +55,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // 3. Dengeli el olmalı
             if (!ElDegerlendirici.DengeliEl(el)) return false;
 
+            // 3b. 6'lı majör varsa 1NT açılmaz; 1M açılır.
+            if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 6 || ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 6) return false;
+
             // 4. 5'li majör VARSA BesliMajor daha önce denenir (öncelik 10).
             //    Ama burada güvenlik kontrolü yapalım: 5'li majör yoksa kesin geçerli.
             //    (5'li majör varsa BesliMajor zaten teklifi verir.)

@@ -47,8 +47,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
 
-            if (hp > 9) return false;
+            int agr = durum.Anlasma != null ? durum.Anlasma.PreemptAgresifligi : 0;
+            int ust = agr < 0 ? 8 : (agr > 0 ? 10 : 9);
+            if (hp > ust) return false;
             if (hp >= 22) return false;
+            if (agr < 0 && !HonorluYedili(durum.AktifOyuncuEli)) return false;
 
             if (!YediArtıRenkVarMi(durum.AktifOyuncuEli))
                 return false;
@@ -102,6 +105,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════
         // YARDIMCI
         // ═══════════════════════════════════════════════════════════════
+
+        /// <summary>7+ kartlı ve A/K/Q'dan en az ikisine sahip renk var mı? (temkinli önleyici)</summary>
+        private static bool HonorluYedili(List<Card> el)
+        {
+            foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                if (ElDegerlendirici.RenkUzunlugu(el, r) >= 7 && el.Count(c => c.Suit == r && c.Value >= 12) >= 2)
+                    return true;
+            return false;
+        }
 
         private static bool YediArtıRenkVarMi(List<Card> el)
         {

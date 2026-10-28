@@ -196,6 +196,7 @@
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Name = "eWOrtaklıkAyarlarıToolStripMenuItem";
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Text = "EW Ortaklık Ayarları";
+            this.eWOrtaklıkAyarlarıToolStripMenuItem.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // basitNSOrtaklıkAyarlarıToolStripMenuItem
             // 
@@ -799,7 +800,7 @@
             this.toolStripButton3.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton3.Name = "toolStripButton3";
             this.toolStripButton3.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton3.Text = "toolStripButton3";
+            this.toolStripButton3.Text = "Masa Arka Rengi";
             // 
             // toolStripSeparator3
             // 

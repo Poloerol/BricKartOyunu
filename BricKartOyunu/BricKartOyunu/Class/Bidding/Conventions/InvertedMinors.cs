@@ -52,7 +52,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.RakipActiMi()) return false;
 
             // 4. Ben henüz konuşmadım mı?
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            if (durum.KendiGercekTeklifSayisi > 0) return false;
 
             var el = durum.AktifOyuncuEli;
             string partnerKozu = KozYardimcisi.TekliftenKozCikar(partnerTeklif);

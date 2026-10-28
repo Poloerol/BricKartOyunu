@@ -45,7 +45,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ── ROL 1: Partner 1NT açtı, ben transfer sorusu soracağım ──
             if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
-                && durum.KendiTeklifleri.Count == 0
+                && GercekTeklifSayisi(durum) == 0   // önceki Pas'lar sayılmaz
                 && !durum.RakipActiMi())
             {
                 // 5+ majör var mı?
@@ -74,7 +74,42 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
             }
 
+            // ── ROL 3: Transfer yaptım, ortak tamamladı → 5'li majör + oyun gücü = 3NT ──
+            if (Rol3Teklifi(durum) != null) return true;
+
             return false;
+        }
+
+        private static int GercekTeklifSayisi(IhaleDurumu d)
+        {
+            return d.KendiTeklifleri.Count(t => t != "Pas");
+        }
+
+        /// <summary>
+        /// 1NT – 2♥ – 2♠ (ya da 1NT – 2♦ – 2♥) sonrası: tam 5 kartlık majör, 10-14 HP ve
+        /// tekil/void yok → 3NT (açıcı 3'lü destekle 4M'ye düzeltebilir). Aksi halde null.
+        /// </summary>
+        private static string Rol3Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
+            if (durum.RakipActiMi()) return null;
+
+            string major;
+            if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
+            else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
+            else return null;
+
+            if (ElDegerlendirici.RenkUzunlugu(el, major) != 5) return null;
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp < 10 || hp > 14) return null;
+            foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                if (ElDegerlendirici.RenkUzunlugu(el, r) <= 1) return null;   // tekil/void → 4M
+            return "3NT";
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -85,7 +120,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             // ── ROL 1: Transfer sorusu ──
             if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
-                && durum.KendiTeklifleri.Count == 0)
+                && GercekTeklifSayisi(durum) == 0)
             {
                 var el = durum.AktifOyuncuEli;
                 int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
@@ -103,6 +138,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (macca >= 5) return "2♥";
                 if (kupa >= 5) return "2♦";
             }
+
+            // ── ROL 3: transfer tamamlandı, 5'li majör + oyun gücü ──
+            var r3 = Rol3Teklifi(durum);
+            if (r3 != null) return r3;
 
             // ── ROL 2: Transfer kabulü ──
             if (durum.KendiTeklifleri.LastOrDefault() == "1NT")

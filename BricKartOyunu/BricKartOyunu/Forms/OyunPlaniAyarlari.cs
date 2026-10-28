@@ -51,6 +51,24 @@ namespace BricKartOyunu.Forms
             Yukle(Secenekler);
         }
 
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // OyunPlaniAyarlari
+            // 
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "OyunPlaniAyarlari";
+            this.Load += new System.EventHandler(this.OyunPlaniAyarlari_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        private void OyunPlaniAyarlari_Load(object sender, EventArgs e)
+        {
+
+        }
+
         // ───────────────────────────── kurulum ─────────────────────────────
 
         private void Kurulum()
