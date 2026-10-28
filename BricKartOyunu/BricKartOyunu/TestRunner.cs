@@ -2747,6 +2747,13 @@ namespace BricKartOyunu
             string acik = atak(on(x => x.HelloOver1NT = true)), kapali = atak(OrtaklikAnlasmasi.Varsayilan());
             Yaz("   atak: Hello açık=" + acik + ", kapalı=" + kapali);
             if (acik == "Sinek" || kapali != "Sinek") { hata++; Yaz("❌ Hello atağı: açık=" + acik + " kapalı=" + kapali); }
+            // Pratik listesi: her konvansiyon bir kategoride, tekrar yok
+            var tumListe = KonvansiyonPratigi.Konvansiyonlar();
+            var digerler = tumListe.Where(x => KonvansiyonPratigi.Kategori(x) == KonvansiyonPratigi.DigerKategori).ToList();
+            var tekrar = KonvansiyonPratigi.Kategoriler.SelectMany(k => k.Value).GroupBy(x => x).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            var yok = KonvansiyonPratigi.Kategoriler.SelectMany(k => k.Value).Where(x => !tumListe.Contains(x)).ToList();
+            if (digerler.Count > 0 || tekrar.Count > 0 || yok.Count > 0)
+            { hata++; Yaz("❌ Kategori: kategorisiz=[" + string.Join(",", digerler) + "] tekrar=[" + string.Join(",", tekrar) + "] listede olmayan=[" + string.Join(",", yok) + "]"); }
             Yaz("════════════════════════════════════════");
             Yaz("TEST 14.Y1 — IhaleYorumcusu: yapay çağrıların gösterdiği renkler");
             Yaz(hata == 0 ? "✅ DOĞRU" : "❌ YANLIŞ (" + hata + ")");

@@ -73,10 +73,54 @@ namespace BricKartOyunu.Class
             }
         }
 
+        /// <summary>Pratik listesi kategorileri (gösterim sırası). Kategorideki sıra da bilinçlidir: temelden ileriye.</summary>
+        public static readonly KeyValuePair<string, string[]>[] Kategoriler =
+        {
+            new KeyValuePair<string, string[]>("Açılışlar", new[] {
+                "1♣ Açılış Sistemi", "1♦ Açılış Sistemi", "1♣ Cevap Sistemi", "5'li Majör", "Strong NT", "2♣ Güçlü", "Benjamin Two-Bids",
+                "Zayıf İki", "Zayıf İki Cevap", "Zayıf İki Müdahale", "Multi 2♦", "Preempt", "Preempt Cevap", "Namyats",
+                "Ogust", "Gambling 3NT", "Mini-Roman 2D" }),
+            new KeyValuePair<string, string[]>("1NT Çevresi", new[] {
+                "Stayman", "Jacoby Transfer", "Minor Transfer", "Puppet Stayman", "Smolen", "Extended Stayman", "Lebensohl" }),
+            new KeyValuePair<string, string[]>("Cevaplar ve Oyun Denemeleri", new[] {
+                "Inverted Minors", "Forcing NT", "Jacoby 2NT", "Splinter", "Drury", "Bergen Raises", "Inverted Bergen Raises",
+                "Trial Bid", "Long & Short Game Tries", "İki Yönlü Checkback", "New Minor Forcing", "Wolff Signoff", "Fit Cue-Bid",
+                "XYZ (X-Y-Z)", "3. Renk Forsingi", "4. Renk Forsingi", "Reverse", "Weak Jump-Shift Resp.", "1m-2NT Invitational",
+                "German 2C Relays", "Walsh", "Preemptive Reraises", "Truscott 2NT" }),
+            new KeyValuePair<string, string[]>("Rekabet", new[] {
+                "Takeout Double", "Takeout Double Cevap", "Negative Double", "Support Double", "Support Double Cevap",
+                "Responsive Double", "Responsive Double Cevap", "Michaels", "Unusual 2NT", "Ghestem", "Cue Bid",
+                "Lebensohl (Reverse)", "Lebensohl (Zayıf 2)", "Weak Jump Overcalls", "Maximal Overcall Dbl.", "Artif. 2C/2D Resp. to 1M-X",
+                "Invisible Cue-Bids", "Limit-Plus Cue-Bids",
+                "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Sandwich 1NT", "Exit Transfer 1NT Runouts" }),
+            new KeyValuePair<string, string[]>("Slam", new[] {
+                "Blackwood", "RKCB", "Gerber", "Kickback", "Exclusion Blackwood", "Koz Q Sorusu", "Pick-a-Slam", "Grand Slam Force",
+                "Serious 3NT", "Non-Serious 3NT", "DOPI-ROPI", "Specific King Asks", "Voluntary Five Major Bid",
+                "Mathe Asking Bids", "Control Asking Bids" })
+        };
+        public const string DigerKategori = "Diğer";
+
+        /// <summary>Konvansiyonun kategorisi; listede olmayan "Diğer".</summary>
+        public static string Kategori(string ad)
+        {
+            foreach (var k in Kategoriler) if (Array.IndexOf(k.Value, ad) >= 0) return k.Key;
+            return DigerKategori;
+        }
+
+        private static int KategoriSirasi(string ad)
+        {
+            for (int i = 0; i < Kategoriler.Length; i++)
+            {
+                int j = Array.IndexOf(Kategoriler[i].Value, ad);
+                if (j >= 0) return i * 1000 + j;
+            }
+            return Kategoriler.Length * 1000;
+        }
+
         public static List<string> Konvansiyonlar()
         {
             Hazirla();
-            return new List<string>(_tumAdlar);
+            return _tumAdlar.OrderBy(a => KategoriSirasi(a)).ToList();   // kararlı sıralama: kategori dışılar motor sırasını korur
         }
 
         /// <summary>Konvansiyonu etkinleştiren ortaklık anlaşması (bulunamazsa varsayılan).</summary>
