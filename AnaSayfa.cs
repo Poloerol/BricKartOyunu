@@ -97,6 +97,31 @@ namespace BricKartOyunu.Forms
             BricKartOyunu.Class.EkranYardimci.TumKontrollerdeCiftTampon(this);
 
             oyunAyarlarıToolStripMenuItem.Click += OyunAyarlariToolStripMenuItem_Click;
+            OgrenmeMenuleriniEkle();
+        }
+
+        // ====================================================================
+        // MENÜ — ORTAKLIK ANLAŞMASI VE ÖĞRENME MODU
+        // ====================================================================
+
+        private void OgrenmeMenuleriniEkle()
+        {
+            var anlasma = new ToolStripMenuItem("Ortaklık Anlaşması...");
+            anlasma.Click += (s, e) =>
+            {
+                using (var f = new AnlasmaForm())
+                    f.ShowDialog(this);
+            };
+
+            var mod = new ToolStripMenuItem("Öğrenme Modu") { CheckOnClick = true };
+            mod.Checked = AnlasmaYonetici.OgrenmeModuAcik;
+            mod.CheckedChanged += (s, e) => AnlasmaYonetici.OgrenmeModuAcik = mod.Checked;
+
+            öğrenmeToolStripMenuItem.DropDownItems.Add(new ToolStripSeparator());
+            öğrenmeToolStripMenuItem.DropDownItems.Add(anlasma);
+            öğrenmeToolStripMenuItem.DropDownItems.Add(mod);
+            // Anlaşma ekranında mod değişirse menü işareti güncel kalsın
+            öğrenmeToolStripMenuItem.DropDownOpening += (s, e) => mod.Checked = AnlasmaYonetici.OgrenmeModuAcik;
         }
 
         // ====================================================================

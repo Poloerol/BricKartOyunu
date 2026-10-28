@@ -450,6 +450,14 @@ namespace BricKartOyunu.Class.Bidding
                 "Anlaşma değişikliği için IhaleMotoru'nu yeniden oluşturun.");
         }
 
+        /// <summary>Verilen konvansiyon adının kısa açıklaması (öğrenme modu için); bulunamazsa null.</summary>
+        public string KonvansiyonAciklamasi(string ad)
+        {
+            if (string.IsNullOrEmpty(ad)) return null;
+            var k = _konvansiyonlar.FirstOrDefault(x => x.Ad == ad);
+            return k == null ? null : k.Aciklama;
+        }
+
         public List<string> AktifKonvansiyonlar()
         {
             return _konvansiyonlar

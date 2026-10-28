@@ -136,7 +136,7 @@ namespace BricKartOyunu.Forms
             this.FormClosed += DeklarasyonForm_FormClosed;
 
             // 🔹 Yeni ihale oturumunu hazırla
-            _anlasma = OrtaklikAnlasmasi.Varsayilan();
+            _anlasma = AnlasmaYonetici.Mevcut();
             _humanVsAiSession = null;
             _biddingPresenter = null;
 
@@ -193,6 +193,8 @@ namespace BricKartOyunu.Forms
 
         private void DeklarasyonForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            OgrenmeKapat();
+
             // Bekleyen AI zamanlayıcısı kapanmış forma teklif yazmaya çalışmasın
             _aiTimer?.Stop();
             _aiTimer?.Dispose();
@@ -465,6 +467,7 @@ namespace BricKartOyunu.Forms
 
         private void BtnPass_Click(object sender, EventArgs e)
         {
+            if (!OgrenmeInsanTeklifiOnayla("Pas")) return;
             EkleIhaleGecmisi(_aktifOyuncu, "Pas");
             _ustUstePasSayisi++;
 
@@ -629,6 +632,7 @@ namespace BricKartOyunu.Forms
 
         private void BtnDouble_Click(object sender, EventArgs e)
         {
+            if (!OgrenmeInsanTeklifiOnayla("Dbl")) return;
             EkleIhaleGecmisi(_aktifOyuncu, "Dbl");
 
             // 🔹 Kontr da bir tekliftir → pas sayacını sıfırla
@@ -643,6 +647,7 @@ namespace BricKartOyunu.Forms
 
         private void BtnRedouble_Click(object sender, EventArgs e)
         {
+            if (!OgrenmeInsanTeklifiOnayla("RDbl")) return;
             EkleIhaleGecmisi(_aktifOyuncu, "RDbl");
 
             // 🔹 S.Kontr da bir tekliftir → pas sayacını sıfırla
@@ -1041,6 +1046,8 @@ namespace BricKartOyunu.Forms
             int idx = LinearIndex(r, s);
             if (idx <= _sonTeklifIndex) return;
 
+            if (!OgrenmeInsanTeklifiOnayla((r + 1).ToString() + KozLabel[s])) return;
+
             _sonTeklifIndex = idx;
             _ustUstePasSayisi = 0;
 
@@ -1322,6 +1329,8 @@ namespace BricKartOyunu.Forms
                 System.Diagnostics.Debug.WriteLine(
                     $"[AI] {_aktifOyuncu} motor teklifi: {teklif}");
                 System.Diagnostics.Debug.WriteLine("════════════════════════════════════════");
+
+                OgrenmeAIKaydet(teklif, _ihaleMotoru.SonKonvansiyonAdi);
 
                 // 3. Teklifi uygula
                 AIHamlesiniUygula(teklif);

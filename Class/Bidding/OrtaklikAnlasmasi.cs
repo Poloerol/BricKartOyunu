@@ -208,6 +208,12 @@ namespace BricKartOyunu.Class.Bidding
             };
         }
 
+        /// <summary>Anlaşmanın bağımsız bir kopyası (yalnızca bool alanlar olduğundan yüzeysel kopya yeterli).</summary>
+        public OrtaklikAnlasmasi Kopya()
+        {
+            return (OrtaklikAnlasmasi)MemberwiseClone();
+        }
+
         public static OrtaklikAnlasmasi Basit()
         {
             return new OrtaklikAnlasmasi

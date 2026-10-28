@@ -290,6 +290,16 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BordSonuAkisi.cs" />
+    <Compile Include="Forms\AnlasmaYonetici.cs" />
+    <Compile Include="Forms\AnlasmaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\OgrenmeNotlariForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\DeklarasyonForm.Ogrenme.cs">
+      <DependentUpon>DeklarasyonForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\DealCompleteForm.cs">
       <SubType>Form</SubType>
     </Compile>
