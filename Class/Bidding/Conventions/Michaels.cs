@@ -126,10 +126,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (string.IsNullOrEmpty(partnerKoz) || partnerKoz == "NT") return false;
 
             // Rakip 1 seviyesinde AYNI rengi açmış olmalı (cue bid tanımı)
+            // (rakibin 1 seviyesindeki herhangi bir rengi olabilir: 1♣ – 1♥ – 2♥ gibi)
             var rakipAcilis = durum.Gecmis
-                .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu))
+                .Where(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu)
+                            && h.Teklif != null && h.Teklif.StartsWith("1")
+                            && KozYardimcisi.TekliftenKozCikar(h.Teklif) == partnerKoz)
                 .Select(h => h.Teklif)
-                .FirstOrDefault(t => t != null && t.StartsWith("1"));
+                .LastOrDefault();
             if (string.IsNullOrEmpty(rakipAcilis)) return false;
 
             string rakipKoz = KozYardimcisi.TekliftenKozCikar(rakipAcilis);
