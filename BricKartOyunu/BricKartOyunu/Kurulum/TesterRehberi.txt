@@ -1,0 +1,29 @@
+﻿BricKartOyunu — Test Sürümü Rehberi
+====================================
+
+Bu sürümü denediğin için teşekkürler. Geri bildirimlerin projeyi doğrudan şekillendiriyor.
+
+KURULUM / KALDIRMA
+- Kurulum yönetici izni istemez; uygulama kullanıcı klasörüne kurulur.
+- Yeni bir test sürümü geldiğinde eskisini kaldırmana gerek yok, üzerine kur. Ayarların ve kayıtların korunur.
+- Kaldırmak için: Windows Ayarlar > Uygulamalar bölümünden BricKartOyunu'yu kaldır.
+- Ayar dosyaların şu klasörde durur (kaldırınca silinmez): %AppData%\BricKartOyunu
+
+NELERİ DENEMENİ ÖNERDİĞİM ŞEYLER
+1) Ayarlar menüsünden ortaklık anlaşması profilini aç: sistemini seç (5'li majör, güçlü/zayıf NT, konvansiyonlar).
+   Yeni eklenen 29 konvansiyon varsayılan olarak KAPALIDIR; profildeki Konvansiyonlar bölümünden açabilirsin.
+2) Konvansiyon Pratiği: konvansiyonlar kategorilere ayrılmıştır; seçip o konvansiyona uygun eller üret ve oyna.
+3) Kart Dağıtıcı: koşul (HCP, dağılım) ve "İhale Belirle" ile istediğin ihaleyi kuran eller üret.
+4) Normal oyun: yapay zekâ ortak ve rakiplerin ihalesi ile kart oyununu izle; saçma gördüğün teklif veya oynanışı not al.
+
+GERİ BİLDİRİM İÇİN LÜTFEN ŞUNLARI YAZ
+- Ne yapıyordun, ne olmasını bekliyordun, ne oldu?
+- Mümkünse eller (4 el), ihalenin tamamı ve kontrat. Ekran görüntüsü çok işe yarar.
+- Hangi ortaklık anlaşması / hangi konvansiyonlar açıktı?
+- Uygulama hata verdiyse hata penceresindeki metni olduğu gibi kopyala.
+
+BİLİNEN SINIRLAR
+- Yeni 29 konvansiyonun bazı ayrıntıları (Hello, Walsh, Robinson, German 2C Relays, Control/Specific King Asks,
+  Ghestem vb.) Bridge Baron'daki tanımlarına birebir uymayabilir; farkı görürsen yaz, düzeltelim.
+- Slam ihaleleri ve çok nadir diziler hâlâ geliştirme aşamasındadır.
+- Minör transferi 6+ kartla yapılır.
