@@ -3099,6 +3099,70 @@ namespace BricKartOyunu
                 }, "3NT");
         }
 
+        public static void Test_Kontra_Cevaplari()
+        {
+            Func<string, List<Card>> mk = (spec) =>
+            {
+                var l = new List<Card>();
+                foreach (var g in spec.Split(' '))
+                {
+                    string suit = g[0] == 'S' ? "Maça" : g[0] == 'H' ? "Kupa" : g[0] == 'D' ? "Karo" : "Sinek";
+                    foreach (char ch in g.Substring(2))
+                    {
+                        int v = ch == 'T' ? 10 : ch == 'J' ? 11 : ch == 'Q' ? 12 : ch == 'K' ? 13 : ch == 'A' ? 14 : ch - '0';
+                        l.Add(new Card { Suit = suit, Value = v });
+                    }
+                }
+                return l;
+            };
+            Func<Player, string, int, IhaleHamlesi> h = (o, t, s) => new IhaleHamlesi { Oyuncu = o, Teklif = t, Sira = s, GecerliMi = true };
+
+            // 11.37 — Support Double'dan sonra cevapçı rakibi kontrada bırakmaz: majörünü söyler
+            // Bati 1♣, Kuzey Pas, Dogu 1♥, Guney 1♠, Bati Dbl (support), Kuzey Pas → Dogu: 2♥
+            SeviyeTesti("TEST 11.37 — 1♣ Pas 1♥ (1♠) Dbl Pas: cevapçı 5 HP, 4♥ → 2♥ (Pas değil)",
+                mk("S:Q4 H:J954 D:T83 C:9854"), Player.Dogu,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Bati, "1♣", 1), h(Player.Kuzey, "Pas", 2), h(Player.Dogu, "1♥", 3), h(Player.Guney, "1♠", 4),
+                    h(Player.Bati, "Dbl", 5), h(Player.Kuzey, "Pas", 6)
+                }, "2♥");
+
+            // 11.38 — Rakibin rengi güçlüyse (♠ AKQJ5) ceza pası
+            SeviyeTesti("TEST 11.38 — aynı dizi, ♠ KQJT5 elimde → Pas (ceza)",
+                mk("S:KQJT5 H:J954 D:T3 C:854"), Player.Dogu,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Bati, "1♣", 1), h(Player.Kuzey, "Pas", 2), h(Player.Dogu, "1♥", 3), h(Player.Guney, "1♠", 4),
+                    h(Player.Bati, "Dbl", 5), h(Player.Kuzey, "Pas", 6)
+                }, "Pas");
+
+            // 11.39 — Responsive Double'a cevap: 1♥ (1♠) 2♥ Dbl Pas → advancer ♣/♦ arasından uzununu söyler
+            SeviyeTesti("TEST 11.39 — (1♥) 1♠ (2♥) Dbl (Pas): 5 karo → 3♦ (Pas değil)",
+                mk("S:AQJ95 H:63 D:K8652 C:4"), Player.Kuzey,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Bati, "1♥", 1), h(Player.Kuzey, "1♠", 2), h(Player.Dogu, "2♥", 3), h(Player.Guney, "Dbl", 4),
+                    h(Player.Bati, "Pas", 5)
+                }, "3♦");
+
+            // 11.40 — Responsive Double NT açılışında yoktur: 1NT – Pas – 2NT (minör transfer) sonrası Dbl yapılmaz
+            // (güvenlik: çifte karşı el kontr demez)
+            SeviyeTesti("TEST 11.40 — 1NT Pas 2NT: Responsive Double devreye girmez (zayıf el → Pas)",
+                mk("S:K9754 H:Q863 D:J72 C:4"), Player.Dogu,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Bati, "1NT", 1), h(Player.Kuzey, "Pas", 2), h(Player.Guney, "2NT", 3)
+                }, "Pas");
+
+            // 11.41 — Ortağın 1 seviye müdahalesine (1♣ – 1♠) 3 kart destek + 8 HP: 1NT değil 2♠
+            SeviyeTesti("TEST 11.41 — (1♣) 1♠ (Pas): 3 kart ♠ + 8 HP → 2♠ (1NT değil)",
+                mk("S:KQ3 H:K94 D:J96 C:9732"), Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Bati, "1♣", 1), h(Player.Kuzey, "1♠", 2), h(Player.Dogu, "Pas", 3)
+                }, "2♠");
+        }
+
         public static void Test_Mudahale_Advancer_Cevap()
         {
             Func<string, List<Card>> mk = (spec) =>
@@ -14468,6 +14532,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Jacoby_Transfer_Onceki_Pas();
             Test_Unusual2NT_Cevap();
             Test_Mudahale_Advancer_Cevap();
+            Test_Kontra_Cevaplari();
             Test_Blackwood_Soran_Karar();
             Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();

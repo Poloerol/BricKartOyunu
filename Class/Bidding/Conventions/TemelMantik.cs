@@ -695,6 +695,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         }
 
         /// <summary>Ortağın bu renkte tahmini minimum uzunluğu (0 = bilinmiyor).</summary>
+        public static bool OrtakMudahaleSayilir = true;
+
         private int PartnerUzunluk(IhaleDurumu d, List<IhaleHamlesi> gercek, string renk)
         {
             int uz = 0;
@@ -719,6 +721,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                         uz = benCevapladim ? 4 : (Major(renk) ? 3 : 4);
                     }
                     else if (acilis) uz = renk == "Maça" || renk == "Kupa" ? 5 : (renk == "Karo" ? 4 : 3);
+                    else if (OrtakMudahaleSayilir && d.Rakipler.Contains(gercek.First().Oyuncu) &&
+                             !gercek.Any(x => x.Oyuncu == d.Partner && gercek.IndexOf(x) < gercek.IndexOf(h)))
+                        uz = 5;   // ortağın doğal müdahalesi (overcall) 5+ kart vaat eder
                     else uz = h.Seviye >= 2 ? 5 : 4;
                 }
                 else uz = Math.Min(7, uz + 1);
