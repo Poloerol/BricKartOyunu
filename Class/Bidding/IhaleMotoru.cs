@@ -111,10 +111,12 @@ namespace BricKartOyunu.Class.Bidding
                 new Splinter(),
                 new Jacoby2NT(),
                 new SupportDouble(),
+                new SupportDoubleCevap(),
                 new Michaels(),
                 new StrongNT(),
                 new NegativeDouble(),
                 new ResponsiveDouble(),
+                new ResponsiveDoubleCevap(),
                 new Unusual2NT(),
                 new TakeoutDouble(),
                 new TakeoutDoubleCevap(),
@@ -421,6 +423,8 @@ namespace BricKartOyunu.Class.Bidding
                 case "Takeout Double": return _anlasma.TakeoutDouble;
                 case "Takeout Double Cevap": return _anlasma.TakeoutDouble;
                 case "Support Double": return _anlasma.SupportDouble;
+                case "Support Double Cevap": return _anlasma.SupportDouble;
+                case "Responsive Double Cevap": return _anlasma.ResponsiveDouble;
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
                 case "Lebensohl (Reverse)": return _anlasma.Lebensohl;
                 case "Lebensohl (Zayıf 2)": return _anlasma.Lebensohl;
