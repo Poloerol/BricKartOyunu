@@ -2682,6 +2682,113 @@ namespace BricKartOyunu
         }
 
         /// <summary>Yeni konvansiyonların yer oyunu (kart oyunu) entegrasyonu: yapay çağrılar doğru renk bilgisine çevrilir ve atağı etkiler.</summary>
+        public static void Test_IhaleAnalizi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.9 — İhale Yorumu: koltuk analizi (HCP, uzunluk, uyum)");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Func<Player, OrtaklikAnlasmasi> an = (k) => OrtaklikAnlasmasi.Varsayilan();
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+            int kupa = Array.IndexOf(IhaleAnalizi.Renkler, "Kupa");
+
+            // 1♥ - Pas - 2♥ - Pas - 4♥ (Güney açar)
+            var a = IhaleAnalizi.Analiz(new List<string> { "1♥", "Pas", "2♥", "Pas", "4♥", "Pas", "Pas", "Pas" }, "Guney", an);
+            kos(a[Player.Guney].MinUz[kupa] >= 5, "açan: 5+ kupa");
+            kos(a[Player.Guney].HcMin >= 12, "açan: en az 12 HCP");
+            kos(a[Player.Kuzey].MinUz[kupa] >= 3 && a[Player.Kuzey].HcMax <= 10, "destek veren: 3+ kupa, en çok 10 HCP");
+            kos(a[Player.Guney].EnIyiUyum == "Kupa" && a[Player.Kuzey].EnIyiUyum == "Kupa", "ortaklık uyumu: Kupa");
+            kos(a[Player.Guney].Satirlar().Contains("En iyi bilinen uyum: Kupa"), "satır: en iyi uyum");
+            kos(a[Player.Bati].EnIyiUyum == null, "rakipte uyum yok");
+
+            // 1NT - Pas - 2♣ (Stayman) - Pas - 2♠: Stayman renk göstermez; 2♦ transfer kupa gösterir
+            var s = IhaleAnalizi.Analiz(new List<string> { "1NT", "Pas", "2♣", "Pas", "2♠" }, "Kuzey", an);
+            kos(s[Player.Guney].SonAciklama.StartsWith("Yapay"), "Stayman 2♣ yapay");
+            kos(s[Player.Guney].MinUz.All(u => u < 3), "Stayman renk göstermez");
+            kos(s[Player.Kuzey].Dengeli, "1NT açan dengeli");
+            var j = IhaleAnalizi.Analiz(new List<string> { "1NT", "Pas", "2♦" }, "Kuzey", an);
+            kos(j[Player.Guney].SonAciklama.StartsWith("Yapay") && j[Player.Guney].MinUz[kupa] >= 4, "2♦ transfer: kupa gösterir");
+
+            // Boş ihale: satır yok; konuşmayan koltuk: satır yok
+            var b = IhaleAnalizi.Analiz(new List<string>(), "Kuzey", an);
+            kos(b.Values.All(y => y.Satirlar().Count == 0), "boş ihale satır üretmez");
+            var k1 = IhaleAnalizi.Analiz(new List<string> { "1♠" }, "Kuzey", an);
+            kos(k1[Player.Dogu].Satirlar().Count == 0 && k1[Player.Kuzey].Satirlar().Count > 0, "yalnız konuşan koltuk yorumlanır");
+
+            Yaz(hata == 0 ? "✅ DOĞRU" : "❌ YANLIŞ (" + hata + " hata)");
+            Yaz("════════════════════════════════════════");
+        }
+
+        public static void Test_MacDurumu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.10 — Briç Maçı durumu (bord sayısı, tohum, IMP, bord numarası)");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+
+            MacDurumu.Bitir();
+            kos(MacDurumu.BordSayisi == 4 && !MacDurumu.Aktif, "başlangıç: 4 bord, maç kapalı");
+
+            // 8 bordluk maç: 7 kez ilerler, sonra son bord; Bitir bord sayısını 4'e döndürür
+            MacDurumu.Baslat("Ayşe", 8, false, false, 100, MacPuanlama.IMP);
+            kos(MacDurumu.Aktif && MacDurumu.BordSayisi == 8 && MacDurumu.Sira == 1, "maç başladı: 8 bord, sıra 1");
+            kos(MacDurumu.BordSeed() == 100, "ilk bord tohumu = seçilen tohum");
+            MacDurumu.Ilerle();
+            kos(MacDurumu.BordSeed() == 101 && MacDurumu.Sira == 2, "ikinci bord tohumu = tohum + 1");
+            for (int i = 0; i < 6; i++) MacDurumu.Ilerle();
+            kos(MacDurumu.Sira == 8 && !MacDurumu.SonrakiBordVar, "8. bordda sonraki bord yok");
+            MacDurumu.Ilerle();
+            kos(MacDurumu.Sira == 8, "son bordun ötesine geçilmez");
+            MacDurumu.Bitir();
+            kos(MacDurumu.BordSayisi == 4 && !MacDurumu.Aktif && MacDurumu.SeedRastgele, "maç sonu: bord sayısı 4'e döndü");
+
+            // Sonuçlar: tekrar oynanan bord güncellenir, atlanan bord 0 sayılır ama var olanı ezmez
+            MacDurumu.Baslat("", 4, false, true, 0, MacPuanlama.ToplamPuan);
+            kos(MacDurumu.OyuncuAdi == "İnsan Oyuncu", "boş ad → İnsan Oyuncu");
+            MacDurumu.Tamamla(420);
+            MacDurumu.SonucYoksaYaz(0);
+            kos(MacDurumu.Sonuclar[1] == 420, "SonucYoksaYaz mevcut sonucu ezmez");
+            MacDurumu.Tamamla(-100);
+            kos(MacDurumu.Sonuclar[1] == -100, "tekrar oynanan bordun sonucu güncellenir");
+            MacDurumu.Ilerle(); MacDurumu.SonucYoksaYaz(0);
+            kos(MacDurumu.Sonuclar[2] == 0, "atlanan bord 0");
+            string ozet = MacDurumu.OzetMetni();
+            kos(ozet.Contains("Bord 1: K-G -100") && ozet.Contains("Toplam puan: K-G -100"), "özet: bord ve toplam puan");
+            MacDurumu.Bitir();
+
+            // Ayrıntılı kayıtlar (Briç Maçı Skoru formu)
+            MacDurumu.Baslat("Ali", 2, false, false, 500, MacPuanlama.IMP);
+            kos(!MacDurumu.SonBord, "1. bord: son bord değil");
+            MacDurumu.Tamamla(-110, "2NT, Batı", 7, 500);
+            MacDurumu.Ilerle();
+            kos(MacDurumu.SonBord, "2. bord: son bord");
+            MacDurumu.PasYaz(501);
+            var kyt = MacDurumu.Kayitlar();
+            kos(kyt.Count == 2 && kyt[0].Kontrat == "2NT, Batı" && kyt[0].Love == 7 && kyt[0].NsSkor == -110 && kyt[0].Seed == 500, "kayıt: kontrat, löve, skor, tohum");
+            kos(kyt[1].Kontrat == "Pas" && kyt[1].Love == -1 && kyt[1].NsSkor == 0 && kyt[1].Seed == 501, "dört pas kaydı");
+            MacDurumu.Tamamla(-50, "3♣, Doğu", 9, 501);
+            kos(MacDurumu.Kayitlar().Count == 2 && MacDurumu.Kayitlar()[1].NsSkor == -50, "tekrar oynanan bordun kaydı güncellenir");
+            kos(MacDurumu.BordDegeri(-110) == "-3" && MacDurumu.BordDegeri(0) == "0", "IMP sütunu değeri");
+            MacDurumu.Bitir();
+            kos(MacDurumu.Kayitlar().Count == 0 && !MacDurumu.SonBord, "Bitir kayıtları siler");
+
+            // IMP tablosu aralıkları
+            int a0, u0, a24, u24, a9, u9;
+            MacDurumu.ImpAraligi(0, out a0, out u0); MacDurumu.ImpAraligi(24, out a24, out u24); MacDurumu.ImpAraligi(9, out a9, out u9);
+            kos(MacDurumu.ImpSayisi == 25 && a0 == 0 && u0 == 10 && a9 == 370 && u9 == 420 && a24 == 4000 && u24 < 0, "IMP tablosu aralıkları");
+
+            // IMP tablosu
+            kos(MacDurumu.Imp(10) == 0 && MacDurumu.Imp(20) == 1 && MacDurumu.Imp(420) == 9 && MacDurumu.Imp(430) == 10, "IMP tablosu (alt sınırlar)");
+            kos(MacDurumu.Imp(-620) == -12 && MacDurumu.Imp(4000) == 24 && MacDurumu.Imp(0) == 0, "IMP tablosu (negatif, üst sınır)");
+
+            // Bord numarası 16'dan sonra 1'e döner
+            kos(MacDurumu.SonrakiBordNo(1) == 2 && MacDurumu.SonrakiBordNo(15) == 16 && MacDurumu.SonrakiBordNo(16) == 1 && MacDurumu.SonrakiBordNo(0) == 1, "bord numarası 16'dan sonra 1");
+
+            Yaz(hata == 0 ? "✅ DOĞRU" : "❌ YANLIŞ (" + hata + " hata)");
+            Yaz("════════════════════════════════════════");
+        }
+
         public static void Test_YeniKonvOyunEntegrasyonu()
         {
             int hata = 0;
@@ -14908,6 +15015,8 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_IhaleKosulu();
             Test_YeniKonvansiyonlar();
             Test_YeniKonvOyunEntegrasyonu();
+            Test_IhaleAnalizi();
+            Test_MacDurumu();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();

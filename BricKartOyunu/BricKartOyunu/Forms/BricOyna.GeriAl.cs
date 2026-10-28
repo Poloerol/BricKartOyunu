@@ -433,6 +433,8 @@ namespace BricKartOyunu
         {
             foreach (var f in Application.OpenForms.OfType<IhaleGecmisiForm>().ToList())
                 f.Guncelle(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu);
+            foreach (var y in Application.OpenForms.OfType<IhaleYorumuForm>().ToList())
+                y.Guncelle(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu);
         }
 
         /// <summary>Açık OynananElleriGosterForm varsa içeriğini güncel eller listesiyle yeniler.</summary>

@@ -102,6 +102,7 @@ namespace BricKartOyunu.Forms
             basitNSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.NS);
             basitEWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.EW);
             kartDağıtıcıToolStripMenuItem.Click += (s, e) => ShowChildForm(new KartDagitici());
+            briçMaçıToolStripMenuItem.Click += (s, e) => MacMenusunuAc();
         }
 
         // ====================================================================
@@ -218,7 +219,6 @@ namespace BricKartOyunu.Forms
             InitializeDynamicControls();
             WireMainButtonEvents();
             toolStripButton3.Click += MasaRengiToolStripMenuItem_Click;
-            toolStripBtnArkaYuz.Click += ToolStripBtnArkaYuz_Click;
             AppState.ArkaYuzuYukle();
             currentBackImage = AppState.ArkaYuzYolu();
             ArkaYuzMenusunuIsaretle();
@@ -524,7 +524,7 @@ namespace BricKartOyunu.Forms
         }
 
         /// <summary>Araç çubuğu düğmesi: iki arka yüz resminden birini seçtirir.</summary>
-        private void ToolStripBtnArkaYuz_Click(object sender, EventArgs e)
+        private void BtnToolArkaYuz_Click(object sender, EventArgs e)
         {
             using (var f = new KartArkaYuzSecForm(AppState.ArkaYuzDosya))
             {
@@ -640,30 +640,8 @@ namespace BricKartOyunu.Forms
             switch (activeMain)
             {
                 case ActiveMain.Oyna:
-                    // BricOyna: AnaSayfa kapanır, BricOyna tek başına kalır.
-                    // Kapatınca AnaSayfa tekrar açılır ve durum sıfırlanır.
-                    // using: ShowDialog ile açılan form otomatik Dispose edilmez.
-                    using (var bricOynaForm = new BricOyna
-                    {
-                        CurrentBackImage = currentBackImage
-                    })
-                    {
-                        // Hide() yerine: oyun penceresi çizildikten sonra şeffaflaştır (geçişte ara kare/solma görünmesin)
-                        bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
-
-                        try
-                        {
-                            bricOynaForm.ShowDialog();
-                        }
-                        finally
-                        {
-                            SonElBilgisiniGoster(bricOynaForm);
-                            this.Opacity = 1;
-                            this.Show();
-                            this.Activate();
-                            ResetToInitialState();
-                        }
-                    }
+                    MacDurumu.Bitir();   // normal oyun: maç durumu kapalı
+                    BricOynaAc();
                     break;
 
                 case ActiveMain.Ogrenme:
@@ -671,13 +649,98 @@ namespace BricKartOyunu.Forms
                     break;
 
                 case ActiveMain.Yarisma:
-                    ShowChildForm(new BricMaci());
+                    MacMenusunuAc();
                     break;
 
                 case ActiveMain.Araclar:
                     ShowChildForm(new KartDagitici());
                     break;
             }
+        }
+
+        /// <summary>
+        /// BricOyna: AnaSayfa kapanır, BricOyna tek başına kalır.
+        /// Kapatınca AnaSayfa tekrar açılır ve durum sıfırlanır.
+        /// </summary>
+        private void BricOynaAc()
+        {
+            // using: ShowDialog ile açılan form otomatik Dispose edilmez.
+            using (var bricOynaForm = new BricOyna
+            {
+                CurrentBackImage = currentBackImage
+            })
+            {
+                // Hide() yerine: oyun penceresi çizildikten sonra şeffaflaştır (geçişte ara kare/solma görünmesin)
+                bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
+
+                try
+                {
+                    bricOynaForm.ShowDialog();
+                }
+                finally
+                {
+                    SonElBilgisiniGoster(bricOynaForm);
+                    this.Opacity = 1;
+                    this.Show();
+                    this.Activate();
+                    ResetToInitialState();
+                }
+            }
+        }
+
+        // ====================================================================
+        // BRİÇ MAÇI (Yarışma)
+        // ====================================================================
+
+        private bool _macMenusuAcik;
+        private Color _macOncekiRenk;
+        private Image _macOncekiResim;
+        private readonly List<Control> _macGizlenenler = new List<Control>();
+
+        /// <summary>Maç Menüsü: arka plan oyun masasının rengi olur, ana butonlar gizlenir, menü sayfanın ortasında açılır.</summary>
+        private void MacMenusunuAc()
+        {
+            if (_macMenusuAcik)
+            {
+                var acik = Application.OpenForms.OfType<BricMaci>().FirstOrDefault();
+                if (acik != null) { acik.Show(); acik.Activate(); }
+                return;
+            }
+            _macMenusuAcik = true;
+            _macOncekiRenk = this.BackColor;
+            _macOncekiResim = this.BackgroundImage;
+            this.BackgroundImage = null;
+            this.BackColor = MasaRengi;
+
+            _macGizlenenler.Clear();
+            foreach (Control c in this.Controls)
+            {
+                if (c is ToolStrip) continue;   // menü, araç ve durum çubukları kalır
+                if (c.Visible) { c.Visible = false; _macGizlenenler.Add(c); }
+            }
+
+            var menu = new BricMaci();
+            menu.FormClosed += (s, e) => MacMenusunuKapat();
+            ShowChildForm(menu);
+        }
+
+        private void MacMenusunuKapat()
+        {
+            if (!_macMenusuAcik) return;
+            _macMenusuAcik = false;
+            if (this.IsDisposed) return;
+            this.BackgroundImage = _macOncekiResim;
+            this.BackColor = _macOncekiRenk;
+            foreach (var c in _macGizlenenler) if (!c.IsDisposed) c.Visible = true;
+            _macGizlenenler.Clear();
+            CenterPanel();
+            this.Refresh();
+        }
+
+        /// <summary>Maç Opsiyonları onaylanınca: oyun penceresi MacDurumu'ndaki ayarlarla açılır (maç bitene kadar bloklar).</summary>
+        public void MacOyunuBaslat()
+        {
+            BricOynaAc();
         }
 
         private void OrtaButon2_Click(object sender, EventArgs e)
@@ -958,5 +1021,7 @@ namespace BricKartOyunu.Forms
         {
 
         }
+
+        
     }
 }

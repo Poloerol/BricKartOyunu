@@ -134,6 +134,22 @@ namespace BricKartOyunu
             }
         }
 
+        /// <summary>Maç son bordu (ör. dört pas) bitirdi: eller açılır, sonra maç sonu DealCompleteForm gösterilir.</summary>
+        public void MacBitisiniGoster()
+        {
+            _b.AIDurdur();
+            Action ac = () =>
+            {
+                if (_oyna.IsDisposed) return;
+                _oyna.Capture = false;
+                _b.ElleriAcMasayiTemizle();
+                _b.BordiSakla();
+                AnaPencereGirisi(false);
+                DealCompleteFormunuAc();
+            };
+            if (_oyna.IsHandleCreated) _oyna.BeginInvoke(ac); else ac();
+        }
+
         private void DealCompleteFormunuAc()
         {
             if (_oyna.IsDisposed) { return; }

@@ -378,6 +378,9 @@ namespace BricKartOyunu
                 // Görev çubuğunda ayrı simge göstermesin (AnaSayfa'nın simgesi yeterli)
                 this.ShowInTaskbar = false;
 
+                // Oyun penceresi kapanınca (ana menüye dönüş, X, maç sonu) maç durumu sıfırlanır; bord sayısı 4'e döner
+                this.FormClosed += (s0, e0) => MacDurumu.Bitir();
+
                 // Tam çizilene kadar görünmez; böylece AnaSayfa ile karışan ara kare olmaz.
                 this.Opacity = 0;
 
@@ -643,7 +646,7 @@ namespace BricKartOyunu
             else
             {
                 var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
-                _currentTour = plan.YeniBordNumaralari ? 1 : Math.Max(1, plan.SonBordNo + 1);
+                _currentTour = (MacDurumu.Aktif || plan.YeniBordNumaralari) ? 1 : MacDurumu.SonrakiBordNo(Math.Max(0, plan.SonBordNo));   // bord numaraları 16'dan sonra 1'e döner
                 DagiticiyiAyarla();
             }
             activePlayer = _dealer;
@@ -658,6 +661,9 @@ namespace BricKartOyunu
 
             // 🔹 Seed geçmişini önce yükle (KartlariDagit üzerine yazmasın!)
             SeedHafizasiniYukle();
+
+            // Maçta "Seçilen" tohum: ilk bord tohumdan dağıtılır
+            if (MacDurumu.Aktif && !MacDurumu.SeedRastgele) _seed = MacDurumu.BordSeed();
 
 
             EkranYardimci.CizimiDondur(this);

@@ -56,8 +56,41 @@ namespace BricKartOyunu
         // Bord sonu akışı (sonuç mesajı → Deal Complete → yeni bord / tekrar / ana menü) BordSonuAkisi sınıfındadır.
         private BordSonuAkisi _bordSonu;
 
+        /// <summary>Maçta bordun sonucunu (K-G tarafının skoru) kaydeder. Aynı bord tekrar oynanırsa sonuç güncellenir.</summary>
+        private void MacBordSonucunuKaydet()
+        {
+            if (!MacDurumu.Aktif) return;
+            try
+            {
+                var s = SkorHesapla();
+                int ns = 0;
+                if (!s.PasGecildi)
+                {
+                    bool nsDeklaran = _kontratDeklaran == Player.Kuzey || _kontratDeklaran == Player.Guney;
+                    ns = nsDeklaran ? s.Toplam : -s.Toplam;
+                }
+                if (KoltukHaritasi.CiftlerTers) ns = -ns;   // fiziksel K-G = iç D-B
+                string kontrat = s.PasGecildi ? "Pas"
+                    : s.Seviye + s.Koz + (s.KontrEki != "" ? " " + s.KontrEki : "") + ", " + KoltukHaritasi.Ad(_kontratDeklaran);
+                MacDurumu.Tamamla(ns, kontrat, s.PasGecildi ? -1 : s.AlinanLove, _seed);
+            }
+            catch { /* sonuç alınamazsa bord 0 sayılır (SonucYoksaYaz) */ }
+        }
+
+        /// <summary>Yeni bord başlamadan önce: maçta sıradaki borda geçer; maç bittiyse özeti gösterir, pencereyi kapatır ve false döner.</summary>
+        private bool MacSonrakiBordaHazirla()
+        {
+            if (!MacDurumu.Aktif) return true;
+            if (MacDurumu.SonrakiBordVar) { MacDurumu.Ilerle(); return true; }
+
+            // Maç bitti: DealCompleteForm (Bu Elin Puanlaması / İhaleyi Göster / Oyunu Göster / Ana Menüye Dön).
+            // Maç durumu pencere kapanırken (FormClosed) sıfırlanır; bord sayısı o zaman 4'e döner.
+            BordSonuAkisiniHazirla().MacBitisiniGoster();
+            return false;
+        }
+
         /// <summary>13 el tamamlandığında (ya da claim sonrası) bord sonu akışını başlatır.</summary>
-        private void BordTamamlandiFormuAc()
+        private BordSonuAkisi BordSonuAkisiniHazirla()
         {
             if (_bordSonu == null)
             {
@@ -91,7 +124,14 @@ namespace BricKartOyunu
                     Yeni = YeniBordBaslat
                 });
             }
-            _bordSonu.Baslat();
+            return _bordSonu;
+        }
+
+        private void BordTamamlandiFormuAc()
+        {
+            var akis = BordSonuAkisiniHazirla();
+            MacBordSonucunuKaydet();
+            akis.Baslat();
         }
 
         /// <summary>
@@ -233,12 +273,14 @@ namespace BricKartOyunu
             System.Diagnostics.Debug.WriteLine(
                 "[YeniBord] Yeni bord başlatılıyor...");
 
+            if (!MacSonrakiBordaHazirla()) return;   // maç bittiyse yeni bord yok
+
             PratikIlerlet();
             BordDurumunuSifirla();
 
             // 4) Aktif oyuncu, dealer, kontrat vs. sıfırlanır — DortPasSonrasiYeniEliBaslat ile aynı
             _oyunAsamasi = OyunAsamasi.Baslangic;
-            _currentTour++;
+            _currentTour = MacDurumu.SonrakiBordNo(_currentTour);   // 16'dan sonra 1
             DagiticiyiAyarla();
             activePlayer = _dealer;
             _declarer = _dealer;
@@ -255,7 +297,8 @@ namespace BricKartOyunu
             OyunBilgiPaneliniGuncelle();
 
             // 7) Yeni kartları dağıt
-            KartlariDagitRastgele(AnaSayfa.SeciliKartSeti);
+            if (MacDurumu.Aktif && !MacDurumu.SeedRastgele) KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, MacDurumu.BordSeed());
+            else KartlariDagitRastgele(AnaSayfa.SeciliKartSeti);
 
             // 8) Yeni DekBasForm aç
             PratikDuyurusu();
@@ -717,10 +760,13 @@ namespace BricKartOyunu
 
         public void DortPasSonrasiYeniEliBaslat()
         {
+            if (MacDurumu.Aktif) MacDurumu.PasYaz(_seed);   // dört pas / atlanan bord: 0
+            if (!MacSonrakiBordaHazirla()) return;
+
             PratikIlerlet();
             BordDurumunuSifirla();
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
-            _currentTour++;
+            _currentTour = MacDurumu.SonrakiBordNo(_currentTour);   // 16'dan sonra 1
             DagiticiyiAyarla();
             activePlayer = _dealer;
             _declarer = _dealer;
@@ -732,7 +778,8 @@ namespace BricKartOyunu
 
             ButonlariInaktifYap();
             UpdateInfoBoard(_dealer);
-            if (!PratikModu) _seed++;  // 🔹 Yeni el → yeni seed (pratikte liste belirler)
+            if (MacDurumu.Aktif && !MacDurumu.SeedRastgele) _seed = MacDurumu.BordSeed();
+            else if (!PratikModu) _seed++;  // 🔹 Yeni el → yeni seed (pratikte liste belirler)
             KartlariDagit(AnaSayfa.SeciliKartSeti);
 
             // 🔹 YENİ: Bilgi panelini güncelle (yeni Dealer ve Zon görünsün)

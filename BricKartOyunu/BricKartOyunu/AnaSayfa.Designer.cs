@@ -113,8 +113,7 @@
             this.BtnYarisma = new System.Windows.Forms.Button();
             this.BtnAraclar = new System.Windows.Forms.Button();
             this.ButonPaneli = new System.Windows.Forms.Panel();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripBtnArkaYuz = new System.Windows.Forms.ToolStripButton();
+            this.BtnToolArkaYuz = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
@@ -775,24 +774,16 @@
             this.ButonPaneli.Size = new System.Drawing.Size(314, 165);
             this.ButonPaneli.TabIndex = 7;
             // 
-            // toolStripButton1
+            // BtnToolArkaYuz
             // 
-            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
-            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton1.Text = "toolStripButton1";
-            // 
-            // toolStripBtnArkaYuz
-            // 
-            this.toolStripBtnArkaYuz.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripBtnArkaYuz.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
-            this.toolStripBtnArkaYuz.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripBtnArkaYuz.Name = "toolStripBtnArkaYuz";
-            this.toolStripBtnArkaYuz.Size = new System.Drawing.Size(23, 22);
-            this.toolStripBtnArkaYuz.Text = "Kart Arka Yüzü";
-            this.toolStripBtnArkaYuz.ToolTipText = "Kart Arka Yüzü";
+            this.BtnToolArkaYuz.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.BtnToolArkaYuz.Image = ((System.Drawing.Image)(resources.GetObject("BtnToolArkaYuz.Image")));
+            this.BtnToolArkaYuz.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.BtnToolArkaYuz.Name = "BtnToolArkaYuz";
+            this.BtnToolArkaYuz.Size = new System.Drawing.Size(23, 22);
+            this.BtnToolArkaYuz.Text = "Kart Arka Yüzü";
+            this.BtnToolArkaYuz.ToolTipText = "Kart Arka Yüzü";
+            this.BtnToolArkaYuz.Click += new System.EventHandler(this.BtnToolArkaYuz_Click);
             // 
             // toolStripButton3
             // 
@@ -802,6 +793,7 @@
             this.toolStripButton3.Name = "toolStripButton3";
             this.toolStripButton3.Size = new System.Drawing.Size(23, 22);
             this.toolStripButton3.Text = "Masa Arka Rengi";
+            this.toolStripButton3.ToolTipText = "Masa Arka Rengi";
             // 
             // toolStripSeparator3
             // 
@@ -810,9 +802,9 @@
             // 
             // toolStrip1
             // 
+            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton1,
-            this.toolStripBtnArkaYuz,
+            this.BtnToolArkaYuz,
             this.toolStripButton3,
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
@@ -970,8 +962,7 @@
         private System.Windows.Forms.ToolStripMenuItem anaMenüyeDönToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem kırmızıToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem maviToolStripMenuItem;
-        private System.Windows.Forms.ToolStripButton toolStripButton1;
-        private System.Windows.Forms.ToolStripButton toolStripBtnArkaYuz;
+        private System.Windows.Forms.ToolStripButton BtnToolArkaYuz;
         private System.Windows.Forms.ToolStripButton toolStripButton3;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStrip toolStrip1;

@@ -337,28 +337,21 @@ namespace BricKartOyunu
 
         private void IhaleYorumuToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // 1) Form zaten açık mı?
+            // Form zaten açıksa öne getir ve güncel ihaleyle yenile
             foreach (Form f in Application.OpenForms)
             {
-                if (f is IhaleYorumuForm)
+                var acik = f as IhaleYorumuForm;
+                if (acik != null)
                 {
-                    f.BringToFront();
+                    acik.Guncelle(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu);
+                    acik.BringToFront();
                     return;
                 }
             }
 
-            // 2) Yeni formu oluştur
-            var form = new IhaleYorumuForm(new List<string>(), "Kuzey");
-
-            // 3) Manuel konum ayarı
+            var form = new IhaleYorumuForm(new List<string>(_sonIhaleGecmisi), _ihaleBaslangicOyuncusu);
             form.StartPosition = FormStartPosition.Manual;
-
-            // ⚠️ BURAYI KENDİ EKRANINA GÖRE AYARLA
-            // Aşağıdaki değerler 2. resimdeki gibi hizalamak için tahmini değerlerdir.
-            // Eğer form çok sağda/solda/yukarıda/aşağıda açılırsa bu sayıları değiştir.
-            form.Location = new Point(755, 450);
-
-            // 4) Formu göster
+            form.Location = new Point(Math.Max(0, this.Right - form.Width - 20), this.Top + 80);   // sığmazsa form kendini ekrana toplar
             form.Show(this);
         }
 
