@@ -27,19 +27,19 @@ namespace BricKartOyunu.Forms
         {
             InitializeComponent();
 
-            this.Text = "Briç Maçı";
+            this.Text = "Maç Menüsü";
             this.FormBorderStyle = FormBorderStyle.FixedToolWindow;
             this.StartPosition = FormStartPosition.CenterParent;
             this.Load += (s, e) => SayfaOrtasinaAl(this);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.AutoScaleMode = AutoScaleMode.None;
-            this.ClientSize = new Size(300, 150);
+            this.ClientSize = new Size(194, 100);
             this.BackColor = Color.FromArgb(240, 240, 240);
 
-            Dugme("Yeni Bir Maç Başlat", 15, (s, e) => YeniMac());
-            Dugme("Kayıtlı Maçı Yükle", 55, (s, e) => KayitliMaciYukle());
-            Dugme("Ana Menüye Dön", 95, (s, e) => AnaMenuyeDon());
+            Dugme("Yeni Bir Maç Başlat", 10, (s, e) => YeniMac());
+            Dugme("Kayıtlı Maçı Yükle", 38, (s, e) => KayitliMaciYukle());
+            Dugme("Ana Menüye Dön", 66, (s, e) => AnaMenuyeDon());
         }
 
         private Button Dugme(string metin, int y, EventHandler tikla)
@@ -47,8 +47,8 @@ namespace BricKartOyunu.Forms
             var b = new Button
             {
                 Text = metin,
-                Location = new Point(20, y),
-                Size = new Size(260, 30),
+                Location = new Point(11, y),
+                Size = new Size(172, 24),
                 BackColor = Color.White,
                 UseVisualStyleBackColor = false
             };

@@ -693,6 +693,7 @@ namespace BricKartOyunu.Forms
         // ====================================================================
 
         private bool _macMenusuAcik;
+        private string _macOncekiBaslik;
         private Color _macOncekiRenk;
         private Image _macOncekiResim;
         private readonly List<Control> _macGizlenenler = new List<Control>();
@@ -711,6 +712,8 @@ namespace BricKartOyunu.Forms
             _macOncekiResim = this.BackgroundImage;
             this.BackgroundImage = null;
             this.BackColor = MasaRengi;
+            _macOncekiBaslik = this.Text;
+            this.Text = "Briç Maçı";
 
             _macGizlenenler.Clear();
             foreach (Control c in this.Controls)
@@ -731,6 +734,7 @@ namespace BricKartOyunu.Forms
             if (this.IsDisposed) return;
             this.BackgroundImage = _macOncekiResim;
             this.BackColor = _macOncekiRenk;
+            this.Text = _macOncekiBaslik;
             foreach (var c in _macGizlenenler) if (!c.IsDisposed) c.Visible = true;
             _macGizlenenler.Clear();
             CenterPanel();
