@@ -3125,6 +3125,15 @@ namespace BricKartOyunu
                     h(Player.Guney, "Pas", 1), h(Player.Bati, "1♥", 2), h(Player.Kuzey, "2♥", 3), h(Player.Dogu, "Pas", 4)
                 }, "3♦");
 
+            // 11.30 — Cue bid rakibin 2. rengine (1♣ – Pas – 1♥ – 2♥): ortak yine Pas demez
+            SeviyeTesti("TEST 11.30 — Pas, 1♣, Pas, 1♥, 2♥ (Michaels), Pas: ♠ fit yok, 6 HP, 5 karo → 3♦",
+                mk("S:K5 H:865 D:J7542 C:Q43"), Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Kuzey, "Pas", 1), h(Player.Dogu, "1♣", 2), h(Player.Guney, "Pas", 3),
+                    h(Player.Bati, "1♥", 4), h(Player.Kuzey, "2♥", 5), h(Player.Dogu, "Pas", 6)
+                }, "3♦");
+
             // 11.28 — Ortağın Unusual 2NT'sine (1♦ – 2NT = ♣+♥) cevap: eşit uzunlukta yüksek renk
             SeviyeTesti("TEST 11.28 — 1♦, 2NT (Unusual ♣+♥), Pas: ♥ 4 + ♣ 4, 11 HP → 3♥",
                 mk("S:6 H:J875 D:QJ75 C:AK72"), Player.Dogu,
@@ -3142,11 +3151,63 @@ namespace BricKartOyunu
                 }, "4♥");
         }
 
+        public static void Test_Blackwood_Soran_Karar()
+        {
+            Func<string, List<Card>> mk = (spec) =>
+            {
+                var l = new List<Card>();
+                foreach (var g in spec.Split(' '))
+                {
+                    string suit = g[0] == 'S' ? "Maça" : g[0] == 'H' ? "Kupa" : g[0] == 'D' ? "Karo" : "Sinek";
+                    foreach (char ch in g.Substring(2))
+                    {
+                        int v = ch == 'T' ? 10 : ch == 'J' ? 11 : ch == 'Q' ? 12 : ch == 'K' ? 13 : ch == 'A' ? 14 : ch - '0';
+                        l.Add(new Card { Suit = suit, Value = v });
+                    }
+                }
+                return l;
+            };
+            Func<Player, string, int, IhaleHamlesi> h = (o, t, s) => new IhaleHamlesi { Oyuncu = o, Teklif = t, Sira = s, GecerliMi = true };
+            Func<string, List<IhaleHamlesi>> gecmis = (cevap) => new List<IhaleHamlesi>
+            {
+                h(Player.Dogu, "Pas", 1), h(Player.Kuzey, "1♠", 2), h(Player.Bati, "Pas", 3), h(Player.Guney, "3♠", 4),
+                h(Player.Dogu, "Pas", 5), h(Player.Kuzey, "4♠", 6), h(Player.Bati, "Pas", 7), h(Player.Guney, "4NT", 8),
+                h(Player.Bati, "Pas", 9), h(Player.Kuzey, cevap, 10), h(Player.Dogu, "Pas", 11)
+            };
+
+            // 11.35 / 11.36 — NT sonrası 4NT niceliksel davettir (kilit kart sorusu değil)
+            var ntGecmis = new List<IhaleHamlesi>
+            {
+                h(Player.Dogu, "Pas", 1), h(Player.Guney, "1NT", 2), h(Player.Bati, "Pas", 3),
+                h(Player.Kuzey, "4NT", 4), h(Player.Dogu, "Pas", 5)
+            };
+            SeviyeTesti("TEST 11.35 — 1NT – 4NT (niceliksel), 19 HP (üst sınır) → 6NT",
+                mk("S:AQ5 H:KJ4 D:KQ73 C:A98"), Player.Guney, ntGecmis, "6NT");
+            SeviyeTesti("TEST 11.36 — 1NT – 4NT (niceliksel), 15 HP (alt sınır) → Pas",
+                mk("S:K54 H:KQ4 D:QJ73 C:A98"), Player.Guney, ntGecmis, "Pas");
+
+            // 11.31 — 3 kilit kart bende, ortak 5♦ (0 ya da 3): toplam 3 (2 eksik) → 5♠'a kapat
+            SeviyeTesti("TEST 11.31 — 4NT sonrası ortak 5♦ (0/3), bende 3 kilit kart → 2 eksik: 5♠'a kapat",
+                mk("S:AKJ95 H:A83 D:K4 C:KQ7"), Player.Guney, gecmis("5♦"), "5♠");
+
+            // 11.32 — 4 kilit kart bende, ortak 5♣ (1 ya da 4): toplam 5, kız bilinmiyor → 6♠
+            SeviyeTesti("TEST 11.32 — 4NT sonrası ortak 5♣, bende 4 kilit kart, koz kızı bilinmiyor → 6♠",
+                mk("S:AKJ95 H:A83 D:A4 C:K72"), Player.Guney, gecmis("5♣"), "6♠");
+
+            // 11.33 — 4 kilit kart + koz kızı bende, ortak 5♣: hepsi bizde, kız var → papaz sor 5NT
+            SeviyeTesti("TEST 11.33 — 4NT sonrası ortak 5♣, bende 4 kilit kart + koz kızı → 5NT (papaz sor)",
+                mk("S:AKQ95 H:A83 D:A4 C:K72"), Player.Guney, gecmis("5♣"), "5NT");
+
+            // 11.34 — 3 kilit kart bende, ortak 5♣ (1/4): toplam 4 → 1 eksik → 6♠
+            SeviyeTesti("TEST 11.34 — 4NT sonrası ortak 5♣ (1/4), bende 3 kilit kart → 1 eksik: 6♠",
+                mk("S:AKJ95 H:A83 D:K4 C:KQ7"), Player.Guney, gecmis("5♣"), "6♠");
+        }
+
         public static void Test_Slam_JumpShift_Buyuk()
         {
             var el = new List<Card>
             {
-                new Card { Suit = "Maça", Value = 10 },
+                new Card { Suit = "Maça", Value = 12 },
                 new Card { Suit = "Maça", Value = 7 },
                 new Card { Suit = "Maça", Value = 5 },
                 new Card { Suit = "Kupa", Value = 14 },
@@ -3160,7 +3221,7 @@ namespace BricKartOyunu
                 new Card { Suit = "Karo", Value = 13 },
                 new Card { Suit = "Karo", Value = 6 }
             };
-            SeviyeTesti("TEST 11.14 — 5NT papaz sorusu cevabı 6♣ (0 papaz) + benim 3 papazım → 7♠", el, Player.Guney,
+            SeviyeTesti("TEST 11.14 — 5NT papaz sorusu cevabı 6♣ (0 papaz) + benim 3 papazım + koz kızı elimde → 7♠", el, Player.Guney,
                 new List<IhaleHamlesi>
                 {
                     new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
@@ -14407,6 +14468,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Jacoby_Transfer_Onceki_Pas();
             Test_Unusual2NT_Cevap();
             Test_Mudahale_Advancer_Cevap();
+            Test_Blackwood_Soran_Karar();
             Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();

@@ -26,6 +26,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
+            // NT sonrası 4NT niceliksel davettir; RKCB değil
+            if (Blackwood.NicelikselMi(durum)) return false;
+
             // ─── DURUM 1: Partner 4NT dedi → cevap veriyoruz ─────────
             if (durum.SonGercekTeklif == "4NT" &&
                 durum.SonGercekTeklifSahibi == durum.Partner)
