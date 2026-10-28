@@ -580,6 +580,29 @@ namespace BricKartOyunu
             }
         }
 
+        /// <summary>Araç çubuğu: kart arka yüzünü iki resimden biriyle değiştirir; ekrandaki kapalı kartlar hemen güncellenir.</summary>
+        private void BrnKartArka_Click(object sender, EventArgs e)
+        {
+            string mevcut = Path.GetFileName(_currentBackImagePath ?? AppState.ArkaYuzYolu());
+            using (var f = new KartArkaYuzSecForm(mevcut))
+            {
+                if (f.ShowDialog(this) != DialogResult.OK) return;
+
+                Image eski = GetBackImage();
+                AppState.ArkaYuzDosya = f.Secilen;
+                AppState.ArkaYuzuKaydet();
+                CurrentBackImage = AppState.ArkaYuzYolu();
+                Image yeni = GetBackImage();
+                if (yeni == null) return;
+
+                // Şu an arka yüz gösteren tüm kartları yeni resimle değiştir (açık kartlara dokunma)
+                foreach (var dizi in new[] { batiKartlar, kuzeyKartlar, doguKartlar, guneyKartlar })
+                    foreach (var pb in dizi)
+                        if (pb != null && eski != null && ReferenceEquals(pb.Image, eski)) pb.Image = yeni;
+                this.Invalidate(true);
+            }
+        }
+
         private void BricOyna_Load(object sender, EventArgs e)
         {
             KoltukHaritasi.Uygula(AnaSayfa.OyunPlani == null ? null : AnaSayfa.OyunPlani.InsanMi);
@@ -587,6 +610,7 @@ namespace BricKartOyunu
 
             // İpucu: oynanması önerilen kartı sarıyla işaretler (araç çubuğu düğmesi ve menü)
             BtnIpucu.Click += BtnIpucu_Click;
+            BrnKartArka.Click += BrnKartArka_Click;
             BtnMasaRenk.Click += MasaRengiToolStripMenuItem_Click;
             ipucuToolStripMenuItem.Click += BtnIpucu_Click;
 

@@ -114,7 +114,7 @@
             this.BtnAraclar = new System.Windows.Forms.Button();
             this.ButonPaneli = new System.Windows.Forms.Panel();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripBtnArkaYuz = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
@@ -521,7 +521,7 @@
             // 
             this.maviToolStripMenuItem.Name = "maviToolStripMenuItem";
             this.maviToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
-            this.maviToolStripMenuItem.Text = "Mavi";
+            this.maviToolStripMenuItem.Text = "Siyah";
             this.maviToolStripMenuItem.Click += new System.EventHandler(this.MaviToolStripMenuItem_Click);
             // 
             // masaRengiToolStripMenuItem
@@ -784,14 +784,15 @@
             this.toolStripButton1.Size = new System.Drawing.Size(23, 22);
             this.toolStripButton1.Text = "toolStripButton1";
             // 
-            // toolStripButton2
+            // toolStripBtnArkaYuz
             // 
-            this.toolStripButton2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton2.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
-            this.toolStripButton2.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton2.Name = "toolStripButton2";
-            this.toolStripButton2.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton2.Text = "toolStripButton2";
+            this.toolStripBtnArkaYuz.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripBtnArkaYuz.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
+            this.toolStripBtnArkaYuz.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripBtnArkaYuz.Name = "toolStripBtnArkaYuz";
+            this.toolStripBtnArkaYuz.Size = new System.Drawing.Size(23, 22);
+            this.toolStripBtnArkaYuz.Text = "Kart Arka Yüzü";
+            this.toolStripBtnArkaYuz.ToolTipText = "Kart Arka Yüzü";
             // 
             // toolStripButton3
             // 
@@ -811,7 +812,7 @@
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton1,
-            this.toolStripButton2,
+            this.toolStripBtnArkaYuz,
             this.toolStripButton3,
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
@@ -970,7 +971,7 @@
         private System.Windows.Forms.ToolStripMenuItem kırmızıToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem maviToolStripMenuItem;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
-        private System.Windows.Forms.ToolStripButton toolStripButton2;
+        private System.Windows.Forms.ToolStripButton toolStripBtnArkaYuz;
         private System.Windows.Forms.ToolStripButton toolStripButton3;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStrip toolStrip1;
