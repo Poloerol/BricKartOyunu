@@ -124,6 +124,7 @@ namespace BricKartOyunu.Forms
         {
             Text = (_taraf == Taraf.NS ? "NS" : "EW") + " Ortaklık Profili";
             StartPosition = FormStartPosition.CenterParent;
+            ShowInTaskbar = false;
             FormBorderStyle = FormBorderStyle.Sizable;
             MinimumSize = new Size(860, 600);
             ClientSize = new Size(940, 640);
@@ -372,6 +373,7 @@ namespace BricKartOyunu.Forms
                 f.Text = "Profil adı";
                 f.FormBorderStyle = FormBorderStyle.FixedDialog;
                 f.StartPosition = FormStartPosition.CenterParent;
+                f.ShowInTaskbar = false;
                 f.MinimizeBox = false; f.MaximizeBox = false;
                 f.ClientSize = new Size(320, 110);
                 var l = new Label { Text = soru, AutoSize = true, Location = new Point(12, 12) };

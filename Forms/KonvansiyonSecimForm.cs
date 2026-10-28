@@ -133,6 +133,7 @@ namespace BricKartOyunu.Forms
         {
             Text = "Konvansiyonlar";
             StartPosition = FormStartPosition.CenterParent;
+            ShowInTaskbar = false;
             FormBorderStyle = FormBorderStyle.Sizable;
             MinimumSize = new Size(800, 640);
             ClientSize = new Size(860, 660);
@@ -285,6 +286,7 @@ namespace BricKartOyunu.Forms
                 f.Text = "İşaretleşme";
                 f.FormBorderStyle = FormBorderStyle.FixedDialog;
                 f.StartPosition = FormStartPosition.CenterParent;
+                f.ShowInTaskbar = false;
                 f.MinimizeBox = false; f.MaximizeBox = false;
                 f.ClientSize = new Size(300, 130);
                 var std = new RadioButton { Text = "Standart (yüksek: çift, düşük: tek)", AutoSize = true, Location = new Point(14, 14), Checked = !_anlasma.UDCA };
