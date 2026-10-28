@@ -3,7 +3,9 @@
 ; Derleme:  KurulumuOlustur.ps1  (önce Release derler, sonra bu betiği ISCC ile derler)
 ; Çıktı:    Kurulum\Cikti\BricKartOyunu-Kurulum-<sürüm>.exe
 ; ─────────────────────────────────────────────────────────────────────────────
-#define MyAppName "BricKartOyunu"
+#define MyAppName "Briç Kart Oyunu"
+; Klasör ve kurulum dosyası adlarında Türkçe karakter/boşluk olmasın diye ayrı bir kimlik:
+#define MyAppId "BricKartOyunu"
 #define MyAppExe "BricKartOyunu.exe"
 #define MyAppPublisher "BricKartOyunu"
 #define MyAppVersion GetVersionNumbersString("..\bin\Release\BricKartOyunu.exe")
@@ -15,15 +17,18 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion} (Test Sürümü)
 AppPublisher={#MyAppPublisher}
+#ifexist "BricKartOyunu.ico"
+SetupIconFile=BricKartOyunu.ico
+#endif
 ; Kullanıcı bazlı kurulum: yönetici izni gerekmez. Uygulama seedler.txt gibi dosyaları kendi klasörüne yazdığı için
 ; Program Files yerine kullanıcının yazabildiği klasöre ({localappdata}\Programs) kurulur.
 PrivilegesRequired=lowest
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppId}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#MyAppExe}
 OutputDir=Cikti
-OutputBaseFilename=BricKartOyunu-Kurulum-{#MyAppVersion}
+OutputBaseFilename={#MyAppId}-Kurulum-{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
