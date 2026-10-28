@@ -822,7 +822,7 @@
             // 
             // BtnTestForm
             // 
-            this.BtnTestForm.Location = new System.Drawing.Point(521, 458);
+            this.BtnTestForm.Location = new System.Drawing.Point(12, 589);
             this.BtnTestForm.Name = "BtnTestForm";
             this.BtnTestForm.Size = new System.Drawing.Size(138, 37);
             this.BtnTestForm.TabIndex = 47;

@@ -582,7 +582,7 @@ namespace BricKartOyunu
             for (int i = 0; i < kartResimleri.Length; i++) if (kartResimleri[i] != null) kartResimleri[i].Visible = false;
 
             int guncelX = baslangicX;
-            int kartIçiSıkışmaBoslugu = 18;
+            int kartIçiSıkışmaBoslugu = Ol(18);
             int toplamYerlestirilen = 0;
             int enSonKartBitisX = baslangicX + _kartGenislik;
 
@@ -592,7 +592,7 @@ namespace BricKartOyunu
                 List<List<Card>> tumRenkGruplari = GetSuitSirasi()
                     .Select(renk => eldekiKartlar.Where(k => k.Suit == renk).OrderByDescending(k => k.Value).ToList())
                     .ToList();
-                int renkBloklarArasiBosluk = sikiDizim ? 0 : 10;
+                int renkBloklarArasiBosluk = sikiDizim ? 0 : Ol(10);
 
                 foreach (var renkGrubu in tumRenkGruplari)
                 {
@@ -633,7 +633,7 @@ namespace BricKartOyunu
 
                     enSonKartBitisX = guncelX + _kartGenislik;
                     toplamYerlestirilen++;
-                    guncelX += (_kartGenislik - 55);
+                    guncelX += (_kartGenislik - Ol(55));
                 }
             }
             return enSonKartBitisX;
@@ -647,7 +647,7 @@ namespace BricKartOyunu
                 .Select(renk => eldekiKartlar.Where(k => k.Suit == renk).OrderByDescending(k => k.Value).ToList())
                 .Where(satir => satir.Count > 0)
                 .ToList();
-            int yatayKayma = 20;
+            int yatayKayma = Ol(20);
             int dikeySatirAraligi = _kartYukseklik + 2;
             int toplamKullanilanKart = 0;
             for (int satirIndeks = 0; satirIndeks < tumSatirlar.Count; satirIndeks++)
