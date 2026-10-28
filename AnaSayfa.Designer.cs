@@ -113,8 +113,7 @@
             this.BtnYarisma = new System.Windows.Forms.Button();
             this.BtnAraclar = new System.Windows.Forms.Button();
             this.ButonPaneli = new System.Windows.Forms.Panel();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+            this.BtnToolArkaYuz = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
@@ -196,6 +195,7 @@
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Name = "eWOrtaklıkAyarlarıToolStripMenuItem";
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Text = "EW Ortaklık Ayarları";
+            this.eWOrtaklıkAyarlarıToolStripMenuItem.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // basitNSOrtaklıkAyarlarıToolStripMenuItem
             // 
@@ -520,7 +520,7 @@
             // 
             this.maviToolStripMenuItem.Name = "maviToolStripMenuItem";
             this.maviToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
-            this.maviToolStripMenuItem.Text = "Mavi";
+            this.maviToolStripMenuItem.Text = "Siyah";
             this.maviToolStripMenuItem.Click += new System.EventHandler(this.MaviToolStripMenuItem_Click);
             // 
             // masaRengiToolStripMenuItem
@@ -774,23 +774,16 @@
             this.ButonPaneli.Size = new System.Drawing.Size(314, 165);
             this.ButonPaneli.TabIndex = 7;
             // 
-            // toolStripButton1
+            // BtnToolArkaYuz
             // 
-            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
-            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton1.Text = "toolStripButton1";
-            // 
-            // toolStripButton2
-            // 
-            this.toolStripButton2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton2.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
-            this.toolStripButton2.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton2.Name = "toolStripButton2";
-            this.toolStripButton2.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton2.Text = "toolStripButton2";
+            this.BtnToolArkaYuz.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.BtnToolArkaYuz.Image = ((System.Drawing.Image)(resources.GetObject("BtnToolArkaYuz.Image")));
+            this.BtnToolArkaYuz.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.BtnToolArkaYuz.Name = "BtnToolArkaYuz";
+            this.BtnToolArkaYuz.Size = new System.Drawing.Size(23, 22);
+            this.BtnToolArkaYuz.Text = "Kart Arka Yüzü";
+            this.BtnToolArkaYuz.ToolTipText = "Kart Arka Yüzü";
+            this.BtnToolArkaYuz.Click += new System.EventHandler(this.BtnToolArkaYuz_Click);
             // 
             // toolStripButton3
             // 
@@ -800,6 +793,7 @@
             this.toolStripButton3.Name = "toolStripButton3";
             this.toolStripButton3.Size = new System.Drawing.Size(23, 22);
             this.toolStripButton3.Text = "Masa Arka Rengi";
+            this.toolStripButton3.ToolTipText = "Masa Arka Rengi";
             // 
             // toolStripSeparator3
             // 
@@ -808,9 +802,9 @@
             // 
             // toolStrip1
             // 
+            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton1,
-            this.toolStripButton2,
+            this.BtnToolArkaYuz,
             this.toolStripButton3,
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
@@ -821,7 +815,7 @@
             // 
             // BtnTestForm
             // 
-            this.BtnTestForm.Location = new System.Drawing.Point(521, 458);
+            this.BtnTestForm.Location = new System.Drawing.Point(12, 589);
             this.BtnTestForm.Name = "BtnTestForm";
             this.BtnTestForm.Size = new System.Drawing.Size(138, 37);
             this.BtnTestForm.TabIndex = 47;
@@ -866,7 +860,7 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "AnaSayfa";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Ana Sayfa";
+            this.Text = "Briç Kart Oyunu";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.AnaSayfa_Load);
             this.Resize += new System.EventHandler(this.AnaSayfa_Resize);
@@ -968,8 +962,7 @@
         private System.Windows.Forms.ToolStripMenuItem anaMenüyeDönToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem kırmızıToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem maviToolStripMenuItem;
-        private System.Windows.Forms.ToolStripButton toolStripButton1;
-        private System.Windows.Forms.ToolStripButton toolStripButton2;
+        private System.Windows.Forms.ToolStripButton BtnToolArkaYuz;
         private System.Windows.Forms.ToolStripButton toolStripButton3;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStrip toolStrip1;
