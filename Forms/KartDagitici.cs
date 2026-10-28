@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using BricKartOyunu.Class;
+using BricKartOyunu.Class.Bidding;
 
 namespace BricKartOyunu.Forms
 {
@@ -27,6 +28,10 @@ namespace BricKartOyunu.Forms
         // [koltuk, satır, 0=min/1=max]
         private readonly TextBox[,,] _kutu = new TextBox[4, 6, 2];
         private ComboBox _cmbDagitici;
+        private Button _btnIhale;
+        private Label _lblIhale;
+        private List<string> _ihale = new List<string>();   // İhale Belirle: dağıtıcıdan başlayan teklifler
+        private int _ihaleDagitici;
         private TextBox _txtSeed, _txtAdet;
         private Label _lblZaman, _lblTest, _lblGecerli;
         private ListBox _lstDagitimlar;
@@ -90,6 +95,10 @@ namespace BricKartOyunu.Forms
             _cmbDagitici = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(74, 280), Width = 110 };
             _cmbDagitici.Items.AddRange(new object[] { "Herhangi", "Kuzey", "Doğu", "Güney", "Batı" });
 
+            _btnIhale = new Button { Text = "İhale Belirle…", Location = new Point(194, 278), Size = new Size(110, 26) };
+            _btnIhale.Click += (s, e) => IhaleBelirle();
+            _lblIhale = new Label { AutoSize = false, AutoEllipsis = true, Location = new Point(310, 283), Size = new Size(170, 18), ForeColor = Color.DimGray };
+
             var lblSecili = new Label { Text = "Seçili dağıtım:", AutoSize = true, Location = new Point(14, 314) };
             _txtEller = new TextBox { Location = new Point(10, 334), Size = new Size(470, 150), Multiline = true, ReadOnly = true, Font = new Font("Consolas", 9F), ScrollBars = ScrollBars.Vertical };
 
@@ -140,7 +149,7 @@ namespace BricKartOyunu.Forms
             _zamanlayici = new System.Windows.Forms.Timer { Interval = 150 };
             _zamanlayici.Tick += (s, e) => Guncelle();
 
-            Controls.AddRange(new Control[] { gEller, lblDagitici, _cmbDagitici, lblSecili, _txtEller, btnNS, btnEW, gUret, gDag, _btnKaydet, _btnOyna, btnCikis });
+            Controls.AddRange(new Control[] { gEller, lblDagitici, _cmbDagitici, _btnIhale, _lblIhale, lblSecili, _txtEller, btnNS, btnEW, gUret, gDag, _btnKaydet, _btnOyna, btnCikis });
             FormClosing += (s, e) => { if (_iptal != null) _iptal.Cancel(); };
         }
 
@@ -151,6 +160,8 @@ namespace BricKartOyunu.Forms
                 for (int r = 0; r < 2; r++) { _kutu[k, r, 0].Text = "0"; _kutu[k, r, 1].Text = "37"; }
                 for (int r = 2; r < 6; r++) { _kutu[k, r, 0].Text = "0"; _kutu[k, r, 1].Text = "13"; }
             }
+            _ihale = new List<string>();
+            IhaleEtiketiGuncelle();
             _cmbDagitici.SelectedIndex = 0;
             _txtSeed.Text = new Random().Next(10000000, 99999999).ToString();
             _txtAdet.Text = "10";
@@ -162,11 +173,40 @@ namespace BricKartOyunu.Forms
             _btnKaydet.Enabled = false; _btnOyna.Enabled = false;
         }
 
+        // ───────────────────────── İhale koşulu ─────────────────────────
+
+        private void IhaleBelirle()
+        {
+            if (_calisiyor) return;
+            int dag = _ihale.Count > 0 ? _ihaleDagitici : Math.Max(0, _cmbDagitici.SelectedIndex - 1);
+            using (var f = new IhaleBelirleForm(dag, _ihale))
+            {
+                if (f.ShowDialog(this) != DialogResult.OK) return;
+                _ihale = f.Teklifler;
+                _ihaleDagitici = f.Dagitici;
+                IhaleEtiketiGuncelle();
+            }
+        }
+
+        private void IhaleEtiketiGuncelle()
+        {
+            if (_ihale.Count == 0)
+            {
+                _lblIhale.Text = "İhale koşulu yok";
+                _cmbDagitici.Enabled = true;
+                return;
+            }
+            _lblIhale.Text = KoltukAd[_ihaleDagitici] + ": " + string.Join(" ", _ihale);
+            _cmbDagitici.SelectedIndex = _ihaleDagitici + 1;   // dağıtıcı ihalenin ilk teklifini yapan oyuncudur
+            _cmbDagitici.Enabled = false;
+        }
+
         // ───────────────────────── Koşullar ─────────────────────────
 
         private sealed class Kosul
         {
             public int[,,] Aralik = new int[4, 6, 2];
+            public List<string> Ihale = new List<string>();   // boş: ihale koşulu yok
             public int Dagitici = -1;   // -1: herhangi, 0..3: Kuzey, Doğu, Güney, Batı
         }
 
@@ -200,7 +240,8 @@ namespace BricKartOyunu.Forms
                 for (int r = 2; r < 6; r++) toplam += kosul.Aralik[k, r, 0];
                 if (toplam > 13) { hata = Koltuklar[k] + ": renk uzunluklarının alt sınırları toplamı 13'ü aşıyor."; return null; }
             }
-            kosul.Dagitici = _cmbDagitici.SelectedIndex - 1;
+            kosul.Dagitici = _ihale.Count > 0 ? _ihaleDagitici : _cmbDagitici.SelectedIndex - 1;
+            kosul.Ihale = new List<string>(_ihale);
             return kosul;
         }
 
@@ -254,6 +295,11 @@ namespace BricKartOyunu.Forms
 
             _iptal = new CancellationTokenSource();
             var jeton = _iptal.Token;
+            // İhale koşulu: taraf başına ortaklık anlaşması ve motor (bu iş parçacığına özel örnekler)
+            var anlasmaNS = AnlasmaYonetici.Mevcut(Taraf.NS);
+            var anlasmaEW = AnlasmaYonetici.Mevcut(Taraf.EW);
+            IhaleMotoru motorNS = null, motorEW = null;
+            if (kosul.Ihale.Count > 0) { motorNS = new IhaleMotoru(anlasmaNS); motorEW = new IhaleMotoru(anlasmaEW); }
             Task.Run(() =>
             {
                 int deneme = 0;
@@ -265,6 +311,7 @@ namespace BricKartOyunu.Forms
                     Interlocked.Exchange(ref _test, deneme);
                     var deste = DagitimUretici.Uret(DagitimProfili.Rastgele, null, seed);
                     if (!Uygun(deste, kosul)) continue;
+                    if (kosul.Ihale.Count > 0 && !KonvansiyonPratigi.IhaleEslesir(motorNS, motorEW, anlasmaNS, anlasmaEW, deste, seed, kosul.Ihale)) continue;
                     int bulunanAdet;
                     lock (_kilit) { _bulunan.Add(seed); bulunanAdet = _bulunan.Count; }
                     if (bulunanAdet >= adet) break;
@@ -361,6 +408,7 @@ namespace BricKartOyunu.Forms
             var n = El(deste, 0); var e = El(deste, 1); var s = El(deste, 2); var w = El(deste, 3);
             var sb = new StringBuilder();
             sb.AppendLine("Dağıtım #" + seed + "   Dağıtıcı: " + KoltukAd[DagiticiOf(seed)]);
+            if (_ihale.Count > 0) sb.AppendLine("İhale: " + string.Join(" ", _ihale));
             sb.AppendLine();
             string bosluk = new string(' ', 14);
             sb.AppendLine(bosluk + "KUZEY");
@@ -400,9 +448,25 @@ namespace BricKartOyunu.Forms
                     sb.AppendLine("[Dealer \"" + pbnSira[d] + "\"]");
                     sb.AppendLine("[Deal \"N:" + string.Join(" ", parcalar) + "\"]");
                     sb.AppendLine("[Note \"seed " + seed + "\"]");
+                    if (_ihale.Count > 0)
+                    {
+                        sb.AppendLine("[Auction \"" + pbnSira[d] + "\"]");
+                        sb.AppendLine(string.Join(" ", _ihale.Select(PbnTeklif)));
+                    }
                 }
                 try { File.WriteAllText(f.FileName, sb.ToString(), new UTF8Encoding(false)); }
                 catch (Exception ex) { Bildir("Dosya yazılamadı: " + ex.Message); }
+            }
+        }
+
+        private static string PbnTeklif(string t)
+        {
+            switch (t)
+            {
+                case "Pas": return "Pass";
+                case "Dbl": return "X";
+                case "RDbl": return "XX";
+                default: return t.Replace("♣", "C").Replace("♦", "D").Replace("♥", "H").Replace("♠", "S");
             }
         }
 

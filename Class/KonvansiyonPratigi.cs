@@ -33,9 +33,115 @@ namespace BricKartOyunu.Class
             return Sira[(int)m];
         }
 
+        private static readonly object _kilit = new object();
+        private static List<string> _tumAdlar;
+        private static Dictionary<string, OrtaklikAnlasmasi> _anlasmaHaritasi;
+
+        /// <summary>
+        /// Projedeki TÜM konvansiyonlar: varsayılan anlaşmada kapalı olanlar dahil. Her bool anlaşma bayrağı tek tek çevrilerek
+        /// (ve hepsi açık / hepsi kapalı denenerek) motorun aktif ettiği konvansiyonlar toplanır; her konvansiyon için
+        /// onu etkinleştiren ilk anlaşma saklanır (pratik motoru bununla kurulur).
+        /// </summary>
+        private static void Hazirla()
+        {
+            lock (_kilit)
+            {
+                if (_tumAdlar != null) return;
+                var adlar = new List<string>();
+                var harita = new Dictionary<string, OrtaklikAnlasmasi>();
+                Action<OrtaklikAnlasmasi> ekle = (an) =>
+                {
+                    List<string> l;
+                    try { l = new IhaleMotoru(an).PratikKonvansiyonAdlari(); } catch { return; }
+                    foreach (var ad in l)
+                        if (!harita.ContainsKey(ad)) { harita[ad] = an; adlar.Add(ad); }
+                };
+                ekle(OrtaklikAnlasmasi.Varsayilan());
+                var props = typeof(OrtaklikAnlasmasi).GetProperties()
+                    .Where(pr => pr.PropertyType == typeof(bool) && pr.CanRead && pr.CanWrite).ToList();
+                foreach (var pr in props)
+                {
+                    var an = OrtaklikAnlasmasi.Varsayilan();
+                    pr.SetValue(an, !(bool)pr.GetValue(an, null), null);
+                    ekle(an);
+                }
+                var hepsi = OrtaklikAnlasmasi.Varsayilan();
+                foreach (var pr in props) pr.SetValue(hepsi, true, null);
+                ekle(hepsi);
+                _anlasmaHaritasi = harita;
+                _tumAdlar = adlar;
+            }
+        }
+
+        /// <summary>Pratik listesi kategorileri (gösterim sırası). Kategorideki sıra da bilinçlidir: temelden ileriye.</summary>
+        public static readonly KeyValuePair<string, string[]>[] Kategoriler =
+        {
+            new KeyValuePair<string, string[]>("Açılışlar", new[] {
+                "1♣ Açılış Sistemi", "1♦ Açılış Sistemi", "1♣ Cevap Sistemi", "5'li Majör", "Strong NT", "2♣ Güçlü", "Benjamin Two-Bids",
+                "Zayıf İki", "Zayıf İki Cevap", "Zayıf İki Müdahale", "Multi 2♦", "Preempt", "Preempt Cevap", "Namyats",
+                "Ogust", "Gambling 3NT", "Mini-Roman 2D" }),
+            new KeyValuePair<string, string[]>("1NT Çevresi", new[] {
+                "Stayman", "Jacoby Transfer", "Minor Transfer", "Puppet Stayman", "Smolen", "Extended Stayman", "Lebensohl" }),
+            new KeyValuePair<string, string[]>("Cevaplar ve Oyun Denemeleri", new[] {
+                "Inverted Minors", "Forcing NT", "Jacoby 2NT", "Splinter", "Drury", "Bergen Raises", "Inverted Bergen Raises",
+                "Trial Bid", "Long & Short Game Tries", "İki Yönlü Checkback", "New Minor Forcing", "Wolff Signoff", "Fit Cue-Bid",
+                "XYZ (X-Y-Z)", "3. Renk Forsingi", "4. Renk Forsingi", "Reverse", "Weak Jump-Shift Resp.", "1m-2NT Invitational",
+                "German 2C Relays", "Walsh", "Preemptive Reraises", "Truscott 2NT" }),
+            new KeyValuePair<string, string[]>("Rekabet", new[] {
+                "Takeout Double", "Takeout Double Cevap", "Negative Double", "Support Double", "Support Double Cevap",
+                "Responsive Double", "Responsive Double Cevap", "Michaels", "Unusual 2NT", "Ghestem", "Cue Bid",
+                "Lebensohl (Reverse)", "Lebensohl (Zayıf 2)", "Weak Jump Overcalls", "Maximal Overcall Dbl.", "Artif. 2C/2D Resp. to 1M-X",
+                "Invisible Cue-Bids", "Limit-Plus Cue-Bids",
+                "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Sandwich 1NT", "Exit Transfer 1NT Runouts" }),
+            new KeyValuePair<string, string[]>("Slam", new[] {
+                "Blackwood", "RKCB", "Gerber", "Kickback", "Exclusion Blackwood", "Koz Q Sorusu", "Pick-a-Slam", "Grand Slam Force",
+                "Serious 3NT", "Non-Serious 3NT", "DOPI-ROPI", "Specific King Asks", "Voluntary Five Major Bid",
+                "Mathe Asking Bids", "Control Asking Bids" })
+        };
+        public const string DigerKategori = "Diğer";
+
+        /// <summary>Konvansiyonun kategorisi; listede olmayan "Diğer".</summary>
+        public static string Kategori(string ad)
+        {
+            foreach (var k in Kategoriler) if (Array.IndexOf(k.Value, ad) >= 0) return k.Key;
+            return DigerKategori;
+        }
+
+        private static int KategoriSirasi(string ad)
+        {
+            for (int i = 0; i < Kategoriler.Length; i++)
+            {
+                int j = Array.IndexOf(Kategoriler[i].Value, ad);
+                if (j >= 0) return i * 1000 + j;
+            }
+            return Kategoriler.Length * 1000;
+        }
+
         public static List<string> Konvansiyonlar()
         {
-            return new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan()).PratikKonvansiyonAdlari();
+            Hazirla();
+            return _tumAdlar.OrderBy(a => KategoriSirasi(a)).ToList();   // kararlı sıralama: kategori dışılar motor sırasını korur
+        }
+
+        /// <summary>Konvansiyonu etkinleştiren ortaklık anlaşması (bulunamazsa varsayılan).</summary>
+        public static OrtaklikAnlasmasi AnlasmaIcin(string ad)
+        {
+            Hazirla();
+            OrtaklikAnlasmasi an;
+            return ad != null && _anlasmaHaritasi.TryGetValue(ad, out an) ? an : OrtaklikAnlasmasi.Varsayilan();
+        }
+
+        [ThreadStatic] private static Dictionary<string, IhaleMotoru> _motorOnbellek;
+        /// <summary>Pratik edilecek konvansiyon için motor: o konvansiyonun açık olduğu anlaşmayla kurulur.</summary>
+        public static IhaleMotoru MotorIcin(string ad)
+        {
+            if (_motorOnbellek == null) _motorOnbellek = new Dictionary<string, IhaleMotoru>();
+            string anahtar = ad ?? "";
+            IhaleMotoru m;
+            if (_motorOnbellek.TryGetValue(anahtar, out m)) return m;
+            m = new IhaleMotoru(AnlasmaIcin(ad));
+            _motorOnbellek[anahtar] = m;
+            return m;
         }
 
         private static List<Card> KartlarinElleri(List<string> deste, int koltuk)
@@ -87,6 +193,37 @@ namespace BricKartOyunu.Class
             return sayac;
         }
 
+        /// <summary>
+        /// Dağıtımın ihalesini taraf başına ortaklık anlaşmasıyla motordan geçirir; motorun verdiği teklifler
+        /// dağıtıcıdan başlayarak 'hedef' ihalenin tüm tekliflerine (kısmi ihale olabilir) eşitse true döner.
+        /// Kart Dağıtıcı "İhale Belirle" koşulu için; ilk uyuşmazlıkta durur.
+        /// </summary>
+        public static bool IhaleEslesir(IhaleMotoru motorNS, IhaleMotoru motorEW, OrtaklikAnlasmasi anlasmaNS, OrtaklikAnlasmasi anlasmaEW,
+                                        List<string> deste, int seed, List<string> hedef)
+        {
+            if (hedef == null || hedef.Count == 0) return true;
+            var eller = new Dictionary<Player, List<Card>>();
+            for (int k = 0; k < 4; k++) eller[Sira[k]] = KartlarinElleri(deste, k);
+            var gecmis = new List<IhaleHamlesi>();
+            int bas = Array.IndexOf(Sira, Dagitici(seed));
+            for (int i = 0; i < hedef.Count; i++)
+            {
+                Player p = Sira[(bas + i) % 4];
+                bool ns = p == Player.Kuzey || p == Player.Guney;
+                var d = new IhaleDurumu
+                {
+                    AktifOyuncu = p,
+                    AktifOyuncuEli = eller[p],
+                    Anlasma = ns ? anlasmaNS : anlasmaEW,
+                    Gecmis = new List<IhaleHamlesi>(gecmis)
+                };
+                string t = (ns ? motorNS : motorEW).TeklifVer(d);
+                if (t != hedef[i]) return false;
+                gecmis.Add(new IhaleHamlesi { Oyuncu = p, Teklif = t, Sira = i + 1, GecerliMi = true });
+            }
+            return true;
+        }
+
         private class Cagri { public Player Oyuncu; public string Teklif; public string Konvansiyon; }
 
         /// <summary>Dört eli de motorla oynatır; her çağrı ve onu üreten konvansiyon döner.</summary>
@@ -95,7 +232,7 @@ namespace BricKartOyunu.Class
             var eller = new Dictionary<Player, List<Card>>();
             for (int k = 0; k < 4; k++) eller[Sira[k]] = KartlarinElleri(deste, k);
 
-            var anlasma = OrtaklikAnlasmasi.Varsayilan();
+            var anlasma = motor.Anlasma ?? OrtaklikAnlasmasi.Varsayilan();
             var gecmis = new List<IhaleHamlesi>();
             var sonuc = new List<Cagri>();
 

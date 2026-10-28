@@ -27,6 +27,69 @@ namespace BricKartOyunu.Class.Bidding
         public bool Namyats { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
+        // EK KONVANSİYONLAR (Bridge Baron listesi; varsayılan KAPALI)
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>Benjamin Two-Bids: 2♣ çok güçlü, 2♦ güçlü iki (Acol)</summary>
+        public bool BenjaminTwoBids { get; set; } = false;
+        /// <summary>Extended Stayman: zayıf 4-4 majör</summary>
+        public bool ExtendedStayman { get; set; } = false;
+        /// <summary>Hello: rakip 1NT'sine müdahale</summary>
+        public bool HelloOver1NT { get; set; } = false;
+        /// <summary>Truscott 2NT: 1M-(Dbl)-2NT limit raise</summary>
+        public bool Truscott2NT { get; set; } = false;
+        /// <summary>Preemptive Reraises</summary>
+        public bool PreemptiveReraises { get; set; } = false;
+        /// <summary>Long & Short Game Tries (TrialBid ile birlikte kullanılmaz)</summary>
+        public bool LongShortGameTries { get; set; } = false;
+        /// <summary>New Minor Forcing (İki Yönlü Checkback ile birlikte kullanılmaz)</summary>
+        public bool NewMinorForcing { get; set; } = false;
+        /// <summary>Weak Jump-Shift cevapları</summary>
+        public bool WeakJumpShiftResp { get; set; } = false;
+        /// <summary>Ogust: zayıf iki + 2NT</summary>
+        public bool Ogust { get; set; } = false;
+        /// <summary>Gambling 3NT açılışı</summary>
+        public bool Gambling3NT { get; set; } = false;
+        /// <summary>Specific King Asks</summary>
+        public bool SpecificKingAsks { get; set; } = false;
+        /// <summary>Voluntary Five Major Bid</summary>
+        public bool VoluntaryFiveMajor { get; set; } = false;
+        /// <summary>Mathe Asking Bids</summary>
+        public bool MatheAskingBids { get; set; } = false;
+        /// <summary>Control Asking Bids</summary>
+        public bool ControlAskingBids { get; set; } = false;
+        /// <summary>Ghestem (Michaels ve Unusual 2NT yerine)</summary>
+        public bool Ghestem { get; set; } = false;
+        /// <summary>Invisible Cue-Bids</summary>
+        public bool InvisibleCueBids { get; set; } = false;
+        /// <summary>Limit-Plus Cue-Bids</summary>
+        public bool LimitPlusCueBids { get; set; } = false;
+        /// <summary>Weak Jump Overcalls</summary>
+        public bool WeakJumpOvercalls { get; set; } = false;
+        /// <summary>Sandwich 1NT</summary>
+        public bool Sandwich1NT { get; set; } = false;
+        /// <summary>Maximal Overcall Double</summary>
+        public bool MaximalOvercallDbl { get; set; } = false;
+        /// <summary>1m-2NT Invitational</summary>
+        public bool OneMinorTwoNTInv { get; set; } = false;
+        /// <summary>German 2♣ Relays</summary>
+        public bool German2CRelays { get; set; } = false;
+        /// <summary>Walsh</summary>
+        public bool Walsh { get; set; } = false;
+        /// <summary>Mini-Roman 2♦</summary>
+        public bool MiniRoman2D { get; set; } = false;
+        /// <summary>Robinson (Exit Transfer ile birlikte kullanılmaz)</summary>
+        public bool Robinson { get; set; } = false;
+        /// <summary>Inverted Bergen Raises (Bergen Raises yerine)</summary>
+        public bool InvertedBergenRaises { get; set; } = false;
+        /// <summary>Exit Transfers: 1NT kontra sonrası zayıf kaçış</summary>
+        public bool ExitTransfer { get; set; } = false;
+        /// <summary>Artif. 2♣/2♦ cevapları: 1M-(Dbl)</summary>
+        public bool Artificial2C2D { get; set; } = false;
+        /// <summary>Wolff Signoff (İki Yönlü Checkback ile birlikte kullanılmaz)</summary>
+        public bool WolffSignoff { get; set; } = false;
+
+        // ═══════════════════════════════════════════════════════════════════
         // 1♣ CEVAP SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
 
@@ -145,8 +208,61 @@ namespace BricKartOyunu.Class.Bidding
         public bool StandartSignal { get; set; } = true;
 
         // ═══════════════════════════════════════════════════════════════════
+        // AGRESİFLİK VE BECERİ (Bridge Baron tarzı profil ayarları)
+        // -1 = Temkinli, 0 = Orta (varsayılan davranış), +1 = Atak
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>Açılış: -1 yalnız 12+ HP, 0 12+ HP veya 11 HP + 20 kuralı, +1 10 HP + 20 kuralı da açar.</summary>
+        public int AcilisAgresifligi { get; set; } = 0;
+        /// <summary>Müdahale (overcall): -1 eşikler +2 HP, +1 eşikler -1 HP.</summary>
+        public int MudahaleAgresifligi { get; set; } = 0;
+        /// <summary>Önleyici açılış: -1 yalnız 0-8 HP ve 2+ honörlü 7'li renk, +1 10 HP'ye kadar.</summary>
+        public int PreemptAgresifligi { get; set; } = 0;
+        /// <summary>Kart oyunu becerisi 1-20. 20 = hatasız (varsayılan); düşükse yapay zekâ ara sıra rastgele yasal kart oynar.</summary>
+        public int BeceriDuzeyi { get; set; } = 20;
+
+        // ═══════════════════════════════════════════════════════════════════
         // FABRİKA METOTLARI
         // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>Varsayılan anlaşma + adı verilen ek (Bridge Baron) konvansiyonu açık; pratik modu için.</summary>
+        public static OrtaklikAnlasmasi EkKonvansiyonIcin(string ad)
+        {
+            var a = Varsayilan();
+            switch (ad)
+            {
+                case "Benjamin Two-Bids": a.BenjaminTwoBids = true; break;
+                case "Extended Stayman": a.ExtendedStayman = true; break;
+                case "Hello over 1NT": a.HelloOver1NT = true; break;
+                case "Truscott 2NT": a.Truscott2NT = true; break;
+                case "Preemptive Reraises": a.PreemptiveReraises = true; break;
+                case "Long & Short Game Tries": a.LongShortGameTries = true; break;
+                case "New Minor Forcing": a.NewMinorForcing = true; break;
+                case "Weak Jump-Shift Resp.": a.WeakJumpShiftResp = true; break;
+                case "Ogust": a.Ogust = true; break;
+                case "Gambling 3NT": a.Gambling3NT = true; break;
+                case "Specific King Asks": a.SpecificKingAsks = true; break;
+                case "Voluntary Five Major Bid": a.VoluntaryFiveMajor = true; break;
+                case "Mathe Asking Bids": a.MatheAskingBids = true; break;
+                case "Control Asking Bids": a.ControlAskingBids = true; break;
+                case "Ghestem": a.Ghestem = true; break;
+                case "Invisible Cue-Bids": a.InvisibleCueBids = true; break;
+                case "Limit-Plus Cue-Bids": a.LimitPlusCueBids = true; break;
+                case "Weak Jump Overcalls": a.WeakJumpOvercalls = true; break;
+                case "Sandwich 1NT": a.Sandwich1NT = true; break;
+                case "Maximal Overcall Dbl.": a.MaximalOvercallDbl = true; break;
+                case "1m-2NT Invitational": a.OneMinorTwoNTInv = true; break;
+                case "German 2C Relays": a.German2CRelays = true; break;
+                case "Walsh": a.Walsh = true; break;
+                case "Mini-Roman 2D": a.MiniRoman2D = true; break;
+                case "Robinson": a.Robinson = true; break;
+                case "Inverted Bergen Raises": a.InvertedBergenRaises = true; break;
+                case "Exit Transfer 1NT Runouts": a.ExitTransfer = true; break;
+                case "Artif. 2C/2D Resp. to 1M-X": a.Artificial2C2D = true; break;
+                case "Wolff Signoff": a.WolffSignoff = true; break;
+            }
+            return a;
+        }
 
         public static OrtaklikAnlasmasi Varsayilan()
         {
@@ -319,6 +435,38 @@ namespace BricKartOyunu.Class.Bidding
             if (Cappelletti) aktifler.Add("Cappelletti");
             if (Dont) aktifler.Add("DONT");
             if (MultiLandy) aktifler.Add("Multi-Landy");
+
+            var ekler = new System.Collections.Generic.List<string>();
+            if (BenjaminTwoBids) ekler.Add("Benjamin Two-Bids");
+            if (ExtendedStayman) ekler.Add("Extended Stayman");
+            if (HelloOver1NT) ekler.Add("Hello");
+            if (Truscott2NT) ekler.Add("Truscott 2NT");
+            if (PreemptiveReraises) ekler.Add("Preemptive Reraises");
+            if (LongShortGameTries) ekler.Add("Long & Short Game Tries");
+            if (NewMinorForcing) ekler.Add("New Minor Forcing");
+            if (WeakJumpShiftResp) ekler.Add("Weak Jump-Shift cevapları");
+            if (Ogust) ekler.Add("Ogust");
+            if (Gambling3NT) ekler.Add("Gambling 3NT açılışı");
+            if (SpecificKingAsks) ekler.Add("Specific King Asks");
+            if (VoluntaryFiveMajor) ekler.Add("Voluntary Five Major Bid");
+            if (MatheAskingBids) ekler.Add("Mathe Asking Bids");
+            if (ControlAskingBids) ekler.Add("Control Asking Bids");
+            if (Ghestem) ekler.Add("Ghestem");
+            if (InvisibleCueBids) ekler.Add("Invisible Cue-Bids");
+            if (LimitPlusCueBids) ekler.Add("Limit-Plus Cue-Bids");
+            if (WeakJumpOvercalls) ekler.Add("Weak Jump Overcalls");
+            if (Sandwich1NT) ekler.Add("Sandwich 1NT");
+            if (MaximalOvercallDbl) ekler.Add("Maximal Overcall Double");
+            if (OneMinorTwoNTInv) ekler.Add("1m-2NT Invitational");
+            if (German2CRelays) ekler.Add("German 2♣ Relays");
+            if (Walsh) ekler.Add("Walsh");
+            if (MiniRoman2D) ekler.Add("Mini-Roman 2♦");
+            if (Robinson) ekler.Add("Robinson");
+            if (InvertedBergenRaises) ekler.Add("Inverted Bergen Raises");
+            if (ExitTransfer) ekler.Add("Exit Transfers");
+            if (Artificial2C2D) ekler.Add("Artif. 2♣/2♦ cevapları");
+            if (WolffSignoff) ekler.Add("Wolff Signoff");
+            aktifler.AddRange(ekler);
 
             if (UDCA) aktifler.Add("UDCA");
             else if (StandartSignal) aktifler.Add("Standart Signal");

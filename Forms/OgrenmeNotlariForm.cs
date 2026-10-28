@@ -61,5 +61,23 @@ namespace BricKartOyunu.Forms
             }
             base.OnFormClosing(e);
         }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // OgrenmeNotlariForm
+            // 
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "OgrenmeNotlariForm";
+            this.Load += new System.EventHandler(this.OgrenmeNotlariForm_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        private void OgrenmeNotlariForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

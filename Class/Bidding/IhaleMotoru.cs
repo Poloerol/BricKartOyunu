@@ -13,6 +13,8 @@ namespace BricKartOyunu.Class.Bidding
         private readonly List<IAcilisGelisimi> _acilisGelismleri;
         private readonly List<IKonvansiyon> _konvansiyonlar;
         private readonly OrtaklikAnlasmasi _anlasma;
+        /// <summary>Motorun kullandığı ortaklık anlaşması.</summary>
+        public OrtaklikAnlasmasi Anlasma { get { return _anlasma; } }
 
         public bool HatalardaFirlat { get; set; } = false;
 
@@ -76,6 +78,37 @@ namespace BricKartOyunu.Class.Bidding
             _konvansiyonlar = new List<IKonvansiyon>
             {
                 // ─── AÇILIŞLAR ───────────────────────────────────────────────
+                // ─── EK KONVANSİYONLAR (anlaşmada açıksa; Bridge Baron listesi) ───
+                new BenjaminTwoBids(),
+                new ExtendedStayman(),
+                new HelloOver1NT(),
+                new Truscott2NT(),
+                new PreemptiveReraises(),
+                new LongShortGameTries(),
+                new NewMinorForcing(),
+                new WeakJumpShiftResp(),
+                new Ogust(),
+                new Gambling3NT(),
+                new SpecificKingAsks(),
+                new VoluntaryFiveMajor(),
+                new MatheAskingBids(),
+                new ControlAskingBids(),
+                new Ghestem(),
+                new InvisibleCueBids(),
+                new LimitPlusCueBids(),
+                new WeakJumpOvercalls(),
+                new Sandwich1NT(),
+                new MaximalOvercallDbl(),
+                new OneMinorTwoNTInv(),
+                new German2CRelays(),
+                new Walsh(),
+                new MiniRoman2D(),
+                new Robinson(),
+                new InvertedBergenRaises(),
+                new ExitTransfer(),
+                new Artificial2C2D(),
+                new WolffSignoff(),
+
                 new IkiliSinekGuclu(),
                 new ZayifIki(),
                 new Multi2D(),
@@ -157,11 +190,77 @@ namespace BricKartOyunu.Class.Bidding
                 $"{_konvansiyonlar.Count(k => k.AktifMi)}");
         }
 
+        /// <summary>Tek bir konvansiyonu dener; uygun ve yasal bir teklif varsa onu, yoksa null döndürür.</summary>
+        private string KonvansiyonDene(IhaleDurumu durum, IKonvansiyon konvansiyon)
+        {
+
+                if (!konvansiyon.AktifMi) return null;
+
+                string teklif;
+                try
+                {
+                    if (!konvansiyon.UygunMu(durum)) return null;
+                    teklif = konvansiyon.TeklifVer(durum);
+                }
+                catch (Exception ex)
+                {
+                    // Tek bir konvansiyondaki hata tüm ihaleyi çökertmesin
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
+                        $"[IhaleMotoru] {konvansiyon.Ad} hata: {ex.Message}");
+                    if (HatalardaFirlat) throw;
+                    return null;
+                }
+                if (string.IsNullOrEmpty(teklif)) return null;
+
+                // Konvansiyonların koruma satırlarındaki "Pas" (ör. el == null) görüş sayılmaz;
+                // ama IBilincliPas ile işaretlenmiş konvansiyonun Pas'ı gerçek bir karardır.
+                if (PasiAtla && teklif.Equals("Pas", StringComparison.OrdinalIgnoreCase) &&
+                    !(konvansiyon is TemelMantik) && !(konvansiyon is IBilincliPas))
+                {
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
+                        $"[PAS-ATLANDI] {konvansiyon.Ad} Pas dedi, sıradakine geçiliyor.");
+                    return null;
+                }
+
+                string yasal = SeviyeYukseltme ? YasalSeviyeyeYukselt(durum, teklif) : teklif;
+                if (KorumaAktif && !IhaleKoruma.Izin(durum, yasal, konvansiyon.Ad))
+                {
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
+                        $"[KORUMA-RED] {konvansiyon.Ad} → {yasal}");
+                    return null;
+                }
+                if (!GecerliTeklifMi(durum, yasal))
+                {
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
+                        $"[GECERSIZ-RED] {konvansiyon.Ad} → {yasal} (son teklif: {durum.SonGercekTeklif})");
+                    return null;
+                }
+
+
+                if (Ayrinti) System.Diagnostics.Debug.WriteLine(
+                    $"[KAZANAN] {konvansiyon.Ad} (Oncelik={konvansiyon.Oncelik}) → {yasal}");
+
+                if (yasal != teklif)
+                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
+                        $"[IhaleMotoru] {konvansiyon.Ad} seviye yükseltildi: {teklif} → {yasal}");
+
+                SonKonvansiyonAdi = konvansiyon.Ad;
+                return yasal;
+        }
+
         public string TeklifVer(IhaleDurumu durum)
         {
             SonKonvansiyonAdi = null;
             if (durum == null) return "Pas";
             SirayiHazirla();
+
+            // 0. Aşama: Ek konvansiyonlar (Bridge Baron listesi; ortaklık anlaşmasında açıksa) — açılış sistemlerinden önce
+            foreach (var konvansiyon in _siraliKonvansiyonlar)
+            {
+                if (!(konvansiyon is YeniKonvTaban) || !konvansiyon.AktifMi) continue;
+                string ek = KonvansiyonDene(durum, konvansiyon);
+                if (ek != null) return ek;
+            }
 
             // 1. Aşama: Açılış Gelişimleri
             if (durum.AktifOyuncuEli != null)
@@ -199,58 +298,9 @@ namespace BricKartOyunu.Class.Bidding
             // 2. Aşama: Standart Konvansiyonlar (TemelMantik dahil)
             foreach (var konvansiyon in _siraliKonvansiyonlar)
             {
-                if (!konvansiyon.AktifMi) continue;
-
-                string teklif;
-                try
-                {
-                    if (!konvansiyon.UygunMu(durum)) continue;
-                    teklif = konvansiyon.TeklifVer(durum);
-                }
-                catch (Exception ex)
-                {
-                    // Tek bir konvansiyondaki hata tüm ihaleyi çökertmesin
-                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
-                        $"[IhaleMotoru] {konvansiyon.Ad} hata: {ex.Message}");
-                    if (HatalardaFirlat) throw;
-                    continue;
-                }
-                if (string.IsNullOrEmpty(teklif)) continue;
-
-                // Konvansiyonların koruma satırlarındaki "Pas" (ör. el == null) görüş sayılmaz;
-                // ama IBilincliPas ile işaretlenmiş konvansiyonun Pas'ı gerçek bir karardır.
-                if (PasiAtla && teklif.Equals("Pas", StringComparison.OrdinalIgnoreCase) &&
-                    !(konvansiyon is TemelMantik) && !(konvansiyon is IBilincliPas))
-                {
-                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
-                        $"[PAS-ATLANDI] {konvansiyon.Ad} Pas dedi, sıradakine geçiliyor.");
-                    continue;
-                }
-
-                string yasal = SeviyeYukseltme ? YasalSeviyeyeYukselt(durum, teklif) : teklif;
-                if (KorumaAktif && !IhaleKoruma.Izin(durum, yasal, konvansiyon.Ad))
-                {
-                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
-                        $"[KORUMA-RED] {konvansiyon.Ad} → {yasal}");
-                    continue;
-                }
-                if (!GecerliTeklifMi(durum, yasal))
-                {
-                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
-                        $"[GECERSIZ-RED] {konvansiyon.Ad} → {yasal} (son teklif: {durum.SonGercekTeklif})");
-                    continue;
-                }
-
-
-                if (Ayrinti) System.Diagnostics.Debug.WriteLine(
-                    $"[KAZANAN] {konvansiyon.Ad} (Oncelik={konvansiyon.Oncelik}) → {yasal}");
-
-                if (yasal != teklif)
-                    if (Ayrinti) System.Diagnostics.Debug.WriteLine(
-                        $"[IhaleMotoru] {konvansiyon.Ad} seviye yükseltildi: {teklif} → {yasal}");
-
-                SonKonvansiyonAdi = konvansiyon.Ad;
-                return yasal;
+                if (konvansiyon is YeniKonvTaban) continue;   // zaten 0. aşamada denendi
+                string sonuc = KonvansiyonDene(durum, konvansiyon);
+                if (sonuc != null) return sonuc;
             }
 
             // 3. Aşama: Hiçbir şey uymadıysa
@@ -375,7 +425,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "4'lü Majör": return !_anlasma.BesliMajor;
                 case "Strong NT": return _anlasma.StrongNT;
                 case "Weak NT": return !_anlasma.StrongNT;
-                case "2♣ Güçlü": return _anlasma.IkiliSinekGuclu;
+                case "2♣ Güçlü": return _anlasma.IkiliSinekGuclu && !_anlasma.BenjaminTwoBids;
                 case "Zayıf İki": return _anlasma.ZayifIki && !_anlasma.Multi2D;
                 case "Multi 2♦": return _anlasma.Multi2D;
                 case "Preempt": return _anlasma.Preempt;
@@ -396,7 +446,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Smolen": return _anlasma.Smolen;
                 case "Minor Transfer": return _anlasma.MinorTransfer;
 
-                case "İki Yönlü Checkback": return _anlasma.TwoWayCheckback;
+                case "İki Yönlü Checkback": return _anlasma.TwoWayCheckback && !_anlasma.NewMinorForcing && !_anlasma.WolffSignoff;
                 case "XYZ (X-Y-Z)": return _anlasma.XYZ;
 
                 case "Koz Q Sorusu": return _anlasma.RKCB;
@@ -413,8 +463,8 @@ namespace BricKartOyunu.Class.Bidding
                 case "Drury": return _anlasma.Drury;
                 case "Reverse Drury": return _anlasma.ReverseDrury;
                 case "Cue Bid": return _anlasma.CueBid;
-                case "Bergen Raises": return _anlasma.BergenRaises;
-                case "Trial Bid": return _anlasma.TrialBid;
+                case "Bergen Raises": return _anlasma.BergenRaises && !_anlasma.InvertedBergenRaises;
+                case "Trial Bid": return _anlasma.TrialBid && !_anlasma.LongShortGameTries;
                 case "3. Renk Forsingi": return _anlasma.ThirdSuitForcing;
                 case "4. Renk Forsingi": return _anlasma.FourthSuitForcing;
                 case "Reverse": return _anlasma.Reverse;
@@ -429,12 +479,42 @@ namespace BricKartOyunu.Class.Bidding
                 case "Lebensohl (Reverse)": return _anlasma.Lebensohl;
                 case "Lebensohl (Zayıf 2)": return _anlasma.Lebensohl;
                 case "Lebensohl": return _anlasma.Lebensohl;
-                case "Michaels": return _anlasma.Michaels;
-                case "Unusual 2NT": return _anlasma.Unusual2NT;
+                case "Michaels": return _anlasma.Michaels && !_anlasma.Ghestem;
+                case "Unusual 2NT": return _anlasma.Unusual2NT && !_anlasma.Ghestem;
 
-                case "Cappelletti": return _anlasma.Cappelletti;
-                case "DONT": return _anlasma.Dont;
-                case "Multi-Landy": return _anlasma.MultiLandy;
+                case "Cappelletti": return _anlasma.Cappelletti && !_anlasma.HelloOver1NT;
+                case "DONT": return _anlasma.Dont && !_anlasma.HelloOver1NT;
+                case "Multi-Landy": return _anlasma.MultiLandy && !_anlasma.HelloOver1NT;
+
+                case "Benjamin Two-Bids": return _anlasma.BenjaminTwoBids;
+                case "Extended Stayman": return _anlasma.ExtendedStayman;
+                case "Hello over 1NT": return _anlasma.HelloOver1NT;
+                case "Truscott 2NT": return _anlasma.Truscott2NT;
+                case "Preemptive Reraises": return _anlasma.PreemptiveReraises;
+                case "Long & Short Game Tries": return _anlasma.LongShortGameTries;
+                case "New Minor Forcing": return _anlasma.NewMinorForcing;
+                case "Weak Jump-Shift Resp.": return _anlasma.WeakJumpShiftResp;
+                case "Ogust": return _anlasma.Ogust;
+                case "Gambling 3NT": return _anlasma.Gambling3NT;
+                case "Specific King Asks": return _anlasma.SpecificKingAsks;
+                case "Voluntary Five Major Bid": return _anlasma.VoluntaryFiveMajor;
+                case "Mathe Asking Bids": return _anlasma.MatheAskingBids;
+                case "Control Asking Bids": return _anlasma.ControlAskingBids;
+                case "Ghestem": return _anlasma.Ghestem;
+                case "Invisible Cue-Bids": return _anlasma.InvisibleCueBids;
+                case "Limit-Plus Cue-Bids": return _anlasma.LimitPlusCueBids;
+                case "Weak Jump Overcalls": return _anlasma.WeakJumpOvercalls;
+                case "Sandwich 1NT": return _anlasma.Sandwich1NT;
+                case "Maximal Overcall Dbl.": return _anlasma.MaximalOvercallDbl;
+                case "1m-2NT Invitational": return _anlasma.OneMinorTwoNTInv;
+                case "German 2C Relays": return _anlasma.German2CRelays;
+                case "Walsh": return _anlasma.Walsh;
+                case "Mini-Roman 2D": return _anlasma.MiniRoman2D;
+                case "Robinson": return _anlasma.Robinson;
+                case "Inverted Bergen Raises": return _anlasma.InvertedBergenRaises;
+                case "Exit Transfer 1NT Runouts": return _anlasma.ExitTransfer && !_anlasma.Robinson;
+                case "Artif. 2C/2D Resp. to 1M-X": return _anlasma.Artificial2C2D;
+                case "Wolff Signoff": return _anlasma.WolffSignoff;
 
                 case "Temel Mantık (Fallback)": return true; // Her zaman aktif
 

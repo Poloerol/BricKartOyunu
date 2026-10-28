@@ -1,4 +1,7 @@
 ﻿using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+using BricKartOyunu.Class;
 
 namespace BricKartOyunu
 {
@@ -22,5 +25,50 @@ namespace BricKartOyunu
         /// Masa (oyun tahtası) arka plan rengi. Varsayılan: Yeşil.
         /// </summary>
         public static Color MasaRengi { get; set; } = Color.Green;
+
+        // ── Kart arka yüzü: Resources\Cards\Backs içindeki iki resimden biri ──
+        public const string ArkaYuzKirmizi = "Back.png";
+        public const string ArkaYuzSiyah = "BackBlack.png";
+
+        /// <summary>Seçili arka yüz dosya adı (yalnızca ArkaYuzKirmizi / ArkaYuzSiyah).</summary>
+        public static string ArkaYuzDosya { get; set; } = ArkaYuzKirmizi;
+
+        public static string ArkaYuzYolu(string dosya)
+        {
+            return Path.Combine(Application.StartupPath, "Resources", "Cards", "Backs", dosya);
+        }
+
+        /// <summary>Seçili arka yüz resminin tam yolu.</summary>
+        public static string ArkaYuzYolu()
+        {
+            return ArkaYuzYolu(ArkaYuzDosya);
+        }
+
+        private static bool GecerliArkaYuz(string dosya)
+        {
+            return dosya == ArkaYuzKirmizi || dosya == ArkaYuzSiyah;   // dışarıdan gelen ada güvenme
+        }
+
+        public class GorunumAyari
+        {
+            public string ArkaYuz { get; set; } = ArkaYuzKirmizi;
+        }
+
+        /// <summary>Kayıtlı arka yüz seçimini yükler (yoksa/bozuksa kırmızı).</summary>
+        public static void ArkaYuzuYukle()
+        {
+            try
+            {
+                var g = AyarDeposu.Yukle<GorunumAyari>("gorunum");
+                ArkaYuzDosya = (g != null && GecerliArkaYuz(g.ArkaYuz)) ? g.ArkaYuz : ArkaYuzKirmizi;
+            }
+            catch { ArkaYuzDosya = ArkaYuzKirmizi; }
+        }
+
+        public static void ArkaYuzuKaydet()
+        {
+            try { AyarDeposu.Kaydet("gorunum", new GorunumAyari { ArkaYuz = ArkaYuzDosya }); }
+            catch { }
+        }
     }
 }

@@ -39,7 +39,10 @@ namespace BricKartOyunu.Forms
                 new Madde("Namyats", "Namyats", "4♣/4♦ açılışları güçlü 4♥/4♠ önleyicilerini gösterir."),
                 new Madde("OneClub_AnswerSistemi", "1♣ cevap sistemi (Polish hibrit)", "1♣ açılışına özel cevap tablosu."),
                 new Madde("Reverse", "Reverse gelişimi", "Açıcının ikinci rengi daha yüksekse güçlü el (16+) gösterir."),
-                new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır.")),
+                new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır."),
+                new Madde("BenjaminTwoBids", "Benjamin iki'ler", "2♣ çok güçlü, 2♦ güçlü iki (Acol); 2♥/2♠ zayıf kalır. 2♣ güçlü açılışın yerini alır."),
+                new Madde("Gambling3NT", "Gambling 3NT", "3NT açılışı: sağlam 7+ minör, dışarıda A/K yok. Ortak durdurucu yoksa 4♣ ile düzeltir."),
+                new Madde("MiniRoman2D", "Mini-Roman 2♦", "2♦: ♦ tekil/void, ♠♥♣ dörtlü (11-15 HP); cevap geç/düzelt.")),
             new Grup("Cevap ve gelişim",
                 new Madde("InvertedMinors", "Ters minörler", "1m–2m destek davetidir (1m–3m önleyici)."),
                 new Madde("BergenRaises", "Bergen destekleri", "Majör açılışına 3♣/3♦ ile 4'lü destek gösterir."),
@@ -51,14 +54,29 @@ namespace BricKartOyunu.Forms
                 new Madde("ThirdSuitForcing", "Üçüncü renk zorlaması", "Söylenmemiş rengin teklifi zorlayıcı soru olur."),
                 new Madde("FourthSuitForcing", "Dördüncü renk zorlaması", "Dördüncü renk oyun zorlayan soru olur."),
                 new Madde("TwoWayCheckback", "İki yönlü checkback", "1NT sonrası 2♣/2♦ ile majör sorgusu."),
-                new Madde("XYZ", "XYZ", "1♣/1♦–1M–1NT gibi dizilerde yapay devam teklifleri.")),
+                new Madde("XYZ", "XYZ", "1♣/1♦–1M–1NT gibi dizilerde yapay devam teklifleri."),
+                new Madde("WeakJumpShiftResp", "Zayıf sıçrama cevapları", "1x–2y sıçrama: 6+ renk, 0-6 HP; açıcı geçer."),
+                new Madde("Ogust", "Ogust", "Zayıf iki + 2NT: 3♣ min/zayıf, 3♦ min/iyi, 3♥ maks/zayıf, 3♠ maks/iyi, 3NT sağlam."),
+                new Madde("InvertedBergenRaises", "Ters Bergen destekleri", "1M–3♣: limit (10-12), 3♦: kurucu (7-9). Bergen destekleri'nin yerini alır."),
+                new Madde("OneMinorTwoNTInv", "1m–2NT davet", "1♣/1♦–2NT: 11-12 HP dengeli, majör yok."),
+                new Madde("German2CRelays", "Alman 2♣ röleleri", "2♣–2♦–2NT sonrası Stayman (3♣) ve transferler (3♦/3♥)."),
+                new Madde("Walsh", "Walsh", "1♣–1♦ ile majör atlanır (4+♦, 6-10 HP); 4-4 majörde 1♥."),
+                new Madde("NewMinorForcing", "Yeni minör zorlaması", "1x–1y–1NT sonrası yeni minör: majör desteği sorusu. İki yönlü checkback ile birlikte seçilmez."),
+                new Madde("WolffSignoff", "Wolff bırakma", "1x–1y–1NT sonrası 2♣ = 2♦ röle; zayıf minör bırakma."),
+                new Madde("Truscott2NT", "Truscott 2NT", "1M–(Dbl)–2NT: 4+ destekli limit raise."),
+                new Madde("Artificial2C2D", "Yapay 2♣/2♦ (1M–Dbl)", "1M–(Dbl)–2♣: 3'lü destekli limit, 2♦: oyun zorlayan raise."),
+                new Madde("PreemptiveReraises", "Önleyici reraise", "1M–2M, rakip yarışınca 6+ kozla 4M."),
+                new Madde("LongShortGameTries", "Uzun & kısa oyun denemeleri", "1M–2M sonrası kısa renk denemesi. Deneme teklifi ile birlikte seçilmez.")),
             new Grup("NT yapıları",
                 new Madde("Stayman", "Stayman", "1NT'ye 2♣: 4'lü majör sorusu."),
                 new Madde("JacobyTransfer", "Jacoby transfer", "1NT'ye 2♦/2♥: 5'li majöre transfer."),
                 new Madde("Smolen", "Smolen", "Stayman'a 2♦ cevabı sonrası 3♥/3♠ ile uzun majörü gösterir (Stayman gerekir)."),
                 new Madde("PuppetStayman", "Puppet Stayman", "2NT/3NT açılışında 5'li majör sorusu."),
                 new Madde("MinorTransfer", "Minör transferi", "1NT'ye 2♠/2NT ile minöre transfer."),
-                new Madde("Lebensohl", "Lebensohl", "Rakip müdahalesinde 2NT ile zayıf/güçlü ayrımı.")),
+                new Madde("Lebensohl", "Lebensohl", "Rakip müdahalesinde 2NT ile zayıf/güçlü ayrımı."),
+                new Madde("ExtendedStayman", "Extended Stayman", "1NT–2♣ ile zayıf 4-4 majör; 2♦ sonrası 2♥ bırakma."),
+                new Madde("Robinson", "Robinson", "1NT–(Dbl): 2♣ Stayman, 2♦/2♥ transfer, RDbl = ♣ transferi. Exit transfer ile birlikte seçilmez."),
+                new Madde("ExitTransfer", "Exit transferler", "1NT–(Dbl): zayıf kaçış transferleri (2♣→♦, 2♦→♥, 2♥→♠, 2♠→♣).")),
             new Grup("Slam konvansiyonları",
                 new Madde("Blackwood", "Blackwood", "4NT: as sorusu."),
                 new Madde("RKCB", "RKCB", "Koz kilit kart sorusu (4NT)."),
@@ -66,7 +84,11 @@ namespace BricKartOyunu.Forms
                 new Madde("Gerber", "Gerber", "NT'ye karşı 4♣ ile as sorusu."),
                 new Madde("CueBid", "Cue bid (kontrol gösterme)", "Fit sonrası yan renkte as/kontrol gösterir."),
                 new Madde("Serious3NT", "Ciddi 3NT", "Slam ilgisi gösteren 3NT."),
-                new Madde("NonSerious3NT", "Ciddi olmayan 3NT", "Slam ilgisi olmadığını gösteren 3NT.")),
+                new Madde("NonSerious3NT", "Ciddi olmayan 3NT", "Slam ilgisi olmadığını gösteren 3NT."),
+                new Madde("SpecificKingAsks", "Belirli papaz sorusu", "RKCB cevabından sonra 5 seviyesinde yan renk = o renkte papaz sorusu (RKCB gerekir)."),
+                new Madde("VoluntaryFiveMajor", "Gönüllü 5 majör", "Rakip 4M deyince destekli majörde 5M fedakârlığı."),
+                new Madde("MatheAskingBids", "Mathe soru teklifleri", "1M–3M sonrası açıcının en ucuz teklifi: kısa renk sorusu."),
+                new Madde("ControlAskingBids", "Kontrol soru teklifleri", "1M–3M sonrası 4♣/4♦: o renkte kontrol sorusu.")),
             new Grup("Rekabet ve savunma",
                 new Madde("NegativeDouble", "Negatif kontr", "Müdahaleden sonra cevapçının kontrü: kalan majör(ler)."),
                 new Madde("TakeoutDouble", "Takeout kontr", "Rakip açılışına kontr: kalan renkleri ister."),
@@ -76,23 +98,38 @@ namespace BricKartOyunu.Forms
                 new Madde("Unusual2NT", "Unusual 2NT", "Rakip açılışına 2NT: iki en düşük renk."),
                 new Madde("Cappelletti", "Cappelletti", "1NT'ye karşı müdahale sistemi (tek seçilir)."),
                 new Madde("Dont", "DONT", "1NT'ye karşı müdahale sistemi (tek seçilir)."),
-                new Madde("MultiLandy", "Multi-Landy", "1NT'ye karşı müdahale sistemi (tek seçilir)."))
+                new Madde("MultiLandy", "Multi-Landy", "1NT'ye karşı müdahale sistemi (tek seçilir)."),
+                new Madde("HelloOver1NT", "Hello (1NT'ye karşı)", "Rakip 1NT'sine: 2♣ iki majör, 2♦ uzun majör, 2♥/2♠ majör+minör, 2NT iki minör."),
+                new Madde("Sandwich1NT", "Sandwich 1NT", "(1x)–Pas–(1y)–1NT: kalan iki renk."),
+                new Madde("Ghestem", "Ghestem", "Cue = iki yüksek, 2NT = iki alçak, 3♣ = alçak+yüksek. Michaels/Unusual 2NT yerine."),
+                new Madde("WeakJumpOvercalls", "Zayıf sıçramalı müdahale", "(1x)–2y sıçrama: 6 kart, 5-9 HP."),
+                new Madde("MaximalOvercallDbl", "Maximal müdahale kontrü", "1M–2M–(3x alt renk)–Dbl: oyun daveti."),
+                new Madde("InvisibleCueBids", "Görünmez cue-bid", "1m–(1M)–2M: minörde oyun zorlayan raise."),
+                new Madde("LimitPlusCueBids", "Limit-üstü cue-bid", "1M–(c)–cue: 3+ destekli limit raise ya da üstü."))
         };
 
         // Aynı anda yalnızca biri açık olabilen alan grupları
         private static readonly string[][] Dislayan =
         {
-            new[] { "Cappelletti", "Dont", "MultiLandy" },
+            new[] { "Cappelletti", "Dont", "MultiLandy", "HelloOver1NT" },
             new[] { "Serious3NT", "NonSerious3NT" },
             new[] { "Drury", "ReverseDrury" },
-            new[] { "ZayifIki", "Multi2D" }
+            new[] { "ZayifIki", "Multi2D" },
+            new[] { "IkiliSinekGuclu", "BenjaminTwoBids" },
+            new[] { "BergenRaises", "InvertedBergenRaises" },
+            new[] { "TrialBid", "LongShortGameTries" },
+            new[] { "TwoWayCheckback", "NewMinorForcing", "WolffSignoff" },
+            new[] { "Robinson", "ExitTransfer" },
+            new[] { "Ghestem", "Michaels" },
+            new[] { "Ghestem", "Unusual2NT" }
         };
 
         // alan → onsuz anlamsız olduğu alan
         private static readonly Dictionary<string, string> Gerektirir = new Dictionary<string, string>
         {
             { "Smolen", "Stayman" },
-            { "RKCB1430", "RKCB" }
+            { "RKCB1430", "RKCB" },
+            { "SpecificKingAsks", "RKCB" }
         };
 
         private readonly OrtaklikAnlasmasi _anlasma;

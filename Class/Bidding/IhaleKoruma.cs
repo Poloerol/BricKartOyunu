@@ -458,7 +458,7 @@ namespace BricKartOyunu.Class.Bidding
                 }
             }
 
-            if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale")
+            if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale" || BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad))
                 return true;
 
             int sev = Sev(teklif);

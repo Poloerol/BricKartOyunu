@@ -38,9 +38,9 @@
             // BtnDeklarasyon
             // 
             this.BtnDeklarasyon.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.BtnDeklarasyon.Location = new System.Drawing.Point(24, 13);
+            this.BtnDeklarasyon.Location = new System.Drawing.Point(9, 8);
             this.BtnDeklarasyon.Name = "BtnDeklarasyon";
-            this.BtnDeklarasyon.Size = new System.Drawing.Size(121, 33);
+            this.BtnDeklarasyon.Size = new System.Drawing.Size(146, 25);
             this.BtnDeklarasyon.TabIndex = 0;
             this.BtnDeklarasyon.Text = "Deklarasyon";
             this.BtnDeklarasyon.UseVisualStyleBackColor = true;
@@ -49,9 +49,9 @@
             // BtnKontratAyar
             // 
             this.BtnKontratAyar.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.BtnKontratAyar.Location = new System.Drawing.Point(24, 52);
+            this.BtnKontratAyar.Location = new System.Drawing.Point(9, 39);
             this.BtnKontratAyar.Name = "BtnKontratAyar";
-            this.BtnKontratAyar.Size = new System.Drawing.Size(121, 33);
+            this.BtnKontratAyar.Size = new System.Drawing.Size(146, 25);
             this.BtnKontratAyar.TabIndex = 1;
             this.BtnKontratAyar.Text = "Kontratı Ayarla";
             this.BtnKontratAyar.UseVisualStyleBackColor = true;
@@ -59,9 +59,9 @@
             // BtnElDegistir
             // 
             this.BtnElDegistir.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.BtnElDegistir.Location = new System.Drawing.Point(24, 91);
+            this.BtnElDegistir.Location = new System.Drawing.Point(9, 70);
             this.BtnElDegistir.Name = "BtnElDegistir";
-            this.BtnElDegistir.Size = new System.Drawing.Size(121, 33);
+            this.BtnElDegistir.Size = new System.Drawing.Size(146, 25);
             this.BtnElDegistir.TabIndex = 2;
             this.BtnElDegistir.Text = "Elleri Değiştir";
             this.BtnElDegistir.UseVisualStyleBackColor = true;
@@ -70,9 +70,9 @@
             // BtnSonrakiDagilim
             // 
             this.BtnSonrakiDagilim.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.BtnSonrakiDagilim.Location = new System.Drawing.Point(24, 130);
+            this.BtnSonrakiDagilim.Location = new System.Drawing.Point(9, 101);
             this.BtnSonrakiDagilim.Name = "BtnSonrakiDagilim";
-            this.BtnSonrakiDagilim.Size = new System.Drawing.Size(121, 33);
+            this.BtnSonrakiDagilim.Size = new System.Drawing.Size(146, 25);
             this.BtnSonrakiDagilim.TabIndex = 3;
             this.BtnSonrakiDagilim.Text = "Sonraki Dağılım";
             this.BtnSonrakiDagilim.UseVisualStyleBackColor = true;
@@ -81,9 +81,9 @@
             // BtnOyundanCik
             // 
             this.BtnOyundanCik.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.BtnOyundanCik.Location = new System.Drawing.Point(24, 169);
+            this.BtnOyundanCik.Location = new System.Drawing.Point(9, 132);
             this.BtnOyundanCik.Name = "BtnOyundanCik";
-            this.BtnOyundanCik.Size = new System.Drawing.Size(121, 33);
+            this.BtnOyundanCik.Size = new System.Drawing.Size(146, 25);
             this.BtnOyundanCik.TabIndex = 4;
             this.BtnOyundanCik.Text = "Oyundan Çık";
             this.BtnOyundanCik.UseVisualStyleBackColor = true;
@@ -93,7 +93,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(172, 219);
+            this.ClientSize = new System.Drawing.Size(167, 165);
             this.Controls.Add(this.BtnOyundanCik);
             this.Controls.Add(this.BtnSonrakiDagilim);
             this.Controls.Add(this.BtnElDegistir);

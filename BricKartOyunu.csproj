@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>BricKartOyunu.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="itext.barcodes, Version=9.8.0.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
       <HintPath>packages\itext.9.8.0\lib\net461\itext.barcodes.dll</HintPath>
@@ -215,6 +218,14 @@
     <Compile Include="Class\Bidding\Conventions\ZayifIki.cs" />
     <Compile Include="Class\Bidding\Conventions\XYZ.cs" />
     <Compile Include="Class\Bidding\Conventions\Zayifikicevapvemudahale.cs" />
+    <Compile Include="Class\Bidding\Conventions\YeniKonv1.cs" />
+    <Compile Include="Class\Bidding\Conventions\YeniKonv2.cs" />
+    <Compile Include="Class\Bidding\Conventions\YeniKonv3.cs" />
+    <Compile Include="Class\Bidding\IhaleYorumcusu.cs" />
+    <Compile Include="Class\Bidding\IhaleAnalizi.cs" />
+    <Compile Include="Forms\KartArkaYuzSecForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Class\Bidding\ElDegerlendirici.cs" />
     <Compile Include="Class\Bidding\IhaleDurumu.cs" />
     <Compile Include="Class\Bidding\IhaleHamlesi.cs" />
@@ -251,27 +262,35 @@
     </Compile>
     <Compile Include="Forms\BricOyna.Bord.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.GeriAl.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.Menu.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.Oyun.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.Paneller.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.Skor.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.Test.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.Yardimcilar.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.Designer.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
@@ -291,6 +310,9 @@
     </Compile>
     <Compile Include="Forms\BordSonuAkisi.cs" />
     <Compile Include="Forms\AnlasmaYonetici.cs" />
+    <Compile Include="Forms\KonvansiyonSecimForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\AnlasmaForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -299,6 +321,7 @@
     </Compile>
     <Compile Include="Forms\DeklarasyonForm.Ogrenme.cs">
       <DependentUpon>DeklarasyonForm.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\DealCompleteForm.cs">
       <SubType>Form</SubType>
@@ -336,11 +359,17 @@
     <Compile Include="Forms\IhaleGecmisiForm.Designer.cs">
       <DependentUpon>IhaleGecmisiForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\IhaleBilgiForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\IhaleYorumuForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\IhaleYorumuForm.Designer.cs">
       <DependentUpon>IhaleYorumuForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\IhaleBelirleForm.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\KartDagitici.cs">
       <SubType>Form</SubType>
@@ -387,6 +416,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestRunner.cs" />
+    <EmbeddedResource Include="Forms\AnlasmaForm.resx">
+      <DependentUpon>AnlasmaForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\BricMaci.resx">
       <DependentUpon>BricMaci.cs</DependentUpon>
     </EmbeddedResource>
@@ -426,8 +458,14 @@
     <EmbeddedResource Include="AnaSayfa.resx">
       <DependentUpon>AnaSayfa.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OgrenmeNotlariForm.resx">
+      <DependentUpon>OgrenmeNotlariForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\OynananElleriGosterForm.resx">
       <DependentUpon>OynananElleriGosterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OyunPlaniAyarlari.resx">
+      <DependentUpon>OyunPlaniAyarlari.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\TestForm.resx">
       <DependentUpon>TestForm.cs</DependentUpon>
@@ -468,6 +506,7 @@
     <Folder Include="Images\UI\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BricKartOyunu.ico" />
     <Content Include="Images\Backgrounds\AnaCover.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

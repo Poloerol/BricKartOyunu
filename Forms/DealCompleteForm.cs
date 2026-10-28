@@ -264,5 +264,10 @@ namespace BricKartOyunu.Forms
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
+
+        private void btnNextDeal_Click_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }

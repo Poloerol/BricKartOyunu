@@ -29,8 +29,40 @@ namespace BricKartOyunu
         private readonly List<Card> doguEl = new List<Card>();
 
         // 🔹 SINIF SEVİYESİNDE KOORDİNATLAR VE BOYUTLAR
-        private readonly int _kartGenislik = 90;
-        private readonly int _kartYukseklik = 135;
+        // Ekran ölçeği: 1.0 = tasarım ölçüsü (≈1080p). Küçük ekranlarda (ör. 1366x768) tüm düzen orantılı küçültülür.
+        private float _olcek = 1f;
+        private int Ol(int v) { return _olcek >= 0.999f ? v : (int)Math.Round(v * _olcek); }
+        private int _kartGenislik { get { return Ol(90); } }
+        private int _kartYukseklik { get { return Ol(135); } }
+
+        // Ölçeklenmeyen sabit paylar: üstte menü+araç çubuğu (40), altta oyuncu rozeti + durum çubuğu (50)
+        private const int UstSabitPay = 40;
+        private const int AltSabitPay = 50;
+        // Ölçeklenen bölüm (172 + 4 kart + 3×2 + 10 + 1 kart) tasarım yüksekliği
+        private const int OlceklenenTasarimYuksekligi = 172 + (4 * 135 + 3 * 2) + 10 + 135;
+
+        /// <summary>Mevcut pencere yüksekliğine göre düzen ölçeğini hesaplar; değiştiyse kartları/masayı yeniden boyutlar.</summary>
+        private void OlcegiGuncelle()
+        {
+            float yeni = (float)(this.ClientSize.Height - UstSabitPay - AltSabitPay) / OlceklenenTasarimYuksekligi;
+            if (yeni > 1f) yeni = 1f;
+            if (yeni < 0.5f) yeni = 0.5f;
+            if (yeni >= 0.98f) yeni = 1f;   // küçük farkları yok say: 1080p'de görünüm değişmesin
+            if (Math.Abs(yeni - _olcek) < 0.005f) return;
+            _olcek = yeni;
+
+            foreach (var dizi in new[] { batiKartlar, kuzeyKartlar, doguKartlar, guneyKartlar })
+                foreach (var pb in dizi)
+                    if (pb != null) pb.Size = new Size(_kartGenislik, _kartYukseklik);
+
+            if (playZonePanel != null) playZonePanel.Size = new Size(Ol(500), Ol(500));
+            foreach (var kv in _masadakiKartlar)
+            {
+                if (kv.Value == null) continue;
+                kv.Value.Size = new Size(MasaKartGenislik, MasaKartYukseklik);
+                kv.Value.Location = OyuncuIcinMasaPozisyonu(kv.Key);
+            }
+        }
         private int _kuzeyY = 0;
         private int _guneyY = 0;
 
@@ -224,8 +256,8 @@ namespace BricKartOyunu
         // OYUN OYNAMA — Masa Kartları
         // ====================================================================
         // Masa kartı boyutu (elden biraz küçük — 4 kart masada sığsın)
-        private const int MasaKartGenislik = 70;
-        private const int MasaKartYukseklik = 105;
+        private int MasaKartGenislik { get { return Ol(70); } }
+        private int MasaKartYukseklik { get { return Ol(105); } }
 
         // Masa kartlarının playZonePanel içindeki göreli konumları (merkez noktaları)
         // Bu değerleri değiştirerek kartların masada nerede duracağını ayarlayabilirsin.
@@ -548,6 +580,29 @@ namespace BricKartOyunu
             }
         }
 
+        /// <summary>Araç çubuğu: kart arka yüzünü iki resimden biriyle değiştirir; ekrandaki kapalı kartlar hemen güncellenir.</summary>
+        private void BrnKartArka_Click(object sender, EventArgs e)
+        {
+            string mevcut = Path.GetFileName(_currentBackImagePath ?? AppState.ArkaYuzYolu());
+            using (var f = new KartArkaYuzSecForm(mevcut))
+            {
+                if (f.ShowDialog(this) != DialogResult.OK) return;
+
+                Image eski = GetBackImage();
+                AppState.ArkaYuzDosya = f.Secilen;
+                AppState.ArkaYuzuKaydet();
+                CurrentBackImage = AppState.ArkaYuzYolu();
+                Image yeni = GetBackImage();
+                if (yeni == null) return;
+
+                // Şu an arka yüz gösteren tüm kartları yeni resimle değiştir (açık kartlara dokunma)
+                foreach (var dizi in new[] { batiKartlar, kuzeyKartlar, doguKartlar, guneyKartlar })
+                    foreach (var pb in dizi)
+                        if (pb != null && eski != null && ReferenceEquals(pb.Image, eski)) pb.Image = yeni;
+                this.Invalidate(true);
+            }
+        }
+
         private void BricOyna_Load(object sender, EventArgs e)
         {
             KoltukHaritasi.Uygula(AnaSayfa.OyunPlani == null ? null : AnaSayfa.OyunPlani.InsanMi);
@@ -555,6 +610,7 @@ namespace BricKartOyunu
 
             // İpucu: oynanması önerilen kartı sarıyla işaretler (araç çubuğu düğmesi ve menü)
             BtnIpucu.Click += BtnIpucu_Click;
+            BrnKartArka.Click += BrnKartArka_Click;
             BtnMasaRenk.Click += MasaRengiToolStripMenuItem_Click;
             ipucuToolStripMenuItem.Click += BtnIpucu_Click;
 
@@ -708,21 +764,26 @@ namespace BricKartOyunu
         }
         private int GetCenteredEWStartingY()
         {
-            return _kuzeyY + 172;
+            return _kuzeyY + Ol(172);
         }
 
         private void KartYerlesimiHazirla()
         {
+            OlcegiGuncelle();
             int maxEWToplamYukseklik = (4 * _kartYukseklik) + (3 * 2);
             int toplamBlokYukseklik = _kartYukseklik + maxEWToplamYukseklik + _kartYukseklik;
 
             int ustSınır = 40;
             int dikeyKaydırma = (this.ClientSize.Height - toplamBlokYukseklik) / 2;
+            // Küçük ekranda alt kenarı (rozet + durum çubuğu) taşırmasın
+            int altaKadar = Ol(172) + maxEWToplamYukseklik + Ol(10) + _kartYukseklik;
+            int altSinir = this.ClientSize.Height - AltSabitPay - altaKadar;
+            if (dikeyKaydırma > altSinir) dikeyKaydırma = altSinir;
             if (dikeyKaydırma < ustSınır) dikeyKaydırma = ustSınır;
 
             _kuzeyY = dikeyKaydırma;
-            int ewBaslangicY = _kuzeyY + 172;
-            _guneyY = ewBaslangicY + maxEWToplamYukseklik + 10;
+            int ewBaslangicY = _kuzeyY + Ol(172);
+            _guneyY = ewBaslangicY + maxEWToplamYukseklik + Ol(10);
 
             float dikeyAdim = (maxEWToplamYukseklik - _kartYukseklik) / 12f;
             if (dikeyAdim < 0) dikeyAdim = 0;
@@ -755,9 +816,9 @@ namespace BricKartOyunu
             // Doğu eli: konumu elde kalan kart sayısına göre DEĞİŞMEMELİ (Hepsi/NS/EW geçişlerinde
             // ve oyun sırasında Doğu sütunu kaymasın). Kuzey elinin en geniş hali (13 kart, renk
             // grupları arası boşluklu) esas alınır; oyun alanının sağ kenarının da dışında kalır.
-            int kuzeyEnGenisBitisX = kuzeyX + (9 * 18) + (3 * (_kartGenislik + 10)) + _kartGenislik;
+            int kuzeyEnGenisBitisX = kuzeyX + (9 * Ol(18)) + (3 * (_kartGenislik + Ol(10))) + _kartGenislik;
             int doguX = kuzeyEnGenisBitisX + yanBosluk;
-            int oyunAlaniSagKenar = ((this.ClientSize.Width - 500) / 6) + 30 + 500;
+            int oyunAlaniSagKenar = ((this.ClientSize.Width - Ol(500)) / 6) + 30 + Ol(500);
             if (doguX < oyunAlaniSagKenar + 40) doguX = oyunAlaniSagKenar + 40;
 
             // 3. DOĞU KARTLARI

@@ -772,7 +772,7 @@ namespace BricKartOyunu
                 {
                     BackColor = Color.FromArgb(0, 100, 0),
                     BorderStyle = BorderStyle.FixedSingle,
-                    Size = new Size(500, 500),
+                    Size = new Size(Ol(500), Ol(500)),
                     Cursor = Cursors.Hand   // 🔹 Tıklanabilir hissi
                 };
                 EnableDoubleBuffer(playZonePanel);

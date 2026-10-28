@@ -38,17 +38,18 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 26);
+            this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(187, 13);
+            this.label1.Size = new System.Drawing.Size(120, 26);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Hangi el Güney\'in Eli ile değiştirilecek?";
+            this.label1.Text = "Hangi el Güney\'in Eli ile \r\n        değiştirilecek?";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // radioButton1
             // 
             this.radioButton1.AutoSize = true;
             this.radioButton1.Checked = true;
-            this.radioButton1.Location = new System.Drawing.Point(58, 42);
+            this.radioButton1.Location = new System.Drawing.Point(49, 38);
             this.radioButton1.Name = "radioButton1";
             this.radioButton1.Size = new System.Drawing.Size(43, 17);
             this.radioButton1.TabIndex = 1;
@@ -59,7 +60,7 @@
             // radioButton2
             // 
             this.radioButton2.AutoSize = true;
-            this.radioButton2.Location = new System.Drawing.Point(58, 65);
+            this.radioButton2.Location = new System.Drawing.Point(49, 61);
             this.radioButton2.Name = "radioButton2";
             this.radioButton2.Size = new System.Drawing.Size(54, 17);
             this.radioButton2.TabIndex = 2;
@@ -70,7 +71,7 @@
             // radioButton3
             // 
             this.radioButton3.AutoSize = true;
-            this.radioButton3.Location = new System.Drawing.Point(58, 88);
+            this.radioButton3.Location = new System.Drawing.Point(49, 84);
             this.radioButton3.Name = "radioButton3";
             this.radioButton3.Size = new System.Drawing.Size(51, 17);
             this.radioButton3.TabIndex = 3;
@@ -80,9 +81,9 @@
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(44, 111);
+            this.BtnOK.Location = new System.Drawing.Point(24, 107);
             this.BtnOK.Name = "BtnOK";
-            this.BtnOK.Size = new System.Drawing.Size(109, 35);
+            this.BtnOK.Size = new System.Drawing.Size(88, 23);
             this.BtnOK.TabIndex = 4;
             this.BtnOK.Text = "OK";
             this.BtnOK.UseVisualStyleBackColor = true;
@@ -92,7 +93,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(208, 162);
+            this.ClientSize = new System.Drawing.Size(141, 139);
             this.Controls.Add(this.BtnOK);
             this.Controls.Add(this.radioButton3);
             this.Controls.Add(this.radioButton2);

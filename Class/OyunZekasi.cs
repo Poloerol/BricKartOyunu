@@ -79,6 +79,7 @@ namespace BricKartOyunu.Class
         public int ElNo;                                     // biten el sayısı (0 = açılış atağı eli)
         public List<string> IhaleGecmisi;                    // "1♠", "Pas", ...
         public string IhaleBaslangici;                       // "Bati" / "Kuzey" / "Dogu" / "Guney"
+        public Func<Player, BricKartOyunu.Class.Bidding.OrtaklikAnlasmasi> AnlasmaOf; // koltuğun taraf anlaşması (yapay çağrıları yorumlamak için); null = hepsi doğal
         public int Seviye;                                   // kontrat seviyesi (1-7); 0 = bilinmiyor → hedef mantığı kapalı
     }
 
@@ -88,6 +89,23 @@ namespace BricKartOyunu.Class
     public static class OyunZekasi
     {
         /// <summary>Kontrat hedefi mantığı: deklaran / savunma tarafı için ayrı ayrı açılıp kapatılabilir.</summary>
+        /// <summary>
+        /// Beceri düzeyi 1-20 (20 = hatasız). Düşükse BeceriHatasi arada rastgele yasal kart seçer.
+        /// Ortaklık anlaşmasındaki BeceriDuzeyi ile eşitlenir.
+        /// </summary>
+        public static int BeceriDuzeyi = 20;
+        public static Random BeceriRnd = new Random();
+
+        /// <summary>Hata olasılığı: (20 - beceri) × %1 (en fazla %19). Hata varsa rastgele yasal kart, yoksa null.</summary>
+        public static Card BeceriHatasi(List<Card> legal)
+        {
+            if (legal == null || legal.Count < 2) return null;
+            int b = Math.Max(1, Math.Min(20, BeceriDuzeyi));
+            if (b >= 20) return null;
+            if (BeceriRnd.NextDouble() >= (20 - b) * 0.01) return null;
+            return legal[BeceriRnd.Next(legal.Count)];
+        }
+
         public static bool HedefDeklaran = true;
         public static bool HedefSavunma = true;
         /// <summary>true: yalnızca hedef tamamlanınca topla; false: "yeterli sağlam el var" tahminiyle de topla.</summary>
@@ -284,8 +302,23 @@ namespace BricKartOyunu.Class
                 for (int i = 0; i < B.IhaleGecmisi.Count; i++)
                 {
                     string t = B.IhaleGecmisi[i];
-                    if (string.IsNullOrEmpty(t)) continue;
-                    if (t == "Pas" || t == "Dbl" || t == "RDbl" || t.EndsWith("NT")) continue;
+                    if (string.IsNullOrEmpty(t) || t == "Pas") continue;
+
+                    // Yapay (konvansiyon) çağrı: söylenen renk değil, gerçekte gösterilen renkler sayılır
+                    var yorum = BricKartOyunu.Class.Bidding.IhaleYorumcusu.Yorumla(B.IhaleGecmisi, B.IhaleBaslangici, i, B.AnlasmaOf);
+                    if (yorum != null)
+                    {
+                        Player ykoltuk = sira[(bas + i) % 4];
+                        if (ykoltuk == Ben) continue;
+                        foreach (var yr in yorum)
+                        {
+                            if (ykoltuk == Ortak) OrtakRenkleri.Add(yr);
+                            else RakipRenkleri.Add(yr);
+                        }
+                        continue;
+                    }
+
+                    if (t == "Dbl" || t == "RDbl" || t.EndsWith("NT")) continue;
 
                     string renk = SembolRenk(t[t.Length - 1]);
                     if (renk == null) continue;

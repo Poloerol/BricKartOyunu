@@ -917,32 +917,26 @@ namespace BricKartOyunu.Forms
 
             // 🔹 İhale bitti bilgi mesajı: kontrat, deklaran, atak, dağıtıcı, zon
             string kontrEk = KontrDurumunuBul() == 2 ? " XX" : KontrDurumunuBul() == 1 ? " X" : "";
-            string ihaleBilgi =
-                "Kontrat: " + _sonKontratTeklifi + kontrEk + "\n" +
-                "Deklaran: " + KoltukHaritasi.Ad(OyuncuyaCevir(deklaran)) + "\n" +
-                "Atak: " + KoltukHaritasi.Ad(OyuncuyaCevir(SolRakipBul(deklaran))) + "\n" +
-                (_bricOyna != null ? "Dağıtıcı: " + _bricOyna.DealerAdi + "\n" +
-                                     "Zon: " + _bricOyna.ZonAdi + "\n" +
-                                     "El no: " + _bricOyna.Seed + "\n" : "");
+            string bilgiDeklaran = KoltukHaritasi.Ad(OyuncuyaCevir(deklaran));
+            string bilgiAtak = KoltukHaritasi.Ad(OyuncuyaCevir(SolRakipBul(deklaran)));
+            string bilgiDagitici = _bricOyna != null ? _bricOyna.DealerAdi : null;
+            string bilgiZon = _bricOyna != null ? _bricOyna.ZonAdi : null;
+            string bilgiElNo = _bricOyna != null ? _bricOyna.Seed.ToString() : null;
             if (deklaran != "Kuzey")
-                MessageBox.Show(this, ihaleBilgi, "İhale Bitti", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                IhaleBilgiForm.Goster(this, "İhale Bitti", _sonKontratTeklifi, kontrEk, bilgiDeklaran, bilgiAtak, bilgiDagitici, bilgiZon, bilgiElNo);
 
             // ═══════════════════════════════════════════════════════════════
             // 🔹 SADECE Deklaran Kuzey ise: bilgi mesajı → Tamam → takas
             // ═══════════════════════════════════════════════════════════════
             if (deklaran == "Kuzey")
             {
-                MessageBox.Show(
-                    ihaleBilgi + "\n" +
+                IhaleBilgiForm.Goster(this, "El Değişimi", _sonKontratTeklifi, kontrEk, bilgiDeklaran, bilgiAtak, bilgiDagitici, bilgiZon, bilgiElNo,
                     "Kontrat " + KoltukHaritasi.Ad(Player.Kuzey) + " oyuncusunda kaldı.\n\n" +
                     "El değişimi yapılacak:\n" +
                     "•  Kuzey ile Güney elleri yer değiştirecek\n" +
                     "•  Doğu ile Batı elleri yer değiştirecek\n\n" +
                     "Böylece siz deklaran olacak, " + KoltukHaritasi.Ad(Player.Kuzey) + " dummy olacak\n" +
-                    "ve Batı ilk kartını oynayacaktır.",
-                    "El Değişimi",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                    "ve Batı ilk kartını oynayacaktır.");
 
                 _bricOyna?.DeklarasyonElDegisiminiUygula();
                 elDegisimiYapildi = true;

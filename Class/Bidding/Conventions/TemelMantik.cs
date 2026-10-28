@@ -59,7 +59,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool dengeli = ElDegerlendirici.DengeliEl(el);
 
             // 1. AÇILIŞ
-            if (gercek.Count == 0) return Acilis(el, hp, dengeli, g.Count);
+            if (gercek.Count == 0) return Acilis(el, hp, dengeli, g.Count, d.Anlasma != null ? d.Anlasma.AcilisAgresifligi : 0);
 
             bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
             bool benKonustum = gercek.Any(h => h.Oyuncu == d.AktifOyuncu);
@@ -76,12 +76,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═════════════════════════════════════════════════════════════════
         // 1. AÇILIŞ
         // ═════════════════════════════════════════════════════════════════
-        private string Acilis(List<Card> el, int hp, bool dengeli, int onceki)
+        private string Acilis(List<Card> el, int hp, bool dengeli, int onceki, int agr)
         {
             if (hp >= 22) return "2♣";
             if (hp >= 20 && hp <= 21 && dengeli) return "2NT";
             if (hp >= 15 && hp <= 17 && dengeli && ElDegerlendirici.RenkUzunlugu(el, "Maça") < 6 && ElDegerlendirici.RenkUzunlugu(el, "Kupa") < 6) return "1NT";
-            if (ElDegerlendirici.AcilisGucuVarMi(el)) return EnUzunRengiAc(el);   // 12+ HCP veya 11 HCP + 20 kuralı
+            if (ElDegerlendirici.AcilisGucuVarMi(el, agr)) return EnUzunRengiAc(el);   // 12+ HCP veya 11 HCP + 20 kuralı
             // 3. / 4. el: 11 HCP + güçlü 5'li renk (Rule of 20 benzeri)
             if (onceki >= 2 && hp == 11 && EnUzunUzunluk(el) >= 5) return EnUzunRengiAc(el);
             return "Pas";
@@ -112,7 +112,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (!d.Rakipler.Contains(son.Oyuncu)) return "Pas";   // rakip desteklendi/yükseldi vs.
             int sev = son.Seviye;
             string rk = son.Koz;
-            if (sev >= 3 || hp < 8) return "Pas";
+            int agr = d.Anlasma != null ? d.Anlasma.MudahaleAgresifligi : 0;
+            int fark = agr < 0 ? 2 : (agr > 0 ? -1 : 0);   // temkinli +2 HP, atak -1 HP
+            if (sev >= 3 || hp < 8 + fark) return "Pas";
 
             // En iyi 5+ renk (rakibin rengi hariç)
             string en = null; int enUz = 0;
@@ -124,8 +126,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
             if (en == null) return "Pas";
             int lvl = Cheapest(d, en);
-            if (lvl == 1 && hp >= 8) return "1" + KozYardimcisi.KozSembolu(en);
-            if (lvl == 2 && hp >= 11 && enUz >= 5 && IyiRenk(el, en)) return "2" + KozYardimcisi.KozSembolu(en);
+            if (lvl == 1 && hp >= 8 + fark) return "1" + KozYardimcisi.KozSembolu(en);
+            if (lvl == 2 && hp >= 11 + fark && enUz >= 5 && IyiRenk(el, en)) return "2" + KozYardimcisi.KozSembolu(en);
             return "Pas";
         }
 

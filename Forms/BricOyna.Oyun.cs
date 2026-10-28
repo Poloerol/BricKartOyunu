@@ -443,7 +443,7 @@ namespace BricKartOyunu
         private void KapaliDikeyYiginiDuzenle(PictureBox[] kartResimleri, int kalanKartSayisi, int x)
         {
             int maxEWToplamYukseklik = (4 * _kartYukseklik) + (3 * 2);
-            int ewBaslangicY = _kuzeyY + 172;
+            int ewBaslangicY = _kuzeyY + Ol(172);
             float dikeyAdim = (maxEWToplamYukseklik - _kartYukseklik) / 12f;
             if (dikeyAdim < 0) dikeyAdim = 0;
 
@@ -780,6 +780,7 @@ namespace BricKartOyunu
                 ElNo = _oynananToplamEl,
                 IhaleGecmisi = _sonIhaleGecmisi,
                 IhaleBaslangici = _ihaleBaslangicOyuncusu,
+                AnlasmaOf = (k) => AnlasmaYonetici.Mevcut((k == Player.Kuzey || k == Player.Guney) ? Taraf.NS : Taraf.EW),
                 Seviye = KontratSeviyesi()
             };
 
@@ -897,14 +898,16 @@ namespace BricKartOyunu
         /// <summary>
         /// Belirtilen oyuncu için masadaki kart pozisyonunu döndürür.
         /// </summary>
+        private Point OlcekliNokta(Point p) { return new Point(Ol(p.X), Ol(p.Y)); }
+
         private Point OyuncuIcinMasaPozisyonu(Player oyuncu)
         {
             switch (oyuncu)
             {
-                case Player.Guney: return MasaPozisyonGuney;
-                case Player.Kuzey: return MasaPozisyonKuzey;
-                case Player.Bati: return MasaPozisyonBati;
-                case Player.Dogu: return MasaPozisyonDogu;
+                case Player.Guney: return OlcekliNokta(MasaPozisyonGuney);
+                case Player.Kuzey: return OlcekliNokta(MasaPozisyonKuzey);
+                case Player.Bati: return OlcekliNokta(MasaPozisyonBati);
+                case Player.Dogu: return OlcekliNokta(MasaPozisyonDogu);
                 default: return new Point(0, 0);
             }
         }

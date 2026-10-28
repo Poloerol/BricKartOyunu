@@ -42,7 +42,7 @@ namespace BricKartOyunu.Forms
             Application.StartupPath, "Resources", "Cards", "Backs", "Back.png");
 
         private static readonly string MaviArkaYol = Path.Combine(
-            Application.StartupPath, "Resources", "Cards", "Backs", "Back01.png");
+            Application.StartupPath, "Resources", "Cards", "Backs", AppState.ArkaYuzSiyah);
 
         private static readonly string AnaCoverYol = Path.Combine(
             Application.StartupPath, "Images", "Backgrounds", "AnaCover.png");
@@ -218,6 +218,9 @@ namespace BricKartOyunu.Forms
             InitializeDynamicControls();
             WireMainButtonEvents();
             toolStripButton3.Click += MasaRengiToolStripMenuItem_Click;
+            AppState.ArkaYuzuYukle();
+            currentBackImage = AppState.ArkaYuzYolu();
+            ArkaYuzMenusunuIsaretle();
             toolStripStatusLabel1.Text = "Hazır";
             toolStripStatusLabel2.Text = "";
             LoadBackgroundImage();
@@ -510,16 +513,38 @@ namespace BricKartOyunu.Forms
 
         private void KırmızıToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            currentBackImage = KirmiziArkaYol;
-            kırmızıToolStripMenuItem.Checked = true;
-            maviToolStripMenuItem.Checked = false;
+            ArkaYuzuUygula(AppState.ArkaYuzKirmizi);
         }
 
+        /// <summary>"Siyah" menü öğesi (eski adı Mavi): BackBlack.png arka yüzü.</summary>
         private void MaviToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            currentBackImage = MaviArkaYol;
-            maviToolStripMenuItem.Checked = true;
-            kırmızıToolStripMenuItem.Checked = false;
+            ArkaYuzuUygula(AppState.ArkaYuzSiyah);
+        }
+
+        /// <summary>Araç çubuğu düğmesi: iki arka yüz resminden birini seçtirir.</summary>
+        private void BtnToolArkaYuz_Click(object sender, EventArgs e)
+        {
+            using (var f = new KartArkaYuzSecForm(AppState.ArkaYuzDosya))
+            {
+                if (f.ShowDialog(this) == DialogResult.OK)
+                    ArkaYuzuUygula(f.Secilen);
+            }
+        }
+
+        private void ArkaYuzuUygula(string dosya)
+        {
+            AppState.ArkaYuzDosya = dosya;
+            AppState.ArkaYuzuKaydet();
+            currentBackImage = AppState.ArkaYuzYolu();   // sonraki açılan oyun penceresine bu aktarılır
+            ArkaYuzMenusunuIsaretle();
+        }
+
+        private void ArkaYuzMenusunuIsaretle()
+        {
+            bool siyah = AppState.ArkaYuzDosya == AppState.ArkaYuzSiyah;
+            kırmızıToolStripMenuItem.Checked = !siyah;
+            maviToolStripMenuItem.Checked = siyah;
         }
 
         // ====================================================================
@@ -932,5 +957,7 @@ namespace BricKartOyunu.Forms
         {
 
         }
+
+        
     }
 }

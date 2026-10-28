@@ -42,70 +42,71 @@
             // 
             this.btnScore.Location = new System.Drawing.Point(12, 13);
             this.btnScore.Name = "btnScore";
-            this.btnScore.Size = new System.Drawing.Size(200, 40);
+            this.btnScore.Size = new System.Drawing.Size(161, 29);
             this.btnScore.TabIndex = 0;
             this.btnScore.Text = "Bu Elin Puanlaması";
             this.btnScore.UseVisualStyleBackColor = true;
             // 
             // btnReplay
             // 
-            this.btnReplay.Location = new System.Drawing.Point(12, 52);
+            this.btnReplay.Location = new System.Drawing.Point(12, 48);
             this.btnReplay.Name = "btnReplay";
-            this.btnReplay.Size = new System.Drawing.Size(200, 40);
+            this.btnReplay.Size = new System.Drawing.Size(161, 29);
             this.btnReplay.TabIndex = 1;
             this.btnReplay.Text = "Bu Eli Tekrar Oyna";
             this.btnReplay.UseVisualStyleBackColor = true;
             // 
             // btnReviewBidding
             // 
-            this.btnReviewBidding.Location = new System.Drawing.Point(12, 91);
+            this.btnReviewBidding.Location = new System.Drawing.Point(12, 83);
             this.btnReviewBidding.Name = "btnReviewBidding";
-            this.btnReviewBidding.Size = new System.Drawing.Size(200, 40);
+            this.btnReviewBidding.Size = new System.Drawing.Size(161, 29);
             this.btnReviewBidding.TabIndex = 2;
             this.btnReviewBidding.Text = "İhaleyi Göster";
             this.btnReviewBidding.UseVisualStyleBackColor = true;
             // 
             // btnReviewPlay
             // 
-            this.btnReviewPlay.Location = new System.Drawing.Point(12, 130);
+            this.btnReviewPlay.Location = new System.Drawing.Point(12, 118);
             this.btnReviewPlay.Name = "btnReviewPlay";
-            this.btnReviewPlay.Size = new System.Drawing.Size(200, 40);
+            this.btnReviewPlay.Size = new System.Drawing.Size(161, 29);
             this.btnReviewPlay.TabIndex = 3;
             this.btnReviewPlay.Text = "Oyunu Göster";
             this.btnReviewPlay.UseVisualStyleBackColor = true;
             // 
             // btnSavePPL
             // 
-            this.btnSavePPL.Location = new System.Drawing.Point(12, 169);
+            this.btnSavePPL.Location = new System.Drawing.Point(12, 153);
             this.btnSavePPL.Name = "btnSavePPL";
-            this.btnSavePPL.Size = new System.Drawing.Size(200, 40);
+            this.btnSavePPL.Size = new System.Drawing.Size(161, 29);
             this.btnSavePPL.TabIndex = 4;
             this.btnSavePPL.Text = "Dağılımı PPL Olarak Kaydet";
             this.btnSavePPL.UseVisualStyleBackColor = true;
             // 
             // btnPrint
             // 
-            this.btnPrint.Location = new System.Drawing.Point(12, 208);
+            this.btnPrint.Location = new System.Drawing.Point(12, 188);
             this.btnPrint.Name = "btnPrint";
-            this.btnPrint.Size = new System.Drawing.Size(200, 40);
+            this.btnPrint.Size = new System.Drawing.Size(161, 29);
             this.btnPrint.TabIndex = 5;
             this.btnPrint.Text = "Bu Dağılımı Yazdır";
             this.btnPrint.UseVisualStyleBackColor = true;
             // 
             // btnNextDeal
             // 
-            this.btnNextDeal.Location = new System.Drawing.Point(12, 247);
+            this.btnNextDeal.Location = new System.Drawing.Point(12, 223);
             this.btnNextDeal.Name = "btnNextDeal";
-            this.btnNextDeal.Size = new System.Drawing.Size(200, 40);
+            this.btnNextDeal.Size = new System.Drawing.Size(161, 29);
             this.btnNextDeal.TabIndex = 6;
             this.btnNextDeal.Text = "Sonraki Dağılıma Geç";
             this.btnNextDeal.UseVisualStyleBackColor = true;
+            this.btnNextDeal.Click += new System.EventHandler(this.btnNextDeal_Click_1);
             // 
             // btnMainMenu
             // 
-            this.btnMainMenu.Location = new System.Drawing.Point(12, 286);
+            this.btnMainMenu.Location = new System.Drawing.Point(12, 258);
             this.btnMainMenu.Name = "btnMainMenu";
-            this.btnMainMenu.Size = new System.Drawing.Size(200, 40);
+            this.btnMainMenu.Size = new System.Drawing.Size(161, 29);
             this.btnMainMenu.TabIndex = 7;
             this.btnMainMenu.Text = "Anasayfa\'ya Dön";
             this.btnMainMenu.UseVisualStyleBackColor = true;
@@ -114,7 +115,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(224, 361);
+            this.ClientSize = new System.Drawing.Size(183, 297);
             this.Controls.Add(this.btnMainMenu);
             this.Controls.Add(this.btnNextDeal);
             this.Controls.Add(this.btnPrint);

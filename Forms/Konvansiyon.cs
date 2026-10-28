@@ -132,11 +132,22 @@ namespace BricKartOyunu
             });
         }
 
+        private const string BaslikOnEki = "── ";
+
+        private static bool BaslikMi(object o) { var t = o as string; return t != null && t.StartsWith(BaslikOnEki); }
+
         private void MevcutListeyiDoldur()
         {
+            // Kategori başlıklı liste; başlıklar seçilemez/eklenemez (Ekle() atlar)
             _lstMevcut.Items.Clear();
+            string son = null;
             foreach (var ad in _tumKonvansiyonlar)
-                if (!_lstSecili.Items.Contains(ad)) _lstMevcut.Items.Add(ad);
+            {
+                if (_lstSecili.Items.Contains(ad)) continue;
+                string kat = KonvansiyonPratigi.Kategori(ad);
+                if (kat != son) { _lstMevcut.Items.Add(BaslikOnEki + kat + " ──"); son = kat; }
+                _lstMevcut.Items.Add(ad);
+            }
         }
 
         private void Ekle()
@@ -144,9 +155,10 @@ namespace BricKartOyunu
             if (_uretiyor) return;
             foreach (var o in _lstMevcut.SelectedItems.Cast<object>().ToList())
             {
+                if (BaslikMi(o)) continue;
                 _lstSecili.Items.Add(o);
-                _lstMevcut.Items.Remove(o);
             }
+            MevcutListeyiDoldur();
             SiralaVeDurumuGuncelle();
         }
 
@@ -164,9 +176,7 @@ namespace BricKartOyunu
 
         private void MevcutListeyiSirala()
         {
-            _lstMevcut.Items.Clear();
-            foreach (var ad in _tumKonvansiyonlar)
-                if (!_lstSecili.Items.Contains(ad)) _lstMevcut.Items.Add(ad);
+            MevcutListeyiDoldur();
         }
 
         private void SiralaVeDurumuGuncelle()
@@ -248,7 +258,6 @@ namespace BricKartOyunu
             bool yakinIstendi = _chkYakinKacis.Checked;
             try
             {
-                var motor = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan());
                 foreach (var ad in _lstSecili.Items.Cast<string>().ToList())
                 {
                     var bulunan = new List<PratikDagitim>();
@@ -270,7 +279,7 @@ namespace BricKartOyunu
                         while (gecerliAdet < adet && bu < asama.Value && !_iptal)
                         {
                             if (seed > int.MaxValue) seed = 1;
-                            if (KonvansiyonPratigi.Gecerli(motor, (int)seed, ad, asama.Key))
+                            if (KonvansiyonPratigi.Gecerli(KonvansiyonPratigi.MotorIcin(ad), (int)seed, ad, asama.Key))
                             {
                                 var pd = new PratikDagitim { Seed = (int)seed, Konvansiyon = ad, Profil = asama.Key };
                                 bulunan.Add(pd);
@@ -279,7 +288,7 @@ namespace BricKartOyunu
                                 Goster(ad, pd);
                                 if (yakinIstendi)
                                 {
-                                    int v = KonvansiyonPratigi.YakinKacisBul(motor, (int)seed, asama.Key, ad);
+                                    int v = KonvansiyonPratigi.YakinKacisBul(KonvansiyonPratigi.MotorIcin(ad), (int)seed, asama.Key, ad);
                                     if (v > 0)
                                     {
                                         var yk = new PratikDagitim { Seed = (int)seed, Konvansiyon = ad, Profil = asama.Key, Varyant = v };
