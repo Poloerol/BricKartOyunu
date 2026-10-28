@@ -33,24 +33,69 @@ namespace BricKartOyunu.Class
             return Sira[(int)m];
         }
 
-        public static List<string> Konvansiyonlar()
+        private static readonly object _kilit = new object();
+        private static List<string> _tumAdlar;
+        private static Dictionary<string, OrtaklikAnlasmasi> _anlasmaHaritasi;
+
+        /// <summary>
+        /// Projedeki TÜM konvansiyonlar: varsayılan anlaşmada kapalı olanlar dahil. Her bool anlaşma bayrağı tek tek çevrilerek
+        /// (ve hepsi açık / hepsi kapalı denenerek) motorun aktif ettiği konvansiyonlar toplanır; her konvansiyon için
+        /// onu etkinleştiren ilk anlaşma saklanır (pratik motoru bununla kurulur).
+        /// </summary>
+        private static void Hazirla()
         {
-            var liste = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan()).PratikKonvansiyonAdlari();
-            foreach (var ad in BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Adlar)
-                if (!liste.Contains(ad)) liste.Add(ad);
-            return liste;
+            lock (_kilit)
+            {
+                if (_tumAdlar != null) return;
+                var adlar = new List<string>();
+                var harita = new Dictionary<string, OrtaklikAnlasmasi>();
+                Action<OrtaklikAnlasmasi> ekle = (an) =>
+                {
+                    List<string> l;
+                    try { l = new IhaleMotoru(an).PratikKonvansiyonAdlari(); } catch { return; }
+                    foreach (var ad in l)
+                        if (!harita.ContainsKey(ad)) { harita[ad] = an; adlar.Add(ad); }
+                };
+                ekle(OrtaklikAnlasmasi.Varsayilan());
+                var props = typeof(OrtaklikAnlasmasi).GetProperties()
+                    .Where(pr => pr.PropertyType == typeof(bool) && pr.CanRead && pr.CanWrite).ToList();
+                foreach (var pr in props)
+                {
+                    var an = OrtaklikAnlasmasi.Varsayilan();
+                    pr.SetValue(an, !(bool)pr.GetValue(an, null), null);
+                    ekle(an);
+                }
+                var hepsi = OrtaklikAnlasmasi.Varsayilan();
+                foreach (var pr in props) pr.SetValue(hepsi, true, null);
+                ekle(hepsi);
+                _anlasmaHaritasi = harita;
+                _tumAdlar = adlar;
+            }
         }
 
-        /// <summary>Pratik edilecek konvansiyon için motor: ek (yeni) konvansiyonlarda yalnız o konvansiyon açık, diğerleri varsayılan anlaşma.</summary>
+        public static List<string> Konvansiyonlar()
+        {
+            Hazirla();
+            return new List<string>(_tumAdlar);
+        }
+
+        /// <summary>Konvansiyonu etkinleştiren ortaklık anlaşması (bulunamazsa varsayılan).</summary>
+        public static OrtaklikAnlasmasi AnlasmaIcin(string ad)
+        {
+            Hazirla();
+            OrtaklikAnlasmasi an;
+            return ad != null && _anlasmaHaritasi.TryGetValue(ad, out an) ? an : OrtaklikAnlasmasi.Varsayilan();
+        }
+
         [ThreadStatic] private static Dictionary<string, IhaleMotoru> _motorOnbellek;
+        /// <summary>Pratik edilecek konvansiyon için motor: o konvansiyonun açık olduğu anlaşmayla kurulur.</summary>
         public static IhaleMotoru MotorIcin(string ad)
         {
             if (_motorOnbellek == null) _motorOnbellek = new Dictionary<string, IhaleMotoru>();
             string anahtar = ad ?? "";
             IhaleMotoru m;
             if (_motorOnbellek.TryGetValue(anahtar, out m)) return m;
-            m = new IhaleMotoru(BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad)
-                ? OrtaklikAnlasmasi.EkKonvansiyonIcin(ad) : OrtaklikAnlasmasi.Varsayilan());
+            m = new IhaleMotoru(AnlasmaIcin(ad));
             _motorOnbellek[anahtar] = m;
             return m;
         }
