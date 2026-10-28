@@ -2719,6 +2719,75 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        // ── Özdil "Ataklar" kitabı: Journalist, kart seçimi, ortağın rengi, süronör ──
+        public static void Test_AtakKitabi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.12 — Atak kitabı: atak kartları ve süronör kuralı (Özdil)");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+
+            Func<char, int> deg = ch => ch == 'A' ? 14 : ch == 'K' ? 13 : ch == 'Q' ? 12 : ch == 'J' ? 11 : ch == 'T' ? 10 : ch - '0';
+            Func<string, List<Card>> el = s => s.Select(c => new Card { Suit = "Maça", Value = deg(c) }).ToList();
+            Action<string, char, bool> atak = (hand, beklenen, ortak) =>
+            {
+                var r = el(hand);
+                var o = AtakKurallari.RenkAtagi(r);
+                int got = (ortak || o == null) ? AtakKurallari.SanzatuKarti(r, ortak).Value : o.Kart.Value;
+                kos(got == deg(beklenen), "atak " + hand + (ortak ? " (ortağın rengi)" : "") + ": beklenen " + beklenen + ", bulunan " + got);
+            };
+
+            // sekans / dış sekans
+            atak("AK5", 'A', false); atak("AKJ4", 'A', false); atak("AKQT", 'K', false); atak("KQJT", 'K', false);
+            atak("QJT9", 'Q', false); atak("QJ98", 'Q', false); atak("AQJ42", 'Q', false); atak("QJT", 'Q', false);
+            // Journalist
+            atak("JT95", 'J', false); atak("JT7", 'J', false);
+            atak("AQT94", 'T', false); atak("AT965", 'T', false); atak("KT953", 'T', false);
+            atak("AJT73", 'T', false); atak("KJT76", 'T', false); atak("QT984", 'T', false);
+            atak("T94", '9', false); atak("J987", '9', false); atak("Q986", '9', false); atak("9875", '9', false); atak("T985", '9', false);
+            // dördüncü kart / üçüncü kart
+            atak("KQ64", '4', false); atak("KQ753", '5', false); atak("QJ75", '5', false); atak("J1063".Replace("10", "T"), '3', false);
+            atak("A9763", '6', false); atak("K9754", '5', false); atak("A876", '6', false); atak("K983", '3', false);
+            atak("A54", '4', false); atak("A109".Replace("10", "T"), '9', false); atak("K86", '6', false); atak("J73", '3', false);
+            // onörsüz
+            atak("97632", '3', false); atak("9652", '6', false); atak("7652", '7', false); atak("8653", '8', false);
+            atak("982", '9', false); atak("864", '8', false); atak("95", '9', false);
+            // ortağın rengi
+            atak("AK5", 'A', true); atak("KQ7", 'K', true); atak("JT4", 'J', true); atak("AT9", 'T', true); atak("AJT", 'J', true);
+            atak("AT3", '3', true); atak("AJ6", '6', true); atak("A732", '3', true); atak("K653", '5', true);
+            atak("8642", '4', true); atak("876", '6', true); atak("A6", 'A', true);
+
+            // süronör (kitabın örnekleri)
+            Func<string, int[]> dz = s => s.Select(c => deg(c)).ToArray();
+            Func<string, string, char, bool, int> sur = (me, yer, led, yerOynadi) =>
+            {
+                var gor = Enumerable.Range(2, 13).ToList();
+                foreach (var v in dz(me)) gor.Remove(v);
+                foreach (var v in dz(yer)) gor.Remove(v);
+                gor.Remove(deg(led));
+                return SuronorKurali.Karar(dz(me), dz(yer), deg(led), yerOynadi, gor);
+            };
+            kos(sur("K52", "AJT9", 'Q', false) == SuronorKurali.KucukVer, "süronör: K52 / AJ109, Q → küçük");
+            kos(sur("K92", "AJT7", 'Q', false) == 13, "süronör: K92 / AJ107, Q → rua");
+            kos(sur("Q63", "AT987", 'J', false) == SuronorKurali.KucukVer, "süronör: Q63 / A10987, J → küçük");
+            kos(sur("KQ3", "AT987", 'J', false) == SuronorKurali.KucukVer, "süronör: KQ3 / A10987, J → küçük");
+            kos(sur("K3", "AQT98", 'J', false) == SuronorKurali.KucukVer, "süronör: K3 / AQ1098, J → küçük");
+            kos(sur("K53", "AQ987", 'J', false) == 13, "süronör: K53 / AQ987, J → rua");
+            kos(sur("K95", "AJ3", 'T', false) == 13, "süronör: yerde iki onör → süronör");
+            kos(sur("K84", "A52", 'T', false) == SuronorKurali.KucukVer, "süronör: yerde tek onör, ilk tur → küçük");
+            kos(sur("QJ6", "A52", 'T', false) == 11, "süronör: QJ6 / A52, 10 → vale");
+            kos(sur("J52", "T63", 'T', true) == 11, "süronör: yer sağda, tek onör → süronör");
+            kos(sur("K83", "Q74", 'Q', true) == 13, "süronör: yer sağda, dam → rua");
+            kos(sur("J52", "T93", 'T', true) == SuronorKurali.KucukVer, "süronör: yerde 10-9 sekansı, J52 → küçük");
+            kos(sur("QJ7", "T93", 'T', true) == 11, "süronör: yerde 10-9 sekansı, QJ7 → vale");
+            kos(sur("K4", "QJ8", 'Q', true) == 13, "süronör: K4 / QJ8, dam → rua (ikili)");
+            kos(sur("K72", "QJ8", 'Q', true) == SuronorKurali.KucukVer, "süronör: K72 / QJ8, dam → küçük");
+            kos(sur("Q9", "JT8", 'J', true) == 12, "süronör: Q9 / J108, vale → dam");
+
+            Yaz(hata == 0 ? "✔ Atak kitabı testleri geçti" : "❌ " + hata + " hata");
+        }
+
         // ── Özdil "Dağılımlar" kitabından: olasılık tabloları + renk planlayıcı ──
         private static int[] RP_Rutbe(string s)
         {
@@ -15062,6 +15131,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_IhaleAnalizi();
             Test_MacDurumu();
             Test_DagilimVeRenkPlani();
+            Test_AtakKitabi();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();

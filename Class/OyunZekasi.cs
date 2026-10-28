@@ -339,7 +339,7 @@ namespace BricKartOyunu.Class
                 }
             }
 
-            private static string SembolRenk(char ch)
+            public static string SembolRenk(char ch)
             {
                 switch (ch)
                 {
@@ -389,6 +389,13 @@ namespace BricKartOyunu.Class
             if (x.B.ElNo == 0)
             {
                 // Açılış atağı: dummy henüz görünmez
+                neden = "";
+                if (AtakKurallari.AtakKitabiAktif)
+                {
+                    Card kontrAtagi = null;
+                    try { kontrAtagi = YonlendirenKontrAtagi(x, out neden); } catch (Exception) { kontrAtagi = null; }
+                    if (kontrAtagi != null && x.B.Elim.Contains(kontrAtagi)) return kontrAtagi;
+                }
                 return YeniRenkAtagi(x, false, out neden, "Açılış atağı");
             }
             return x.DeklaranTarafi ? DeklaranLideri(x, out neden) : SavunmaLideri(x, out neden);
@@ -403,6 +410,9 @@ namespace BricKartOyunu.Class
             var el = x.B.Elim;
             bool nt = x.Koz == null;
             int kozSayim = nt ? 0 : el.Count(c => c.Suit == x.Koz);
+            bool kitap = AtakKurallari.AtakKitabiAktif;
+            bool zayifEl = el.Sum(k => HcpPuan(k)) <= 5;             // çok zayıf el: konuşulmamış Hxx tercih edilir
+            bool kucukSlam = x.B.Seviye == 6;                        // 6 SA: el kaybettirmeyecek atak
 
             Card enIyiKart = null;
             double enIyiPuan = double.MinValue;
@@ -429,6 +439,17 @@ namespace BricKartOyunu.Class
                     s = n * 10 + pts * 2;
                     if (n == 1) s -= 30; else if (n == 2) s -= 10; else if (n == 3) s -= 4;
                     if (kural != null) s += 25;
+                    if (kitap)
+                    {
+                        if (A && !K && kural == null && n >= 4) s -= 8;                       // Axxx çatal: löve kaybı
+                        if (zayifEl && n == 3 && pts >= 1 && !ortakRengi && !rakipRengi) s += 8; // zayıf el: Hxx
+                        if (kucukSlam)
+                        {
+                            if (kural != null) s += 10;
+                            else if (n >= 3 && (A || K || Q)) s -= 12;                          // onörlü uzunluktan atılmaz
+                            else if (pts == 0 || (n <= 3 && !A && !K && !Q)) s += 6;
+                        }
+                    }
                 }
                 else if (kozRengi)
                 {
@@ -451,7 +472,7 @@ namespace BricKartOyunu.Class
                 }
 
                 if (ortakRengi) s += 25;
-                if (rakipRengi) s -= nt ? 10 : 18;
+                if (rakipRengi) s -= nt ? (kitap && kural == null ? 16 : 10) : 18;
                 if (dummyBilinir && !nt && !kozRengi && x.B.DummyEli != null &&
                     !x.B.DummyEli.Any(k => k.Suit == suit))
                     s -= 15;                                       // dummy'de boş: kesilir
@@ -473,6 +494,12 @@ namespace BricKartOyunu.Class
         /// <summary>Seçilen renkten hangi kartın atılacağı.</summary>
         private static Card AtakKarti(List<Card> c, bool nt, AtakKurallari.AtakOnerisi kural, bool ortakRengi)
         {
+            if (AtakKurallari.AtakKitabiAktif && nt)
+            {
+                if (ortakRengi) return AtakKurallari.SanzatuKarti(c, true);   // ortağın rengi: kitaptaki kurallar
+                if (kural != null) return kural.Kart;
+                return AtakKurallari.SanzatuKarti(c, false);
+            }
             if (kural != null) return kural.Kart;
             int n = c.Count;
             if (n <= 2) return c[0];                       // tekli / ikili: üstten
@@ -488,6 +515,100 @@ namespace BricKartOyunu.Class
             }
             return c[3];                                   // dördüncü en iyi
         }
+        // ───────────────────────────────────────────────────────────────
+        // SÜRONÖR KURALI (Özdil): rakip onör oynadığında üstüne koymak
+        // ───────────────────────────────────────────────────────────────
+        private static Card SuronorKarti(Ctx x, List<Card> legal, string suit, Card led, Player lider, out bool kucukVer)
+        {
+            kucukVer = false;
+            var benim = legal.Where(c => c.Suit == suit).Select(c => c.Value).ToList();
+            if (benim.Count == 0 || led == null) return null;
+            var yer = x.B.DummyEli.Where(c => c.Suit == suit).Select(c => c.Value).ToList();
+            var gor = new List<int>();
+            for (int v = 2; v <= 14; v++)
+                if (x.Gorunmeyen.Contains(suit + "|" + v)) gor.Add(v);
+
+            int r = SuronorKurali.Karar(benim, yer, led.Value, lider == x.Dummy, gor);
+            if (r > 0) return legal.FirstOrDefault(c => c.Suit == suit && c.Value == r);
+            if (r == SuronorKurali.KucukVer) kucukVer = true;
+            return null;
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // ATAĞI YÖNLENDİREN KONTR (Özdil): ortağım rakibin sanzatu kontratına kontr dedi
+        // ───────────────────────────────────────────────────────────────
+        private static Card YonlendirenKontrAtagi(Ctx x, out string neden)
+        {
+            neden = "";
+            if (x.Koz != null || x.DeklaranTarafi) return null;
+            var gec = x.B.IhaleGecmisi;
+            Player baslangic;
+            if (gec == null || string.IsNullOrEmpty(x.B.IhaleBaslangici) ||
+                !Enum.TryParse(x.B.IhaleBaslangici, out baslangic)) return null;
+
+            Player[] sira = { Player.Bati, Player.Kuzey, Player.Dogu, Player.Guney };
+            int bas = Array.IndexOf(sira, baslangic);
+            if (bas < 0) return null;
+
+            // Son anlamlı çağrı: ortağımın kontrü; ondan önceki sayılı çağrı: rakibin SA kontratı (3 SA / 6 SA)
+            int son = -1;
+            for (int i = gec.Count - 1; i >= 0; i--)
+                if (!string.IsNullOrEmpty(gec[i]) && gec[i] != "Pas") { son = i; break; }
+            if (son < 0 || gec[son] != "Dbl" || sira[(bas + son) % 4] != x.Ortak) return null;
+
+            string kontrat = null;
+            for (int i = son - 1; i >= 0; i--)
+                if (!string.IsNullOrEmpty(gec[i]) && gec[i] != "Pas" && gec[i] != "Dbl" && gec[i] != "RDbl") { kontrat = gec[i]; break; }
+            if (kontrat == null || !kontrat.EndsWith("NT") || kontrat[0] < '3') return null;
+
+            // Rakip tarafın ve ortağımın doğal renk çağrıları (yapay çağrılar sayılmaz)
+            string yerRengi = null, deklaranRengi = null, ortakRengi = null;
+            bool birSaAcisi = false;
+            for (int i = 0; i < son; i++)
+            {
+                string t = gec[i];
+                if (string.IsNullOrEmpty(t) || t == "Pas" || t == "Dbl" || t == "RDbl") continue;
+                Player koltuk = sira[(bas + i) % 4];
+                bool rakip = koltuk == x.B.Deklaran || koltuk == x.Dummy;
+                if (!rakip && koltuk != x.Ortak) continue;
+
+                if (rakip && t == "1NT" && koltuk == x.B.Deklaran && deklaranRengi == null && yerRengi == null) birSaAcisi = true;
+                if (t.EndsWith("NT")) continue;
+                if (BricKartOyunu.Class.Bidding.IhaleYorumcusu.Yorumla(gec, x.B.IhaleBaslangici, i, x.B.AnlasmaOf) != null) continue;
+                string renk = Ctx.SembolRenk(t[t.Length - 1]);
+                if (renk == null) continue;
+
+                if (koltuk == x.Dummy) { if (yerRengi == null) yerRengi = renk; }
+                else if (koltuk == x.B.Deklaran) { if (deklaranRengi == null) deklaranRengi = renk; }
+                else if (ortakRengi == null) ortakRengi = renk;
+            }
+
+            string hedef = null; string aciklama = null; bool ortagin = false;
+            if (yerRengi != null && deklaranRengi != null)
+            { hedef = yerRengi; aciklama = "Ortağın kontrü: yerin ilk rengi"; }
+            else if (birSaAcisi && yerRengi == null)
+            {
+                // 1 SA - 3 SA: kısa ve zayıf majör
+                string enIyi = null; double enIyiP = double.MaxValue;
+                foreach (var m in new[] { "Maça", "Kupa" })
+                {
+                    var mc = RenkKartlari(x.B.Elim, m);
+                    if (mc.Count == 0) continue;
+                    double p = mc.Count * 10 + mc.Sum(k => HcpPuan(k));
+                    if (p < enIyiP) { enIyiP = p; enIyi = m; }
+                }
+                if (enIyi != null) { hedef = enIyi; aciklama = "Ortağın kontrü: kısa ve zayıf majör"; }
+            }
+            else if (ortakRengi != null)
+            { hedef = ortakRengi; aciklama = "Ortağın kontrü: ortağın ilk rengi"; ortagin = true; }
+
+            if (hedef == null) return null;
+            var kartlar = RenkKartlari(x.B.Elim, hedef);
+            if (kartlar.Count == 0) return null;
+            neden = aciklama + " (" + hedef + ")";
+            return AtakKurallari.SanzatuKarti(kartlar, ortagin);
+        }
+
 
         // ───────────────────────────────────────────────────────────────────
         // DEKLARAN TARAFI LİDERİ (deklaran ve dummy)
@@ -885,6 +1006,13 @@ namespace BricKartOyunu.Class
                 }
 
                 // poz == 1 → ikinci el: alçak, ama onöre sağlam kartla cevap ver
+                if (SuronorKurali.Aktif && AtakKurallari.AtakKitabiAktif && !x.DeklaranTarafi && x.B.DummyEli != null)
+                {
+                    bool surKucuk;
+                    var surKart = SuronorKarti(x, legal, atak, masa[0].Kart, masa[0].Oyuncu, out surKucuk);
+                    if (surKart != null) { neden = "Süronör kuralı: " + surKart.Suit + " " + surKart.Value; return surKart; }
+                    if (surKucuk) { neden = "Süronör kuralı: küçük verilir"; return en_alcak; }
+                }
                 if (best.Value >= 12)
                 {
                     var bossler = kazananlar.Where(c => x.Boss(c)).ToList();

@@ -226,6 +226,7 @@
     <Compile Include="Class\MacDurumu.cs" />
     <Compile Include="Class\DagilimOlasiliklari.cs" />
     <Compile Include="Class\RenkPlanlayici.cs" />
+    <Compile Include="Class\SuronorKurali.cs" />
     <Compile Include="Forms\KartArkaYuzSecForm.cs">
       <SubType>Form</SubType>
     </Compile>
