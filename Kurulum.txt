@@ -1,0 +1,13 @@
+Kurulum dosyasýný ayný komutla yeniden üretirsin:
+
+Görünüm ? Terminal’i aç (veya proje klasöründeki adres çubuðuna cmd yazýp Enter’a bas).
+Þunu yaz:
+   powershell -ExecutionPolicy Bypass -File Kurulum\KurulumuOlustur.ps1
+
+Terminal proje klasöründe deðilse önce cd Kurulum yazýp komutu .\KurulumuOlustur.ps1 þeklinde çalýþtýr.
+3. Sonunda yeþil “Hazýr:” satýrý çýkar. Yeni dosya Kurulum\Cikti\BricKartOyunu-Kurulum-1.0.0.0.exe olarak eskisinin üzerine yazýlýr.
+
+Önce kontrol et
+
+Ýkon deðiþikliðini kaydettiðinden emin ol (Ctrl+S). Betik zaten projeyi baþtan derliyor, VS’de ayrýca derlemene gerek yok.
+Eski sürümü bilgisayarýna kurduysan yeni kurulumu üzerine çalýþtýrabilirsin; ayarlarýn korunur.

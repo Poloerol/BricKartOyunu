@@ -867,7 +867,7 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "AnaSayfa";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Ana Sayfa";
+            this.Text = "Briç Kart Oyunu";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.AnaSayfa_Load);
             this.Resize += new System.EventHandler(this.AnaSayfa_Resize);

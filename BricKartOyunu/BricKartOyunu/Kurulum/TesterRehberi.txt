@@ -27,3 +27,8 @@ BİLİNEN SINIRLAR
   Ghestem vb.) Bridge Baron'daki tanımlarına birebir uymayabilir; farkı görürsen yaz, düzeltelim.
 - Slam ihaleleri ve çok nadir diziler hâlâ geliştirme aşamasındadır.
 - Minör transferi 6+ kartla yapılır.
+
+İLETİŞİM
+- Ad Soyad : [BURAYA ADINI YAZ]
+- E-posta  : [BURAYA E-POSTA ADRESİNİ YAZ]
+- Telefon / WhatsApp : [İSTEĞE BAĞLI]
