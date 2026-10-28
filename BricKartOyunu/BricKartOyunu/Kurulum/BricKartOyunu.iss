@@ -44,7 +44,7 @@ Name: "desktopicon"; Description: "Masaüstüne kısayol oluştur"; GroupDescrip
 [Files]
 ; Hata ayıklama/yardım dosyaları ve kullanıcıya ait veri dosyaları pakete girmez (güncellemede kullanıcı verisi ezilmez)
 Source: "..\bin\Release\*"; DestDir: "{app}"; Excludes: "*.pdb,*.xml,*.vshost.*,seedler.txt,ortaklik_anlasmasi.json"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "TesterRehberi.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
+Source: "TesterRehberi.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
@@ -53,6 +53,7 @@ Name: "{group}\{#MyAppName} Kaldır"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: desktopicon
 
 [Run]
+Filename: "{app}\TesterRehberi.txt"; Description: "Test rehberini oku (önerilir)"; Flags: postinstall shellexec skipifsilent
 Filename: "{app}\{#MyAppExe}"; Description: "{#MyAppName} uygulamasını başlat"; Flags: nowait postinstall skipifsilent
 
 [Code]
