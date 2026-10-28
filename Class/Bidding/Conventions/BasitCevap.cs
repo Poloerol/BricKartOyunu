@@ -20,7 +20,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (!durum.PartnerActiMi()) return false;
             if (durum.RakipActiMi()) return false;
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            if (durum.KendiGercekTeklifSayisi > 0) return false;
             if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
 
             string partnerSon = durum.PartnerTeklifleri.LastOrDefault();

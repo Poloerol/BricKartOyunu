@@ -38,7 +38,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.IhaleBittiMi()) return false;
 
             // Ben henüz konuşmadım
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            if (durum.KendiGercekTeklifSayisi > 0) return false;
 
             // İhalenin İLK gerçek teklifi ortağın 3 seviyesinde renk açılışı olmalı
             var ilk = durum.Gecmis.FirstOrDefault(h => h.GercekTeklifMi);

@@ -3099,6 +3099,49 @@ namespace BricKartOyunu
                 }, "3NT");
         }
 
+        public static void Test_Mudahale_Advancer_Cevap()
+        {
+            Func<string, List<Card>> mk = (spec) =>
+            {
+                var l = new List<Card>();
+                foreach (var g in spec.Split(' '))
+                {
+                    string suit = g[0] == 'S' ? "Maça" : g[0] == 'H' ? "Kupa" : g[0] == 'D' ? "Karo" : "Sinek";
+                    foreach (char ch in g.Substring(2))
+                    {
+                        int v = ch == 'T' ? 10 : ch == 'J' ? 11 : ch == 'Q' ? 12 : ch == 'K' ? 13 : ch == 'A' ? 14 : ch - '0';
+                        l.Add(new Card { Suit = suit, Value = v });
+                    }
+                }
+                return l;
+            };
+            Func<Player, string, int, IhaleHamlesi> h = (o, t, s) => new IhaleHamlesi { Oyuncu = o, Teklif = t, Sira = s, GecerliMi = true };
+
+            // 11.27 — Pas geçmiş el, ortağın Michaels'ine (1♥ – 2♥) cevap verir; rakip rengi asla oynanmaz
+            SeviyeTesti("TEST 11.27 — Pas, 1♥, 2♥ (Michaels ♠+minör), Pas: ♠ fit yok, 6 HP, 5 karo → 3♦ (Pas değil)",
+                mk("S:K5 H:865 D:J7542 C:Q43"), Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Guney, "Pas", 1), h(Player.Bati, "1♥", 2), h(Player.Kuzey, "2♥", 3), h(Player.Dogu, "Pas", 4)
+                }, "3♦");
+
+            // 11.28 — Ortağın Unusual 2NT'sine (1♦ – 2NT = ♣+♥) cevap: eşit uzunlukta yüksek renk
+            SeviyeTesti("TEST 11.28 — 1♦, 2NT (Unusual ♣+♥), Pas: ♥ 4 + ♣ 4, 11 HP → 3♥",
+                mk("S:6 H:J875 D:QJ75 C:AK72"), Player.Dogu,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Guney, "1♦", 1), h(Player.Bati, "2NT", 2), h(Player.Kuzey, "Pas", 3)
+                }, "3♥");
+
+            // 11.29 — Güçlü el + majör uyumu → oyun
+            SeviyeTesti("TEST 11.29 — 1♣, 2NT (Unusual ♦+♥), Pas: 4 kupa, 13 HP → 4♥",
+                mk("S:Q5 H:AKJ6 D:T9 C:K8732"), Player.Guney,
+                new List<IhaleHamlesi>
+                {
+                    h(Player.Dogu, "1♣", 1), h(Player.Kuzey, "2NT", 2), h(Player.Bati, "Pas", 3)
+                }, "4♥");
+        }
+
         public static void Test_Slam_JumpShift_Buyuk()
         {
             var el = new List<Card>
@@ -14363,6 +14406,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_Deklaran_Dummy_Tek_Kral_Yakma();
             Test_Jacoby_Transfer_Onceki_Pas();
             Test_Unusual2NT_Cevap();
+            Test_Mudahale_Advancer_Cevap();
             Test_MinorTransfer_Sonrasi_Devam();
             Test_Cevap_16HP_Sicrama_Degil();
             Test_MinorTransfer_Tamamla_Kontra_Sonrasi();

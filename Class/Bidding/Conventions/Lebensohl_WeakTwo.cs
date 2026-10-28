@@ -43,7 +43,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.PartnerTeklifleri.LastOrDefault() != "Dbl") return false;
 
             // 3. Ben henüz konuşmadım
-            if (durum.KendiTeklifleri.Count > 0) return false;
+            if (durum.KendiGercekTeklifSayisi > 0) return false;
 
             return true;
         }
@@ -59,7 +59,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ═══════════════════════════════════════════════════════════════
             // DURUM 1: İlk cevabım (rakip zayıf 2 açtı, partner DBL)
             // ═══════════════════════════════════════════════════════════════
-            if (durum.KendiTeklifleri.Count == 0)
+            if (durum.KendiGercekTeklifSayisi == 0)
             {
                 int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
                 int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");

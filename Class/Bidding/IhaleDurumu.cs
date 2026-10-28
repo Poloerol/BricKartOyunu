@@ -91,6 +91,12 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Aktif oyuncunun partneri.
         /// </summary>
+        /// <summary>
+        /// Benim yaptığım Pas olmayan teklif sayısı (Dbl dahil). Önceki Pas'lar sayılmaz:
+        /// "ben henüz konuşmadım" kontrolleri bu özelliği kullanmalı (geçmiş el de konuşmamış sayılır).
+        /// </summary>
+        public int KendiGercekTeklifSayisi => KendiTeklifleri.Count(t => t != "Pas");
+
         public Player Partner => PartnerBul(AktifOyuncu);
 
         /// <summary>
