@@ -249,6 +249,30 @@
     <Compile Include="Forms\BricOyna.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\BricOyna.Bord.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\BricOyna.GeriAl.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Menu.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Oyun.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Paneller.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Skor.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Test.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\BricOyna.Yardimcilar.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\BricOyna.Designer.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
     </Compile>
@@ -265,6 +289,7 @@
     <Compile Include="Forms\DuplicateSkorForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\BordSonuAkisi.cs" />
     <Compile Include="Forms\DealCompleteForm.cs">
       <SubType>Form</SubType>
     </Compile>
