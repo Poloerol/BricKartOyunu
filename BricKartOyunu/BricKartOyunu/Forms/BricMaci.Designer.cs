@@ -38,6 +38,7 @@
             this.Name = "BricMaci";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Briç Maçı";
+            this.Load += new System.EventHandler(this.BricMaci_Load);
             this.ResumeLayout(false);
 
         }

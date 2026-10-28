@@ -126,5 +126,10 @@ namespace BricKartOyunu.Forms
             }
             this.Close();
         }
+
+        private void BricMaci_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -2719,6 +2719,50 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        // ── Özdil "Dağılımlar" kitabından: olasılık tabloları + renk planlayıcı ──
+        private static int[] RP_Rutbe(string s)
+        {
+            var l = new List<int>();
+            foreach (char ch in s)
+                l.Add(ch == 'A' ? 14 : ch == 'K' ? 13 : ch == 'Q' ? 12 : ch == 'J' ? 11 : ch == 'T' ? 10 : ch - '0');
+            return l.ToArray();
+        }
+
+        public static void Test_DagilimVeRenkPlani()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.11 — Dağılım olasılıkları ve renk planlayıcı (Özdil)");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+
+            // kitaptaki bölünme tablosu (±1 puan)
+            foreach (var s in DagilimOlasiliklari.KitapBolunmeTablosu)
+            {
+                int k = (int)s[0], bu = (int)s[1], ku = (int)s[2];
+                double p = DagilimOlasiliklari.SoldaTamAKart(k, bu, 13, 13);
+                if (bu != ku) p += DagilimOlasiliklari.SoldaTamAKart(k, ku, 13, 13);
+                kos(Math.Abs(p * 100 - s[3]) <= 1.0, "bölünme " + k + " kart " + bu + "-" + ku);
+            }
+            for (int k = 2; k <= 10; k++)
+            {
+                double t = 0;
+                foreach (var b in DagilimOlasiliklari.Bolunmeler(k)) t += b.Olasilik;
+                kos(Math.Abs(t - 1) < 1e-9, "olasılıklar toplamı 1, k=" + k);
+            }
+            kos(Math.Abs(DagilimOlasiliklari.EmpasSansi(2, 1) - 0.75) < 1e-9, "empas 2/1 = %75");
+            kos(Math.Abs(DagilimOlasiliklari.EmpasSansi(4, 3) - 0.3125) < 1e-9, "empas 4/3 = %31,25");
+
+            // planlayıcı: düz empas (AQ3 / 432, iki löve) ≈ %50
+            var s1 = RenkPlanlayici.Coz(RP_Rutbe("432"), RP_Rutbe("AQ3"), RP_Rutbe("KJT98765"), 13, 13, false, false, 2);
+            kos(s1.Basarili && Math.Abs(s1.YapmaSansi - 0.5) < 0.02, "AQ3/432 iki löve ≈ %50");
+            // AKQ32 / 654, beş löve: 3-2 bölünme ≈ %68
+            var s2 = RenkPlanlayici.Coz(RP_Rutbe("AKQ32"), RP_Rutbe("654"), RP_Rutbe("JT987"), 13, 13, false, false, 5);
+            kos(s2.Basarili && Math.Abs(s2.YapmaSansi - 0.68) < 0.02, "AKQ32/654 beş löve ≈ %68");
+
+            Yaz(hata == 0 ? "✔ Dağılım ve renk planı testleri geçti" : "❌ " + hata + " hata");
+        }
+
         public static void Test_MacDurumu()
         {
             Yaz("════════════════════════════════════════");
@@ -15017,6 +15061,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_YeniKonvOyunEntegrasyonu();
             Test_IhaleAnalizi();
             Test_MacDurumu();
+            Test_DagilimVeRenkPlani();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();

@@ -381,6 +381,9 @@ namespace BricKartOyunu
                 // Oyun penceresi kapanınca (ana menüye dönüş, X, maç sonu) maç durumu sıfırlanır; bord sayısı 4'e döner
                 this.FormClosed += (s0, e0) => MacDurumu.Bitir();
 
+                // Başlık: Briç Maçı sırasında (maç bitene kadar) "Briç Maçı", normal oyunda "Briç Kart Oyunu"
+                this.Text = MacDurumu.Aktif ? "Briç Maçı" : "Briç Kart Oyunu";
+
                 // Tam çizilene kadar görünmez; böylece AnaSayfa ile karışan ara kare olmaz.
                 this.Opacity = 0;
 
