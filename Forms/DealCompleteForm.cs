@@ -52,6 +52,16 @@ namespace BricKartOyunu.Forms
             if (btnNextDeal != null) btnNextDeal.Click += BtnNextDeal_Click;
             if (btnMainMenu != null) btnMainMenu.Click += BtnMainMenu_Click;
 
+            // Briç Maçı bitti: yalnızca Bu Elin Puanlaması, İhaleyi Göster, Oyunu Göster ve Ana Menüye Dön etkin
+            if (BricKartOyunu.Class.MacDurumu.SonBord)
+            {
+                if (btnReplay != null) btnReplay.Enabled = false;
+                if (btnSavePPL != null) btnSavePPL.Enabled = false;
+                if (btnPrint != null) btnPrint.Enabled = false;
+                if (btnNextDeal != null) btnNextDeal.Enabled = false;
+                if (btnMainMenu != null) btnMainMenu.Text = "Ana Menüye Dön";
+            }
+
             System.Diagnostics.Debug.WriteLine(
                 "[DealComplete] Buton event'leri bağlandı.");
         }
@@ -110,6 +120,13 @@ namespace BricKartOyunu.Forms
         private void BtnScore_Click(object sender, EventArgs e)
         {
             if (_bricOyna == null) return;
+            if (BricKartOyunu.Class.MacDurumu.SonBord)
+            {
+                // Maç bitti → "Briç Maçı Skoru" (oyun sayfasının ortasında açılır)
+                using (var m = new MacSkorForm(_bricOyna))
+                    m.ShowDialog(this);
+                return;
+            }
             using (var f = new DuplicateSkorForm(_bricOyna))
                 f.ShowDialog(this);
         }

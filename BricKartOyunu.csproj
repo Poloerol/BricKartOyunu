@@ -223,6 +223,9 @@
     <Compile Include="Class\Bidding\Conventions\YeniKonv3.cs" />
     <Compile Include="Class\Bidding\IhaleYorumcusu.cs" />
     <Compile Include="Class\Bidding\IhaleAnalizi.cs" />
+    <Compile Include="Class\MacDurumu.cs" />
+    <Compile Include="Class\DagilimOlasiliklari.cs" />
+    <Compile Include="Class\RenkPlanlayici.cs" />
     <Compile Include="Forms\KartArkaYuzSecForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -358,6 +361,12 @@
     </Compile>
     <Compile Include="Forms\IhaleGecmisiForm.Designer.cs">
       <DependentUpon>IhaleGecmisiForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\MacSkorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ImpTablosuForm.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\MacOpsiyonlari.cs">
       <SubType>Form</SubType>

@@ -106,6 +106,15 @@ namespace BricKartOyunu.Class
             return legal[BeceriRnd.Next(legal.Count)];
         }
 
+        /// <summary>
+        /// Renk planlayıcı (Melih Özdil, "Kart Oyun Tekniği"): deklaran tarafı, empas / çift empas / düşürme gibi
+        /// kombinasyonlar için dışardaki kartların olası dağılımlarını hesaplayıp en çok löve getirecek kartı seçer.
+        /// Kapalıyken deklaran eski sezgisel kurallarla oynar.
+        /// </summary>
+        public static bool RenkPlanlayiciAktif = true;
+        /// <summary>Planlayıcının bir renk için ek löve beklentisi bu eşiğin üstündeyse devreye girer.</summary>
+        public static double RenkPlanKazancEsigi = 0.25;
+
         public static bool HedefDeklaran = true;
         public static bool HedefSavunma = true;
         /// <summary>true: yalnızca hedef tamamlanınca topla; false: "yeterli sağlam el var" tahminiyle de topla.</summary>
@@ -555,6 +564,20 @@ namespace BricKartOyunu.Class
                 return enUst;
             }
 
+            // 2b) Renk planlayıcı: empas / çift empas / düşürme için en iyi kart (sağlam kartlar toplandıktan sonra)
+            if (RenkPlanlayiciAktif)
+            {
+                string planNeden;
+                Card planKart = null;
+                try { planKart = RenkPlaniKarti(x, out planNeden); }
+                catch (Exception) { planNeden = ""; planKart = null; }   // planlayıcı hata verirse eski kurallara dön
+                if (planKart != null && el.Contains(planKart))
+                {
+                    neden = planNeden;
+                    return planKart;
+                }
+            }
+
             // 3) Ortağın sağlam kartına doğru alçak oyna
             var ortakBoss = ortak.Where(c => c.Suit != koz && x.Boss(c) &&
                                              el.Any(e => e.Suit == c.Suit) &&
@@ -581,6 +604,115 @@ namespace BricKartOyunu.Class
 
             neden = "Elde yalnız koz kaldı";
             return el.OrderBy(c => c.Value).First();
+        }
+
+        // ───────────────────────────────────────────────────────────────────
+        // RENK PLANLAYICI BAĞLANTISI
+        // ───────────────────────────────────────────────────────────────────
+
+        /// <summary>Geçmişte rengi takip edemeyen (renksiz kalmış) oyuncular: oyuncu → renkler.</summary>
+        private static Dictionary<Player, HashSet<string>> RenksizRakipler(OyunBaglami b)
+        {
+            var d = new Dictionary<Player, HashSet<string>>();
+            if (b.Gecmis == null) return d;
+            foreach (var grup in b.Gecmis.GroupBy(g => g.ElNo))
+            {
+                var l = grup.ToList();
+                if (l.Count == 0) continue;
+                string atak = l[0].Kart.Suit;
+                foreach (var e in l)
+                {
+                    if (e.Kart.Suit == atak) continue;
+                    HashSet<string> set;
+                    if (!d.TryGetValue(e.Oyuncu, out set)) { set = new HashSet<string>(); d[e.Oyuncu] = set; }
+                    set.Add(atak);
+                }
+            }
+            return d;
+        }
+
+        private static int[] Degerler(List<Card> kartlar)
+        {
+            return kartlar.Select(c => c.Value).ToArray();
+        }
+
+        /// <summary>
+        /// Deklaran tarafı (sıra bende): her renk için renk planlayıcıyı çalıştırır; en çok ek löve getiren rengin
+        /// en iyi kartını verir. Yalnız sanzatu ya da rakipte koz kalmadığında (kesme riski yok) yan renklerde,
+        /// koz renginde ise her zaman çalışır. Giriş (entry) sorunu çözücüde yoktur: iki elde de giriş varsayılır.
+        /// </summary>
+        private static Card RenkPlaniKarti(Ctx x, out string neden)
+        {
+            neden = "";
+            var el = x.B.Elim;
+            var ortak = x.B.OrtakEli;
+            if (el == null || ortak == null) return null;
+            int kalan = 13 - x.B.ElNo;
+            if (kalan < 2) return null;
+
+            Player sol = OyunKurallari.Sonraki(x.Ben);
+            Player sag = OyunKurallari.Sonraki(OyunKurallari.Sonraki(sol));
+            var renksiz = RenksizRakipler(x.B);
+            bool rakipKozu = x.Koz != null && x.GorunmeyenSayi(x.Koz) > 0;
+            int guvenli = x.HedefVar ? x.GuvenliEl() : 0;
+
+            Card enKart = null;
+            double enKazanc = RenkPlanKazancEsigi;
+            string enNeden = "";
+
+            foreach (var suit in OyunKurallari.Renkler)
+            {
+                if (rakipKozu && suit != x.Koz) continue;     // kesilme riski: planlayıcı kesmeyi bilmez
+                var benim = RenkKartlari(el, suit);
+                if (benim.Count == 0) continue;               // bu rengi ben başlatamam
+                var ort = RenkKartlari(ortak, suit);
+                var dis = new List<int>();
+                for (int v = 2; v <= 14; v++) if (x.Gorunmeyen.Contains(suit + "|" + v)) dis.Add(v);
+                if (dis.Count == 0 || dis.Count > RenkPlanlayici.EnFazlaDisariKart) continue;
+
+                int sagl = Math.Min(x.UstSaglam(suit, el, ortak), Math.Max(benim.Count, ort.Count));
+                int ihtiyac = 0;
+                if (x.HedefVar && x.Gerek > 0) ihtiyac = Math.Max(0, x.Gerek - (guvenli - sagl));
+
+                HashSet<string> sx, sy;
+                bool xBos = renksiz.TryGetValue(sol, out sx) && sx.Contains(suit);
+                bool yBos = renksiz.TryGetValue(sag, out sy) && sy.Contains(suit);
+
+                var sonuc = RenkPlanlayici.Coz(Degerler(benim), Degerler(ort), dis.ToArray(), kalan, kalan, xBos, yBos, ihtiyac);
+                if (!sonuc.Basarili) continue;
+
+                double kazanc = sonuc.BeklenenLove - sagl;
+                if (kazanc <= enKazanc) continue;
+
+                // Sıra kartları: arada başka kart yoksa en alçak denk kartı oyna (alçak kart ortağın onörüne doğru gider)
+                int rank = sonuc.Kart;
+                if (rank <= 9)
+                {
+                    var tum = new HashSet<int>(dis);
+                    foreach (var c in ort) tum.Add(c.Value);
+                    int en = rank;
+                    foreach (var c in benim.OrderByDescending(k => k.Value))
+                    {
+                        if (c.Value >= rank) continue;
+                        bool arada = false;
+                        for (int v = c.Value + 1; v < en; v++) if (tum.Contains(v)) { arada = true; break; }
+                        if (arada) break;
+                        en = c.Value;
+                    }
+                    rank = en;
+                }
+                var kart = benim.FirstOrDefault(c => c.Value == rank);
+                if (kart == null) continue;
+
+                enKazanc = kazanc;
+                enKart = kart;
+                enNeden = "Renk planı (" + suit + "): beklenen " + sonuc.BeklenenLove.ToString("0.0") + " löve" +
+                          (ihtiyac > 0 ? ", " + ihtiyac + " löve için %" + (sonuc.YapmaSansi * 100).ToString("0") : "");
+            }
+
+            if (enKart == null) return null;
+            neden = enNeden;
+            return enKart;
         }
 
         // ───────────────────────────────────────────────────────────────────

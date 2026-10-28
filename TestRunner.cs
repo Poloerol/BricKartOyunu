@@ -2719,6 +2719,120 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
         }
 
+        // ── Özdil "Dağılımlar" kitabından: olasılık tabloları + renk planlayıcı ──
+        private static int[] RP_Rutbe(string s)
+        {
+            var l = new List<int>();
+            foreach (char ch in s)
+                l.Add(ch == 'A' ? 14 : ch == 'K' ? 13 : ch == 'Q' ? 12 : ch == 'J' ? 11 : ch == 'T' ? 10 : ch - '0');
+            return l.ToArray();
+        }
+
+        public static void Test_DagilimVeRenkPlani()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.11 — Dağılım olasılıkları ve renk planlayıcı (Özdil)");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+
+            // kitaptaki bölünme tablosu (±1 puan)
+            foreach (var s in DagilimOlasiliklari.KitapBolunmeTablosu)
+            {
+                int k = (int)s[0], bu = (int)s[1], ku = (int)s[2];
+                double p = DagilimOlasiliklari.SoldaTamAKart(k, bu, 13, 13);
+                if (bu != ku) p += DagilimOlasiliklari.SoldaTamAKart(k, ku, 13, 13);
+                kos(Math.Abs(p * 100 - s[3]) <= 1.0, "bölünme " + k + " kart " + bu + "-" + ku);
+            }
+            for (int k = 2; k <= 10; k++)
+            {
+                double t = 0;
+                foreach (var b in DagilimOlasiliklari.Bolunmeler(k)) t += b.Olasilik;
+                kos(Math.Abs(t - 1) < 1e-9, "olasılıklar toplamı 1, k=" + k);
+            }
+            kos(Math.Abs(DagilimOlasiliklari.EmpasSansi(2, 1) - 0.75) < 1e-9, "empas 2/1 = %75");
+            kos(Math.Abs(DagilimOlasiliklari.EmpasSansi(4, 3) - 0.3125) < 1e-9, "empas 4/3 = %31,25");
+
+            // planlayıcı: düz empas (AQ3 / 432, iki löve) ≈ %50
+            var s1 = RenkPlanlayici.Coz(RP_Rutbe("432"), RP_Rutbe("AQ3"), RP_Rutbe("KJT98765"), 13, 13, false, false, 2);
+            kos(s1.Basarili && Math.Abs(s1.YapmaSansi - 0.5) < 0.02, "AQ3/432 iki löve ≈ %50");
+            // AKQ32 / 654, beş löve: 3-2 bölünme ≈ %68
+            var s2 = RenkPlanlayici.Coz(RP_Rutbe("AKQ32"), RP_Rutbe("654"), RP_Rutbe("JT987"), 13, 13, false, false, 5);
+            kos(s2.Basarili && Math.Abs(s2.YapmaSansi - 0.68) < 0.02, "AKQ32/654 beş löve ≈ %68");
+
+            Yaz(hata == 0 ? "✔ Dağılım ve renk planı testleri geçti" : "❌ " + hata + " hata");
+        }
+
+        public static void Test_MacDurumu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.10 — Briç Maçı durumu (bord sayısı, tohum, IMP, bord numarası)");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+
+            MacDurumu.Bitir();
+            kos(MacDurumu.BordSayisi == 4 && !MacDurumu.Aktif, "başlangıç: 4 bord, maç kapalı");
+
+            // 8 bordluk maç: 7 kez ilerler, sonra son bord; Bitir bord sayısını 4'e döndürür
+            MacDurumu.Baslat("Ayşe", 8, false, false, 100, MacPuanlama.IMP);
+            kos(MacDurumu.Aktif && MacDurumu.BordSayisi == 8 && MacDurumu.Sira == 1, "maç başladı: 8 bord, sıra 1");
+            kos(MacDurumu.BordSeed() == 100, "ilk bord tohumu = seçilen tohum");
+            MacDurumu.Ilerle();
+            kos(MacDurumu.BordSeed() == 101 && MacDurumu.Sira == 2, "ikinci bord tohumu = tohum + 1");
+            for (int i = 0; i < 6; i++) MacDurumu.Ilerle();
+            kos(MacDurumu.Sira == 8 && !MacDurumu.SonrakiBordVar, "8. bordda sonraki bord yok");
+            MacDurumu.Ilerle();
+            kos(MacDurumu.Sira == 8, "son bordun ötesine geçilmez");
+            MacDurumu.Bitir();
+            kos(MacDurumu.BordSayisi == 4 && !MacDurumu.Aktif && MacDurumu.SeedRastgele, "maç sonu: bord sayısı 4'e döndü");
+
+            // Sonuçlar: tekrar oynanan bord güncellenir, atlanan bord 0 sayılır ama var olanı ezmez
+            MacDurumu.Baslat("", 4, false, true, 0, MacPuanlama.ToplamPuan);
+            kos(MacDurumu.OyuncuAdi == "İnsan Oyuncu", "boş ad → İnsan Oyuncu");
+            MacDurumu.Tamamla(420);
+            MacDurumu.SonucYoksaYaz(0);
+            kos(MacDurumu.Sonuclar[1] == 420, "SonucYoksaYaz mevcut sonucu ezmez");
+            MacDurumu.Tamamla(-100);
+            kos(MacDurumu.Sonuclar[1] == -100, "tekrar oynanan bordun sonucu güncellenir");
+            MacDurumu.Ilerle(); MacDurumu.SonucYoksaYaz(0);
+            kos(MacDurumu.Sonuclar[2] == 0, "atlanan bord 0");
+            string ozet = MacDurumu.OzetMetni();
+            kos(ozet.Contains("Bord 1: K-G -100") && ozet.Contains("Toplam puan: K-G -100"), "özet: bord ve toplam puan");
+            MacDurumu.Bitir();
+
+            // Ayrıntılı kayıtlar (Briç Maçı Skoru formu)
+            MacDurumu.Baslat("Ali", 2, false, false, 500, MacPuanlama.IMP);
+            kos(!MacDurumu.SonBord, "1. bord: son bord değil");
+            MacDurumu.Tamamla(-110, "2NT, Batı", 7, 500);
+            MacDurumu.Ilerle();
+            kos(MacDurumu.SonBord, "2. bord: son bord");
+            MacDurumu.PasYaz(501);
+            var kyt = MacDurumu.Kayitlar();
+            kos(kyt.Count == 2 && kyt[0].Kontrat == "2NT, Batı" && kyt[0].Love == 7 && kyt[0].NsSkor == -110 && kyt[0].Seed == 500, "kayıt: kontrat, löve, skor, tohum");
+            kos(kyt[1].Kontrat == "Pas" && kyt[1].Love == -1 && kyt[1].NsSkor == 0 && kyt[1].Seed == 501, "dört pas kaydı");
+            MacDurumu.Tamamla(-50, "3♣, Doğu", 9, 501);
+            kos(MacDurumu.Kayitlar().Count == 2 && MacDurumu.Kayitlar()[1].NsSkor == -50, "tekrar oynanan bordun kaydı güncellenir");
+            kos(MacDurumu.BordDegeri(-110) == "-3" && MacDurumu.BordDegeri(0) == "0", "IMP sütunu değeri");
+            MacDurumu.Bitir();
+            kos(MacDurumu.Kayitlar().Count == 0 && !MacDurumu.SonBord, "Bitir kayıtları siler");
+
+            // IMP tablosu aralıkları
+            int a0, u0, a24, u24, a9, u9;
+            MacDurumu.ImpAraligi(0, out a0, out u0); MacDurumu.ImpAraligi(24, out a24, out u24); MacDurumu.ImpAraligi(9, out a9, out u9);
+            kos(MacDurumu.ImpSayisi == 25 && a0 == 0 && u0 == 10 && a9 == 370 && u9 == 420 && a24 == 4000 && u24 < 0, "IMP tablosu aralıkları");
+
+            // IMP tablosu
+            kos(MacDurumu.Imp(10) == 0 && MacDurumu.Imp(20) == 1 && MacDurumu.Imp(420) == 9 && MacDurumu.Imp(430) == 10, "IMP tablosu (alt sınırlar)");
+            kos(MacDurumu.Imp(-620) == -12 && MacDurumu.Imp(4000) == 24 && MacDurumu.Imp(0) == 0, "IMP tablosu (negatif, üst sınır)");
+
+            // Bord numarası 16'dan sonra 1'e döner
+            kos(MacDurumu.SonrakiBordNo(1) == 2 && MacDurumu.SonrakiBordNo(15) == 16 && MacDurumu.SonrakiBordNo(16) == 1 && MacDurumu.SonrakiBordNo(0) == 1, "bord numarası 16'dan sonra 1");
+
+            Yaz(hata == 0 ? "✅ DOĞRU" : "❌ YANLIŞ (" + hata + " hata)");
+            Yaz("════════════════════════════════════════");
+        }
+
         public static void Test_YeniKonvOyunEntegrasyonu()
         {
             int hata = 0;
@@ -14946,6 +15060,8 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_YeniKonvansiyonlar();
             Test_YeniKonvOyunEntegrasyonu();
             Test_IhaleAnalizi();
+            Test_MacDurumu();
+            Test_DagilimVeRenkPlani();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();

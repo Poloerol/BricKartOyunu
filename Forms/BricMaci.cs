@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using BricKartOyunu.Class;
 
 namespace BricKartOyunu.Forms
 {
@@ -29,15 +30,16 @@ namespace BricKartOyunu.Forms
             this.Text = "Maç Menüsü";
             this.FormBorderStyle = FormBorderStyle.FixedToolWindow;
             this.StartPosition = FormStartPosition.CenterParent;
+            this.Load += (s, e) => SayfaOrtasinaAl(this);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.AutoScaleMode = AutoScaleMode.None;
-            this.ClientSize = new Size(300, 150);
+            this.ClientSize = new Size(194, 100);
             this.BackColor = Color.FromArgb(240, 240, 240);
 
-            Dugme("Yeni Bir Maç Başlat", 15, (s, e) => YeniMac());
-            Dugme("Kayıtlı Maçı Yükle", 55, (s, e) => KayitliMaciYukle());
-            Dugme("Ana Menüye Dön", 95, (s, e) => AnaMenuyeDon());
+            Dugme("Yeni Bir Maç Başlat", 10, (s, e) => YeniMac());
+            Dugme("Kayıtlı Maçı Yükle", 38, (s, e) => KayitliMaciYukle());
+            Dugme("Ana Menüye Dön", 66, (s, e) => AnaMenuyeDon());
         }
 
         private Button Dugme(string metin, int y, EventHandler tikla)
@@ -45,8 +47,8 @@ namespace BricKartOyunu.Forms
             var b = new Button
             {
                 Text = metin,
-                Location = new Point(20, y),
-                Size = new Size(260, 30),
+                Location = new Point(11, y),
+                Size = new Size(172, 24),
                 BackColor = Color.White,
                 UseVisualStyleBackColor = false
             };
@@ -55,16 +57,44 @@ namespace BricKartOyunu.Forms
             return b;
         }
 
+        /// <summary>Formu sahibinin (ana sayfanın) istemci alanının tam ortasına yerleştirir; ekrandan taşmaz.</summary>
+        internal static void SayfaOrtasinaAl(Form f)
+        {
+            try
+            {
+                var sahip = f.Owner;
+                if (sahip == null) return;
+                var merkez = sahip.PointToScreen(new Point(sahip.ClientSize.Width / 2, sahip.ClientSize.Height / 2));
+                var wa = Screen.FromControl(sahip).WorkingArea;
+                int x = Math.Max(wa.Left, Math.Min(merkez.X - f.Width / 2, wa.Right - f.Width));
+                int y = Math.Max(wa.Top, Math.Min(merkez.Y - f.Height / 2, wa.Bottom - f.Height));
+                f.StartPosition = FormStartPosition.Manual;
+                f.Location = new Point(x, y);
+            }
+            catch { }
+        }
+
         private void YeniMac()
         {
+            var anaSayfa = (this.Owner as AnaSayfa) ?? Application.OpenForms.OfType<AnaSayfa>().FirstOrDefault();
+            if (anaSayfa == null) return;
+
+            // Maç menüsü gizlenir, Maç Opsiyonları ana sayfanın ortasında açılır
+            this.Hide();
             using (var f = new MacOpsiyonlari())
             {
-                if (f.ShowDialog(this) == DialogResult.OK)
+                if (f.ShowDialog(anaSayfa) != DialogResult.OK)
                 {
-                    // Maç başlatma henüz geliştirilmedi: seçenekler alındı, menü kapanır.
-                    this.Close();
+                    this.Show();
+                    this.Activate();
+                    return;
                 }
+                MacDurumu.Baslat(f.OyuncuAdi, f.BordSayisi, f.TopluTekrar, f.SeedRastgele, f.Seed, f.Puanlama);
             }
+
+            // Oyun penceresi seçilen maç ayarlarıyla açılır; maç bitince menü de kapanır
+            try { anaSayfa.MacOyunuBaslat(); }
+            finally { MacDurumu.Bitir(); this.Close(); }
         }
 
         private void KayitliMaciYukle()
@@ -95,6 +125,11 @@ namespace BricKartOyunu.Forms
                 anaSayfa.Show();
             }
             this.Close();
+        }
+
+        private void BricMaci_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
