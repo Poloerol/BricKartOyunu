@@ -2788,6 +2788,117 @@ namespace BricKartOyunu
             Yaz(hata == 0 ? "✔ Atak kitabı testleri geçti" : "❌ " + hata + " hata");
         }
 
+        // ── Monte Carlo altyapısı: çift dummy çözücü ve dünya örnekleyici ──
+        private static int DD_Referans(ulong[] h, int leader, int[] tc, int k, int koz)
+        {
+            int mover = (leader + k) & 3;
+            if (k == 0 && h[mover] == 0) return 0;
+            int ls = k > 0 ? (tc[0] >> 4) : -1;
+            bool follow = ls >= 0 && (((h[mover] >> (ls * 16)) & 0x1FFFUL) != 0);
+            bool max = (mover & 1) == 0;
+            int best = max ? -1 : 99;
+            for (int c = 0; c < 64; c++)
+            {
+                if (((h[mover] >> c) & 1UL) == 0) continue;
+                if (follow && (c >> 4) != ls) continue;
+                int[] kayit = (int[])tc.Clone();
+                h[mover] &= ~(1UL << c); tc[k] = c;
+                int v;
+                if (k == 3)
+                {
+                    int bi = 0, bs = tc[0] >> 4, br = tc[0] & 15;
+                    for (int i = 1; i < 4; i++)
+                    {
+                        int s = tc[i] >> 4, r = tc[i] & 15;
+                        if (s == bs) { if (r > br) { bi = i; br = r; } }
+                        else if (s == koz && bs != koz) { bi = i; bs = s; br = r; }
+                    }
+                    int w = (leader + bi) & 3;
+                    v = ((w & 1) == 0 ? 1 : 0) + DD_Referans(h, w, tc, 0, koz);
+                }
+                else v = DD_Referans(h, leader, tc, k + 1, koz);
+                h[mover] |= 1UL << c; Array.Copy(kayit, tc, 4);
+                if (max) { if (v > best) best = v; } else { if (v < best) best = v; }
+            }
+            return best;
+        }
+
+        public static void Test_MonteCarloAltyapisi()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.13 — Çift dummy çözücü ve dünya örnekleyici");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+            var rnd = new Random(2024);
+
+            // 1) Çözücü ≈ kaba kuvvet minimax (2-4 kartlık rastgele pozisyonlar, sanzatu ve koz)
+            for (int it = 0; it < 150; it++)
+            {
+                int n = 2 + rnd.Next(3);
+                int koz = rnd.Next(5) - 1;
+                var deste = new List<int>();
+                for (int s = 0; s < 4; s++) for (int r = 0; r < 13; r++) deste.Add(s * 16 + r);
+                for (int i = deste.Count - 1; i > 0; i--) { int j = rnd.Next(i + 1); int tmp = deste[i]; deste[i] = deste[j]; deste[j] = tmp; }
+                var h = new ulong[4];
+                for (int i = 0; i < 4 * n; i++) h[i / n] |= 1UL << deste[i];
+                int lider = rnd.Next(4);
+                int beklenen = DD_Referans((ulong[])h.Clone(), lider, new int[4], 0, koz);
+                int bulunan = new DDSolver(koz).Coz(h, lider, new int[4], 0);
+                kos(beklenen == bulunan, "çözücü: pozisyon " + it + " beklenen " + beklenen + ", bulunan " + bulunan);
+            }
+
+            // 2) Basit bilinen pozisyon: AKQ / 432 karşısında savunma J10 9 / 876 (hepsi aynı renk): 3 löve
+            ulong[] el = new ulong[4];
+            Func<int, string, ulong> maske = (renk, kartlar) =>
+            {
+                ulong m = 0;
+                foreach (char ch in kartlar)
+                {
+                    int r = ch == 'A' ? 12 : ch == 'K' ? 11 : ch == 'Q' ? 10 : ch == 'J' ? 9 : ch == 'T' ? 8 : ch - '2';
+                    m |= 1UL << (renk * 16 + r);
+                }
+                return m;
+            };
+            el[0] = maske(0, "AKQ"); el[1] = maske(0, "JT9"); el[2] = maske(0, "432"); el[3] = maske(0, "876");
+            kos(new DDSolver(-1).Coz(el, 0, new int[4], 0) == 3, "AKQ/432 karşı J T 9 / 876: 3 löve");
+            el[0] = maske(0, "432"); el[1] = maske(0, "AKQ"); el[2] = maske(0, "JT9"); el[3] = maske(0, "876");
+            kos(new DDSolver(-1).Coz(el, 0, new int[4], 0) == 0, "432 / savunma AKQ: 0 löve");
+
+            // 3) Örnekleyici: sayılar ve renksiz bilgisi tutuyor
+            var gorunmeyen = new List<int>();
+            for (int s = 0; s < 4; s++) for (int r = 0; r < 13; r++) if (r % 2 == 0 || s != 0) gorunmeyen.Add(s * 16 + r);
+            // 26 kartı al
+            gorunmeyen = gorunmeyen.Take(26).ToList();
+            bool[] bosA = new bool[4], bosB = new bool[4];
+            bosA[0] = true;        // A oyuncusu maçada boş
+            bosB[2] = true;        // B oyuncusu karoda boş
+            var gAr = gorunmeyen.ToArray();
+            int tutarli = 0, denemeSayisi = 300;
+            for (int it = 0; it < denemeSayisi; it++)
+            {
+                ulong a, b;
+                if (!DunyaOrnekleyici.Uret(rnd, gAr, 13, 13, bosA, bosB, out a, out b)) continue;
+                bool ok = (a & b) == 0;
+                int ca = 0, cb = 0;
+                foreach (int c in gAr)
+                {
+                    bool inA = ((a >> c) & 1UL) != 0, inB = ((b >> c) & 1UL) != 0;
+                    ok &= inA ^ inB;
+                    if (inA) { ca++; ok &= (c >> 4) != 0; }
+                    if (inB) { cb++; ok &= (c >> 4) != 2; }
+                }
+                ok &= ca == 13 && cb == 13;
+                if (ok) tutarli++;
+            }
+            kos(tutarli == denemeSayisi, "örnekleyici: kart sayıları ve renksiz bilgisi her örnekte tutmalı (" + tutarli + "/" + denemeSayisi + ")");
+            ulong x1, x2;
+            bool[] ikisiBos = new bool[4]; ikisiBos[1] = true;
+            kos(!DunyaOrnekleyici.Uret(rnd, new int[] { 1 * 16 + 3 }, 1, 0, ikisiBos, ikisiBos, out x1, out x2), "çelişen kısıtta örnekleyici false dönmeli");
+
+            Yaz(hata == 0 ? "✔ Monte Carlo altyapı testleri geçti" : "❌ " + hata + " hata");
+        }
+
         // ── Özdil "Dağılımlar" kitabından: olasılık tabloları + renk planlayıcı ──
         private static int[] RP_Rutbe(string s)
         {
@@ -15132,6 +15243,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_MacDurumu();
             Test_DagilimVeRenkPlani();
             Test_AtakKitabi();
+            Test_MonteCarloAltyapisi();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();

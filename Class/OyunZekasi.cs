@@ -137,10 +137,35 @@ namespace BricKartOyunu.Class
                 return legal[0];
             }
 
+            // Monte Carlo + çift dummy (GIB tarzı): az kart kaldığında olası dağılımları örnekleyip en iyi kartı seçer
+            MonteCarloOyun.Sonuc mc = null;
+            if (MonteCarloOyun.Aktif)
+            {
+                try { mc = MonteCarloOyun.Sec(b, legal); } catch (Exception) { mc = null; }
+                if (mc != null && mc.Eniyiler.Count == 1)
+                {
+                    neden = mc.Aciklama;
+                    return mc.Eniyiler[0];
+                }
+            }
+
             var x = new Ctx(b);
             Card secilen;
-            if (atak == null) secilen = Lider(x, out neden);
-            else secilen = Takip(x, legal, atak, out neden);
+            bool planAcik = RenkPlanlayiciAktif;
+            if (mc != null) RenkPlanlayiciAktif = false;      // eşit en iyi kartlar arasında yalnız hızlı sezgiyle seç
+            try
+            {
+                if (atak == null) secilen = Lider(x, out neden);
+                else secilen = Takip(x, legal, atak, out neden);
+            }
+            finally { RenkPlanlayiciAktif = planAcik; }
+
+            if (mc != null && mc.Eniyiler.Count > 1)
+            {
+                if (secilen == null || !mc.Eniyiler.Contains(secilen))
+                    secilen = mc.Eniyiler.OrderBy(c => c.Value).First();
+                neden = mc.Aciklama + " — eşit değerli kartlar arasında: " + neden;
+            }
 
             // Güvenlik ağı: her koşulda yasal kart döndür
             if (secilen == null || !legal.Contains(secilen))
