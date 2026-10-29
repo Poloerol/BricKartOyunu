@@ -25,8 +25,8 @@ namespace BricKartOyunu.Class
         public static bool IhaleKullan = false;
         /// <summary>Bir örnek için en çok kaç dağılım denenip ihale bilgisine uyan aranır; bulunamazsa kısıtsız örnek alınır.</summary>
         public static int KisitDenemeSiniri = 300;
-        /// <summary>Pas diyen koltuğun HCP üst sınırı güvenilmez (ölçümde %18 ihlal); false ise yok sayılır.</summary>
-        public static bool PasUstSiniriKullan = false;
+        /// <summary>Pas diyen koltuğun HCP üst sınırını da kullan. IhaleAnalizi kalibre edildi: pas koltuğunun aralığı son gerçek çağrısından gelir.</summary>
+        public static bool PasUstSiniriKullan = true;
         public static int HcUstTolerans = 2;
         public static int IstatKisitli, IstatKisitAsildi;
         public static int EnAzOrnek = 6;

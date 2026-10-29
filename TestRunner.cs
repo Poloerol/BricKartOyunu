@@ -2715,6 +2715,17 @@ namespace BricKartOyunu
             var k1 = IhaleAnalizi.Analiz(new List<string> { "1♠" }, "Kuzey", an);
             kos(k1[Player.Dogu].Satirlar().Count == 0 && k1[Player.Kuzey].Satirlar().Count > 0, "yalnız konuşan koltuk yorumlanır");
 
+            // Kalibrasyon (gerçek ellere karşı ölçüldü): rakip açtıktan sonra ortağın müdahalesine destek zayıf olabilir,
+            // önleyici açılışa cevabın üst sınırı yoktur, açılış sırasında pas açılış gücü olmadığını gösterir.
+            var c1 = IhaleAnalizi.Analiz(new List<string> { "1♦", "1♥", "Pas", "2♥", "Pas", "Pas", "Pas" }, "Guney", an);
+            kos(c1[Player.Dogu].HcMin <= 3, "yarışmacı raise zayıf olabilir");
+            var c2 = IhaleAnalizi.Analiz(new List<string> { "2♥", "Pas", "4♥", "Pas", "Pas", "Pas" }, "Guney", an);
+            kos(c2[Player.Kuzey].HcMax >= 40, "önleyiciye cevap: üst sınır yok");
+            var c3 = IhaleAnalizi.Analiz(new List<string> { "Pas", "Pas", "Pas", "Pas" }, "Guney", an);
+            kos(c3[Player.Guney].HcMax <= 13, "açılış sırasında pas: açılış gücü yok");
+            var c4 = IhaleAnalizi.Analiz(new List<string> { "1♠", "Pas", "Pas", "Pas" }, "Guney", an);
+            kos(c4[Player.Kuzey].HcMax >= 13, "sonradan gelen pas üst sınır koymaz");
+
             Yaz(hata == 0 ? "✅ DOĞRU" : "❌ YANLIŞ (" + hata + " hata)");
             Yaz("════════════════════════════════════════");
         }
@@ -2897,6 +2908,105 @@ namespace BricKartOyunu
             kos(!DunyaOrnekleyici.Uret(rnd, new int[] { 1 * 16 + 3 }, 1, 0, ikisiBos, ikisiBos, out x1, out x2), "çelişen kısıtta örnekleyici false dönmeli");
 
             Yaz(hata == 0 ? "✔ Monte Carlo altyapı testleri geçti" : "❌ " + hata + " hata");
+        }
+
+        // ── Safety Play tablosu (F. Cangurus): ilk hamle regresyonu ──
+        // Her satır: no, yer (N), el (S), gereken löve, tablonun ilk hamlesi ("e:" el, "y:" yer; "low" = en küçük kart),
+        // tablodaki hamlenin renk planlayıcıya göre yapma şansı (%), en iyi şans (%).
+        // Tablodaki hamle en iyi şansı veriyorsa satır "uyumlu"dur. Daha düşükse planlayıcı kitaptan iyi görünür:
+        // planlayıcı iki elde de giriş olduğunu varsayar, kitap gerçek giriş sınırlarını dikkate alır. Bu satırlar yalnız izlenir.
+        private static readonly object[][] SP_Tablo = new object[][]
+        {
+            new object[] {   2, "Q43",  "52",    1, "e:low",  24.0,  24.0 },
+            new object[] {   3, "Q43",  "A65",   2, "e:A",    50.7,  50.7 },
+            new object[] {   4, "QJ4",  "532",   1, "e:low",  76.2,  76.2 },
+            new object[] {   5, "QJ43", "A65",   3, "e:A",    69.4,  69.4 },
+            new object[] {   6, "KQ6",  "543",   2, "e:low",  50.0,  50.0 },
+            new object[] {   7, "KQJ6", "543",   3, "e:low",  67.8,  67.8 },
+            new object[] {   8, "KJ43", "Q52",   3, "e:low",  44.8,  44.8 },
+            new object[] {   9, "QJ43", "K52",   3, "e:low",  44.8,  44.8 },
+            new object[] {  12, "AQ3",  "42",    2, "y:A",    50.3,  50.3 },
+            new object[] {  13, "AQ9",  "42",    2, "e:low",  63.0,  63.0 },
+            new object[] {  14, "J94",  "Q32",   1, "e:low",  57.7,  75.5 },
+            new object[] {  16, "AKJ",  "432",   3, "y:A",    50.7,  50.7 },
+            new object[] {  17, "AK43", "J52",   3, "y:A",    69.4,  69.4 },
+            new object[] {  18, "AQT",  "432",   3, "e:low",  24.0,  24.0 },
+            new object[] {  19, "AJT",  "432",   2, "e:low",  76.2,  76.2 },
+            new object[] {  20, "KJ3",  "542",   2, "e:low",  24.0,  24.0 },
+            new object[] {  21, "QT2",  "K43",   2, "e:K",    51.2,  51.2 },
+            new object[] {  22, "AT2",  "Q43",   2, "y:low",  78.1,  78.1 },
+            new object[] {  23, "AJ2",  "543",   2, "e:low",  24.0,  24.0 },
+            new object[] {  24, "AKT",  "432",   3, "e:low",  24.0,  24.0 },
+            new object[] {  25, "AJ9",  "432",   2, "e:low",  38.0,  38.0 },
+            new object[] {  26, "AKJ2", "543",   3, "y:A",    77.0,  77.0 },
+            new object[] {  27, "QT2",  "543",   1, "e:low",  38.0,  38.0 },
+            new object[] {  28, "KT2",  "543",   1, "e:low",  63.0,  63.0 },
+            new object[] {  29, "KT",   "A952",  3, "e:low",  55.2,  55.2 },
+            new object[] { 101, "J8543","AQ962", 5, "y:J",    50.0,  50.0 },
+            new object[] { 102, "Q864", "AK953", 5, "y:Q",    95.2,  95.2 },
+            new object[] { 103, "AKJ74","963",   5, "y:A",    40.1,  40.1 },
+            new object[] { 104, "AT53", "KQ962", 5, "e:K",   100.0, 100.0 },
+            new object[] { 105, "AT43", "K9652", 4, "y:low", 100.0, 100.0 },
+            new object[] { 106, "864",  "AQ972", 4, "e:A",    49.2,  56.0 },
+            new object[] { 107, "K95",  "AJ862", 4, "e:A",    96.1,  98.0 },
+            new object[] { 108, "A75",  "KT843", 4, "y:A",    82.0,  87.6 },
+            new object[] { 109, "T64",  "AK853", 4, "e:A",    82.0,  84.8 },
+            new object[] { 110, "KJ7",  "A9654", 4, "y:K",    96.1,  96.1 },
+            new object[] { 111, "K753", "AT92",  3, "y:K",    89.6,  92.4 },
+            new object[] { 112, "862",  "AQT753",5, "e:A",    82.8,  82.8 },
+            new object[] { 113, "J2",   "A96543",5, "y:J",     0.0,   6.8 },
+            new object[] { 114, "753",  "AK984", 4, "e:A",    76.3,  79.1 },
+            new object[] { 115, "QT8",  "A9652", 4, "y:T",    74.0,  83.1 },
+            new object[] { 116, "KQ87642","5",   6, "e:low",  13.6,  13.6 },
+            new object[] { 117, "KQ87642","5",   5, "e:low",  73.5,  73.5 },
+        };
+
+        public static void Test_SafetyPlay()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.14 — Safety Play tablosu: renk planlayıcı ilk hamle regresyonu");
+            Yaz("════════════════════════════════════════");
+            int hata = 0, uyumlu = 0, farkli = 0;
+            foreach (var satir in SP_Tablo)
+            {
+                int no = (int)satir[0]; string yer = (string)satir[1], el = (string)satir[2];
+                int ihtiyac = (int)satir[3]; string bek = (string)satir[4];
+                double beklenenSans = (double)satir[5], enIyi = (double)satir[6];
+
+                var tumu = new List<int>();
+                for (int r = 2; r <= 14; r++) tumu.Add(r);
+                foreach (int c in RP_Rutbe(yer)) tumu.Remove(c);
+                foreach (int c in RP_Rutbe(el)) tumu.Remove(c);
+                var disari = tumu.ToArray();
+
+                bool yerden = bek[0] == 'y';
+                int[] elim = RP_Rutbe(yerden ? yer : el), diger = RP_Rutbe(yerden ? el : yer);
+                var s = RenkPlanlayici.Coz(elim, diger, disari, 13, 13, false, false, ihtiyac);
+                if (!s.Basarili) { hata++; Yaz("❌ Safety " + no + ": planlayıcı çözemedi (" + s.Neden + ")"); continue; }
+
+                string kartAd = bek.Substring(2);
+                int istenen = kartAd == "low" ? elim.Min()
+                            : kartAd == "A" ? 14 : kartAd == "K" ? 13 : kartAd == "Q" ? 12 : kartAd == "J" ? 11 : kartAd == "T" ? 10 : kartAd[0] - '0';
+                double sans = -1;
+                foreach (var a in s.Adaylar)
+                {
+                    bool denk = a.Kart == istenen;
+                    if (!denk)
+                    {
+                        // arada başka elde ya da dışarıda kart yoksa kartlar denktir (ör. KQ → K ile Q aynı)
+                        denk = true;
+                        for (int r = Math.Min(a.Kart, istenen) + 1; r < Math.Max(a.Kart, istenen); r++)
+                            if (diger.Contains(r) || disari.Contains(r)) { denk = false; break; }
+                    }
+                    if (denk && a.YapmaSansi * 100 > sans) sans = a.YapmaSansi * 100;
+                }
+                if (sans < 0) { hata++; Yaz("❌ Safety " + no + ": tablodaki ilk hamle aday listesinde yok (" + bek + ")"); continue; }
+                if (Math.Abs(sans - beklenenSans) > 0.6) { hata++; Yaz("❌ Safety " + no + ": tablo hamlesi şansı %" + sans.ToString("0.0") + ", beklenen %" + beklenenSans.ToString("0.0")); }
+                if (Math.Abs(beklenenSans - enIyi) < 0.05) uyumlu++;
+                else { farkli++; Yaz("ℹ Safety " + no + " (" + yer + " / " + el + "): tablo hamlesi %" + sans.ToString("0.0") + ", planlayıcının en iyisi %" + enIyi.ToString("0.0") + " (giriş varsayımı farkı olabilir)"); }
+            }
+            Yaz(uyumlu + " satır kitapla tam uyumlu, " + farkli + " satırda planlayıcı daha yüksek şans buluyor");
+            Yaz(hata == 0 ? "✔ Safety Play testleri geçti" : "❌ " + hata + " hata");
         }
 
         // ── Özdil "Dağılımlar" kitabından: olasılık tabloları + renk planlayıcı ──
@@ -15244,6 +15354,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_DagilimVeRenkPlani();
             Test_AtakKitabi();
             Test_MonteCarloAltyapisi();
+            Test_SafetyPlay();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();
