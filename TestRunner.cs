@@ -3009,6 +3009,50 @@ namespace BricKartOyunu
             Yaz(hata == 0 ? "✔ Safety Play testleri geçti" : "❌ " + hata + " hata");
         }
 
+        // ── Bergen açıkken 3 kartlık destekle 1M - 3M/4M sıçraması yapılmaz ──
+        public static void Test_BergenUcKartDestek()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.15 — Bergen açıkken 3 kartlık destek: sıçrama yok, yeni renk / 2NT / basit destek");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+            Func<string, string, string, string, List<Card>> el = (sp, he, di, cl) =>
+            {
+                var l = new List<Card>();
+                Action<string, string> ekle = (renk, r) =>
+                {
+                    foreach (char ch in r)
+                        l.Add(new Card { Suit = renk, Value = ch == 'A' ? 14 : ch == 'K' ? 13 : ch == 'Q' ? 12 : ch == 'J' ? 11 : ch == 'T' ? 10 : ch - '0' });
+                };
+                ekle("Maça", sp); ekle("Kupa", he); ekle("Karo", di); ekle("Sinek", cl);
+                return l;
+            };
+            var an = OrtaklikAnlasmasi.Varsayilan();
+            Func<List<Card>, string, string> teklif = (e, acilis) =>
+            {
+                var motor = new IhaleMotoru(an);
+                var g = new List<IhaleHamlesi>
+                {
+                    new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = acilis, Sira = 1 },
+                    new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 2 }
+                };
+                return motor.TeklifVer(new IhaleDurumu { AktifOyuncu = Player.Guney, AktifOyuncuEli = e, Anlasma = an, Gecmis = g });
+            };
+
+            // ♠J54 ♥K532 ♦T ♣AQJ62 (11 HP): 3♠ değil, 5 kartlık sinek
+            kos(teklif(el("J54", "K532", "T", "AQJ62"), "1♠") == "2♣", "11 HP, 3 maça, 5 sinek: 1♠ - 2♣ (3♠ değil)");
+            // dengeli 3-3-4-3, 12 HP: davet gücü, 3♠ değil
+            string t2 = teklif(el("K54", "Q32", "AJ63", "Q54"), "1♠");
+            kos(t2 != "3♠" && t2 != "4♠", "dengeli 12 HP, 3 maça: 3♠/4♠ sıçraması yok (" + t2 + ")");
+            // 4 kartlık destek Bergen'in işi: 8 HP, 4 maça → 3♣ (yapıcı)
+            kos(teklif(el("K854", "Q32", "J63", "Q54"), "1♠") == "3♣", "4 maça, 8 HP: Bergen 3♣");
+            // zayıf 3 kartlık destek: basit 2♠
+            kos(teklif(el("K54", "Q32", "J763", "Q54"), "1♠") == "2♠", "3 maça, 8 HP: basit destek 2♠");
+
+            Yaz(hata == 0 ? "✔ Bergen 3 kart destek testleri geçti" : "❌ " + hata + " hata");
+        }
+
         // ── Özdil "Dağılımlar" kitabından: olasılık tabloları + renk planlayıcı ──
         private static int[] RP_Rutbe(string s)
         {
@@ -15355,6 +15399,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_AtakKitabi();
             Test_MonteCarloAltyapisi();
             Test_SafetyPlay();
+            Test_BergenUcKartDestek();
 
             Yaz("▶ Test 10.1: Grand Slam Force Soru");
             Test_GSF_Soru();

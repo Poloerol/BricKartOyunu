@@ -284,6 +284,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int ucuz = Cheapest(d, fit);
                 if (ucuz > T && !zorunlu) return "Pas";
                 int hedef = Math.Max(T, ucuz);
+
+                // Bergen açıkken ortağın 1M açılışına ilk cevapta 3 kartlık destekle 3M/4M sıçraması YAPILMAZ:
+                // 1M-3M = 4 kartlı önleyici (0-6 HP), 1M-4M = 5 kartlı önleyici anlamına gelir (BergenRaises).
+                // Bunun yerine yeni renk gösterilir (ör. 1♠ - 2♣); uygun renk yoksa dengeli elle 2NT, değilse basit destek.
+                if (hedef > ucuz && IlkCevapBergenKosulu(d, el, gercek, fit, son))
+                {
+                    string alt = UcKartDestekAlternatifi(d, el, rakipRenkleri, fit, dengeli);
+                    if (alt != null) return alt;
+                }
                 return Seviye(d, fit, Math.Min(hedef, 6));
             }
 
@@ -752,6 +761,34 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (est >= 27.5) return ntSecenegi ? -1 : 4;
             if (est >= 25.5) return 3;
             return 2;
+        }
+
+        /// <summary>
+        /// Ortağın tek açılışına (1♥/1♠) rakipsiz, ilk kez cevap veriyorum; Bergen anlaşması açık ve elimde TAM 3 kart destek var
+        /// (4+ destek Bergen / Jacoby 2NT konvansiyonlarının işidir).
+        /// </summary>
+        private static bool IlkCevapBergenKosulu(IhaleDurumu d, List<Card> el, List<IhaleHamlesi> gercek, string fit, IhaleHamlesi son)
+        {
+            if (d.Anlasma == null || !d.Anlasma.BergenRaises) return false;
+            if (gercek.Count != 1 || son.Oyuncu != d.Partner || son.Seviye != 1 || !Major(son.Koz) || son.Koz != fit) return false;
+            if (d.RakipActiMi()) return false;
+            return ElDegerlendirici.RenkUzunlugu(el, fit) == 3;
+        }
+
+        /// <summary>3 kartlık destekle Bergen sıçraması yerine: 4+ kartlık majör (1 seviyede) / 5+ kartlık renk (2 seviyede) ya da 2NT / basit destek.</summary>
+        private string UcKartDestekAlternatifi(IhaleDurumu d, List<Card> el, List<string> rakipRenkleri, string fit, bool dengeli)
+        {
+            string en = null; int enUz = 0, enU = 0;
+            foreach (var r in new[] { "Sinek", "Karo", "Kupa", "Maça" })
+            {
+                if (r == fit || rakipRenkleri.Contains(r)) continue;
+                int u = Cheapest(d, r), uz = ElDegerlendirici.RenkUzunlugu(el, r);
+                bool uygun = (uz >= 4 && u == 1 && Major(r)) || (uz >= 5 && u <= 2);
+                if (!uygun) continue;
+                if (en == null || uz > enUz || (uz == enUz && Major(r) && !Major(en))) { en = r; enUz = uz; enU = u; }
+            }
+            if (en != null) return Seviye(d, en, enU);
+            return dengeli ? Seviye(d, "NT", 2) : null;   // null: mevcut davranış sürer
         }
 
         private bool NTOlur(List<Card> el, List<string> rakipRenkleri)
