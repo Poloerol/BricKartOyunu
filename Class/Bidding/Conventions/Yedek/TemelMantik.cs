@@ -124,6 +124,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int fark = agr < 0 ? 2 : (agr > 0 ? -1 : 0);   // temkinli +2 HP, atak -1 HP
             if (sev >= 3 || hp < 8 + fark) return "Pas";
 
+            // Dengeli 15-18 HP, rakibin rengini durduruyor: NT müdahalesi (1♦ – (1NT), 2♥ – (2NT) = 15-18).
+            // Güçlü 2♣ açılışına karşı uygulanmaz.
+            bool ntMud = (sev == 1 || (sev == 2 && gercek.Count == 1)) && rk != "NT" && son.Teklif != "2♣" && hp >= 15 && ElDegerlendirici.DengeliEl(el);
+            if (ntMud && hp <= 18 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == sev)
+                return Seviye(d, "NT", sev);
+            // Dengeli 15+ HP, rakibin rengini durduramıyor ve diğer renklerde en az 3 kart: takeout kontra
+            if (ntMud && !ElDegerlendirici.StopperVar(el, rk) &&
+                Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
+                return "Dbl";
+
             // En iyi 5+ renk (rakibin rengi hariç)
             string en = null; int enUz = 0;
             foreach (var r in Renkler)

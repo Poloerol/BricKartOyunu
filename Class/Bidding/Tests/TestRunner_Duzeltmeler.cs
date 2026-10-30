@@ -96,6 +96,20 @@ namespace BricKartOyunu.Tests
             T("B4 1D-1S-3D, 5hcp -> Pas", TestHelpers.ElOlustur("K9432", "T4", "T64", "J87"), "Pas", "1♦", "Pas", "1♠", "Pas", "3♦", "Pas");
             T("B5 1D-1S-3D, 10hcp 4 maca dengeli -> 3NT", TestHelpers.ElOlustur("KJ43", "Q4", "T64", "AQ87"), "3NT", "1♦", "Pas", "1♠", "Pas", "3♦", "Pas");
 
+            // 1♥ açılışına 4+ maça varsa 1NT (forcing) değil 1♠
+            T("E1 1H-?, 5 maca 10hcp -> 1S", TestHelpers.ElOlustur("AKT73", "6", "Q84", "9875"), "1♠", "1♥", "Pas");
+            T("E2 1H-?, 4 maca 7hcp -> 1S", TestHelpers.ElOlustur("KJ73", "82", "Q842", "J95"), "1♠", "1♥", "Pas");
+            T("E3 1H-?, 2 kupa 2 maca 7hcp -> 1NT", TestHelpers.ElOlustur("Q4", "82", "KJ842", "J953"), "1NT", "1♥", "Pas");
+
+            // 1♦ – (?): 15 HP dengeli, karoda durdurucu (A104) → 1NT müdahalesi
+            T("Y1 (1D)-? 15hcp 3-4-4-2 karo durdurucu -> 1NT", TestHelpers.ElOlustur("K93", "AKJ2", "AT43", "T8"), "1NT", "1♦");
+            T("Y2 (1D)-? 15hcp dengeli, karoda durdurucu yok -> kontra", TestHelpers.ElOlustur("K93", "AKJ2", "432", "AT8"), "Dbl", "1♦");
+
+            // Zayıf iki açılışına (2♥) karşı 15-18 HP dengeli: durdurucu varsa 2NT, yoksa takeout kontra
+            T("Y3 (2H)-? 17hcp dengeli, kupada durdurucu -> 2NT", TestHelpers.ElOlustur("AQ3", "KJ3", "AJ42", "QT8"), "2NT", "2♥");
+            T("Y4 (2H)-? 15hcp dengeli, kupada durdurucu yok -> Dbl", TestHelpers.ElOlustur("K93", "432", "AKJ2", "AT8"), "Dbl", "2♥");
+            T("Y5 (2H)-? 12hcp dengeli -> Pas", TestHelpers.ElOlustur("K93", "432", "AQJ2", "T98"), "Pas", "2♥");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");

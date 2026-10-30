@@ -66,6 +66,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     durum.AktifOyuncuEli, sonTeklif.Koz);
                 if (destek >= 3) return false;
 
+                // ★ KRİTİK 2b: 1♥ açılışına karşı 4+ kartlık maça varsa 1♠ (doğal, 1 seviye) söylenir; 1NT değil
+                if (sonTeklif.Koz == "Kupa" && sonTeklif.Seviye == 1 && gercekTeklifler.Count == 1 &&
+                    ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, "Maça") >= 4)
+                    return false;
+
                 // ★ KRİTİK 3: 2NT davet aralığındaki dengeli el Forcing NT değil
                 // (10-12 HP dengeli → 2NT davet)
                 int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);

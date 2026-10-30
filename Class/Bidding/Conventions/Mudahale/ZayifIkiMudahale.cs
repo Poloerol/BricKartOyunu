@@ -91,8 +91,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ─── 2NT: dengeli 15-18 + rakip renginde tutuş (yaklaşık) ───
             bool singletonYok = uzunluk.Values.All(v => v >= 2);
-            if (hp >= 15 - indirim && hp <= 18 && singletonYok && rakipUzunluk >= 3)
+            string rakipAd = rakipSembol == '♠' ? "Maça" : rakipSembol == '♥' ? "Kupa" : rakipSembol == '♦' ? "Karo" : "Sinek";
+            bool tutus = ElDegerlendirici.StopperVar(el, rakipAd);
+            if (hp >= 15 - indirim && hp <= 18 && singletonYok && rakipUzunluk >= 3 && tutus)
                 return "2NT";
+            // Dengeli 15+ HP ama rakip renginde durdurucu yok: temel mantığın takeout kontrasına bırak
+            if (hp >= 15 && !tutus && ElDegerlendirici.DengeliEl(el)) return null;
 
             // Durum bize ait ama teklif yok → bilinçli Pas (fallback'e düşmesin)
             return "Pas";
