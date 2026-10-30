@@ -22,6 +22,7 @@ namespace BricKartOyunu.Forms
         {
             InitializeComponent();
             _bricOyna = bricOyna;
+            ElleriDondurDugmesiEkle();
             this.StartPosition = FormStartPosition.Manual;
 
             // 🔹 X'e basınca tüm formları kapat
@@ -165,6 +166,31 @@ namespace BricKartOyunu.Forms
                 MessageBox.Show("BricOyna formu bulunamadı!", "Hata",
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        // 🔹 "Elleri Döndür": Elleri Değiştir'in altına eklenir; alttaki butonlar ve form aşağı kayar.
+        private void ElleriDondurDugmesiEkle()
+        {
+            const int kayma = 31;
+            var btn = new Button
+            {
+                Text = "Elleri Döndür",
+                FlatStyle = BtnElDegistir.FlatStyle,
+                Size = BtnElDegistir.Size,
+                Location = new Point(BtnElDegistir.Left, BtnElDegistir.Bottom + 6),
+                UseVisualStyleBackColor = true
+            };
+            btn.Click += BtnElleriDondur_Click;
+            BtnSonrakiDagilim.Top += kayma;
+            BtnOyundanCik.Top += kayma;
+            ClientSize = new Size(ClientSize.Width, ClientSize.Height + kayma);
+            Controls.Add(btn);
+        }
+
+        // Elleri saat yönünde bir koltuk kaydırır (Güney → Batı → Kuzey → Doğu → Güney); menü açık kalır.
+        private void BtnElleriDondur_Click(object sender, EventArgs e)
+        {
+            _bricOyna?.ElleriSaatYonundeDondur();
         }
 
         private void BtnElDegistir_Click(object sender, EventArgs e)

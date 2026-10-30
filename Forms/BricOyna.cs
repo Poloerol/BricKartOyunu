@@ -687,7 +687,16 @@ namespace BricKartOyunu
             if (_acilisKapagi != null) _acilisKapagi.BringToFront();   // yükleme sırasında öne alınan kontrollerin üstünde kalsın
 
             // Duyuru ve DekBasForm, form görünür olduktan sonra açılır (geçişte tek başlarına belirmesinler)
-            _acilisSonrasi = () => { PratikDuyurusu(); YeniDekBasFormAc(); };
+            _acilisSonrasi = () =>
+            {
+                // Kullanıcı girişi: form görünür olduktan sonra eller elle girilir (İptal: oyun açılmaz)
+                if (ManuelGirisModu())
+                {
+                    if (!ManuelGirisAl()) { Close(); return; }
+                    ManuelYenidenDagit();
+                }
+                PratikDuyurusu(); YeniDekBasFormAc();
+            };
         }
 
         /// <summary>

@@ -116,8 +116,6 @@ namespace BricKartOyunu.Forms
                 string eksik = "";
                 if (Secenekler.OyunTuru != OyunTuru.Duplicate)
                     eksik += "• Oyun türü: yalnızca Duplicate kullanılabilir (diğerleri henüz yok).\n";
-                if (Secenekler.DagitimKaynagi == DagitimKaynagi.KullaniciGirisi)
-                    eksik += "• Kullanıcı girişi: henüz yok, rastgele dağıtım kullanılacak.\n";
                 if (eksik.Length > 0)
                     MessageBox.Show(this, "Seçimleriniz kaydedildi, ancak şu ayarlar henüz oyunda etkin değil:\n\n" + eksik,
                         "Oyun Planı", MessageBoxButtons.OK, MessageBoxIcon.Information);

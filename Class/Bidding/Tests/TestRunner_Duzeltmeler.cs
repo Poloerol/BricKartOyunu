@@ -110,6 +110,19 @@ namespace BricKartOyunu.Tests
             T("Y4 (2H)-? 15hcp dengeli, kupada durdurucu yok -> Dbl", TestHelpers.ElOlustur("K93", "432", "AKJ2", "AT8"), "Dbl", "2♥");
             T("Y5 (2H)-? 12hcp dengeli -> Pas", TestHelpers.ElOlustur("K93", "432", "AQJ2", "T98"), "Pas", "2♥");
 
+            // 3♦ engel açılışı, iki pas: pass-out koltuğunda kısa karo + diğer renklerde destek → takeout kontra
+            T("P1 (3D)-P-P-? 12hcp 4-5-1-3 -> Dbl", TestHelpers.ElOlustur("A652", "AQT98", "9", "Q54"), "Dbl", "3♦", "Pas", "Pas");
+            T("P2 (3D)-P-P-? 5hcp zayif -> Pas", TestHelpers.ElOlustur("J652", "QT98", "9", "Q542"), "Pas", "3♦", "Pas", "Pas");
+            T("P3 (3D)-? 14hcp 4-4-1-4 dogrudan -> Dbl", TestHelpers.ElOlustur("KQ74", "AJ95", "2", "KJ96"), "Dbl", "3♦");
+            T("P4 (3D)-? 11hcp dogrudan -> Pas", TestHelpers.ElOlustur("KQ74", "AJ95", "2", "J986"), "Pas", "3♦");
+
+            // Ortağın 3♦ engeline takeout kontrası: cevap
+            T("P5 (3D)-X-P-? 5 maca zayif -> 3S", TestHelpers.ElOlustur("Q9652", "T98", "9", "J542"), "3♠", "3♦", "Dbl", "Pas");
+            T("P6 (3D)-X-P-? karo uzun+onor -> Pas (ceza)", TestHelpers.ElOlustur("J2", "T98", "KQJT96", "Q5"), "Pas", "3♦", "Dbl", "Pas");
+
+            // Gerçek el: Doğu 3♦-P-P'de kontra yaptı, Batı (14 HP, 5 sinek) kontrayı cezaya çevirmez
+            T("P7 (3D)-X-P-? 14hcp 5 sinek -> 4C", TestHelpers.ElOlustur("KQ74", "K", "Q84", "KJT96"), "4♣", "3♦", "Dbl", "Pas");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");

@@ -65,6 +65,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool benKonustum = gercek.Any(h => h.Oyuncu == d.AktifOyuncu);
             bool rakipKonustu = gercek.Any(h => d.Rakipler.Contains(h.Oyuncu));
 
+            // 2a. Ortak 3 seviyesindeki rakip engel açılışına takeout kontra yaptı, sağdaki rakip pas: pas yok (ceza pası hariç)
+            string tk = OrtakTakeoutKontrasinaCevap(d, el, hp, dengeli, g, gercek);
+            if (tk != null) return tk;
+
             // 2. Rakip açtı, bizim taraf henüz susuyor → doğal müdahale
             if (!ortakKonustu && !benKonustum && rakipKonustu)
                 return Mudahale(d, el, hp, gercek);
@@ -122,6 +126,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string rk = son.Koz;
             int agr = d.Anlasma != null ? d.Anlasma.MudahaleAgresifligi : 0;
             int fark = agr < 0 ? 2 : (agr > 0 ? -1 : 0);   // temkinli +2 HP, atak -1 HP
+            // 3 seviyesinde engel açılışına takeout kontra: kısa renk (≤2) ve diğer renklerde en az 3 kart.
+            // Doğrudan koltukta 13+ HP; pass-out koltuğunda (iki pas sonrası) 10+ HP yeter.
+            if (sev == 3 && gercek.Count == 1 && rk != "NT")
+            {
+                int pasSay = 0;
+                for (int i = d.Gecmis.Count - 1; i >= 0 && d.Gecmis[i].PasMi; i--) pasSay++;
+                int esik = pasSay == 2 ? 10 : (pasSay == 0 ? 13 : 99);
+                if (hp >= esik && ElDegerlendirici.RenkUzunlugu(el, rk) <= 2 &&
+                    Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
+                    return "Dbl";
+            }
             if (sev >= 3 || hp < 8 + fark) return "Pas";
 
             // Dengeli 15-18 HP, rakibin rengini durduruyor: NT müdahalesi (1♦ – (1NT), 2♥ – (2NT) = 15-18).
@@ -734,6 +749,42 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (en != null && enUz >= 4 && Cheapest(d, en) <= 3) return EnUcuz(d, en);
             string n3 = Seviye(d, "NT", Math.Max(Cheapest(d, "NT"), 2));
             return n3 == "Pas" ? EnUcuzNT(d, hp) : n3;
+        }
+
+        /// <summary>
+        /// Rakip 3 seviyesinde renk açtı (engel), ortak takeout kontra yaptı, sağdaki rakip pas dedi, sıra bende:
+        /// rakip renginde 5+ kart ve en az 3 onör varsa pas (ceza); yoksa en uzun yan rengi (majör öncelikli) en ucuz
+        /// seviyede söyle; yan renklerin hepsi kısa ve dengeliysem ve durdurucu varsa 3NT. Dönüş null: bu durum değil.
+        /// </summary>
+        private string OrtakTakeoutKontrasinaCevap(IhaleDurumu d, List<Card> el, int hp, bool dengeli,
+                                                   List<IhaleHamlesi> g, List<IhaleHamlesi> gercek)
+        {
+            if (gercek.Count != 1 || g.Count == 0) return null;
+            var son = g[g.Count - 1];
+            if (!son.PasMi || !d.Rakipler.Contains(son.Oyuncu)) return null;
+            var dbl = g.LastOrDefault(h => h.Teklif != "Pas");
+            if (dbl == null || dbl.Teklif != "Dbl" || dbl.Oyuncu != d.Partner) return null;
+            var acilis = gercek[0];
+            if (!d.Rakipler.Contains(acilis.Oyuncu) || acilis.Seviye != 3 || acilis.Koz == "NT") return null;
+            string rk = acilis.Koz;
+
+            int rkUz = ElDegerlendirici.RenkUzunlugu(el, rk);
+            int onor = el.Count(c => c.Suit == rk && c.Value >= 10);
+            if (rkUz >= 5 && onor >= 3) return "Pas";
+
+            if (hp >= 10 && dengeli && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") <= 3)
+                return Seviye(d, "NT", 3);
+
+            string en = null; int enUz = -1;
+            foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })   // eşitlikte majör önce gelir
+            {
+                if (r == rk) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u > enUz) { en = r; enUz = u; }
+            }
+            if (en == null) return null;
+            int seviye = Cheapest(d, en);
+            return seviye <= 4 ? Seviye(d, en, seviye) : null;
         }
 
         /// <summary>

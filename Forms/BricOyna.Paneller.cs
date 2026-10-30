@@ -562,11 +562,8 @@ namespace BricKartOyunu
             // N-S Zonda: 2, 5, 12, 15
             // E-W Zonda: 3, 6, 9, 13
             // Herkes Zonda (Both): 4, 7, 10, 16
-            bool nsZonda = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
-                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
-
-            bool ewZonda = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
-                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            bool nsZonda, ewZonda;
+            FizikselZon(out nsZonda, out ewZonda);   // kullanıcı zonu seçtiyse o, yoksa bord döngüsü
 
             // "D" harfi HER ZAMAN dağıtıcıyı (dealer) gösterir
             // Kutular fiziksel pusulayı gösterir (zon bord numarasından, dağıtıcı eşlemeden)

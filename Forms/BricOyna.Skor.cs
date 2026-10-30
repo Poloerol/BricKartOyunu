@@ -243,11 +243,8 @@ namespace BricKartOyunu
             Player dagitici = _ellerIhaleSonrasiTakasli ? Karsi(_dealer) : _dealer;
 
             // Zon (Vulnerable): 16'lı bord döngüsü
-            int boardMod = ((_currentTour - 1) % 16) + 1;
-            bool ns = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
-                       boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
-            bool ew = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
-                       boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            bool ns, ew;
+            FizikselZon(out ns, out ew);
             string zon = ns && ew ? "All" : ns ? "NS" : ew ? "EW" : "None";
 
             sb.Append("[Event \"" + PbnTemiz(string.IsNullOrWhiteSpace(ad) ? "BricKartOyunu" : ad) + "\"]" + nlx);
