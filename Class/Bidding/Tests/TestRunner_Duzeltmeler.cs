@@ -49,6 +49,28 @@ namespace BricKartOyunu.Tests
             // 1♣-(1♦)-1♠-(Pas)-2♣: cevapçı 16 HP, 4 kupa -> 2♥ (pas değil)
             T("U2 1C-(1D)-1S-P-2C 16hcp 4H -> 2H", TestHelpers.ElOlustur("AQJ72", "AK54", "764", "Q"), "2♥", "1♣", "1♦", "1♠", "Pas", "2♣", "Pas");
 
+            // 1♦ – Pas: 9 HP ve 7 kartlı sinek -> 2♣ (ortağın renginden düşük renk 1 seviyede söylenemez)
+            T("D1 1D-(P) 9hcp 7 sinek -> 2C", TestHelpers.ElOlustur("A42", "53", "K", "QT87642"), "2♣", "1♦", "Pas");
+            T("D2 1D-(P) 5hcp 7 sinek -> Pas", TestHelpers.ElOlustur("432", "53", "K", "QT87642"), "Pas", "1♦", "Pas");
+
+            // 3. renk forsingi zinciri: 1♦-1♠-2♦-3♣-3♥ (4. renk sorusu) -> cevapçı tutukla 3NT
+            T("F1 1D-1S-2D-3C-3H, kupa AQT2 -> 3NT", TestHelpers.ElOlustur("9764", "AQT2", "Q42", "A9"), "3NT", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas", "3♣", "Pas", "3♥", "Pas");
+            T("F2 1D-1S-2D-3C-3H, kupa tutuk yok -> 3NT degil", TestHelpers.ElOlustur("A9764", "9532", "Q42", "A"), "3♠", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas", "3♣", "Pas", "3♥", "Pas");
+
+            // 1♥ – 1♠ – 2♥ (ortak majörü tekrarladı): cevapçı 11+ HP ile pas geçmez
+            T("M1 1H-1S-2H, 12hcp dengeli 2 kupa -> 2NT", TestHelpers.ElOlustur("Q8765", "A7", "KJ7", "QT5"), "2NT", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
+            T("M2 1H-1S-2H, 14hcp 3 kupa -> 4H", TestHelpers.ElOlustur("AKQ86", "J42", "KJ4", "43"), "4♥", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
+            T("M3 1H-1S-2H, 8hcp -> Pas", TestHelpers.ElOlustur("Q8765", "J42", "KJ4", "43"), "Pas", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
+
+            // Jacoby 2NT: açıcı cevabı ve cevapçının devamı
+            T("J1 1S-2NT, 11hcp tek kupa -> 3H (kisalik)", TestHelpers.ElOlustur("AQ962", "9", "K92", "Q832"), "3♥", "1♠", "Pas", "2NT", "Pas");
+            T("J2 1S-2NT, 12hcp dengeli 5332 -> 4S (asgari)", TestHelpers.ElOlustur("AQ962", "K92", "Q83", "J3"), "4♠", "1♠", "Pas", "2NT", "Pas");
+            T("J3 1S-2NT-3H: cevapci 4S", TestHelpers.ElOlustur("KT73", "AQ74", "J4", "KJ6"), "4♠", "1♠", "Pas", "2NT", "Pas", "3♥", "Pas");
+
+            // 1♠ – 1NT (forcing): 6'lı majör ve 21 HP -> 4♠ (2♠ ile durma)
+            T("N4 1S-1NT, 6 maca 21hcp -> 4S", TestHelpers.ElOlustur("KQJ732", "AQ7", "K", "AQ8"), "4♠", "1♠", "Pas", "1NT", "Pas");
+            T("N5 1S-1NT, 6 maca 12hcp -> 2S", TestHelpers.ElOlustur("KQJ732", "A87", "65", "Q8"), "2♠", "1♠", "Pas", "1NT", "Pas");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");

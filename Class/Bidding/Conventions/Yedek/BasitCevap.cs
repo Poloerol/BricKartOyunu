@@ -67,10 +67,33 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
                 // 2) Yeni renk (1 seviye) — 4+ kart, majör öncelikli
                 string yeniRenk = YeniRenkBul(el, partnerKozu, 4, "1");
-                if (!string.IsNullOrEmpty(yeniRenk)) return yeniRenk;
+                if (!string.IsNullOrEmpty(yeniRenk))
+                {
+                    // 1 seviyede söylenemeyen (ortağın renginden düşük) renk: 2 seviyede ancak 8+ HP ile
+                    string[] srm = { "♣", "♦", "♥", "♠" };
+                    string[] srmKoz = { "Sinek", "Karo", "Kupa", "Maça" };
+                    int pidx = Array.IndexOf(srmKoz, partnerKozu);
+                    int yidx = Array.IndexOf(srm, yeniRenk.Substring(1));
+                    if (pidx < 0 || yidx > pidx) return yeniRenk;
+                    if (hp >= 8) return "2" + yeniRenk.Substring(1);
+                    yeniRenk = null;
+                }
 
                 // 3) Yeni renk yoksa → 1NT (dengeli)
                 if (ElDegerlendirici.DengeliEl(el)) return "1NT";
+
+                // 4) 8-9 HP ve 6+ kartlı, ortağın rengi olmayan renk: 2 seviyede de olsa göster (pas yerine)
+                if (hp >= 8)
+                {
+                    string[] sira = { "Sinek", "Karo", "Kupa", "Maça" };
+                    int pr = Array.IndexOf(sira, partnerKozu);
+                    foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                    {
+                        if (r == partnerKozu || ElDegerlendirici.RenkUzunlugu(el, r) < 6) continue;
+                        int sv = Array.IndexOf(sira, r) > pr ? 1 : 2;
+                        return sv + KozYardimcisi.KozSembolu(r);
+                    }
+                }
 
                 return "Pas";
             }

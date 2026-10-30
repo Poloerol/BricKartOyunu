@@ -15,7 +15,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// 
     /// Öncelik: 16 (Blackwood 15 sonrası)
     /// </summary>
-    public class Jacoby2NT : IKonvansiyon, IBilincliPas
+    public class Jacoby2NT : IKonvansiyon
     {
         public string Ad => "Jacoby 2NT";
         public string Aciklama => "Majör açılışına güçlü 2NT desteği";
@@ -29,8 +29,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
-            // Jacoby 2NT sonrası devam (açıcının cevabı ve cevaplayanın oyun kararı)
-            if (DevamDurumu(durum) != 0) return true;
+            if (AciciCevabiMi(durum)) return true;
+            if (CevapciDevamMi(durum)) return true;
 
             // Partner 1♠ veya 1♥ açtı mı?
             if (durum.PartnerTeklifleri.Count == 0) return false;
@@ -59,88 +59,66 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         public string TeklifVer(IhaleDurumu durum)
         {
-            int devam = DevamDurumu(durum);
-            if (devam == 1) return AciciCevabi(durum);
-            if (devam == 2) return CevaplayanDevami(durum);
+            if (AciciCevabiMi(durum)) return AciciCevabi(durum);
+            if (CevapciDevamMi(durum)) return "4" + KozYardimcisi.KozSembolu(durum.Gecmis.First(h => h.GercekTeklifMi).Koz);
             return "2NT";
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // JACOBY 2NT SONRASI (Max Hardy "Two Over One" + Konvansiyonlar\Jacoby 2NT.doc)
-        //   Açıcı:  kısa renk (singleton/void) → o rengi 3 seviyesinde
-        //           kaliteli 5'li yan renk     → 4 seviyesinde
-        //           kısa renk yok: 16+ HP → 3M, 14-15 HP → 3NT, minimum → 4M (hızlı varış)
-        //   Cevaplayan: açıcı 4M dediyse pas (19+ HP: başka konvansiyonlara bırak);
-        //               aksi halde 17+ HP slam araştırması başkasına bırakılır, daha azıyla 4M.
-        // ═══════════════════════════════════════════════════════════════════
-
-        /// <summary>0: uygun değil, 1: açıcı cevabı, 2: cevaplayanın devamı.</summary>
-        private static int DevamDurumu(IhaleDurumu durum)
+        /// <summary>1M - 2NT - açıcının cevabı (4M dışında) - ? : Jacoby cevapçısı oyuna (4M) taşır.</summary>
+        private static bool CevapciDevamMi(IhaleDurumu durum)
         {
-            if (durum.Gecmis == null) return 0;
-            var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
-            if (gercek.Count != 2 && gercek.Count != 3) return 0;
-
-            // Rakipler gerçek teklif vermemiş olmalı
-            if (gercek.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return 0;
-
-            string acilis = gercek[0].Teklif;
-            if (acilis != "1♠" && acilis != "1♥") return 0;
-            if (gercek[1].Teklif != "2NT") return 0;
-            if (gercek[0].Oyuncu == gercek[1].Oyuncu) return 0;
-
-            if (gercek.Count == 2)
-                return gercek[0].Oyuncu == durum.AktifOyuncu ? 1 : 0;
-
-            // Count == 3: açıcı cevap verdi, sıra cevaplayanda
-            if (gercek[2].Oyuncu != gercek[0].Oyuncu) return 0;
-            return gercek[1].Oyuncu == durum.AktifOyuncu ? 2 : 0;
+            var g = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g.Count != 3) return false;
+            if (g[0].Oyuncu != durum.Partner || g[1].Oyuncu != durum.AktifOyuncu || g[2].Oyuncu != durum.Partner) return false;
+            if (g[0].Teklif != "1♠" && g[0].Teklif != "1♥") return false;
+            if (g[1].Teklif != "2NT") return false;
+            if (g[2].Seviye > 4 || (g[2].Seviye == 4 && g[2].Koz == g[0].Koz)) return false;
+            if (durum.Gecmis.Any(h => durum.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi)) return false;
+            return true;
         }
 
+        /// <summary>1M - (Pas) - 2NT - (Pas) - ? : açıcının Jacoby 2NT cevabı sırası mı?</summary>
+        private static bool AciciCevabiMi(IhaleDurumu durum)
+        {
+            var g = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g.Count != 2) return false;
+            if (g[0].Oyuncu != durum.AktifOyuncu || g[1].Oyuncu != durum.Partner) return false;
+            if (g[0].Teklif != "1♠" && g[0].Teklif != "1♥") return false;
+            if (g[1].Teklif != "2NT") return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Açıcının cevabı: yan renkte tek/void (12-17 HP) → 3 seviyesinde o renk; 5+ kartlık ikinci renk → 4 o renk;
+        /// 18+ → 3M; 14-17 → 3NT; asgari → 4M.
+        /// </summary>
         private static string AciciCevabi(IhaleDurumu durum)
         {
             var el = durum.AktifOyuncuEli;
-            var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
-            string koz = gercek[0].Teklif == "1♠" ? "Maça" : "Kupa";
-            string kozSem = KozYardimcisi.KozSembolu(koz);
+            string koz = durum.Gecmis.First(h => h.GercekTeklifMi).Koz;
+            string sem = KozYardimcisi.KozSembolu(koz);
             int hp = ElDegerlendirici.HCP(el);
 
-            string[] yanlar = { "Sinek", "Karo", "Kupa", "Maça" };
+            if (hp >= 18) return "3" + sem;
 
-            // 1) Kısa renk (singleton veya void): rengi 3 seviyesinde söyle
-            foreach (string r in yanlar)
+            // 5+ kartlık ikinci renk (4 seviyesi)
+            foreach (var r in new[] { "Sinek", "Karo", "Kupa" })
             {
                 if (r == koz) continue;
-                if (ElDegerlendirici.RenkUzunlugu(el, r) <= 1)
-                    return "3" + KozYardimcisi.KozSembolu(r);
+                if (ElDegerlendirici.RenkUzunlugu(el, r) >= 5) return "4" + KozYardimcisi.KozSembolu(r);
             }
-
-            // 2) Kaliteli 5'li yan renk: 4 seviyesinde
-            foreach (string r in yanlar)
+            // kısalık (tek/void), 3 seviyesinde: 3♣/3♦/3♥
+            if (hp <= 17)
             {
-                if (r == koz) continue;
-                if (ElDegerlendirici.IyiRenk(el, r))
-                    return "4" + KozYardimcisi.KozSembolu(r);
+                foreach (var r in new[] { "Sinek", "Karo", "Kupa", "Maça" })
+                {
+                    if (r == koz) continue;
+                    if (ElDegerlendirici.RenkUzunlugu(el, r) <= 1)
+                        return "3" + KozYardimcisi.KozSembolu(r);
+                }
             }
-
-            // 3) Kısa renk yok
-            if (hp >= 16) return "3" + kozSem;        // ekstra değerli
-            if (hp >= 14) return "3NT";               // 14-15, dengeli
-            return "4" + kozSem;                      // minimum: doğrudan oyun
-        }
-
-        private static string CevaplayanDevami(IhaleDurumu durum)
-        {
-            var el = durum.AktifOyuncuEli;
-            var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
-            string koz = gercek[0].Teklif == "1♠" ? "Maça" : "Kupa";
-            string kozOyun = "4" + KozYardimcisi.KozSembolu(koz);
-            int hp = ElDegerlendirici.HCP(el);
-            string son = gercek[2].Teklif;
-
-            if (son == kozOyun) return hp >= 19 ? null : "Pas";   // açıcı minimum, oyunda
-            if (hp >= 17) return null;                            // slam araştırması: Blackwood/cue-bid vb.
-            return kozOyun;
+            if (hp >= 14) return "3NT";
+            return "4" + sem;
         }
     }
 }

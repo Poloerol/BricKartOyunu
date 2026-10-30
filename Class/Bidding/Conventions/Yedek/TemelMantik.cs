@@ -238,6 +238,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 string rd = CevapciRekabetDevam(d, el, hp, gercek, rakipRenkleri);
                 if (rd != null) return rd;
             }
+            {
+                string rr = CevapciMajorTekrarSonrasi(d, el, hp, dengeli, gercek);
+                if (rr != null) return rr;
+            }
 
             // ── Fit bul ──
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int fitToplam);
@@ -588,7 +592,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (zorunlu) return EnUcuz(d, UzunKoz(el, gercek, d));
             }
             if (est >= davetEsik && est < oyunEsik && ntOlur && cur <= 1 && nt && !benNTAcildi)
+            {
+                // Ortağın 1M açılışına ilk cevapta doğal 2NT yok (2NT = Jacoby, 4+ destek): 1NT (forcing) söyle
+                if (gercek.Count >= 1 && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 && Major(gercek[0].Koz) &&
+                    !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
+                    return Seviye(d, "NT", 1);
                 return Seviye(d, "NT", 2);                        // davet
+            }
             if (cur >= 3 && !zorunlu) return "Pas";
 
             // 6+ kartlık renk tekrarı (ortak desteklemediyse)
@@ -800,6 +810,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             return "Pas";
+        }
+
+        /// <summary>
+        /// 1M (ortak) - 1Y (ben, yeni renk) - 2M (ortak, kendi majörünü tekrarladı, rakip yok): cevapçı 11+ HP ile pas geçmez.
+        /// 11-12 HP: 3+ destekle 3M, dengeliyse 2NT davet; 13+ HP: 3+ destekle 4M, dengeliyse 3NT.
+        /// </summary>
+        private string CevapciMajorTekrarSonrasi(IhaleDurumu d, List<Card> el, int hp, bool dengeli, List<IhaleHamlesi> gercek)
+        {
+            if (hp < 11 || gercek.Count != 3) return null;
+            if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            var a1 = gercek[0]; var b = gercek[1]; var a2 = gercek[2];
+            if (a1.Oyuncu != d.Partner || a2.Oyuncu != d.Partner || b.Oyuncu != d.AktifOyuncu) return null;
+            if (a1.Seviye != 1 || !Major(a1.Koz) || a2.Koz != a1.Koz || a2.Seviye != 2) return null;
+            if (b.Seviye != 1 || b.Koz == "NT" || b.Koz == a1.Koz) return null;
+            int destek = ElDegerlendirici.RenkUzunlugu(el, a1.Koz);
+            if (hp <= 12)
+            {
+                if (destek >= 3) return Seviye(d, a1.Koz, 3);
+                if (dengeli) return Seviye(d, "NT", 2);
+                return null;
+            }
+            if (destek >= 3) return Seviye(d, a1.Koz, 4);
+            if (dengeli) return Seviye(d, "NT", 3);
+            return null;
         }
 
         /// <summary>

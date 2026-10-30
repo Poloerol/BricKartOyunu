@@ -178,6 +178,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ═══════════════════════════════════════════════════════════════
             if (majörUzunluk >= 6)
             {
+                // 4M: 19+ HP ile 6'lı majör de oyunu ister (ortak 6-12 gösterdi, toplam 25+)
+                if (hp >= 19)
+                {
+                    return "4" + sembol;
+                }
+
                 // 4M: 7'li güzel majör, çok güçlü
                 if (majörUzunluk >= 7 && hp >= 15)
                 {

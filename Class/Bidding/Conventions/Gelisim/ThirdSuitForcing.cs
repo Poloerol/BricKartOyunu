@@ -67,6 +67,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (AciciCevapSirasiMi(durum, gercekTeklifler))
                 return true;
 
+            if (DorduncuRenkSorusuMu(durum, gercekTeklifler))
+                return true;
+
             return false;
         }
 
@@ -145,6 +148,39 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return true;
         }
 
+        /// <summary>
+        /// 1X - 1Y - 2X - 3.renk (ben) - 4.renk (ortak, durdurucu sorusu) - ? : cevapçının sırası.
+        /// </summary>
+        private bool DorduncuRenkSorusuMu(IhaleDurumu durum, List<IhaleHamlesi> g)
+        {
+            int n = g.Count;
+            if (n != 5) return false;
+            var t1 = g[0]; var t2 = g[1]; var t3 = g[2]; var t4 = g[3]; var t5 = g[4];
+            if (t1.Oyuncu != durum.Partner || t3.Oyuncu != durum.Partner || t5.Oyuncu != durum.Partner) return false;
+            if (t2.Oyuncu != durum.AktifOyuncu || t4.Oyuncu != durum.AktifOyuncu) return false;
+            if (t1.Seviye != 1 || (t1.Koz != "Sinek" && t1.Koz != "Karo")) return false;
+            if (t2.Seviye != 1 || (t2.Koz != "Kupa" && t2.Koz != "Maça")) return false;
+            if (t3.Koz != t1.Koz || t3.Seviye != 2) return false;
+            if (t4.Koz == "NT" || t4.Koz == t1.Koz || t4.Koz == t2.Koz) return false;
+            if (t5.Koz == "NT" || t5.Koz == t1.Koz || t5.Koz == t2.Koz || t5.Koz == t4.Koz) return false;
+            return true;
+        }
+
+        /// <summary>Ortak dördüncü rengi sordu: durdurucum varsa 3NT, yoksa kendi majörümü / açıcının minörünü göster.</summary>
+        private string DorduncuRenkCevabi(IhaleDurumu durum, List<Card> el, List<IhaleHamlesi> g)
+        {
+            string sorulan = g[4].Koz;
+            string yRenk = g[1].Koz;
+            string xRenk = g[0].Koz;
+            var kartlar = el.Where(c => c.Suit == sorulan).Select(c => c.Value).ToList();
+            bool tutuk = kartlar.Contains(14) || (kartlar.Contains(13) && kartlar.Count >= 2)
+                         || (kartlar.Contains(12) && kartlar.Count >= 3) || kartlar.Count >= 5;
+            if (tutuk) return "3NT";
+            if (ElDegerlendirici.RenkUzunlugu(el, yRenk) >= 6) return "4" + KozYardimcisi.KozSembolu(yRenk);
+            if (ElDegerlendirici.RenkUzunlugu(el, yRenk) >= 5) return KozYardimcisi.YasalaYukselt("3" + KozYardimcisi.KozSembolu(yRenk), durum.SonGercekTeklif);
+            return KozYardimcisi.YasalaYukselt("3" + KozYardimcisi.KozSembolu(xRenk), durum.SonGercekTeklif);
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         // TEKLİF VER
         // ═══════════════════════════════════════════════════════════════════
@@ -169,6 +205,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (AciciCevapSirasiMi(durum, gercekTeklifler))
                 return AciciCevap(durum, el, gercekTeklifler);
+
+            if (DorduncuRenkSorusuMu(durum, gercekTeklifler))
+                return DorduncuRenkCevabi(durum, el, gercekTeklifler);
 
             return "Pas";
         }
@@ -277,9 +316,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(el);
 
             // ─── 1) Cevapçının ilk rengine 3'lü KALİTELİ tutuş ─────────
-            // Cevapçı 1 seviyede majör söyleyip sonra 3. renge gittiyse majörü genelde 5+; 3 kart = 8'li uyum.
-            // Onörsüz 3'lü destek yalnız dengeli elde NT'ye bırakılır; dengesiz elde uyum gösterilir.
-            if (yUzunluk >= 3 && (KaliteliDestekMi(el, yRenk) || !ElDegerlendirici.DengeliEl(el)))
+            if (yUzunluk >= 3 && KaliteliDestekMi(el, yRenk))
             {
                 string sembol = KozYardimcisi.KozSembolu(yRenk);
                 return "2" + sembol;
@@ -294,7 +331,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             // ─── 3) 3. renkte 4'lü + durdurucu ──────────────────────
-            if (tsrUzunluk >= 4)
+            // (3. renk zaten 3 seviyesindeyse (1♦-1♠-2♦-3♣) onu tekrar "3"+renk demek 4. seviyeye sıçratır: atla)
+            if (tsrUzunluk >= 4 && tsrTeklif.Seviye < 3)
             {
                 string sembol = KozYardimcisi.KozSembolu(tsrRenk);
                 return "3" + sembol;
