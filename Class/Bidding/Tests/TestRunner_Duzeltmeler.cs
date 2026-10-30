@@ -71,6 +71,11 @@ namespace BricKartOyunu.Tests
             T("N4 1S-1NT, 6 maca 21hcp -> 4S", TestHelpers.ElOlustur("KQJ732", "AQ7", "K", "AQ8"), "4♠", "1♠", "Pas", "1NT", "Pas");
             T("N5 1S-1NT, 6 maca 12hcp -> 2S", TestHelpers.ElOlustur("KQJ732", "A87", "65", "Q8"), "2♠", "1♠", "Pas", "1NT", "Pas");
 
+            // 1NT – 2♦ – 2♥: 5 kupa ve 9 HP -> 2NT (davet); açıcı 3 kupa asgari -> 3♥
+            T("Q1 1NT-2D-2H, 5 kupa 9hcp -> 2NT", TestHelpers.ElOlustur("A42", "KJ972", "J65", "T4"), "2NT", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas");
+            T("Q2 1NT-2D-2H-2NT, 3 kupa 15hcp -> 3H", TestHelpers.ElOlustur("KQ4", "A83", "KJ52", "Q64"), "3♥", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "2NT", "Pas");
+            T("Q3 1NT-2D-2H-2NT, 2 kupa 15hcp -> Pas", TestHelpers.ElOlustur("KQ64", "A8", "KJ52", "Q64"), "Pas", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "2NT", "Pas");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");

@@ -780,7 +780,7 @@
             this.BtnToolArkaYuz.Image = ((System.Drawing.Image)(resources.GetObject("BtnToolArkaYuz.Image")));
             this.BtnToolArkaYuz.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.BtnToolArkaYuz.Name = "BtnToolArkaYuz";
-            this.BtnToolArkaYuz.Size = new System.Drawing.Size(23, 22);
+            this.BtnToolArkaYuz.Size = new System.Drawing.Size(28, 28);
             this.BtnToolArkaYuz.Text = "Kart Arka Yüzü";
             this.BtnToolArkaYuz.ToolTipText = "Kart Arka Yüzü";
             this.BtnToolArkaYuz.Click += new System.EventHandler(this.BtnToolArkaYuz_Click);
@@ -791,14 +791,14 @@
             this.toolStripButton3.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton3.Image")));
             this.toolStripButton3.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton3.Name = "toolStripButton3";
-            this.toolStripButton3.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButton3.Size = new System.Drawing.Size(28, 28);
             this.toolStripButton3.Text = "Masa Arka Rengi";
             this.toolStripButton3.ToolTipText = "Masa Arka Rengi";
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 31);
             // 
             // toolStrip1
             // 
@@ -809,7 +809,7 @@
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1366, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1366, 31);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -856,6 +856,7 @@
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "AnaSayfa";

@@ -445,6 +445,7 @@
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.btnGeri);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "BricOyna";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
