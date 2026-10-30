@@ -180,6 +180,18 @@ namespace BricKartOyunu.Class.Bidding
         public bool Serious3NT { get; set; } = true;
         public bool NonSerious3NT { get; set; } = false;
         public bool LastTrain { get; set; } = false;
+        public bool DopiRopi { get; set; } = true;      // Blackwood/RKCB'ye rakip müdahalesinde cevap (DOPI/ROPI)
+        public bool FitCueBid { get; set; } = true;     // Rakip müdahalesinde fit gösteren cue-bid
+
+        // ── Çekirdek ek konvansiyonlar (varsayılan KAPALI) ──
+        public bool Quantitative4NT { get; set; } = false;
+        public bool TexasTransfers { get; set; } = false;
+        public bool MinorStayman { get; set; } = false;
+        public bool Flannery { get; set; } = false;
+        public bool Kokish { get; set; } = false;
+        public bool Rubensohl { get; set; } = false;
+        public bool LeapingMichaels { get; set; } = false;
+        public bool LightnerDouble { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // RAKİP MÜDAHALESİ
@@ -206,6 +218,9 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool UDCA { get; set; } = false;
         public bool StandartSignal { get; set; } = true;
+        public bool OddEvenDiscards { get; set; } = false;
+        public bool Lavinthal { get; set; } = false;
+        public bool SmithEcho { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // AGRESİFLİK VE BECERİ (Bridge Baron tarzı profil ayarları)
@@ -260,6 +275,15 @@ namespace BricKartOyunu.Class.Bidding
                 case "Exit Transfer 1NT Runouts": a.ExitTransfer = true; break;
                 case "Artif. 2C/2D Resp. to 1M-X": a.Artificial2C2D = true; break;
                 case "Wolff Signoff": a.WolffSignoff = true; break;
+                case "Quantitative 4NT": a.Quantitative4NT = true; break;
+                case "Texas Transfers": a.TexasTransfers = true; break;
+                case "Minor Stayman": a.MinorStayman = true; break;
+                case "Flannery": a.Flannery = true; break;
+                case "Kokish": a.Kokish = true; break;
+                case "Rubensohl": a.Rubensohl = true; break;
+                case "Leaping Michaels": a.LeapingMichaels = true; break;
+                case "Lightner Double": a.LightnerDouble = true; break;
+                case "Last Train": a.LastTrain = true; break;
             }
             return a;
         }
@@ -418,6 +442,10 @@ namespace BricKartOyunu.Class.Bidding
             if (Drury) aktifler.Add("Drury");
             if (ReverseDrury) aktifler.Add("Reverse Drury");
             if (CueBid) aktifler.Add("Cue Bid");
+            if (FitCueBid) aktifler.Add("Fit Cue-Bid");
+            if (Serious3NT) aktifler.Add("Ciddi 3NT");
+            if (NonSerious3NT) aktifler.Add("Ciddi olmayan 3NT");
+            if (DopiRopi) aktifler.Add("DOPI/ROPI");
 
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
@@ -466,10 +494,22 @@ namespace BricKartOyunu.Class.Bidding
             if (ExitTransfer) ekler.Add("Exit Transfers");
             if (Artificial2C2D) ekler.Add("Artif. 2♣/2♦ cevapları");
             if (WolffSignoff) ekler.Add("Wolff Signoff");
+            if (Quantitative4NT) ekler.Add("Quantitative 4NT");
+            if (TexasTransfers) ekler.Add("Texas transferleri");
+            if (MinorStayman) ekler.Add("Minor Stayman");
+            if (Flannery) ekler.Add("Flannery 2♦");
+            if (Kokish) ekler.Add("Kokish");
+            if (Rubensohl) ekler.Add("Rubensohl");
+            if (LeapingMichaels) ekler.Add("Leaping Michaels");
+            if (LightnerDouble) ekler.Add("Lightner kontra");
+            if (LastTrain) ekler.Add("Last Train");
             aktifler.AddRange(ekler);
 
             if (UDCA) aktifler.Add("UDCA");
             else if (StandartSignal) aktifler.Add("Standart Signal");
+            if (OddEvenDiscards) aktifler.Add("Tek-Çift atma");
+            if (Lavinthal) aktifler.Add("Lavinthal");
+            if (SmithEcho) aktifler.Add("Smith echo");
 
             return $"Açılış: {acilis}, {nt}\nAktif: {string.Join(", ", aktifler)}";
         }

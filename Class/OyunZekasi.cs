@@ -137,35 +137,10 @@ namespace BricKartOyunu.Class
                 return legal[0];
             }
 
-            // Monte Carlo + çift dummy (GIB tarzı): az kart kaldığında olası dağılımları örnekleyip en iyi kartı seçer
-            MonteCarloOyun.Sonuc mc = null;
-            if (MonteCarloOyun.Aktif)
-            {
-                try { mc = MonteCarloOyun.Sec(b, legal); } catch (Exception) { mc = null; }
-                if (mc != null && mc.Eniyiler.Count == 1)
-                {
-                    neden = mc.Aciklama;
-                    return mc.Eniyiler[0];
-                }
-            }
-
             var x = new Ctx(b);
             Card secilen;
-            bool planAcik = RenkPlanlayiciAktif;
-            if (mc != null) RenkPlanlayiciAktif = false;      // eşit en iyi kartlar arasında yalnız hızlı sezgiyle seç
-            try
-            {
-                if (atak == null) secilen = Lider(x, out neden);
-                else secilen = Takip(x, legal, atak, out neden);
-            }
-            finally { RenkPlanlayiciAktif = planAcik; }
-
-            if (mc != null && mc.Eniyiler.Count > 1)
-            {
-                if (secilen == null || !mc.Eniyiler.Contains(secilen))
-                    secilen = mc.Eniyiler.OrderBy(c => c.Value).First();
-                neden = mc.Aciklama + " — eşit değerli kartlar arasında: " + neden;
-            }
+            if (atak == null) secilen = Lider(x, out neden);
+            else secilen = Takip(x, legal, atak, out neden);
 
             // Güvenlik ağı: her koşulda yasal kart döndür
             if (secilen == null || !legal.Contains(secilen))
@@ -418,6 +393,8 @@ namespace BricKartOyunu.Class
                 if (AtakKurallari.AtakKitabiAktif)
                 {
                     Card kontrAtagi = null;
+                    try { kontrAtagi = LightnerAtagi(x, out neden); } catch (Exception) { kontrAtagi = null; }
+                    if (kontrAtagi != null && x.B.Elim.Contains(kontrAtagi)) return kontrAtagi;
                     try { kontrAtagi = YonlendirenKontrAtagi(x, out neden); } catch (Exception) { kontrAtagi = null; }
                     if (kontrAtagi != null && x.B.Elim.Contains(kontrAtagi)) return kontrAtagi;
                 }
@@ -562,6 +539,33 @@ namespace BricKartOyunu.Class
         // ───────────────────────────────────────────────────────────────
         // ATAĞI YÖNLENDİREN KONTR (Özdil): ortağım rakibin sanzatu kontratına kontr dedi
         // ───────────────────────────────────────────────────────────────
+        private static Card LightnerAtagi(Ctx x, out string neden)
+        {
+            neden = "";
+            if (x.Koz == null || x.DeklaranTarafi || x.B.AnlasmaOf == null) return null;
+            var a = x.B.AnlasmaOf(x.Ben);
+            if (a == null || !a.LightnerDouble) return null;
+            var gec = x.B.IhaleGecmisi;
+            Player baslangic;
+            if (gec == null || !Enum.TryParse(x.B.IhaleBaslangici, out baslangic)) return null;
+            Player[] sira = { Player.Bati, Player.Kuzey, Player.Dogu, Player.Guney };
+            int bas = Array.IndexOf(sira, baslangic);
+            int son = -1;
+            for (int i = gec.Count - 1; i >= 0; i--)
+                if (!string.IsNullOrEmpty(gec[i]) && gec[i] != "Pas") { son = i; break; }
+            if (son < 1 || bas < 0 || gec[son] != "Dbl" || sira[(bas + son) % 4] != x.Ortak) return null;
+            string kontrat = null;
+            for (int i = son - 1; i >= 0; i--)
+                if (!string.IsNullOrEmpty(gec[i]) && gec[i] != "Pas" && gec[i] != "Dbl" && gec[i] != "RDbl") { kontrat = gec[i]; break; }
+            if (kontrat == null || kontrat[0] < '6' || kontrat.EndsWith("NT")) return null;
+            string renk = SinyalKurallari.LightnerRengi(gec, x.B.IhaleBaslangici, x.Ortak, x.Dummy, x.B.Deklaran, x.B.AnlasmaOf, x.Koz);
+            if (renk == null) return null;
+            var kartlar = RenkKartlari(x.B.Elim, renk);
+            if (kartlar.Count == 0) return null;
+            neden = "Lightner kontrası: yerin ilk yan rengi (" + renk + ")";
+            return AtakKurallari.SanzatuKarti(kartlar, false);
+        }
+
         private static Card YonlendirenKontrAtagi(Ctx x, out string neden)
         {
             neden = "";
@@ -1117,6 +1121,20 @@ namespace BricKartOyunu.Class
             }
 
             neden = "Atma: " + secilen.Suit + " renginden en alçak";
+            if (!x.DeklaranTarafi && x.B.AnlasmaOf != null)
+            {
+                var an = x.B.AnlasmaOf(x.Ben);
+                var yon = SinyalKurallari.Yontem(an);
+                if (yon != SinyalKurallari.AtmaYontemi.Standart)
+                {
+                    // ortağıma göstereceğim tercih: kalan yan renklerden en güçlüsü
+                    string tercih = yanRenkler.Where(c => c.Suit != secilen.Suit).GroupBy(c => c.Suit)
+                        .OrderByDescending(g => g.Sum(k => HcpPuan(k))).Select(g => g.Key).FirstOrDefault();
+                    var ayni = yanRenkler.Where(c => c.Suit == secilen.Suit).ToList();
+                    var yeni = SinyalKurallari.AtmaKarti(ayni, yon, tercih, secilen.Suit);
+                    if (yeni != null) { secilen = yeni; neden = "Atma (" + yon + "): " + secilen.Suit; }
+                }
+            }
             return secilen;
         }
     }

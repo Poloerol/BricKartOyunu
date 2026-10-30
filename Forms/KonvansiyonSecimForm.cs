@@ -42,6 +42,7 @@ namespace BricKartOyunu.Forms
                 new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır."),
                 new Madde("BenjaminTwoBids", "Benjamin iki'ler", "2♣ çok güçlü, 2♦ güçlü iki (Acol); 2♥/2♠ zayıf kalır. 2♣ güçlü açılışın yerini alır."),
                 new Madde("Gambling3NT", "Gambling 3NT", "3NT açılışı: sağlam 7+ minör, dışarıda A/K yok. Ortak durdurucu yoksa 4♣ ile düzeltir."),
+                new Madde("Flannery", "Flannery 2♦", "2♦ açılışı: 4♠ 5♥, 11-15 HP. Zayıf iki, Multi 2♦ ve Mini-Roman ile birlikte seçilmez."),
                 new Madde("MiniRoman2D", "Mini-Roman 2♦", "2♦: ♦ tekil/void, ♠♥♣ dörtlü (11-15 HP); cevap geç/düzelt.")),
             new Grup("Cevap ve gelişim",
                 new Madde("InvertedMinors", "Ters minörler", "1m–2m destek davetidir (1m–3m önleyici)."),
@@ -55,6 +56,7 @@ namespace BricKartOyunu.Forms
                 new Madde("FourthSuitForcing", "Dördüncü renk zorlaması", "Dördüncü renk oyun zorlayan soru olur."),
                 new Madde("TwoWayCheckback", "İki yönlü checkback", "1NT sonrası 2♣/2♦ ile majör sorgusu."),
                 new Madde("XYZ", "XYZ", "1♣/1♦–1M–1NT gibi dizilerde yapay devam teklifleri."),
+                new Madde("Kokish", "Kokish", "2♣–2♦–2♥ röle: dengeli 25-27 ya da kupa rengi (2♣ güçlü gerekir)."),
                 new Madde("WeakJumpShiftResp", "Zayıf sıçrama cevapları", "1x–2y sıçrama: 6+ renk, 0-6 HP; açıcı geçer."),
                 new Madde("Ogust", "Ogust", "Zayıf iki + 2NT: 3♣ min/zayıf, 3♦ min/iyi, 3♥ maks/zayıf, 3♠ maks/iyi, 3NT sağlam."),
                 new Madde("InvertedBergenRaises", "Ters Bergen destekleri", "1M–3♣: limit (10-12), 3♦: kurucu (7-9). Bergen destekleri'nin yerini alır."),
@@ -76,6 +78,9 @@ namespace BricKartOyunu.Forms
                 new Madde("Lebensohl", "Lebensohl", "Rakip müdahalesinde 2NT ile zayıf/güçlü ayrımı."),
                 new Madde("ExtendedStayman", "Extended Stayman", "1NT–2♣ ile zayıf 4-4 majör; 2♦ sonrası 2♥ bırakma."),
                 new Madde("Robinson", "Robinson", "1NT–(Dbl): 2♣ Stayman, 2♦/2♥ transfer, RDbl = ♣ transferi. Exit transfer ile birlikte seçilmez."),
+                new Madde("Quantitative4NT", "Nicel 4NT", "1NT–4NT: 16-17 HP dengeli, 6NT daveti (as sorusu değil)."),
+                new Madde("TexasTransfers", "Texas transferleri", "1NT/2NT–4♦ = ♥, 4♥ = ♠ transferi (6+ majör, oyun değeri)."),
+                new Madde("MinorStayman", "Minör Stayman", "1NT–2♠: 4-4 minör sorusu (oyun zorlayan). Minör transferi ile birlikte seçilmez."),
                 new Madde("ExitTransfer", "Exit transferler", "1NT–(Dbl): zayıf kaçış transferleri (2♣→♦, 2♦→♥, 2♥→♠, 2♠→♣).")),
             new Grup("Slam konvansiyonları",
                 new Madde("Blackwood", "Blackwood", "4NT: as sorusu."),
@@ -85,8 +90,12 @@ namespace BricKartOyunu.Forms
                 new Madde("CueBid", "Cue bid (kontrol gösterme)", "Fit sonrası yan renkte as/kontrol gösterir."),
                 new Madde("Serious3NT", "Ciddi 3NT", "Slam ilgisi gösteren 3NT."),
                 new Madde("NonSerious3NT", "Ciddi olmayan 3NT", "Slam ilgisi olmadığını gösteren 3NT."),
+                new Madde("FitCueBid", "Fit cue-bid (müdahalede)", "1M–(müdahale)–rakip rengi: 12+ HP, 3+ destek, oyun zorlayan."),
+                new Madde("DopiRopi", "DOPI / ROPI", "Rakip 4NT sorusuna girince: Dbl/Rdbl = 0-3, Pas = 1-4 anahtar kart."),
                 new Madde("SpecificKingAsks", "Belirli papaz sorusu", "RKCB cevabından sonra 5 seviyesinde yan renk = o renkte papaz sorusu (RKCB gerekir)."),
                 new Madde("VoluntaryFiveMajor", "Gönüllü 5 majör", "Rakip 4M deyince destekli majörde 5M fedakârlığı."),
+                new Madde("LightnerDouble", "Lightner kontra", "6 seviye renk kontratına kontra: ortaktan olağandışı atak (void) ister."),
+                new Madde("LastTrain", "Last Train", "1♠–4♣/4♦ splinter sonrası 4♥: slam ilgisi gösterir, kontrol değil."),
                 new Madde("MatheAskingBids", "Mathe soru teklifleri", "1M–3M sonrası açıcının en ucuz teklifi: kısa renk sorusu."),
                 new Madde("ControlAskingBids", "Kontrol soru teklifleri", "1M–3M sonrası 4♣/4♦: o renkte kontrol sorusu.")),
             new Grup("Rekabet ve savunma",
@@ -101,6 +110,8 @@ namespace BricKartOyunu.Forms
                 new Madde("MultiLandy", "Multi-Landy", "1NT'ye karşı müdahale sistemi (tek seçilir)."),
                 new Madde("HelloOver1NT", "Hello (1NT'ye karşı)", "Rakip 1NT'sine: 2♣ iki majör, 2♦ uzun majör, 2♥/2♠ majör+minör, 2NT iki minör."),
                 new Madde("Sandwich1NT", "Sandwich 1NT", "(1x)–Pas–(1y)–1NT: kalan iki renk."),
+                new Madde("Rubensohl", "Rubensohl", "1NT–(2♦) sonrası transfer Lebensohl. Lebensohl ile birlikte seçilmez."),
+                new Madde("LeapingMichaels", "Leaping Michaels", "Önleyiciye 4♣/4♦ sıçraması: 5-5 iki renkli, oyun zorlayan."),
                 new Madde("Ghestem", "Ghestem", "Cue = iki yüksek, 2NT = iki alçak, 3♣ = alçak+yüksek. Michaels/Unusual 2NT yerine."),
                 new Madde("WeakJumpOvercalls", "Zayıf sıçramalı müdahale", "(1x)–2y sıçrama: 6 kart, 5-9 HP."),
                 new Madde("MaximalOvercallDbl", "Maximal müdahale kontrü", "1M–2M–(3x alt renk)–Dbl: oyun daveti."),
@@ -121,7 +132,12 @@ namespace BricKartOyunu.Forms
             new[] { "TwoWayCheckback", "NewMinorForcing", "WolffSignoff" },
             new[] { "Robinson", "ExitTransfer" },
             new[] { "Ghestem", "Michaels" },
-            new[] { "Ghestem", "Unusual2NT" }
+            new[] { "Ghestem", "Unusual2NT" },
+            new[] { "MinorTransfer", "MinorStayman" },
+            new[] { "Flannery", "ZayifIki" },
+            new[] { "Flannery", "Multi2D" },
+            new[] { "Flannery", "MiniRoman2D" },
+            new[] { "Lebensohl", "Rubensohl" }
         };
 
         // alan → onsuz anlamsız olduğu alan
@@ -129,7 +145,8 @@ namespace BricKartOyunu.Forms
         {
             { "Smolen", "Stayman" },
             { "RKCB1430", "RKCB" },
-            { "SpecificKingAsks", "RKCB" }
+            { "SpecificKingAsks", "RKCB" },
+            { "Kokish", "IkiliSinekGuclu" }
         };
 
         private readonly OrtaklikAnlasmasi _anlasma;
@@ -325,12 +342,15 @@ namespace BricKartOyunu.Forms
                 f.StartPosition = FormStartPosition.CenterParent;
                 f.ShowInTaskbar = false;
                 f.MinimizeBox = false; f.MaximizeBox = false;
-                f.ClientSize = new Size(300, 130);
+                f.ClientSize = new Size(330, 230);
                 var std = new RadioButton { Text = "Standart (yüksek: çift, düşük: tek)", AutoSize = true, Location = new Point(14, 14), Checked = !_anlasma.UDCA };
                 var ud = new RadioButton { Text = "UDCA (yukarı-aşağı çağrı/atma)", AutoSize = true, Location = new Point(14, 42), Checked = _anlasma.UDCA };
-                var ok = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(114, 88), Size = new Size(80, 28) };
-                var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(204, 88), Size = new Size(80, 28) };
-                f.Controls.AddRange(new Control[] { std, ud, ok, iptal });
+                var oe = new CheckBox { Text = "Tek-Çift atma (Odd/Even)", AutoSize = true, Location = new Point(14, 76), Checked = _anlasma.OddEvenDiscards };
+                var lv = new CheckBox { Text = "Lavinthal atma", AutoSize = true, Location = new Point(14, 104), Checked = _anlasma.Lavinthal };
+                var se = new CheckBox { Text = "Smith echo (SA)", AutoSize = true, Location = new Point(14, 132), Checked = _anlasma.SmithEcho };
+                var ok = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(144, 186), Size = new Size(80, 28) };
+                var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(234, 186), Size = new Size(80, 28) };
+                f.Controls.AddRange(new Control[] { std, ud, oe, lv, se, ok, iptal });
                 f.AcceptButton = ok; f.CancelButton = iptal;
                 if (f.ShowDialog(this) == DialogResult.OK)
                 {

@@ -83,11 +83,12 @@ namespace BricKartOyunu.Forms
                 (a.StrongNT ? "15–17 HP" : "12–14 HP") + ", " + Liste(a,
                     "Stayman=Stayman", "JacobyTransfer=Jacoby transfer", "Smolen=Smolen", "MinorTransfer=Minör transferi",
                     "Lebensohl=Lebensohl", "Cappelletti=Cappelletti", "Dont=DONT", "MultiLandy=Multi-Landy",
-                    "ExtendedStayman=Extended Stayman", "Robinson=Robinson", "ExitTransfer=Exit transfer", "HelloOver1NT=Hello"));
+                    "ExtendedStayman=Extended Stayman", "Robinson=Robinson", "ExitTransfer=Exit transfer", "HelloOver1NT=Hello",
+                    "Quantitative4NT=Nicel 4NT", "TexasTransfers=Texas", "MinorStayman=Minör Stayman", "Rubensohl=Rubensohl"));
             Ekle("Minör açılış ve gelişimler", a => Liste(a,
                 "InvertedMinors=Ters minörler", "OneClub_AnswerSistemi=1♣ cevap sistemi", "Reverse=Reverse",
                 "XYZ=XYZ", "TwoWayCheckback=İki yönlü checkback", "ThirdSuitForcing=3. renk zorlaması", "FourthSuitForcing=4. renk zorlaması",
-                "OneMinorTwoNTInv=1m–2NT davet", "Walsh=Walsh", "NewMinorForcing=Yeni minör zorlaması", "WolffSignoff=Wolff bırakma"));
+                "OneMinorTwoNTInv=1m–2NT davet", "Walsh=Walsh", "NewMinorForcing=Yeni minör zorlaması", "WolffSignoff=Wolff bırakma", "Kokish=Kokish"));
             Ekle("Majör açılış ve gelişimler", a =>
                 (a.BesliMajor ? "5'li majör" : "4'lü majör") + ", " + Liste(a,
                     "BergenRaises=Bergen", "Jacoby2NT=Jacoby 2NT", "Splinter=Splinter", "TrialBid=Deneme teklifi",
@@ -97,17 +98,18 @@ namespace BricKartOyunu.Forms
             Ekle("2NT / 3NT", a => "2NT: 20–21 HP, " + Liste(a, "PuppetStayman=Puppet Stayman"));
             Ekle("Yüksek seviye açılışlar", a => Liste(a,
                 "IkiliSinekGuclu=2♣ güçlü", "ZayifIki=Zayıf iki", "Multi2D=Multi 2♦", "Preempt=Önleyici açılışlar", "Namyats=Namyats",
-                "BenjaminTwoBids=Benjamin", "Gambling3NT=Gambling 3NT", "MiniRoman2D=Mini-Roman 2♦", "Ogust=Ogust", "German2CRelays=Alman 2♣ röleleri"));
+                "BenjaminTwoBids=Benjamin", "Gambling3NT=Gambling 3NT", "Flannery=Flannery 2♦", "MiniRoman2D=Mini-Roman 2♦", "Ogust=Ogust", "German2CRelays=Alman 2♣ röleleri"));
             Ekle("Slam konvansiyonları", a => Liste(a,
                 "Blackwood=Blackwood", "RKCB=RKCB", "RKCB1430=RKCB 1430", "Gerber=Gerber", "CueBid=Cue bid",
-                "Serious3NT=Ciddi 3NT", "NonSerious3NT=Ciddi olmayan 3NT", "LastTrain=Last Train",
+                "Serious3NT=Ciddi 3NT", "NonSerious3NT=Ciddi olmayan 3NT", "LastTrain=Last Train", "FitCueBid=Fit cue-bid", "DopiRopi=DOPI/ROPI",
                 "SpecificKingAsks=Belirli papaz sorusu", "VoluntaryFiveMajor=Gönüllü 5 majör", "MatheAskingBids=Mathe", "ControlAskingBids=Kontrol soruları"));
             Ekle("Rekabet ve savunma", a => Liste(a,
                 "NegativeDouble=Negatif kontr", "TakeoutDouble=Takeout kontr", "SupportDouble=Support kontr",
                 "ResponsiveDouble=Responsive kontr", "Michaels=Michaels", "Unusual2NT=Unusual 2NT",
                 "Sandwich1NT=Sandwich 1NT", "Ghestem=Ghestem", "WeakJumpOvercalls=Zayıf sıçramalı müdahale", "MaximalOvercallDbl=Maximal kontr",
-                "InvisibleCueBids=Görünmez cue-bid", "LimitPlusCueBids=Limit-üstü cue-bid"));
-            Ekle("İşaretleşme", a => Liste(a, "StandartSignal=Standart", "UDCA=UDCA"));
+                "InvisibleCueBids=Görünmez cue-bid", "LimitPlusCueBids=Limit-üstü cue-bid",
+                "LeapingMichaels=Leaping Michaels", "LightnerDouble=Lightner kontra"));
+            Ekle("İşaretleşme", a => Liste(a, "StandartSignal=Standart", "UDCA=UDCA", "OddEvenDiscards=Tek-Çift", "Lavinthal=Lavinthal", "SmithEcho=Smith echo"));
         }
 
         private void Ekle(string baslik, Func<OrtaklikAnlasmasi, string> ozet)

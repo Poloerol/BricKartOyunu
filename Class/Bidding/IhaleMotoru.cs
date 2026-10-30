@@ -108,6 +108,15 @@ namespace BricKartOyunu.Class.Bidding
                 new ExitTransfer(),
                 new Artificial2C2D(),
                 new WolffSignoff(),
+                new Quantitative4NT(),
+                new TexasTransfers(),
+                new MinorStayman(),
+                new Flannery(),
+                new Kokish(),
+                new Rubensohl(),
+                new LeapingMichaels(),
+                new LightnerDouble(),
+                new LastTrain(),
 
                 new IkiliSinekGuclu(),
                 new ZayifIki(),
@@ -444,7 +453,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Jacoby Transfer": return _anlasma.JacobyTransfer;
                 case "Puppet Stayman": return _anlasma.PuppetStayman;
                 case "Smolen": return _anlasma.Smolen;
-                case "Minor Transfer": return _anlasma.MinorTransfer;
+                case "Minor Transfer": return _anlasma.MinorTransfer && !_anlasma.MinorStayman;
 
                 case "İki Yönlü Checkback": return _anlasma.TwoWayCheckback && !_anlasma.NewMinorForcing && !_anlasma.WolffSignoff;
                 case "XYZ (X-Y-Z)": return _anlasma.XYZ;
@@ -463,6 +472,10 @@ namespace BricKartOyunu.Class.Bidding
                 case "Drury": return _anlasma.Drury;
                 case "Reverse Drury": return _anlasma.ReverseDrury;
                 case "Cue Bid": return _anlasma.CueBid;
+                case "Fit Cue-Bid": return _anlasma.FitCueBid;
+                case "Serious 3NT": return _anlasma.Serious3NT && !_anlasma.NonSerious3NT;
+                case "Non-Serious 3NT": return _anlasma.NonSerious3NT;
+                case "DOPI-ROPI": return _anlasma.DopiRopi;
                 case "Bergen Raises": return _anlasma.BergenRaises && !_anlasma.InvertedBergenRaises;
                 case "Trial Bid": return _anlasma.TrialBid && !_anlasma.LongShortGameTries;
                 case "3. Renk Forsingi": return _anlasma.ThirdSuitForcing;
@@ -478,7 +491,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
                 case "Lebensohl (Reverse)": return _anlasma.Lebensohl;
                 case "Lebensohl (Zayıf 2)": return _anlasma.Lebensohl;
-                case "Lebensohl": return _anlasma.Lebensohl;
+                case "Lebensohl": return _anlasma.Lebensohl && !_anlasma.Rubensohl;
                 case "Michaels": return _anlasma.Michaels && !_anlasma.Ghestem;
                 case "Unusual 2NT": return _anlasma.Unusual2NT && !_anlasma.Ghestem;
 
@@ -515,6 +528,16 @@ namespace BricKartOyunu.Class.Bidding
                 case "Exit Transfer 1NT Runouts": return _anlasma.ExitTransfer && !_anlasma.Robinson;
                 case "Artif. 2C/2D Resp. to 1M-X": return _anlasma.Artificial2C2D;
                 case "Wolff Signoff": return _anlasma.WolffSignoff;
+
+                case "Quantitative 4NT": return _anlasma.Quantitative4NT;
+                case "Texas Transfers": return _anlasma.TexasTransfers;
+                case "Leaping Michaels": return _anlasma.LeapingMichaels;
+                case "Lightner Double": return _anlasma.LightnerDouble;
+                case "Minor Stayman": return _anlasma.MinorStayman && !_anlasma.MinorTransfer;
+                case "Flannery": return _anlasma.Flannery && !_anlasma.ZayifIki && !_anlasma.Multi2D && !_anlasma.MiniRoman2D;
+                case "Kokish": return _anlasma.Kokish && _anlasma.IkiliSinekGuclu;
+                case "Rubensohl": return _anlasma.Rubensohl && !_anlasma.Lebensohl;
+                case "Last Train": return _anlasma.LastTrain;
 
                 case "Temel Mantık (Fallback)": return true; // Her zaman aktif
 
