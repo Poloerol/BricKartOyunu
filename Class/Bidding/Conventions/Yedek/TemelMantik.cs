@@ -234,6 +234,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (nd != null) return nd;
             }
 
+            {
+                string rd = CevapciRekabetDevam(d, el, hp, gercek, rakipRenkleri);
+                if (rd != null) return rd;
+            }
+
             // ── Fit bul ──
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int fitToplam);
 
@@ -784,7 +789,43 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 !d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr"))
                 return "Dbl";
 
+            // (C) İki renkli müdahale (Unusual/Michaels) sonrası rakip 3. seviyede kaldı: 16+ HP ile kontra
+            // (kısa → takeout, 4+ kart ve 2 üst onör → ceza)
+            if (!ortakKonustu && hp >= 16 && son.Seviye == 3 && son.Koz != "NT" && gercek.Count(h => d.Rakipler.Contains(h.Oyuncu)) >= 2 &&
+                d.Rakipler.Contains(son.Oyuncu) && !d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr"))
+            {
+                int u = ElDegerlendirici.RenkUzunlugu(el, son.Koz);
+                int ust = el.Count(c => c.Suit == son.Koz && c.Value >= 12);
+                if (u <= 2 || (u >= 4 && ust >= 2)) return "Dbl";
+            }
+
             return "Pas";
+        }
+
+        /// <summary>
+        /// Ortak 1 seviye açtı, rakip müdahale etti, ben yeni renkle cevap verdim, ortak 2 seviyede asgari
+        /// yeniden teklif etti ve rakipler pas geçti: 15+ HP (oyun gücü) ile pas geçme.
+        /// 6+ kartlı majör → 4M; kendi 4+ kartlık diğer majörüm → en ucuz; yoksa null.
+        /// </summary>
+        private string CevapciRekabetDevam(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> gercek,
+                                           List<string> rakipRenkleri)
+        {
+            if (hp < 15 || rakipRenkleri.Count == 0) return null;
+            if (gercek.Count < 4 || gercek[0].Oyuncu != d.Partner || gercek[0].Seviye != 1) return null;
+            var son = gercek[gercek.Count - 1];
+            if (son.Oyuncu != d.Partner || son.Seviye != 2) return null;
+            var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+            if (benim.Count != 1 || benim[0].Seviye != 1 || benim[0].Koz == "NT") return null;
+            if (!gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            if (d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr")) return null;
+            string mine = benim[0].Koz;
+            if (Major(mine) && ElDegerlendirici.RenkUzunlugu(el, mine) >= 6) return Seviye(d, mine, 4);
+            foreach (var m in new[] { "Kupa", "Maça" })
+            {
+                if (m == mine || m == son.Koz || rakipRenkleri.Contains(m)) continue;
+                if (ElDegerlendirici.RenkUzunlugu(el, m) >= 4 && Cheapest(d, m) <= 3) return EnUcuz(d, m);
+            }
+            return null;
         }
 
         /// <summary>

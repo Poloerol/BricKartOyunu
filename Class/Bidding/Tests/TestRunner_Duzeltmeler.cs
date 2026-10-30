@@ -44,6 +44,11 @@ namespace BricKartOyunu.Tests
             T("R1 1C-(1H) 18hcp dengeli, tutuk -> 3NT", TestHelpers.ElOlustur("832", "K93", "AKJ7", "AK2"), "3NT", "1♣", "1♥");
             T("R2 1C-(1D) 14hcp dengeli, tutuk -> 2NT", TestHelpers.ElOlustur("Q82", "K93", "KJ7", "AJ52"), "2NT", "1♣", "1♦");
 
+            // Unusual 2NT sonrası 3. seviye: 18 HP + rakip rengi AKQ8 -> ceza kontrası
+            T("U1 1C-(2NT)-P-(3H) 18hcp AKQ8 -> Dbl", TestHelpers.ElOlustur("JT97", "AKQ8", "A", "KJ82"), "Dbl", "1♣", "2NT", "Pas", "3♥");
+            // 1♣-(1♦)-1♠-(Pas)-2♣: cevapçı 16 HP, 4 kupa -> 2♥ (pas değil)
+            T("U2 1C-(1D)-1S-P-2C 16hcp 4H -> 2H", TestHelpers.ElOlustur("AQJ72", "AK54", "764", "Q"), "2♥", "1♣", "1♦", "1♠", "Pas", "2♣", "Pas");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
