@@ -117,6 +117,7 @@ namespace BricKartOyunu.Class.Bidding
                 new LeapingMichaels(),
                 new LightnerDouble(),
                 new LastTrain(),
+                new IkiBirOyunZorlama(),
 
                 new IkiliSinekGuclu(),
                 new ZayifIki(),
@@ -538,19 +539,13 @@ namespace BricKartOyunu.Class.Bidding
                 case "Kokish": return _anlasma.Kokish && _anlasma.IkiliSinekGuclu;
                 case "Rubensohl": return _anlasma.Rubensohl && !_anlasma.Lebensohl;
                 case "Last Train": return _anlasma.LastTrain;
+                case "2/1 Game Force": return _anlasma.IkiBirOyunZorlama && _anlasma.BesliMajor;
 
                 case "Temel Mantık (Fallback)": return true; // Her zaman aktif
 
                 default:
                     return true;
             }
-        }
-
-        public void AnlasmayiDegistir(OrtaklikAnlasmasi yeniAnlasma)
-        {
-            if (yeniAnlasma == null) return;
-            throw new NotSupportedException(
-                "Anlaşma değişikliği için IhaleMotoru'nu yeniden oluşturun.");
         }
 
         /// <summary>Verilen konvansiyon adının kısa açıklaması (öğrenme modu için); bulunamazsa null.</summary>
@@ -565,13 +560,6 @@ namespace BricKartOyunu.Class.Bidding
         {
             return _konvansiyonlar
                 .Where(k => k.AktifMi)
-                .Select(k => k.Ad)
-                .ToList();
-        }
-
-        public List<string> TumKonvansiyonlar()
-        {
-            return _konvansiyonlar
                 .Select(k => k.Ad)
                 .ToList();
         }

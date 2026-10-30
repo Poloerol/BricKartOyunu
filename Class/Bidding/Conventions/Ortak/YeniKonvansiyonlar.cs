@@ -15,7 +15,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             "Invisible Cue-Bids", "Limit-Plus Cue-Bids", "Weak Jump Overcalls", "Sandwich 1NT", "Maximal Overcall Dbl.",
             "1m-2NT Invitational", "German 2C Relays", "Walsh", "Mini-Roman 2D", "Robinson",
             "Inverted Bergen Raises", "Exit Transfer 1NT Runouts", "Artif. 2C/2D Resp. to 1M-X", "Wolff Signoff",
-            "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Flannery", "Kokish", "Rubensohl", "Leaping Michaels", "Lightner Double", "Last Train"
+            "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Flannery", "Kokish", "Rubensohl", "Leaping Michaels", "Lightner Double", "Last Train", "2/1 Game Force"
         };
         public static bool Mu(string ad) { return ad != null && Array.IndexOf(Adlar, ad) >= 0; }
     }

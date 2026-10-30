@@ -570,13 +570,6 @@ namespace BricKartOyunu.Class.Bidding
             return player != Player.Guney;
         }
 
-        public void AdvanceUntilHumanTurn()
-        {
-            while (_engine.State.CurrentPlayer != Player.Guney && !_engine.IsAuctionFinished())
-            {
-                var aiPlayer = _engine.State.CurrentPlayer;
-                PerformAiTurn(aiPlayer);
-            }
-        }
+
     }
 }

@@ -77,13 +77,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // SENARYO B: Açıcının 3♣'e cevap sırası
             // Geçmiş: 1M (aktif) - 3♣ (partner)
+            // SENARYO C: 1M (partner) - 3♣ (ben) - 3♦ (partner, yapay soru) → cevapçı signoff / kabul
+            if (gercekTeklifler.Count == 3)
+                return CevapciDevamMi(durum, gercekTeklifler);
+
             if (gercekTeklifler.Count == 2)
             {
                 var son = gercekTeklifler[1];
                 var onceki = gercekTeklifler[0];
 
                 if (son.Oyuncu == durum.Partner
-                    && son.Teklif == "3♣"
+                    && (son.Teklif == "3♣" || son.Teklif == "3♦")
                     && onceki.Oyuncu == durum.AktifOyuncu
                     && onceki.Seviye == 1
                     && (onceki.Koz == "Kupa" || onceki.Koz == "Maça"))
@@ -94,6 +98,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             return false;
+        }
+
+        private bool CevapciDevamMi(IhaleDurumu durum, List<IhaleHamlesi> g)
+        {
+            if (g.Count != 3) return false;
+            var a = g[0]; var b2 = g[1]; var c = g[2];
+            return a.Oyuncu == durum.Partner && a.Seviye == 1 && (a.Koz == "Kupa" || a.Koz == "Maça")
+                && b2.Oyuncu == durum.AktifOyuncu && b2.Teklif == "3♣"
+                && c.Oyuncu == durum.Partner && c.Teklif == "3♦";
         }
 
         /// <summary>
@@ -131,7 +144,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Son teklif: partner 3♣ dedi
             var sonTeklif = gercekTeklifler[n - 1];
             if (sonTeklif.Oyuncu != durum.Partner) return false;
-            if (sonTeklif.Teklif != "3♣") return false;
+            if (sonTeklif.Teklif != "3♣" && sonTeklif.Teklif != "3♦") return false;
 
             // Sondan bir önceki: aktif oyuncu 1♥/1♠ açtı
             var oncekiTeklif = gercekTeklifler[n - 2];
@@ -160,6 +173,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (AciciCevapSirasiMi(durum, gercekTeklifler))
                 return AciciCevap(durum, el, gercekTeklifler);
+
+            if (gercekTeklifler.Count == 3 && CevapciDevamMi(durum, gercekTeklifler))
+            {
+                // 3♦ yapay sorusuna cevap: 7-8 HP → 3M (signoff), 9-10 HP → 4M (kabul)
+                string m = gercekTeklifler[0].Koz;
+                string sm = KozYardimcisi.KozSembolu(m);
+                return ElDegerlendirici.HCP(el) >= 9 ? "4" + sm : "3" + sm;
+            }
 
             return "Pas";
         }
@@ -225,6 +246,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
             }
             if (string.IsNullOrEmpty(majör)) return "Pas";
+
+            // 3♦ = limit raise (11-12 HP): açıcı 15+ HP (ya da 14 + 6'lı koz) ile 4M, aksi halde 3M
+            if (gercekTeklifler[gercekTeklifler.Count - 1].Teklif == "3♦")
+            {
+                string smj = KozYardimcisi.KozSembolu(majör);
+                int ah = ElDegerlendirici.HCP(el);
+                int kozUz = ElDegerlendirici.RenkUzunlugu(el, majör);
+                return (ah >= 15 || (ah >= 14 && kozUz >= 6)) ? "4" + smj : "3" + smj;
+            }
 
             // 3♣ sonrası açıcı 3♦ yapay sorusu sorar
             // Bu soruyu her zaman sormak zorunda değil, ama standart olarak sorar

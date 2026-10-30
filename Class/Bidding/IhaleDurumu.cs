@@ -223,11 +223,6 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// İhale ortasında mıyız? (İlk teklif değil, ama ihale de bitmemiş.)
         /// </summary>
-        public bool OrtaMiyiz()
-        {
-            return !IlkTeklifMi() && !IhaleBittiMi();
-        }
-
         /// <summary>
         /// İhale bitti mi? (3 pas veya 4 pas.)
         /// </summary>
@@ -256,35 +251,13 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Bu renk daha önce teklif edildi mi?
         /// </summary>
-        public bool BuRenkTeklifEdildiMi(string renk)
-        {
-            if (string.IsNullOrEmpty(renk)) return false;
-            return Gecmis.Any(h => h.GercekTeklifMi && h.Koz == renk);
-        }
-
         /// <summary>
         /// Bu seviyede (örneğin 1 seviyesinde) bu renk teklif edildi mi?
         /// </summary>
-        public bool BuSeviyedeRenkTeklifEdildiMi(int seviye, string renk)
-        {
-            return Gecmis.Any(h => h.GercekTeklifMi &&
-                                   h.Seviye == seviye &&
-                                   h.Koz == renk);
-        }
-
         /// <summary>
         /// Aktif oyuncunun partneriyle bir renkte toplam uzunluğu ne?
         /// (Sadece "kaç kart" bilgisi verir, gerçek destek hesabı değil.)
         /// </summary>
-        public int PartnerleToplamUzunluk(string renk)
-        {
-            if (AktifOyuncuEli == null) return 0;
-
-            int benim = AktifOyuncuEli.Count(c => c.Suit == renk);
-            // Partner elini bilmiyoruz, sadece benim uzunluğum
-            return benim;
-        }
-
         /// <summary>
         /// Partnerle ortak olarak anlaşılan kozu bulur.
         /// 
@@ -314,15 +287,39 @@ namespace BricKartOyunu.Class.Bidding
         {
             if (Gecmis == null || Gecmis.Count == 0) return null;
 
+            // 0. Jacoby 2NT: 1M açılış - 2NT cevabı (rakip teklifsiz) = açılan majör koz
+            {
+                var gg = Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                if (gg.Count >= 2 && (gg[0].Teklif == "1♠" || gg[0].Teklif == "1♥") && gg[1].Teklif == "2NT" &&
+                    gg[0].Oyuncu != gg[1].Oyuncu && (gg[0].Oyuncu == AktifOyuncu || gg[0].Oyuncu == Partner) &&
+                    (gg[1].Oyuncu == AktifOyuncu || gg[1].Oyuncu == Partner))
+                    return gg[0].Koz;
+            }
+
+            // 4NT / 5NT'ye verilen cevaplar (5♦, 6♥ gibi) yeni bir koz önerisi değildir; koz belirlemede sayılmaz.
+            var yanitHamleleri = new HashSet<IhaleHamlesi>();
+            {
+                var gr = Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                for (int i = 1; i < gr.Count; i++)
+                    if ((gr[i - 1].Teklif == "4NT" || gr[i - 1].Teklif == "5NT") && gr[i - 1].Oyuncu != gr[i].Oyuncu &&
+                        gr[i].Teklif != "4NT" && gr[i].Teklif != "5NT")
+                        yanitHamleleri.Add(gr[i]);
+                // Gerber: NT açan/söyleyen tarafın 4♣'ye cevabı (4♦/4♥/4♠ = as sayısı) renk önerisi değildir.
+                for (int i = 2; i < gr.Count; i++)
+                    if (gr[i - 1].Teklif == "4♣" && gr[i - 2].Koz == "NT" && gr[i - 2].Oyuncu == gr[i].Oyuncu &&
+                        gr[i - 1].Oyuncu != gr[i].Oyuncu)
+                        yanitHamleleri.Add(gr[i]);
+            }
+
             // 1. Ben ve partner aynı rengi teklif ettik mi?
             var benimRenkler = Gecmis
-                .Where(h => h.Oyuncu == AktifOyuncu && h.GercekTeklifMi)
+                .Where(h => h.Oyuncu == AktifOyuncu && h.GercekTeklifMi && !yanitHamleleri.Contains(h))
                 .Select(h => h.Koz)
                 .Where(k => !string.IsNullOrEmpty(k) && k != "NT")
                 .ToList();
 
             var partnerRenkler = Gecmis
-                .Where(h => h.Oyuncu == Partner && h.GercekTeklifMi)
+                .Where(h => h.Oyuncu == Partner && h.GercekTeklifMi && !yanitHamleleri.Contains(h))
                 .Select(h => h.Koz)
                 .Where(k => !string.IsNullOrEmpty(k) && k != "NT")
                 .ToList();
@@ -357,6 +354,23 @@ namespace BricKartOyunu.Class.Bidding
                     bool kontrolVar = gercekler.Any(h => h.Oyuncu == diger && h.Seviye == 4 && h.Koz != "NT" &&
                                                          h.Koz != r && Array.IndexOf(s, h.Koz) < Array.IndexOf(s, r));
                     if (!kontrolVar) continue;
+                    return r;
+                }
+            }
+
+            // 1c. Tek taraflı majör oyun: biri majörü ≥2 kez söyledi ve 4M (oyun) teklif etti; diğeri o rengi söylemedi
+            //     ama NT söyledi (ör. 1♠–…–2NT–4♠). Ortağın NT'si renk reddi değildir; koz o majördür.
+            foreach (var r in new[] { "Maça", "Kupa" })
+            {
+                foreach (bool benim in new[] { true, false })
+                {
+                    var sahip = benim ? AktifOyuncu : Partner;
+                    var diger = benim ? Partner : AktifOyuncu;
+                    var gercekler = Gecmis.Where(h => h.GercekTeklifMi && !yanitHamleleri.Contains(h)).ToList();
+                    if (gercekler.Any(h => h.Oyuncu == diger && h.Koz == r)) continue;
+                    if (gercekler.Count(h => h.Oyuncu == sahip && h.Koz == r) < 2) continue;
+                    if (!gercekler.Any(h => h.Oyuncu == sahip && h.Koz == r && h.Seviye == 4)) continue;
+                    if (!gercekler.Any(h => h.Oyuncu == diger && h.Koz == "NT")) continue;
                     return r;
                 }
             }

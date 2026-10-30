@@ -47,10 +47,6 @@ namespace BricKartOyunu.Class
         }
 
         /// <summary>Yer değiştirme tablosunu boşaltır (yeni örnek / yeni pozisyon için).</summary>
-        public void Temizle() { _tt.Clear(); Dugum = 0; }
-
-        public static int Kod(int renk, int sira) { return renk * 16 + sira; }
-
         private static int Pop(ulong x)
         {
             x = x - ((x >> 1) & 0x5555555555555555UL);

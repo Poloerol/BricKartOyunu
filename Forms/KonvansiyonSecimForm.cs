@@ -40,6 +40,7 @@ namespace BricKartOyunu.Forms
                 new Madde("OneClub_AnswerSistemi", "1♣ cevap sistemi (Polish hibrit)", "1♣ açılışına özel cevap tablosu."),
                 new Madde("Reverse", "Reverse gelişimi", "Açıcının ikinci rengi daha yüksekse güçlü el (16+) gösterir."),
                 new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır."),
+                new Madde("IkiBirOyunZorlama", "2/1 Oyun Zorlayıcı", "1♥/1♠ açılışına 2 seviyesinde yeni renk (12+ HP) oyuna kadar zorlar. 5'li majör açılışı gerekir."),
                 new Madde("BenjaminTwoBids", "Benjamin iki'ler", "2♣ çok güçlü, 2♦ güçlü iki (Acol); 2♥/2♠ zayıf kalır. 2♣ güçlü açılışın yerini alır."),
                 new Madde("Gambling3NT", "Gambling 3NT", "3NT açılışı: sağlam 7+ minör, dışarıda A/K yok. Ortak durdurucu yoksa 4♣ ile düzeltir."),
                 new Madde("Flannery", "Flannery 2♦", "2♦ açılışı: 4♠ 5♥, 11-15 HP. Zayıf iki, Multi 2♦ ve Mini-Roman ile birlikte seçilmez."),
@@ -146,7 +147,8 @@ namespace BricKartOyunu.Forms
             { "Smolen", "Stayman" },
             { "RKCB1430", "RKCB" },
             { "SpecificKingAsks", "RKCB" },
-            { "Kokish", "IkiliSinekGuclu" }
+            { "Kokish", "IkiliSinekGuclu" },
+            { "IkiBirOyunZorlama", "BesliMajor" }
         };
 
         private readonly OrtaklikAnlasmasi _anlasma;

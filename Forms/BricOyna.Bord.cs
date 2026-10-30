@@ -491,66 +491,7 @@ namespace BricKartOyunu
         ///   - Deklaran (Güney değilse)
         ///   - Diğer defans oyuncusu
         /// </summary>
-        private void DeklaranVeDummyGoster()
-        {
-            // 🔹 KRİTİK DEĞİŞİKLİK: KartYerlesimiHazirla() ÇAĞIRMIYORUZ!
-            // Çünkü o metot tüm kartları açık şekilde yerleştiriyor.
-            // Bunun yerine sadece Güney ve Dummy'yi yerleştireceğiz.
 
-            Image backImg = GetBackImage();
-
-            // 1) TÜM KARTLARI KAPAT (Batı, Doğu, Kuzey)
-            // (Güney'i en son açacağız)
-            for (int i = 0; i < 13; i++)
-            {
-                if (kuzeyKartlar[i] != null)
-                {
-                    kuzeyKartlar[i].Image = backImg;
-                    kuzeyKartlar[i].Visible = true;
-                    if (backImg == null) kuzeyKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-                if (batiKartlar[i] != null)
-                {
-                    batiKartlar[i].Image = backImg;
-                    batiKartlar[i].Visible = true;
-                    if (backImg == null) batiKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-                if (doguKartlar[i] != null)
-                {
-                    doguKartlar[i].Image = backImg;
-                    doguKartlar[i].Visible = true;
-                    if (backImg == null) doguKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-                if (guneyKartlar[i] != null)
-                {
-                    guneyKartlar[i].Image = backImg;
-                    guneyKartlar[i].Visible = true;
-                    if (backImg == null) guneyKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-            }
-
-            // 2) GÜNEY'İN ELİNİ AÇ (insan oyuncu)
-            BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
-
-            // 3) DUMMY'Yİ AÇ
-            Player dummy = IhaleDurumu.PartnerBul(_kontratDeklaran);
-
-            if (dummy == Player.Kuzey)
-            {
-                BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
-            }
-            else if (dummy == Player.Bati)
-            {
-                BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY());
-            }
-            else if (dummy == Player.Dogu)
-            {
-                BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY());
-            }
-
-            // 4) Oyuncu badge'lerini güncelle
-            SetupPlayerBadges();
-        }
         private void HepsiniGoster()
         {
             KartYerlesimiHazirla();
@@ -593,30 +534,6 @@ namespace BricKartOyunu
             }
 
             BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
-            SetupPlayerBadges();
-        }
-
-        private void CurrentPlayerGoster()
-        {
-            Image backImg = GetBackImage();
-            if (backImg != null)
-            {
-                for (int i = 0; i < 13; i++)
-                {
-                    if (kuzeyKartlar[i] != null) kuzeyKartlar[i].Image = backImg;
-                    if (guneyKartlar[i] != null) guneyKartlar[i].Image = backImg;
-                    if (batiKartlar[i] != null) batiKartlar[i].Image = backImg;
-                    if (doguKartlar[i] != null) doguKartlar[i].Image = backImg;
-                }
-            }
-            switch (activePlayer)
-            {
-                case Player.Kuzey: BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true); break;
-                case Player.Guney: BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true); break;
-                case Player.Bati: BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY()); break;
-                // 💡 DÜZELTME: Varsayılan değer 930 yapıldı
-                case Player.Dogu: BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY()); break;
-            }
             SetupPlayerBadges();
         }
 

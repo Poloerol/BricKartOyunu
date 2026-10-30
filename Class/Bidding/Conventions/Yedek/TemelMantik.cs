@@ -69,6 +69,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (!ortakKonustu && !benKonustum && rakipKonustu)
                 return Mudahale(d, el, hp, gercek);
 
+            // 2b. Ortağın rekabet kontrasına (ben açıcı değilim, ortak açtı) cevap
+            string rk2 = OrtakRekabetKontrasinaCevap(d, el, hp, g, gercek);
+            if (rk2 != null) return rk2;
+
+            // 2c. Ben 2♣ (güçlü, oyun zorlayıcı) açtım, ortak cevap verdi, rakip susuyor: pas yok, doğal devam
+            string c2 = Ikili2CAciciDevam(d, el, hp, dengeli, gercek);
+            if (c2 != null) return c2;
+
             // 3. Genel yerleştirme motoru
             return Yerlestir(d, el, hp, dengeli, gercek);
         }
@@ -216,6 +224,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 hp + ar.Min >= 24)
                 return Seviye(d, son.Koz, 4);
 
+            // Ben 1M açtım, ortak (doğal, forcing olmayan) 1NT dedi: 17+ HP ile davet/oyun denemesi yap.
+            {
+                string nd = AciciDoganNTSonrasi(d, el, hp, dengeli, gercek, rakipRenkleri);
+                if (nd != null) return nd;
+            }
+
             // ── Fit bul ──
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int fitToplam);
 
@@ -300,6 +314,38 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ── Fit yok: NT / uzun renk ──
             return FitsizDevam(d, el, hp, dengeli, est, cur, rakipRenkleri, gercek, zorunlu, benNTAcildi, dar);
+        }
+
+        /// <summary>
+        /// 1M – 1NT (doğal, forcing değil: ortak pas geçmiş el ya da Forcing NT kapalı) sonrası açıcının
+        /// ikinci teklifi. Asgari elle (≤16 HP) pas; 17+ HP'de davet/oyun: uzun majör tekrarı, yeni renk
+        /// ya da NT daveti. Ortağın 1NT'si 6-9 (10) HP'dir.
+        /// </summary>
+        private string AciciDoganNTSonrasi(IhaleDurumu d, List<Card> el, int hp, bool dengeli,
+                                           List<IhaleHamlesi> gercek, List<string> rakipRenkleri)
+        {
+            if (hp < 17 || gercek.Count == 0) return null;
+            var son = gercek.Last();
+            if (son.Oyuncu != d.Partner || son.Teklif != "1NT") return null;
+            var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+            if (benim.Count != 1 || benim[0].Seviye != 1 || !Major(benim[0].Koz)) return null;
+            if (gercek.Count(h => h.Oyuncu == d.Partner) != 1) return null;
+            // Rakip 1NT'den sonra konuşmadıysa (son teklif ortağımın 1NT'si) devam ediyoruz.
+            string m = benim[0].Koz;
+            int mL = ElDegerlendirici.RenkUzunlugu(el, m);
+            if (mL >= 6) return Seviye(d, m, hp >= 19 ? 4 : 3);
+            // 4+ kartlık ikinci renk: en ucuzdan göster (2. seviye); sıçrama yok
+            string yan = null; int yanL = 0;
+            foreach (var r in Renkler)
+            {
+                if (r == m || rakipRenkleri.Contains(r)) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u >= 4 && Cheapest(d, r) <= 2 && u > yanL) { yan = r; yanL = u; }
+            }
+            if (yan != null && !(dengeli && mL == 5 && hp >= 18 && yanL == 4 && false))
+                return Seviye(d, yan, Cheapest(d, yan));
+            if (hp >= 19) return Seviye(d, "NT", 3);
+            return Seviye(d, "NT", 2);
         }
 
         private static bool Tutuk(List<Card> el, string r)
@@ -599,7 +645,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                                IhaleHamlesi son, List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
         {
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int toplam);
-            if (fit == null || fit == "NT" || toplam < 8) return "Pas";
+            if (fit == null || fit == "NT" || toplam < 8) return AciciRekabeti(d, el, hp, son, rakipRenkleri, gercek);
 
             // Toplam Kart Kanunu: seviye = toplam koz - 6
             int lott = toplam - 6;
@@ -617,6 +663,102 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Güçlü el (davet+): ortağın cevabını sıçramalı destekle (1♣–1♥–(1♠)–3♥), 2. seviyede kalma
             if (ortakGuc && Major(fit) && est >= 23 && ucuz == 2) return Seviye(d, fit, 3);
             if (ortakGuc && est >= 19 && ucuz <= lott && ucuz <= 3) return Seviye(d, fit, ucuz);
+            return "Pas";
+        }
+
+        /// <summary>
+        /// 2♣ açıcısının ilk devamı (ortağın cevabından sonra, rakip teklifsiz): dengeli 22-24 → 2NT, 25-27 → 3NT;
+        /// aksi halde en uzun rengi (5+, yoksa 4+) en ucuz seviyede söyle. Dönüş null: bu durum değil.
+        /// </summary>
+        private string Ikili2CAciciDevam(IhaleDurumu d, List<Card> el, int hp, bool dengeli, List<IhaleHamlesi> gercek)
+        {
+            if (gercek.Count != 2 || gercek[0].Oyuncu != d.AktifOyuncu || gercek[0].Teklif != "2♣") return null;
+            if (gercek[1].Oyuncu != d.Partner) return null;
+            if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            var cev = gercek[1];
+
+            if (dengeli && hp >= 22)
+            {
+                int hedef = hp >= 25 ? 3 : 2;
+                string nt = Seviye(d, "NT", hedef);
+                if (nt != "Pas") return nt;
+                nt = Seviye(d, "NT", 3);
+                if (nt != "Pas") return nt;
+            }
+            string en = null; int enUz = 0;
+            foreach (var r in Renkler)
+            {
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u > enUz || (u == enUz && en != null && RenkSira(r) > RenkSira(en))) { en = r; enUz = u; }
+            }
+            if (en != null && enUz >= 4 && Cheapest(d, en) <= 3) return EnUcuz(d, en);
+            string n3 = Seviye(d, "NT", Math.Max(Cheapest(d, "NT"), 2));
+            return n3 == "Pas" ? EnUcuzNT(d, hp) : n3;
+        }
+
+        /// <summary>
+        /// Ortak açtı, rakip müdahale etti, ortak kontra yaptı (rekabet/takeout kontrası), rakip pas: ben henüz konuşmadım.
+        /// Pas = ceza kontrası olurdu; bu yüzden rakip rengi 5+ değilse en uzun yeni renkte teklif verilir.
+        /// Dönüş null: bu durum değil.
+        /// </summary>
+        private string OrtakRekabetKontrasinaCevap(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> g, List<IhaleHamlesi> gercek)
+        {
+            var sonCagri = g.LastOrDefault(h => h.Teklif != "Pas");
+            if (sonCagri == null || sonCagri.Teklif != "Dbl" || sonCagri.Oyuncu != d.Partner) return null;
+            if (gercek.Count == 0 || gercek[0].Oyuncu != d.Partner) return null;
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu)) return null;
+            var rakipSon = gercek.LastOrDefault(h => d.Rakipler.Contains(h.Oyuncu));
+            if (rakipSon == null || rakipSon.Koz == "NT") return null;
+            string rr = rakipSon.Koz;
+
+            // Rakip rengi 5+ ve en az 6 HP: pas (ceza)
+            if (ElDegerlendirici.RenkUzunlugu(el, rr) >= 5 && hp >= 6) return "Pas";
+
+            string en = null; int enUz = 0;
+            foreach (var r in Renkler)
+            {
+                if (r == rr) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u >= 4 && (u > enUz || (u == enUz && Major(r) && (en == null || !Major(en))) || (u == enUz && RenkSira(r) > RenkSira(en)))) { en = r; enUz = u; }
+            }
+            if (en != null && Cheapest(d, en) <= 3) return EnUcuz(d, en);
+
+            string ortakRenk = gercek[0].Koz;
+            if (ortakRenk != "NT" && ortakRenk != rr && ElDegerlendirici.RenkUzunlugu(el, ortakRenk) >= 3 && Cheapest(d, ortakRenk) <= 3)
+                return EnUcuz(d, ortakRenk);
+            if (Tutuk(el, rr) && Cheapest(d, "NT") <= 2) return EnUcuz(d, "NT");
+            // son çare: rakip dışındaki en uzun renk
+            string son = null; int sUz = 0;
+            foreach (var r in Renkler) { if (r == rr) continue; int u = ElDegerlendirici.RenkUzunlugu(el, r); if (u > sUz) { son = r; sUz = u; } }
+            if (son != null && Cheapest(d, son) <= 3) return EnUcuz(d, son);
+            return "Pas";
+        }
+
+        /// <summary>
+        /// Ben açtım, rakip müdahale etti, ortak fit göstermedi: güçlü elle pas geçmek yerine
+        ///  (A) ortak yeni renk söylediyse (zorlayıcı) ve 6+ kartlı kendi rengim varsa onu tekrarla,
+        ///  (B) ortak pas geçtiyse, 16+ HP ve rakip rengi kısaysa rekabet kontrası.
+        /// </summary>
+        private string AciciRekabeti(IhaleDurumu d, List<Card> el, int hp, IhaleHamlesi son,
+                                     List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
+        {
+            if (gercek.Count == 0 || gercek[0].Oyuncu != d.AktifOyuncu) return "Pas";
+            if (gercek.Count(h => h.Oyuncu == d.AktifOyuncu) != 1) return "Pas";       // yalnız açılışım var
+            if (rakipRenkleri.Count == 0 || son.Koz == "NT") return "Pas";
+            string acilis = gercek[0].Koz;
+            bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
+
+            // (A) Ortak yeni renk söyledi (zorlayıcı), rakip araya girdi: 6+ kartlı rengimi göster
+            if (ortakKonustu && acilis != "NT" && hp >= 13 &&
+                ElDegerlendirici.RenkUzunlugu(el, acilis) >= 6 && Cheapest(d, acilis) <= 3)
+                return EnUcuz(d, acilis);
+
+            // (B) Ortak pas geçti, ben 16+ HP: rakip renginde kısa (<=2) ise rekabet kontrası
+            if (!ortakKonustu && hp >= 16 && son.Seviye <= 2 && rakipRenkleri.Count == 1 &&
+                ElDegerlendirici.RenkUzunlugu(el, rakipRenkleri[0]) <= 2 &&
+                !d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr"))
+                return "Dbl";
+
             return "Pas";
         }
 
@@ -707,6 +849,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return en;
         }
 
+        /// <summary>gercek[i] benim yaptığım yapay üçüncü/dördüncü renk teklifi mi (daha önce hiç söylenmemiş renk, seviye 2+, ortak iki ayrı renk söylemiş).</summary>
+        private bool IsTsfTeklifi(IhaleDurumu d, List<IhaleHamlesi> gercek, int i)
+        {
+            var t = gercek[i];
+            if (t.Oyuncu != d.AktifOyuncu || t.Koz == "NT" || t.Seviye < 2) return false;
+            var once = gercek.Take(i).ToList();
+            if (once.Any(h => h.Koz == t.Koz)) return false;
+            if (once.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi)) return false;
+            var ort = once.Where(h => h.Oyuncu == d.Partner && h.Koz != "NT").Select(h => h.Koz).Distinct().ToList();
+            var ben = once.Where(h => h.Oyuncu == d.AktifOyuncu && h.Koz != "NT").Select(h => h.Koz).Distinct().ToList();
+            return ort.Count >= 1 && ben.Count >= 1 && ort.Union(ben).Count() >= 2 && once.Count(h => h.Oyuncu == d.Partner && h.GercekTeklifMi) >= 2;
+        }
+
         /// <summary>Ortağın bu renkte tahmini minimum uzunluğu (0 = bilinmiyor).</summary>
         public static bool OrtakMudahaleSayilir = true;
 
@@ -723,6 +878,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 partnerSayi++;
                 if (partnerSayi == 1)
                 {
+                    // Ortak, benim yapay "üçüncü/dördüncü renk" teklifime (zorlayıcı) cevap veriyor: bu cevap 3 kartlık
+                    // destek ya da 4 kartlık yeni renk olabilir; "5+/4+ vaat" varsayımı slemi yanlış fitle şişirir.
+                    int hi = gercek.IndexOf(h);
+                    if (hi > 0 && IsTsfTeklifi(d, gercek, hi - 1))
+                    {
+                        if (benOnceBu) { uz = 3; continue; }
+                        uz = 4; continue;
+                    }
                     bool acilis = gercek.First() == h;
                     if (benOnceBu)
                     {

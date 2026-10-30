@@ -102,24 +102,6 @@ namespace BricKartOyunu.Class
         }
 
         /// <summary>Kayıtlı ayar dosyasını siler (bir sonraki yüklemede varsayılan gelir).</summary>
-        public static bool Sil(string ad)
-        {
-            lock (_kilit)
-            {
-                try
-                {
-                    string yol = DosyaYolu(ad);
-                    if (File.Exists(yol)) File.Delete(yol);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine("[AyarDeposu] Silme hatası (" + ad + "): " + ex.Message);
-                    return false;
-                }
-            }
-        }
-
         private static void BozukDosyayiKenaraAl(string yol)
         {
             try

@@ -68,26 +68,8 @@ namespace BricKartOyunu.Class
         }
 
         /// <summary>Dışardaki k kartın bir rakipte tam h kart olma olasılığı (iki rakipten belirli birinde).</summary>
-        public static double BelirliRakipteUzunluk(int k, int h)
-        {
-            return SoldaTamAKart(k, h, 13, 13);
-        }
-
         /// <summary>Dışardaki k kart içindeki belirli bir onörün, iki rakipten herhangi birinde, o rakibin toplam h kartı olması olasılığı.</summary>
-        public static double OnorTasiyanUzunlugu(int k, int h)
-        {
-            if (h < 1) return 0;
-            // Onör soldaysa: kalan k-1 karttan h-1'i solda
-            double sol = Kombinasyon(k - 1, h - 1) * Kombinasyon(26 - k, 13 - h) / Kombinasyon(26, 13);
-            return 2 * sol;
-        }
-
         /// <summary>Bir onör, belirli bir rakipte (örn. solda) ve o rakibin h kartı olma olasılığı.</summary>
-        public static double OnorBelirliRakipteUzunluk(int k, int h)
-        {
-            return OnorTasiyanUzunlugu(k, h) / 2;
-        }
-
         // ───────────────────────── Kitap tabloları ─────────────────────────
 
         /// <summary>Kitaptaki "Dışardaki kartların dağılımı" tablosu: {dışarıdaki kart, büyük, küçük, yüzde}.</summary>
@@ -118,19 +100,6 @@ namespace BricKartOyunu.Class
         };
 
         /// <summary>13 kartlık elin dağılım kalıbının (renk uzunlukları, sırası önemsiz) kesin olasılığı (0..1).</summary>
-        public static double ElDagilimi(int a, int b, int c, int d)
-        {
-            if (a + b + c + d != 13 || a < 0 || b < 0 || c < 0 || d < 0) return 0;
-            int[] u = { a, b, c, d };
-            // Farklı renk atamalarının sayısı = 4! / (aynı uzunluktaki renklerin faktöriyelleri çarpımı)
-            double perm = 24;
-            var say = new Dictionary<int, int>();
-            foreach (int x in u) { int n; say.TryGetValue(x, out n); say[x] = n + 1; }
-            foreach (var kv in say) for (int i = 2; i <= kv.Value; i++) perm /= i;
-            double el = Kombinasyon(13, a) * Kombinasyon(13, b) * Kombinasyon(13, c) * Kombinasyon(13, d);
-            return perm * el / Kombinasyon(52, 13);
-        }
-
         /// <summary>İki yapılacak empastan kaçı, "olanak" kadar empas fırsatından "gereken" tanesinin tutması olasılığı (her biri %50).</summary>
         public static double EmpasSansi(int olanak, int gereken)
         {

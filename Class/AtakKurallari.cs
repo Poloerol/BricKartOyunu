@@ -30,19 +30,6 @@ namespace BricKartOyunu.Class
         /// <summary>
         /// Eldeki tüm renkleri tarar, kurala giren renkler için öneri döndürür.
         /// </summary>
-        public static List<AtakOnerisi> AdaylariBul(List<Card> el)
-        {
-            var sonuc = new List<AtakOnerisi>();
-            if (el == null) return sonuc;
-
-            foreach (var grup in el.GroupBy(c => c.Suit))
-            {
-                var oneri = RenkAtagi(grup.ToList());
-                if (oneri != null) sonuc.Add(oneri);
-            }
-            return sonuc;
-        }
-
         /// <summary>
         /// Tek bir renk (aynı renkten kartlar) için atak önerisi. Kapsam dışıysa null.
         /// </summary>

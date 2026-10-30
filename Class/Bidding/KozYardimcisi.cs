@@ -94,19 +94,6 @@ namespace BricKartOyunu.Class.Bidding
         /// Sembolden koz adını çıkarır.
         /// "♠" → "Maça"
         /// </summary>
-        public static string SemboldenKoz(string sembol)
-        {
-            switch (sembol)
-            {
-                case "♠": return "Maça";
-                case "♥": return "Kupa";
-                case "♦": return "Karo";
-                case "♣": return "Sinek";
-                case "NT": return "NT";
-                default: return null;
-            }
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // TEKLİF OLUŞTURMA
         // ═══════════════════════════════════════════════════════════════════
@@ -156,27 +143,12 @@ namespace BricKartOyunu.Class.Bidding
             return TeklifOlustur(sev, koz);
         }
 
-        public static bool MajorMu(string koz)
-        {
-            return koz == "Maça" || koz == "Kupa";
-        }
-
         /// <summary>
         /// Belirtilen koz minör mü? (Karo veya Sinek)
         /// </summary>
-        public static bool MinorMu(string koz)
-        {
-            return koz == "Karo" || koz == "Sinek";
-        }
-
         /// <summary>
         /// Belirtilen koz NT mi?
         /// </summary>
-        public static bool NTMi(string koz)
-        {
-            return koz == "NT";
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // SABİTLER
         // ═══════════════════════════════════════════════════════════════════

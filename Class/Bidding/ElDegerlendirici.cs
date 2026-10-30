@@ -149,20 +149,9 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// İkinci en uzun rengi döndürür.
         /// </summary>
-        public static string IkinciEnUzunRenk(List<Card> el)
-        {
-            var sayilar = RenkSayilari(el);
-            return sayilar.OrderByDescending(kv => kv.Value).Skip(1).First().Key;
-        }
-
         /// <summary>
         /// Belirli bir renkte en az X kart var mı?
         /// </summary>
-        public static bool RenkVar(List<Card> el, string renk, int minimumAdet)
-        {
-            return RenkUzunlugu(el, renk) >= minimumAdet;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // FIT (KOZ UYUMU) KONTROLÜ
         // ═══════════════════════════════════════════════════════════════════
@@ -176,15 +165,6 @@ namespace BricKartOyunu.Class.Bidding
         /// partnerKozSayisi: Partnerin deklare ettiği rengin minimum kart sayısı
         /// (örn. partner 1♥ açtıysa 5, partner 3♥ dediyse 3 gibi tahmin edilir).
         /// </summary>
-        public static bool FitVarMi(List<Card> benimEl, string koz, int partnerKozSayisi)
-        {
-            if (benimEl == null || string.IsNullOrEmpty(koz)) return false;
-            if (partnerKozSayisi <= 0) return false;
-
-            int benimKozSayim = RenkUzunlugu(benimEl, koz);
-            return (benimKozSayim + partnerKozSayisi) >= 8;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // DAĞILIM KONTROLÜ
         // ═══════════════════════════════════════════════════════════════════
@@ -256,21 +236,9 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Elde 4'lü majör var mı? (Maça veya Kupa 4+)
         /// </summary>
-        public static bool DortluMajorVar(List<Card> el)
-        {
-            return RenkUzunlugu(el, "Maça") >= 4 ||
-                   RenkUzunlugu(el, "Kupa") >= 4;
-        }
-
         /// <summary>
         /// Elde 5'li minör var mı? (Karo veya Sinek 5+)
         /// </summary>
-        public static bool BesliMinorVar(List<Card> el)
-        {
-            return RenkUzunlugu(el, "Karo") >= 5 ||
-                   RenkUzunlugu(el, "Sinek") >= 5;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // STOPPER KONTROLÜ (NT için önemli)
         // ═══════════════════════════════════════════════════════════════════
@@ -311,25 +279,10 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Elde kaç renkte stopper var? (0-4)
         /// </summary>
-        public static int StopperSayisi(List<Card> el)
-        {
-            int sayi = 0;
-            if (StopperVar(el, "Maça")) sayi++;
-            if (StopperVar(el, "Kupa")) sayi++;
-            if (StopperVar(el, "Karo")) sayi++;
-            if (StopperVar(el, "Sinek")) sayi++;
-            return sayi;
-        }
-
         /// <summary>
         /// NT (No Trump) için el uygun mu?
         /// Dengeli + 3-4 stopper
         /// </summary>
-        public static bool NTUygun(List<Card> el)
-        {
-            return DengeliEl(el) && StopperSayisi(el) >= 3;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // HIZLI EL SAYISI (QUICK TRICKS)
         // ═══════════════════════════════════════════════════════════════════
@@ -338,39 +291,6 @@ namespace BricKartOyunu.Class.Bidding
         /// Hızlı el sayısı tahmini.
         /// As = 1, Kx = 0.5, KQ = 1, QJx = 0.5
         /// </summary>
-        public static double HizliElSayisi(List<Card> el)
-        {
-            if (el == null) return 0;
-
-            double sayi = 0;
-            var renkler = new[] { "Maça", "Kupa", "Karo", "Sinek" };
-
-            foreach (var renk in renkler)
-            {
-                var renkKartlari = el.Where(c => c.Suit == renk)
-                                     .OrderByDescending(c => c.Value)
-                                     .ToList();
-
-                if (renkKartlari.Count == 0) continue;
-
-                // Standart hızlı el (quick tricks): AK=2, AQ=1.5, A=1, KQ=1, Kx=0.5
-                int v0 = renkKartlari[0].Value;
-                int v1 = renkKartlari.Count >= 2 ? renkKartlari[1].Value : 0;
-                if (v0 == 14)
-                {
-                    if (v1 == 13) sayi += 2;
-                    else if (v1 == 12) sayi += 1.5;
-                    else sayi += 1;
-                }
-                else if (v0 == 13)
-                {
-                    if (v1 == 12) sayi += 1;
-                    else if (renkKartlari.Count >= 2) sayi += 0.5;
-                }
-            }
-            return sayi;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // AS / PAPAZ / KİLİT KART SAYIMI (Blackwood & RKCB için)
         // ═══════════════════════════════════════════════════════════════════

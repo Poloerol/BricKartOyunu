@@ -254,18 +254,6 @@ namespace BricKartOyunu.Class.Bidding
             return false;
         }
 
-        private static bool OrtakDbl(IhaleDurumu d)
-        {
-            // son gerçek olmayan-pas hamle ortağın dbl'ı mı
-            var g = d.Gecmis ?? new List<IhaleHamlesi>();
-            for (int i = g.Count - 1; i >= 0; i--)
-            {
-                if (g[i].Teklif == "Pas") continue;
-                return g[i].Oyuncu == d.Partner && (g[i].Teklif == "Dbl" || g[i].Teklif == "Kontr");
-            }
-            return false;
-        }
-
         private static readonly HashSet<string> SoruKonv = new HashSet<string>
         {
             "Blackwood","RKCB","Gerber","Kickback","Exclusion Blackwood","Koz Q Sorusu",

@@ -111,6 +111,9 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool ForcingNT { get; set; } = true;
 
+        /// <summary>2/1 Game Force: 1♥/1♠ açılışına sıçramasız 2 seviyesi yeni renk cevabı oyuna kadar zorlayıcıdır (5'li majör gerekir).</summary>
+        public bool IkiBirOyunZorlama { get; set; } = true;
+
         // ═══════════════════════════════════════════════════════════════════
         // 1NT/2NT CEVAP SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
@@ -241,53 +244,6 @@ namespace BricKartOyunu.Class.Bidding
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>Varsayılan anlaşma + adı verilen ek (Bridge Baron) konvansiyonu açık; pratik modu için.</summary>
-        public static OrtaklikAnlasmasi EkKonvansiyonIcin(string ad)
-        {
-            var a = Varsayilan();
-            switch (ad)
-            {
-                case "Benjamin Two-Bids": a.BenjaminTwoBids = true; break;
-                case "Extended Stayman": a.ExtendedStayman = true; break;
-                case "Hello over 1NT": a.HelloOver1NT = true; break;
-                case "Truscott 2NT": a.Truscott2NT = true; break;
-                case "Preemptive Reraises": a.PreemptiveReraises = true; break;
-                case "Long & Short Game Tries": a.LongShortGameTries = true; break;
-                case "New Minor Forcing": a.NewMinorForcing = true; break;
-                case "Weak Jump-Shift Resp.": a.WeakJumpShiftResp = true; break;
-                case "Ogust": a.Ogust = true; break;
-                case "Gambling 3NT": a.Gambling3NT = true; break;
-                case "Specific King Asks": a.SpecificKingAsks = true; break;
-                case "Voluntary Five Major Bid": a.VoluntaryFiveMajor = true; break;
-                case "Mathe Asking Bids": a.MatheAskingBids = true; break;
-                case "Control Asking Bids": a.ControlAskingBids = true; break;
-                case "Ghestem": a.Ghestem = true; break;
-                case "Invisible Cue-Bids": a.InvisibleCueBids = true; break;
-                case "Limit-Plus Cue-Bids": a.LimitPlusCueBids = true; break;
-                case "Weak Jump Overcalls": a.WeakJumpOvercalls = true; break;
-                case "Sandwich 1NT": a.Sandwich1NT = true; break;
-                case "Maximal Overcall Dbl.": a.MaximalOvercallDbl = true; break;
-                case "1m-2NT Invitational": a.OneMinorTwoNTInv = true; break;
-                case "German 2C Relays": a.German2CRelays = true; break;
-                case "Walsh": a.Walsh = true; break;
-                case "Mini-Roman 2D": a.MiniRoman2D = true; break;
-                case "Robinson": a.Robinson = true; break;
-                case "Inverted Bergen Raises": a.InvertedBergenRaises = true; break;
-                case "Exit Transfer 1NT Runouts": a.ExitTransfer = true; break;
-                case "Artif. 2C/2D Resp. to 1M-X": a.Artificial2C2D = true; break;
-                case "Wolff Signoff": a.WolffSignoff = true; break;
-                case "Quantitative 4NT": a.Quantitative4NT = true; break;
-                case "Texas Transfers": a.TexasTransfers = true; break;
-                case "Minor Stayman": a.MinorStayman = true; break;
-                case "Flannery": a.Flannery = true; break;
-                case "Kokish": a.Kokish = true; break;
-                case "Rubensohl": a.Rubensohl = true; break;
-                case "Leaping Michaels": a.LeapingMichaels = true; break;
-                case "Lightner Double": a.LightnerDouble = true; break;
-                case "Last Train": a.LastTrain = true; break;
-            }
-            return a;
-        }
-
         public static OrtaklikAnlasmasi Varsayilan()
         {
             return new OrtaklikAnlasmasi
@@ -295,6 +251,7 @@ namespace BricKartOyunu.Class.Bidding
                 BesliMajor = true,
                 InvertedMinors = true,
                 ForcingNT = true,
+                IkiBirOyunZorlama = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
                 ZayifIki = true,
@@ -361,6 +318,7 @@ namespace BricKartOyunu.Class.Bidding
                 BesliMajor = false,
                 InvertedMinors = false,
                 ForcingNT = false,
+                IkiBirOyunZorlama = false,
                 StrongNT = false,
                 IkiliSinekGuclu = false,
                 Preempt = false,
@@ -431,6 +389,7 @@ namespace BricKartOyunu.Class.Bidding
             if (XYZ) aktifler.Add("XYZ");
 
             if (ForcingNT) aktifler.Add("Forcing NT");
+            if (IkiBirOyunZorlama) aktifler.Add("2/1 Game Force");
             if (InvertedMinors) aktifler.Add("Inverted Minors");
             if (Jacoby2NT) aktifler.Add("Jacoby2NT");
             if (Splinter) aktifler.Add("Splinter");

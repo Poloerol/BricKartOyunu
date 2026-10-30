@@ -160,6 +160,7 @@
     <Compile Include="AppState.cs" />
     <Compile Include="Class\AtakKurallari.cs" />
     <Compile Include="Class\Bidding\BiddingPresenter.cs" />
+    <Compile Include="Class\Bidding\HumanVsAiBidding.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\BenjaminTwoBids.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\BesliMajor.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\Flannery.cs" />
@@ -176,6 +177,7 @@
     <Compile Include="Class\Bidding\Conventions\Cevap\ForcingNT.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\InvertedBergenRaises.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\InvertedMinors.cs" />
+    <Compile Include="Class\Bidding\Conventions\Cevap\IkiBirOyunZorlama.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\Jacoby2NT.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\Ogust.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\OneMinorTwoNTInv.cs" />
@@ -261,10 +263,8 @@
     <Compile Include="Class\Bidding\Conventions\Slem\VoluntaryFiveMajor.cs" />
     <Compile Include="Class\Bidding\Conventions\Yedek\BasitCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Yedek\TemelMantik.cs" />
-    <Compile Include="Class\Bidding\HumanVsAiBidding.cs" />
     <Compile Include="Class\Bidding\IhaleKoruma.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_Answer.cs" />
-    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_Devam.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_OneDiamond.cs" />
     <Compile Include="Class\Bidding\IhaleYorumcusu.cs" />
     <Compile Include="Class\Bidding\IhaleAnalizi.cs" />
@@ -274,7 +274,6 @@
     <Compile Include="Class\SuronorKurali.cs" />
     <Compile Include="Class\DDSolver.cs" />
     <Compile Include="Class\DunyaOrnekleyici.cs" />
-    <Compile Include="Class\MonteCarloOyun.cs" />
     <Compile Include="Forms\KartArkaYuzSecForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -289,10 +288,12 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_Opening.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_Opening.cs" />
     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
-    <Compile Include="Class\Bidding\Tests\HumanVsAiBiddingTests.cs" />
     <Compile Include="Class\Bidding\Tests\TestHelpers.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_OneDiamond.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_IkiBirOyunZorlama.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_Duzeltmeler.cs" />
+    <Compile Include="Class\Bidding\Tests\ToplamIhaleDenetimi.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
     <Compile Include="Class\OyunZekasi.cs" />

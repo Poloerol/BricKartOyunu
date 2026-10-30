@@ -797,13 +797,7 @@ namespace BricKartOyunu
         /// Koz varsa ve oynanmışsa → en yüksek koz
         /// Yoksa → atak rengindeki en yüksek kart
         /// </summary>
-        private Player SuAnkiTrickKazanani()
-        {
-            if (_buEldeOynananlar == null || _buEldeOynananlar.Count == 0)
-                return activePlayer;
 
-            return OyunKurallari.ElKazanani(_buEldeOynananlar, KontratKozu()).Oyuncu;
-        }
         /// <summary>
         /// Bu elde oynanan 4 kart arasında kazananı belirler.
         /// Kurallar:

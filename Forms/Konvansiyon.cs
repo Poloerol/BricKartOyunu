@@ -71,7 +71,7 @@ namespace BricKartOyunu
             Controls.Add(_txtAdet);
 
             Controls.Add(new Label { Text = "Başlangıç", Left = 10, Top = 50, Width = 56 });
-            _txtBaslangic = new TextBox { Text = "958097384", Left = 70, Top = 47, Width = 108 };
+            _txtBaslangic = new TextBox { Text = new Random(Guid.NewGuid().GetHashCode()).Next(1, 1500000000).ToString(), Left = 70, Top = 47, Width = 108 };
             Controls.Add(_txtBaslangic);
 
             _chkDuyur = new CheckBox { Text = "Dağıtımdan önce konvansiyonu duyur", Left = 192, Top = 10, Width = 220, Checked = true };

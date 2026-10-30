@@ -277,7 +277,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(el);
 
             // ─── 1) Cevapçının ilk rengine 3'lü KALİTELİ tutuş ─────────
-            if (yUzunluk >= 3 && KaliteliDestekMi(el, yRenk))
+            // Cevapçı 1 seviyede majör söyleyip sonra 3. renge gittiyse majörü genelde 5+; 3 kart = 8'li uyum.
+            // Onörsüz 3'lü destek yalnız dengeli elde NT'ye bırakılır; dengesiz elde uyum gösterilir.
+            if (yUzunluk >= 3 && (KaliteliDestekMi(el, yRenk) || !ElDegerlendirici.DengeliEl(el)))
             {
                 string sembol = KozYardimcisi.KozSembolu(yRenk);
                 return "2" + sembol;
@@ -297,6 +299,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 string sembol = KozYardimcisi.KozSembolu(tsrRenk);
                 return "3" + sembol;
             }
+
+            // ─── 3b) Kendi 6+ kartlı açış rengimi 3 seviyesinde tekrar ─────
+            // (Kendi rengi uzun ve dengesiz el: 4. renk durdurucu sorusuna gitmeden uzunluğu göster.)
+            if (!string.IsNullOrEmpty(xRenk) && ElDegerlendirici.RenkUzunlugu(el, xRenk) >= 6 && !ElDegerlendirici.DengeliEl(el))
+                return "3" + KozYardimcisi.KozSembolu(xRenk);
 
             // ─── 4) Diğer renkte durdurucu → NT ─────────────────────
             bool dengeli = ElDegerlendirici.DengeliEl(el);

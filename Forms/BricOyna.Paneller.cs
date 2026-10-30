@@ -387,65 +387,6 @@ namespace BricKartOyunu
         /// <summary>
         /// OYUN BİLGİSİ panelinin 10px altında yer alan el numarası panelini oluşturur.
         /// </summary>
-        private void SetupElBilgiPanel()
-        {
-            if (elBilgiPanel != null) return;
-
-            // İki stil numarasını da rahatça barındırabilecek yükseklikte bir panel
-            elBilgiPanel = new Panel
-            {
-                Size = new Size(BilgiPanelGenislik, 95),
-                BackColor = AnaSayfa.MasaRengi, // Masa rengiyle aynı
-                BorderStyle = BorderStyle.FixedSingle
-            };
-            EnableDoubleBuffer(elBilgiPanel);
-
-            // 1. New Style Başlık ve Değer
-            var lblNewBaslik = new Label
-            {
-                Location = new Point(5, 4),
-                Size = new Size(BilgiPanelGenislik - 10, 18),
-                Text = "New Style Deal #:",
-                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
-                ForeColor = Color.Black
-            };
-            elBilgiPanel.Controls.Add(lblNewBaslik);
-
-            lblNewLabel = new Label
-            {
-                Location = new Point(5, 22),
-                Size = new Size(BilgiPanelGenislik - 10, 25),
-                Text = "N0112-49594-...",
-                Font = new Font("Segoe UI", 7.5F),
-                ForeColor = Color.Black
-            };
-            elBilgiPanel.Controls.Add(lblNewLabel);
-
-            // 2. Old Style Başlık ve Değer
-            var lblOldBaslik = new Label
-            {
-                Location = new Point(5, 50),
-                Size = new Size(BilgiPanelGenislik - 10, 18),
-                Text = "Old Style Deal #:",
-                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
-                ForeColor = Color.Black
-            };
-            elBilgiPanel.Controls.Add(lblOldBaslik);
-
-            lblOldLabel = new Label
-            {
-                Location = new Point(5, 68),
-                Size = new Size(BilgiPanelGenislik - 10, 20),
-                Text = "1955946097",
-                Font = new Font("Segoe UI", 7.5F),
-                ForeColor = Color.Black
-            };
-            elBilgiPanel.Controls.Add(lblOldLabel);
-
-            this.Controls.Add(elBilgiPanel);
-            elBilgiPanel.BringToFront();
-        }
-
         /// <summary>
         /// Etiket + değer satırı oluşturur (örn. "Dealer: Kuzey").
         /// </summary>
