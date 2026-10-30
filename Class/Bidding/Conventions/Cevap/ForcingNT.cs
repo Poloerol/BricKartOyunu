@@ -203,9 +203,25 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ═══════════════════════════════════════════════════════════════
             // 2) 2NT: 18-19 dengeli (5-3-3-2), zon forsing
             // ═══════════════════════════════════════════════════════════════
-            if (dengeli && hp >= 18 && hp <= 19 && majörUzunluk == 5)
+            if (dengeli && hp >= 17 && hp <= 19 && majörUzunluk == 5)
             {
                 return "2NT";
+            }
+            // 20+ dengeli: 3NT (ortak en çok 12 gösterdi; toplam 26+)
+            if (dengeli && hp >= 20 && majörUzunluk == 5)
+            {
+                return "3NT";
+            }
+
+            // 17+ dengesiz: ikinci rengi 3 seviyesinde SIÇRAYARAK göster (zorlayıcı, 2 seviyesinde asgari rebid değil)
+            if (hp >= 17 && !dengeli)
+            {
+                string[] sira = { "Kupa", "Maça", "Karo", "Sinek" };
+                foreach (var r in sira)
+                {
+                    if (r == majör) continue;
+                    if (ElDegerlendirici.RenkUzunlugu(el, r) >= 4) return "3" + KozYardimcisi.KozSembolu(r);
+                }
             }
 
             // ═══════════════════════════════════════════════════════════════

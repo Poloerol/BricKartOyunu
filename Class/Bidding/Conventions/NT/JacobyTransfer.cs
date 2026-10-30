@@ -80,6 +80,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ── ROL 4: Transfer yaptım, 5'li majör + davet gücü (8-9 HP) → 2NT; ROL 5: açıcının cevabı ──
             if (Rol4Teklifi(durum) != null) return true;
             if (Rol5Teklifi(durum) != null) return true;
+            if (Rol6Teklifi(durum) != null) return true;
 
             return false;
         }
@@ -135,6 +136,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return "2NT";
         }
 
+        /// <summary>1NT – transfer – tamamlama sonrası: 6+ kartlı majör ve 16+ HP (toplam 31+) → 4NT (as sorusu, koz = majör).</summary>
+        private static string Rol6Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
+            if (durum.RakipActiMi()) return null;
+            string major;
+            if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
+            else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
+            else return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, major) < 6) return null;
+            if (ElDegerlendirici.HCP(el) < 16) return null;
+            return "4NT";
+        }
+
         /// <summary>1NT – transfer – tamamlama – 2NT (davet) sonrası açıcının kararı: 3'lü destek → 3M (maksimumda 4M); desteksiz maksimum → 3NT.</summary>
         private static string Rol5Teklifi(IhaleDurumu durum)
         {
@@ -188,6 +207,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (r4 != null) return r4;
             var r5 = Rol5Teklifi(durum);
             if (r5 != null) return r5;
+            var r6 = Rol6Teklifi(durum);
+            if (r6 != null) return r6;
 
             // ── ROL 2: Transfer kabulü ──
             if (durum.KendiTeklifleri.LastOrDefault() == "1NT")

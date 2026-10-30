@@ -36,8 +36,8 @@ namespace BricKartOyunu.Tests
             T("K2 checkback 2D-2S, 5 maca -> 4S", TestHelpers.ElOlustur("AJ852", "T4", "AQ4", "Q82"), "4♠", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas", "2♠", "Pas");
 
             // 1♣ – 1♠ – 1NT – 2NT (davet): açıcı 3 kartlık destekle düzeltir
-            T("C1 1C-1S-1NT-2NT, 3 maca 13hcp -> 3S", TestHelpers.ElOlustur("A52", "J973", "A82", "AT3"), "3♠", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
-            T("C2 1C-1S-1NT-2NT, 3 maca 14hcp -> 4S", TestHelpers.ElOlustur("A52", "KJ73", "A82", "AT3"), "4♠", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
+            T("C1 1C-1S-1NT-2NT, 3 maca 13hcp -> Pas (4-3 fit riskli)", TestHelpers.ElOlustur("A52", "J973", "A82", "AT3"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
+            T("C2 1C-1S-1NT-2NT, 3 maca 14hcp -> 3NT", TestHelpers.ElOlustur("A52", "KJ73", "A82", "AT3"), "3NT", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
             T("C3 1C-1S-1NT-2NT, 2 maca asgari -> Pas", TestHelpers.ElOlustur("K5", "K842", "K954", "A42"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
 
             // Rekabet: ortak 1♣, rakip 1 seviye müdahale; dengeli güçlü el pas geçmemeli
@@ -75,6 +75,26 @@ namespace BricKartOyunu.Tests
             T("Q1 1NT-2D-2H, 5 kupa 9hcp -> 2NT", TestHelpers.ElOlustur("A42", "KJ972", "J65", "T4"), "2NT", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas");
             T("Q2 1NT-2D-2H-2NT, 3 kupa 15hcp -> 3H", TestHelpers.ElOlustur("KQ4", "A83", "KJ52", "Q64"), "3♥", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "2NT", "Pas");
             T("Q3 1NT-2D-2H-2NT, 2 kupa 15hcp -> Pas", TestHelpers.ElOlustur("KQ64", "A8", "KJ52", "Q64"), "Pas", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "2NT", "Pas");
+
+            // 1NT açılışından sonra slam araması: 6 kartlı majör + 16 HP transferden sonra 4NT
+            T("S1 1NT-2D-2H, 6 kupa 16hcp -> 4NT", TestHelpers.ElOlustur("AK3", "AKJ974", "Q5", "42"), "4NT", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas");
+            T("S2 1NT-2D-2H-4NT, 2 anahtar kart + kupa Q -> 5S", TestHelpers.ElOlustur("Q52", "KQ3", "AJ4", "K962"), "5♠", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "4NT", "Pas");
+
+            T("S3 1NT-2D-2H-4NT-5S: toplam 5 anahtar kart -> 5NT (kral sorusu)", TestHelpers.ElOlustur("AK3", "AKJ974", "Q5", "42"), "5NT", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "4NT", "Pas", "5♠", "Pas");
+
+            // 1M – 1NT (forcing): açıcı 17+ HP ile 2 seviyesinde asgari rebid yapmaz
+            T("A1 1H-1NT, 20hcp 5-4-3-1 -> 3D (sicrama)", TestHelpers.ElOlustur("K95", "AKJT5", "AQ74", "K"), "3♦", "1♥", "Pas", "1NT", "Pas");
+            T("A2 1H-1NT, 13hcp 5-4-3-1 -> 2D (asgari)", TestHelpers.ElOlustur("K95", "AQJT5", "KQ74", "2"), "2♦", "1♥", "Pas", "1NT", "Pas");
+            T("A3 1S-1NT, 18hcp dengeli 5332 -> 2NT", TestHelpers.ElOlustur("AKJ85", "KQ3", "A74", "Q2"), "2NT", "1♠", "Pas", "1NT", "Pas");
+
+            // 1♦ – 1♠: açıcı 17-18 HP + 6 kartlık karo → 3♦ sıçrama (asgari 2♦ değil)
+            T("B1 1D-1S, 18hcp 6 karo -> 3D", TestHelpers.ElOlustur("K87", "AK9", "AKJ632", "6"), "3♦", "1♦", "Pas", "1♠", "Pas");
+            T("B2 1D-1S, 13hcp 6 karo -> 2D", TestHelpers.ElOlustur("K87", "A92", "KQJ632", "6"), "2♦", "1♦", "Pas", "1♠", "Pas");
+
+            // 1♦ – 1♠ – 3♦ (17-18 HP sıçrama): cevapçı 9 HP ile pas geçmez
+            T("B3 1D-1S-3D, 9hcp 5 maca -> 4S", TestHelpers.ElOlustur("A9432", "T4", "T4", "KQ87"), "4♠", "1♦", "Pas", "1♠", "Pas", "3♦", "Pas");
+            T("B4 1D-1S-3D, 5hcp -> Pas", TestHelpers.ElOlustur("K9432", "T4", "T64", "J87"), "Pas", "1♦", "Pas", "1♠", "Pas", "3♦", "Pas");
+            T("B5 1D-1S-3D, 10hcp 4 maca dengeli -> 3NT", TestHelpers.ElOlustur("KJ43", "Q4", "T64", "AQ87"), "3NT", "1♦", "Pas", "1♠", "Pas", "3♦", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");

@@ -243,6 +243,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (rr != null) return rr;
             }
 
+            {
+                string sj = CevapciSicramaSonrasi(d, el, hp, gercek);
+                if (sj != null) return sj;
+            }
+
             // ── Fit bul ──
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int fitToplam);
 
@@ -608,6 +613,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (benBu && uzLen >= 6 && !rakipRenkleri.Contains(uz) && hp >= 6 && cur <= 2)
             {
                 int u = Cheapest(d, uz);
+                // Açıcının ikinci teklifi: ortak 1 seviyede yeni renk dedi, rakip konuşmadı, 17+ HP ve 6+ kartlık
+                // kendi rengim var → sıçrama rebid (1♦–1♠–3♦ = 17-18 HP, davet); asgari 2♦ güçlü eli gösteremez.
+                if (hp >= 17 && u == 2 && gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu &&
+                    gercek[0].Koz == uz && gercek[0].Seviye == 1 && gercek[1].Oyuncu == d.Partner &&
+                    gercek[1].Seviye == 1 && gercek[1].Koz != "NT" && gercek[1].Koz != uz)
+                    return Seviye(d, uz, 3);
                 if (u <= 2 + (est >= 22 ? 1 : 0)) return Seviye(d, uz, u);
             }
 
@@ -810,6 +821,22 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             return "Pas";
+        }
+
+        /// <summary>
+        /// Ortak 1 seviye açtı, ben 1 seviyede yeni renk (majör) dedim, ortak kendi rengini 3 seviyeye sıçrattı
+        /// (1♦–1♠–3♦ = 17-18 HP, 6+ kart): 9+ HP ile pas geçme. 5+ kartlık majör → 4M, aksi halde 3NT.
+        /// </summary>
+        private string CevapciSicramaSonrasi(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> gercek)
+        {
+            if (hp < 9 || gercek.Count != 3) return null;
+            if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            var a1 = gercek[0]; var b = gercek[1]; var a2 = gercek[2];
+            if (a1.Oyuncu != d.Partner || a2.Oyuncu != d.Partner || b.Oyuncu != d.AktifOyuncu) return null;
+            if (a1.Seviye != 1 || a1.Koz == "NT" || a2.Koz != a1.Koz || a2.Seviye != 3) return null;
+            if (b.Seviye != 1 || !Major(b.Koz)) return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, b.Koz) >= 5) return Seviye(d, b.Koz, 4);
+            return Seviye(d, "NT", 3);
         }
 
         /// <summary>

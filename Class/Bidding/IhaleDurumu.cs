@@ -296,6 +296,17 @@ namespace BricKartOyunu.Class.Bidding
                     return gg[0].Koz;
             }
 
+            // 0b. Majör transferi: 1NT - 2♦ - 2♥ (ya da 1NT - 2♥ - 2♠), rakip teklifsiz = transfer edilen majör koz
+            {
+                var gt = Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                if (gt.Count >= 3 && gt[0].Teklif == "1NT" && gt[1].Oyuncu != gt[0].Oyuncu && gt[2].Oyuncu == gt[0].Oyuncu &&
+                    (gt[0].Oyuncu == AktifOyuncu || gt[0].Oyuncu == Partner) && (gt[1].Oyuncu == AktifOyuncu || gt[1].Oyuncu == Partner))
+                {
+                    if (gt[1].Teklif == "2♦" && gt[2].Teklif == "2♥") return "Kupa";
+                    if (gt[1].Teklif == "2♥" && gt[2].Teklif == "2♠") return "Maça";
+                }
+            }
+
             // 4NT / 5NT'ye verilen cevaplar (5♦, 6♥ gibi) yeni bir koz önerisi değildir; koz belirlemede sayılmaz.
             var yanitHamleleri = new HashSet<IhaleHamlesi>();
             {

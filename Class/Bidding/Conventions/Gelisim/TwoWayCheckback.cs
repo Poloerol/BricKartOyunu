@@ -105,8 +105,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         }
 
         /// <summary>
-        /// 1X - 1M - 1NT - 2NT davetine açıcının cevabı: 3 kartlık majör desteğiyle 3M (maksimumda 4M),
-        /// desteksiz maksimumda 3NT. Diğer durumlarda null (normal motor Pas der).
+        /// 1X - 1M - 1NT - 2NT davetine açıcının cevabı: maksimumda (14+) 3NT; asgaride null (normal motor Pas der).
         /// </summary>
         private string AciciIkiNTCevabi(IhaleDurumu durum, List<IhaleHamlesi> ger)
         {
@@ -124,7 +123,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(el);
             int uz = ElDegerlendirici.RenkUzunlugu(el, cev.Koz);
             string sem = KozYardimcisi.KozSembolu(cev.Koz);
-            if (uz >= 3) return hp >= 14 ? "4" + sem : "3" + sem;
+            // 3 kartlık destekle 3M düzeltmesi yapılmaz: cevapçının 1M cevabı 4 kartlı da olabilir (denetimde
+            // bu düzeltmelerin ~%75'i 4-3 fit'e, 2NT'den kötü bir oyuna götürdü). Maksimum (14+) → 3NT, asgari → Pas.
             if (hp >= 14) return "3NT";
             return null;
         }
