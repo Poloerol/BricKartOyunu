@@ -201,8 +201,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (un != null) return un;
                 }
 
+                string bk = BalansKontrasi(d, el, hp, ar, son, rakipRenkleri, gercek);
+                if (bk != null) return bk;
+
                 string rk = Rekabet(d, el, hp, dengeli, ar, son, rakipRenkleri, gercek);
                 if (rk == "Pas") rk = RekabetYeniRenk(d, el, hp, rakipRenkleri, gercek);
+                if (rk == "Pas") rk = RekabetNT(d, el, hp, dengeli, son, rakipRenkleri, gercek);
                 return rk;
             }
 
@@ -735,6 +739,26 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         }
 
         /// <summary>
+        /// Ortak açtı, rakip 2. seviyede kendi rengini oynuyor (ör. Michaels sonrası 2M) ve iki pas geldi:
+        /// toplam güç oyun civarındaysa (hp + ortak asgari ≥ 26) ve rakip rengimde kısaysam (&lt;=3) balans kontrası.
+        /// </summary>
+        private string BalansKontrasi(IhaleDurumu d, List<Card> el, int hp, IhaleKoruma.Aralik ar, IhaleHamlesi son,
+                                      List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
+        {
+            if (rakipRenkleri.Count < 2 || son.Koz == "NT" || son.Seviye < 2 || son.Seviye > 3) return null;
+            if (!d.Rakipler.Contains(son.Oyuncu)) return null;
+            if (gercek.Count == 0 || gercek[0].Oyuncu != d.Partner) return null;
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu)) return null;
+            if (d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr")) return null;
+            // son = rakip teklifi; ardından partnerim ve rakip pas: gecmişin son 3 çağrısı Pas olmamalı kuralı: son 2 çağrı Pas
+            var g = d.Gecmis;
+            if (g.Count < 3 || g[g.Count - 1].Teklif != "Pas" || g[g.Count - 2].Teklif != "Pas") return null;
+            if (hp < 12 || hp + ar.Min < (son.Seviye == 2 ? 26 : 27)) return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, son.Koz) > 3) return null;
+            return "Dbl";
+        }
+
+        /// <summary>
         /// Ben açtım, rakip müdahale etti, ortak fit göstermedi: güçlü elle pas geçmek yerine
         ///  (A) ortak yeni renk söylediyse (zorlayıcı) ve 6+ kartlı kendi rengim varsa onu tekrarla,
         ///  (B) ortak pas geçtiyse, 16+ HP ve rakip rengi kısaysa rekabet kontrası.
@@ -754,12 +778,31 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return EnUcuz(d, acilis);
 
             // (B) Ortak pas geçti, ben 16+ HP: rakip renginde kısa (<=2) ise rekabet kontrası
-            if (!ortakKonustu && hp >= 16 && son.Seviye <= 2 && rakipRenkleri.Count == 1 &&
-                ElDegerlendirici.RenkUzunlugu(el, rakipRenkleri[0]) <= 2 &&
+            // (iki renkli müdahalede (Michaels/Unusual) rakibin son söylediği renge bakılır)
+            if (!ortakKonustu && hp >= 16 && son.Seviye <= 2 && rakipRenkleri.Count >= 1 &&
+                ElDegerlendirici.RenkUzunlugu(el, son.Koz) <= 2 &&
                 !d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr"))
                 return "Dbl";
 
             return "Pas";
+        }
+
+        /// <summary>
+        /// Ortak 1 seviye renk açtı, rakip tek renk müdahale etti (1 seviye), ben ilk kez konuşuyorum:
+        /// dengeli el + rakip renginde tutuk varsa doğal NT (6-12 HP: 1NT, 13-15: 2NT, 16+: 3NT). Pas yerine.
+        /// </summary>
+        private string RekabetNT(IhaleDurumu d, List<Card> el, int hp, bool dengeli, IhaleHamlesi son,
+                                 List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
+        {
+            if (!dengeli || hp < 6 || son.Koz == "NT" || son.Seviye != 1) return "Pas";
+            if (!d.Rakipler.Contains(son.Oyuncu) || rakipRenkleri.Count != 1) return "Pas";
+            if (gercek.Count != 2 || gercek[0].Oyuncu != d.Partner || gercek[0].Seviye != 1) return "Pas";
+            if (d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr")) return "Pas";
+            if (!Tutuk(el, son.Koz)) return "Pas";
+            foreach (var m in new[] { "Maça", "Kupa" })
+                if (m != son.Koz && ElDegerlendirici.RenkUzunlugu(el, m) >= 4) return "Pas";   // majör fiti aranmalı
+            int hedef = hp >= 16 ? 3 : (hp >= 13 ? 2 : 1);
+            return Seviye(d, "NT", hedef);
         }
 
         /// <summary>

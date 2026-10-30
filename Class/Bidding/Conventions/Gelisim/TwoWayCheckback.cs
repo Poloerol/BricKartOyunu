@@ -48,6 +48,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (gercekTeklifler.Count < 3) return false;
 
+            // Cevapçı, kendi 2♦ (oyun zorlayıcı) checkback'ine açıcının cevabı gelince oyuna kadar devam eder.
+            if (CevapciDevamMi(durum, gercekTeklifler)) return true;
+            if (AciciIkiNTCevabi(durum, gercekTeklifler) != null) return true;
+
             // Son üç teklif: 1X (açıcı), 1Y (cevapçı), 1NT (açıcı) olmalı
             int n = gercekTeklifler.Count;
 
@@ -100,6 +104,31 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return true;
         }
 
+        /// <summary>
+        /// 1X - 1M - 1NT - 2NT davetine açıcının cevabı: 3 kartlık majör desteğiyle 3M (maksimumda 4M),
+        /// desteksiz maksimumda 3NT. Diğer durumlarda null (normal motor Pas der).
+        /// </summary>
+        private string AciciIkiNTCevabi(IhaleDurumu durum, List<IhaleHamlesi> ger)
+        {
+            int n = ger.Count;
+            if (n < 4) return null;
+            if (ger[n - 1].Teklif != "2NT" || ger[n - 1].Oyuncu != durum.Partner) return null;
+            if (ger[n - 2].Teklif != "1NT" || ger[n - 2].Oyuncu != durum.AktifOyuncu) return null;
+            var cev = ger[n - 3];
+            if (cev.Oyuncu != durum.Partner || cev.Seviye != 1) return null;
+            if (cev.Koz != "Kupa" && cev.Koz != "Maça") return null;
+            var ac = ger[n - 4];
+            if (ac.Oyuncu != durum.AktifOyuncu || ac.Seviye != 1 || ac.Koz == "NT") return null;
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            int hp = ElDegerlendirici.HCP(el);
+            int uz = ElDegerlendirici.RenkUzunlugu(el, cev.Koz);
+            string sem = KozYardimcisi.KozSembolu(cev.Koz);
+            if (uz >= 3) return hp >= 14 ? "4" + sem : "3" + sem;
+            if (hp >= 14) return "3NT";
+            return null;
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         // TEKLİF VER
         // ═══════════════════════════════════════════════════════════════════
@@ -116,6 +145,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             var gercekTeklifler = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
             int n = gercekTeklifler.Count;
+
+            if (CevapciDevamMi(durum, gercekTeklifler)) return CevapciDevami(durum, el, gercekTeklifler);
+            var ikiNt = AciciIkiNTCevabi(durum, gercekTeklifler);
+            if (ikiNt != null) return ikiNt;
 
             // Son teklif 2♣ ise → açıcıyız (puppet'a cevap)
             if (n >= 1 && gercekTeklifler[n - 1].Teklif == "2♣")
@@ -235,8 +268,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             // ─── DAVET ELLERİ (8-12 HP) ─────────────────────────────────────
-            // 2NT natürel davet
-            if (hp >= 10 && hp <= 12 && dengeli)
+            // 5+ kartlık majörüm var ve 11-12 HP: 3M davet (açıcı 3 kartlık destekle 8'li fiti bulur, 2NT'de kalmaz)
+            if (hp >= 11 && hp <= 12 && majörUzunluk >= 6)
+            {
+                return "3" + KozYardimcisi.KozSembolu(cevapciIlkRenk);
+            }
+
+            // 2NT natürel davet (5'li majörü olmayan dengeli el)
+            if (hp >= 10 && hp <= 12 && dengeli && majörUzunluk < 6)
             {
                 return "2NT";
             }
@@ -353,6 +392,44 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 4) 2NT
             return "2NT";
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CEVAPÇININ DEVAMI (2♦ oyun zorlayıcı checkback sonrası)
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>1X – 1Y – 1NT – 2♦ – (açıcının cevabı): sıra 2♦'yi söyleyen cevapçıda mı?</summary>
+        private static bool CevapciDevamMi(IhaleDurumu durum, List<IhaleHamlesi> g)
+        {
+            int n = g.Count;
+            if (n < 4) return false;
+            if (g.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return false;
+            var cevap = g[n - 1]; var iki = g[n - 2]; var nt = g[n - 3]; var y = g[n - 4];
+            if (cevap.Oyuncu != durum.Partner || iki.Oyuncu != durum.AktifOyuncu || iki.Teklif != "2♦") return false;
+            if (nt.Oyuncu != durum.Partner || nt.Teklif != "1NT") return false;
+            if (y.Oyuncu != durum.AktifOyuncu || y.Seviye != 1 || (y.Koz != "Kupa" && y.Koz != "Maça")) return false;
+            // Oyun seviyesine ulaşılmadıysa (2♦ GF olduğundan) devam zorunlu
+            return cevap.Seviye <= 3 && !(cevap.Koz != "NT" && cevap.Seviye == 3 && false);
+        }
+
+        private string CevapciDevami(IhaleDurumu durum, List<Card> el, List<IhaleHamlesi> g)
+        {
+            int n = g.Count;
+            var cevap = g[n - 1];
+            string benMajor = g[n - 4].Koz;                       // 1Y: benim majörüm
+            string aciciIlk = g.First(h => h.Oyuncu == durum.Partner).Koz;   // açıcının ilk rengi
+            int benUz = ElDegerlendirici.RenkUzunlugu(el, benMajor);
+
+            if (cevap.Koz != "NT" && (cevap.Koz == "Kupa" || cevap.Koz == "Maça"))
+            {
+                // Açıcı bir majör söyledi: benim majörüm = 3'lü destek (≥3 kart); diğer majör = 4+ kart
+                string s = cevap.Koz;
+                int benKendi = ElDegerlendirici.RenkUzunlugu(el, s);
+                int ortakTahmin = s == benMajor ? 3 : (s == aciciIlk ? 5 : 4);
+                int toplam = (s == benMajor ? benUz : benKendi) + ortakTahmin;
+                if (toplam >= 8) return "4" + KozYardimcisi.KozSembolu(s);
+            }
+            return "3NT";   // fit yok / minör cevap / 2NT: oyun
         }
 
         // ═══════════════════════════════════════════════════════════════════

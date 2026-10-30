@@ -31,6 +31,19 @@ namespace BricKartOyunu.Tests
             T("G1 1NT-4C-4S: 4 as + 19hcp -> 6NT", TestHelpers.ElOlustur("AK2", "AQ3", "KJ4", "Q762"), "6NT", "1NT", "Pas", "4♣", "Pas", "4♠", "Pas");
             T("G2 1NT-4C-4D: as eksik -> 4NT (bitir)", TestHelpers.ElOlustur("A32", "KQ3", "KJ4", "Q762"), "4NT", "1NT", "Pas", "4♣", "Pas", "4♦", "Pas");
 
+            // 1♣ – 1♠ – 1NT – 2♦ (oyun zorlayıcı checkback) – 2♠ (3 kart destek): cevapçı oyuna kadar devam eder
+            T("K1 checkback 2D-2S, 4 maca -> 3NT", TestHelpers.ElOlustur("AJ52", "T4", "AQ43", "Q82"), "3NT", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas", "2♠", "Pas");
+            T("K2 checkback 2D-2S, 5 maca -> 4S", TestHelpers.ElOlustur("AJ852", "T4", "AQ4", "Q82"), "4♠", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas", "2♠", "Pas");
+
+            // 1♣ – 1♠ – 1NT – 2NT (davet): açıcı 3 kartlık destekle düzeltir
+            T("C1 1C-1S-1NT-2NT, 3 maca 13hcp -> 3S", TestHelpers.ElOlustur("A52", "J973", "A82", "AT3"), "3♠", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
+            T("C2 1C-1S-1NT-2NT, 3 maca 14hcp -> 4S", TestHelpers.ElOlustur("A52", "KJ73", "A82", "AT3"), "4♠", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
+            T("C3 1C-1S-1NT-2NT, 2 maca asgari -> Pas", TestHelpers.ElOlustur("K5", "K842", "K954", "A42"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
+
+            // Rekabet: ortak 1♣, rakip 1 seviye müdahale; dengeli güçlü el pas geçmemeli
+            T("R1 1C-(1H) 18hcp dengeli, tutuk -> 3NT", TestHelpers.ElOlustur("832", "K93", "AKJ7", "AK2"), "3NT", "1♣", "1♥");
+            T("R2 1C-(1D) 14hcp dengeli, tutuk -> 2NT", TestHelpers.ElOlustur("Q82", "K93", "KJ7", "AJ52"), "2NT", "1♣", "1♦");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
