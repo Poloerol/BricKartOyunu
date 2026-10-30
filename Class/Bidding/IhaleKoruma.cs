@@ -116,6 +116,7 @@ namespace BricKartOyunu.Class.Bidding
                     else if (s == 4) { lo = (renk == "NT") ? 15 : 12; hi = ayniRenk ? 17 : 21; }
                     else { lo = 15; hi = 40; }
                     if (a.Min < 6 || a.Max >= 40 || !ortakBirsekacildi) { a.Min = Math.Max(a.Min, lo); a.Max = hi; }
+                    else if (s >= 4 && ayniRenk && majAcilis && a.Max <= 12) a.Min = Math.Max(a.Min, Math.Min(a.Max, 8));   // sınırlı raise sonrası oyun kabulü (1M–2M–3x–4M): yeni güç değil, üst yarı
                     else if (s >= 4 && renk != "NT") a.Min = Math.Max(a.Min, Math.Min(lo, 12));   // sonraki teklifler yeni güç göstermez
                     ortakBirsekacildi = true;
                 }

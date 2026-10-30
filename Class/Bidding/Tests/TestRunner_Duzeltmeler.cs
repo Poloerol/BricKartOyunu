@@ -129,6 +129,9 @@ namespace BricKartOyunu.Tests
             TZ("Z2 2H-P-? 14hcp 2 kupa -> Pas", TestHelpers.ElOlustur("A764", "97", "AKJ8", "Q85"), "Pas", "2♥", "Pas");
             TZ("Z3 2H-P-? 15hcp 3 kupa -> 4H", TestHelpers.ElOlustur("A74", "974", "AKQ8", "Q85"), "4♥", "2♥", "Pas");
 
+            // Vugraph Bord 1: 1♠–2♠–3♣(deneme)–4♠ sonrası açıcı (17 HP) Blackwood sormaz; ortak 6-10 HP'nin üst yarısı
+            T("V1 1S-2S-3C-4S 17hcp -> Pas (slam yok)", TestHelpers.ElOlustur("AKQJT6", "3", "A74", "QJ2"), "Pas", "Pas", "Pas", "1♠", "Pas", "2♠", "Pas", "3♣", "Pas", "4♠", "Pas");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
