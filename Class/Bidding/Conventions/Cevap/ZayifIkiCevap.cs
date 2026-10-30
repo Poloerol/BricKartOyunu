@@ -63,6 +63,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return hp >= 15 ? "3NT" : "3" + sembol;
             }
 
+            // Açıcı 6 kart vaat eder: majörde 2 kartlık (doubleton) destek bile 8'li fit yapar.
+            // 15+ HP ile oyun: ortak en fazla 10 HP → toplam ~25, 8'li majör fiti.
+            if (majorMu && uyum == 2 && hp >= 15)
+                return "4" + sembol;
+
             if (majorMu && uyum >= 5)
                 return "4" + sembol;
 

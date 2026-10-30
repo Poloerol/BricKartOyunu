@@ -772,8 +772,23 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int onor = el.Count(c => c.Suit == rk && c.Value >= 10);
             if (rkUz >= 5 && onor >= 3) return "Pas";
 
+            // Oyun değeri (13+ HP; ortağın kontrası 10+ HP ve diğer renklerde 3+ kart vaat eder): 4+ kartlık majörde 4M
+            if (hp >= 13)
+                foreach (var mj in new[] { "Maça", "Kupa" })
+                    if (mj != rk && ElDegerlendirici.RenkUzunlugu(el, mj) >= 4 && Cheapest(d, mj) <= 4)
+                        return Seviye(d, mj, 4);
+
             if (hp >= 10 && dengeli && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") <= 3)
                 return Seviye(d, "NT", 3);
+
+            // Asgari güçte 3 seviyesinde söylenebilen 4+ kartlık majör, 4 seviyesindeki minörden önce gelir
+            string mjSec = null; int mjUz = 3;
+            foreach (var mj in new[] { "Maça", "Kupa" })
+            {
+                int u = ElDegerlendirici.RenkUzunlugu(el, mj);
+                if (mj != rk && u >= 4 && u > mjUz && Cheapest(d, mj) <= 3) { mjSec = mj; mjUz = u; }
+            }
+            if (mjSec != null) return Seviye(d, mjSec, Cheapest(d, mjSec));
 
             string en = null; int enUz = -1;
             foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })   // eşitlikte majör önce gelir

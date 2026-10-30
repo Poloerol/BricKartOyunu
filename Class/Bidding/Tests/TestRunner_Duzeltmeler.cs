@@ -121,12 +121,31 @@ namespace BricKartOyunu.Tests
             T("P6 (3D)-X-P-? karo uzun+onor -> Pas (ceza)", TestHelpers.ElOlustur("J2", "T98", "KQJT96", "Q5"), "Pas", "3♦", "Dbl", "Pas");
 
             // Gerçek el: Doğu 3♦-P-P'de kontra yaptı, Batı (14 HP, 5 sinek) kontrayı cezaya çevirmez
-            T("P7 (3D)-X-P-? 14hcp 5 sinek -> 4C", TestHelpers.ElOlustur("KQ74", "K", "Q84", "KJT96"), "4♣", "3♦", "Dbl", "Pas");
+            T("P7 (3D)-X-P-? 14hcp 4 maca 5 sinek -> 4S (oyun)", TestHelpers.ElOlustur("KQ74", "K", "Q84", "KJT96"), "4♠", "3♦", "Dbl", "Pas");
+            T("P8 (3D)-X-P-? 9hcp 4 maca -> 3S (asgari)", TestHelpers.ElOlustur("KJ74", "Q42", "9", "J9654"), "3♠", "3♦", "Dbl", "Pas");
+
+            // Zayıf İki cevabı: açıcı 6 kart vaat eder, 2 kartlık majör desteği + 15 HP → 4M
+            TZ("Z1 2H-P-? 15hcp 2 kupa -> 4H", TestHelpers.ElOlustur("A764", "97", "AKQ8", "Q85"), "4♥", "2♥", "Pas");
+            TZ("Z2 2H-P-? 14hcp 2 kupa -> Pas", TestHelpers.ElOlustur("A764", "97", "AKJ8", "Q85"), "Pas", "2♥", "Pas");
+            TZ("Z3 2H-P-? 15hcp 3 kupa -> 4H", TestHelpers.ElOlustur("A74", "974", "AKQ8", "Q85"), "4♥", "2♥", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
             return _kalan;
+        }
+
+        private static void TZ(string ad, List<Card> el, string beklenen, params string[] gecmis)
+        {
+            var an = OrtaklikAnlasmasi.Varsayilan();
+            an.ZayifIki = true;
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, gecmis);
+            durum.Anlasma = an;
+            var motor = new IhaleMotoru(an);
+            string r = motor.TeklifVer(durum);
+            bool gecti = r == beklenen;
+            if (gecti) _gecen++; else _kalan++;
+            _yaz((gecti ? "✅ " : "❌ ") + ad + " → " + r + (gecti ? "" : "   [beklenen: " + beklenen + "]"));
         }
 
         private static void T(string ad, List<Card> el, string beklenen, params string[] gecmis)
