@@ -277,6 +277,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (fit != null && fit != "NT")
             {
                 int T = HedefFit(fit, est, dengeli && NTOlur(el, rakipRenkleri), dar, fitToplam);
+                // Bergen açıkken 3 kartlık destekle ilk cevapta 3M sıçraması yapılmaz: 5+ kartlık yan renk varsa onu söyle.
+                if (T >= 3 && d.Anlasma != null && d.Anlasma.BergenRaises && !d.Anlasma.InvertedBergenRaises &&
+                    Major(fit) && gercek.Count == 1 && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 &&
+                    gercek[0].Koz == fit && ElDegerlendirici.RenkUzunlugu(el, fit) == 3 && Cheapest(d, fit) == 2)
+                {
+                    string yan = null;
+                    foreach (var r in Renkler)
+                        if (r != fit && ElDegerlendirici.RenkUzunlugu(el, r) >= 5 && Cheapest(d, r) <= 3 &&
+                            (yan == null || ElDegerlendirici.RenkUzunlugu(el, r) > ElDegerlendirici.RenkUzunlugu(el, yan))) yan = r;
+                    if (yan != null) return Seviye(d, yan, Cheapest(d, yan));
+                }
                 if (T == -1) // 3NT tercih
                     return cur < 3 ? Seviye(d, "NT", 3) : (zorunlu ? EnUcuz(d, fit) : "Pas");
                 // Ortağın son teklifi fit renginde ve hedefin altına ulaştık mı

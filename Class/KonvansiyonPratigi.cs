@@ -65,6 +65,17 @@ namespace BricKartOyunu.Class
                     pr.SetValue(an, !(bool)pr.GetValue(an, null), null);
                     ekle(an);
                 }
+                // Başka bir konvansiyonla çakışıp tek bayrak çevrilince açılmayanlar (Flannery, Minor Stayman, Rubensohl...):
+                // varsayılan açık bayraklar kapatılarak da denenir. Yalnız henüz bulunamayan adlar eklenir.
+                foreach (var pr in props)
+                {
+                    if ((bool)pr.GetValue(OrtaklikAnlasmasi.Varsayilan(), null)) continue;
+                    var an = OrtaklikAnlasmasi.Varsayilan();
+                    foreach (var o in props)
+                        if ((bool)o.GetValue(an, null) && o.Name != "StrongNT") o.SetValue(an, false, null);
+                    pr.SetValue(an, true, null);
+                    ekle(an);
+                }
                 var hepsi = OrtaklikAnlasmasi.Varsayilan();
                 foreach (var pr in props) pr.SetValue(hepsi, true, null);
                 ekle(hepsi);
