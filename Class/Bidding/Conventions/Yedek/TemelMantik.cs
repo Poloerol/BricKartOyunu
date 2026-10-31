@@ -163,6 +163,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             foreach (var r in Renkler)
             {
                 if (r == rk) continue;
+                if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi && h.Koz == r)) continue;   // rakibin söylediği renk doğal müdahale olamaz
                 int u = ElDegerlendirici.RenkUzunlugu(el, r);
                 if (u >= 5 && (u > enUz || (u == enUz && RenkSira(r) > RenkSira(en)))) { en = r; enUz = u; }
             }

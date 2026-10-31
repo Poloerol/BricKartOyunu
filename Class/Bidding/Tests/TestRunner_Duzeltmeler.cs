@@ -162,6 +162,7 @@ namespace BricKartOyunu.Tests
             T("V17 1D-1S-2H-3H-? 17hcp 4 kupa -> 4H (pas degil)", TestHelpers.ElOlustur("J", "QJ72", "AKT73", "AQ4"), "4♥", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "3♥", "Pas");
             T("V18 (1H)-Dbl-P-1S-P-? 18hcp 4 maca -> 3S (davet sicramasi)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "3♠", "1♥", "Dbl", "Pas", "1♠", "Pas");
             T("V19 (1H)-Dbl-P-1S-P-? 14hcp 4 maca -> 2S (asgari)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "8K93".Replace("8K","K8")), "2♠", "1♥", "Dbl", "Pas", "1♠", "Pas");
+            T("V20 1C-P-1D-P-1S-? 14hcp 6 sinek (rakip rengi) -> Pas (2C degil)", TestHelpers.ElOlustur("43", "K98", "K6", "AKJ863"), "Pas", "1♣", "Pas", "1♦", "Pas", "1♠");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
