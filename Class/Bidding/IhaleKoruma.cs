@@ -160,11 +160,32 @@ namespace BricKartOyunu.Class.Bidding
                 {
                     // Rakip açtı, ortak müdahale/cevap
                     int hi;
+                    // Ben (rakip açılışına) kontra yaptım, ortak ilk kez cevap veriyor: kontra cevabı (müdahale değil)
+                    bool benKontrlu = !ortakBirsekacildi &&
+                        g.Take(i).Any(x => x.Oyuncu == ben && (x.Teklif == "Dbl" || x.Teklif == "Kontr"));
+                    if (benKontrlu)
+                    {
+                        if (renk == "NT") { if (s == 1) { lo = 6; hi = 10; } else if (s == 2) { lo = 11; hi = 12; } else { lo = 13; hi = 16; } }
+                        else
+                        {
+                            int pL2 = 0, pR2 = -1;
+                            for (int j = i - 1; j >= 0; j--)
+                                if (Gercek(g[j].Teklif)) { pL2 = Sev(g[j].Teklif); pR2 = KozSiraAl(KozYardimcisi.TekliftenKozCikar(g[j].Teklif)); break; }
+                            int ucuz2 = pL2 + (KozSiraAl(renk) > pR2 ? 0 : 1);
+                            int atl = s - ucuz2;
+                            if (atl <= 0) { lo = 0; hi = s == 1 ? 8 : 9; }      // en ucuz renk cevabı: zayıf/asgari
+                            else if (atl == 1) { lo = 9; hi = 12; }              // atlama: davet
+                            else { lo = 0; hi = 12; }                            // oyun/önleyici
+                        }
+                    }
+                    else
+                    {
                     if (s == 1) { lo = 8; hi = 16; }
                     else if (s == 2) { lo = 10; hi = 17; }
                     else if (s == 3) { lo = 5; hi = 11; }
                     else { lo = 5; hi = 12; }
                     if (renk == "NT") { if (s == 1) { lo = 15; hi = 18; } else { lo = 5; hi = 11; } }   // 2NT müdahale: Unusual (5-5 minör)
+                    }
                     if (!ortakBirsekacildi) { a.Min = lo; a.Max = hi; ortakBirsekacildi = true; }
                     else a.Min = Math.Max(a.Min, lo);
                 }

@@ -149,6 +149,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
                 return "Dbl";
 
+            // Çok güçlü (17+ HP) el, rakibin 1 seviye renk açılışı; 5'li renk ve NT müdahalesi yok:
+            // pas geçmek yerine takeout kontra (güçlü kontra: sonra renk/NT ile devam edilir).
+            // Açılan majörse diğer majörde 4+ kart, açılan minörse en az bir majörde 4+ kart ve diğer renklerin çoğunda 3+ kart aranır.
+            if (sev == 1 && rk != "NT" && hp >= 17 && ElDegerlendirici.RenkUzunlugu(el, rk) <= 3 &&
+                !Renkler.Any(r => r != rk && ElDegerlendirici.RenkUzunlugu(el, r) >= 5) &&
+                Renkler.Count(r => r != rk && ElDegerlendirici.RenkUzunlugu(el, r) >= 3) >= 2 &&
+                Renkler.Any(r => (r == "Kupa" || r == "Maça") && r != rk && ElDegerlendirici.RenkUzunlugu(el, r) >= 4))
+                return "Dbl";
+
             // En iyi 5+ renk (rakibin rengi hariç)
             string en = null; int enUz = 0;
             foreach (var r in Renkler)
@@ -645,7 +654,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int u = Cheapest(d, uz);
                 // Açıcının ikinci teklifi: ortak 1 seviyede yeni renk dedi, rakip konuşmadı, 17+ HP ve 6+ kartlık
                 // kendi rengim var → sıçrama rebid (1♦–1♠–3♦ = 17-18 HP, davet); asgari 2♦ güçlü eli gösteremez.
-                if (hp >= 17 && u == 2 && gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu &&
+                // 7+ kartlık renkte her fazla kart 1 dağılım puanı: 16 HP + 7'li renk = 17 değer
+                int degerSic = hp + (uzLen >= 7 ? uzLen - 6 : 0);
+                if (degerSic >= 17 && u == 2 && gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu &&
                     gercek[0].Koz == uz && gercek[0].Seviye == 1 && gercek[1].Oyuncu == d.Partner &&
                     gercek[1].Seviye == 1 && gercek[1].Koz != "NT" && gercek[1].Koz != uz)
                     return Seviye(d, uz, 3);

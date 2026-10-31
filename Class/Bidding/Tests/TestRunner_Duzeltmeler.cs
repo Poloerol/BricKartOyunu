@@ -137,6 +137,15 @@ namespace BricKartOyunu.Tests
             T("V3 1NT-2NT-3D 8hcp 5 karo -> Pas", TestHelpers.ElOlustur("J92", "K8", "QJT54", "J73"), "Pas", "1NT", "Pas", "2NT", "Pas", "3♦", "Pas");
             T("V4 1NT-2S-3C 9hcp QJT54 sinek -> 3NT", TestHelpers.ElOlustur("Q92", "K8", "J73", "QJT54"), "3NT", "1NT", "Pas", "2♠", "Pas", "3♣", "Pas");
 
+            // Vugraph Bord 4: (1♥)–? 18 HP, 4-3-2-4, kupada durdurucu yok → güçlü takeout kontra (Pas değil)
+            T("V5 (1H)-? 18hcp 4S-3H-2D-4C -> Dbl", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "Dbl", "Pas", "Pas", "1♥");
+            // Kontraya 1♠ cevabı 0-8 HP: 18 HP ile 4♠ değil, 2♠ (çift açık 9 el)
+            T("V6 (1H)-X-P-1S-P-? 18hcp 4 maca -> 2S (4S degil)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "2♠", "Pas", "Pas", "1♥", "Dbl", "Pas", "1♠", "Pas");
+
+            // Vugraph Bord 5: 1♥–1♠ sonrası 16 HP + 7'li kupa (AKQT832) → sıçrama rebid 3♥ (16 HP + 1 uzunluk puanı)
+            T("V7 1H-P-1S-P-? 16hcp 7 kupa -> 3H", TestHelpers.ElOlustur("A8", "AKQT832", "K63", "8"), "3♥", "1♥", "Pas", "1♠", "Pas");
+            T("V8 1H-P-1S-P-? 14hcp 7 kupa -> 2H (sicrama yok)", TestHelpers.ElOlustur("A8", "KQJT832", "K63", "8"), "2♥", "1♥", "Pas", "1♠", "Pas");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
