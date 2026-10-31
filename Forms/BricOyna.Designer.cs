@@ -69,6 +69,8 @@
             this.BtnGuney = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.skoruGösterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.yorumuOkuToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -134,9 +136,11 @@
             // eylmlerToolStripMenuItem
             // 
             this.eylmlerToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ihaleGösterToolStripMenuItem,
+            this.skoruGösterToolStripMenuItem,
             this.IhaleYorumuToolStripMenuItem,
-            this.oynananElleriGösterToolStripMenuItem});
+            this.ihaleGösterToolStripMenuItem,
+            this.oynananElleriGösterToolStripMenuItem,
+            this.yorumuOkuToolStripMenuItem});
             this.eylmlerToolStripMenuItem.Name = "eylmlerToolStripMenuItem";
             this.eylmlerToolStripMenuItem.Size = new System.Drawing.Size(64, 20);
             this.eylmlerToolStripMenuItem.Text = "Eylemler";
@@ -436,6 +440,18 @@
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
+            // skoruGösterToolStripMenuItem
+            // 
+            this.skoruGösterToolStripMenuItem.Name = "skoruGösterToolStripMenuItem";
+            this.skoruGösterToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.skoruGösterToolStripMenuItem.Text = "Skoru Göster";
+            // 
+            // yorumuOkuToolStripMenuItem
+            // 
+            this.yorumuOkuToolStripMenuItem.Name = "yorumuOkuToolStripMenuItem";
+            this.yorumuOkuToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.yorumuOkuToolStripMenuItem.Text = "Yorumu Oku";
+            // 
             // BricOyna
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -503,6 +519,8 @@
         private System.Windows.Forms.ToolStripMenuItem ihaleGösterToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem oynananElleriGösterToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem IhaleYorumuToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem skoruGösterToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem yorumuOkuToolStripMenuItem;
     }
 }
 

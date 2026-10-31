@@ -110,11 +110,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static string AciciRebidKaro(Dz z)
         {
             int hp = z.Hp;
-            if (z.Sinek >= 4) return "3♣";
+            // Max Hardy: 5+ karo varsa önce 2♦ (majör göstermek 5+ karoyu inkâr eder); sonra 4'lü majör (reverse değil);
+            // dengeli ve uygunsa 2NT (iki majör 4'lü olsa bile), 18-20'de 3NT; sinekte 4+ destek 3♣
+            if (z.Karo >= 5) return "2♦";
             if (z.Kupa >= 4) return "2♥";
             if (z.Maca >= 4) return "2♠";
-            if (ElDegerlendirici.DengeliEl(z.El) && z.Karo < 6)
+            if (ElDegerlendirici.DengeliEl(z.El))
                 return hp >= 18 ? "3NT" : "2NT";
+            if (z.Sinek >= 4) return "3♣";
             return "2♦";
         }
 
@@ -144,21 +147,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int u = z.Uz(r);
                 if (u < 4) continue;
                 int sev = YK2.Yuksek(YK.T(2, r), ortSon) ? 2 : 3;
-                // Çuhadar 2014: 2. seviyede açış renginden pahalı yeni renk REVERSE'dür (17+ HP);
-                // 3. seviyede (sıçramasız) ikinci renk 15+ HP gerektirir. Yetmezse açış rengi tekrarlanır.
-                bool reverse = sev == 2 && System.Array.IndexOf(new[] { "Sinek", "Karo", "Kupa", "Maça" }, r) > System.Array.IndexOf(new[] { "Sinek", "Karo", "Kupa", "Maça" }, m);
-                if (reverse && hp < 17) continue;
-                if (sev == 3 && hp < 15) continue;
+                // Max Hardy: 2/1'den sonra açıcının daha pahalı renk rebid'i reverse DEĞİLDİR (oyun zaten zorlayıcı);
+                // 1♥–2x–2♠ ancak 5+ kupa ile 4'lü maçayı gösterir (4-4'te maça sonradan gösterilir).
+                if (m == "Kupa" && r == "Maça" && z.Uz("Kupa") < 5) continue;
                 if (u > yUz || (u == yUz && sev < ySev)) { y = r; yUz = u; ySev = sev; }
             }
             if (y != null) return YK.T(ySev, y);                    // doğal ikinci renk
 
-            // 5332 (beşli majör), Çuhadar 2014: 12-14 majörü tekrarla, 15-17 2NT, 18-19 3NT (durdurucu şart değil)
-            if (mUz == 5 && ElDegerlendirici.DengeliEl(z.El))
-                return hp <= 14 ? YK.T(2, m) : (hp <= 17 ? "2NT" : "3NT");
-
+            // Max Hardy: 2NT = minimum, dengeli, açılmayan renklerde durdurucu; 18-20 dengeli → 3NT
             if (ElDegerlendirici.DengeliEl(z.El) && Durdurucular(z, m, s))
-                return hp >= 15 ? "3NT" : "2NT";
+                return hp >= 18 ? "3NT" : "2NT";
 
             return mUz >= 5 ? YK.T(2, m) : "2NT";                   // son çare: beşli majörü tekrar
         }
@@ -180,6 +178,20 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static string Devam(Dz z, bool benAcici, string m, string s)
         {
             string son = YK.Cagri(z.Hepsi[z.Hepsi.Count - 1]);
+            // Serious 3NT (Hardy/Wold): majör fiti 3 seviyesinde kurulduktan sonra 3NT doğal değil, ciddi şlem ilgisidir.
+            // Cevap (kontrol cue-bid'i ya da 4M) Serious3NT/CueBid konvansiyonlarına bırakılır.
+            if (son == "3NT" && YK.Major(m) && !benAcici && z.Hepsi.Count == 5 && z.Hepsi[3] == "B:" + YK.T(3, m) && z.Hepsi[2] == "O:" + YK.T(2, m))
+            {
+                // Cevap: en ucuz birinci tur kontrol (As ya da void) 4 seviyesinde cue-bid; yoksa 4M ile dur.
+                foreach (string r in new[] { "Sinek", "Karo", "Kupa" })
+                {
+                    if (r == m || z.Uz(r) == 0 && false) continue;
+                    if (r == "Kupa" && m != "Maça") continue;
+                    bool kontrol = z.Uz(r) == 0 || z.El.Any(c => c.Suit == r && c.Value == 14);
+                    if (kontrol) return YK.T(4, r);
+                }
+                return YK.T(4, m);
+            }
             if (son == "3NT" || YK.Sev(son) >= 4)
             {
                 // Ortak oyun seviyesini söyledi. Slam değeri yoksa (20+ HP) ve başka bir 4+ seviye çağrı yapılmadıysa pas:
@@ -200,6 +212,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string fit = null;
             foreach (string r in Renkler)
                 if (pm[r] > 0 && z.Uz(r) + pm[r] >= 8) { fit = r; break; }
+
+            // Max Hardy: açıcı majörünü tekrarladı (2M); cevaplayanda 3+ koz, 15-17 HP ve bir kısalık varsa
+            // kısalık renginde sıçramalı splinter (şilem araştırması). Kısalık, 2/1 renginde olamaz.
+            if (!benAcici && z.Hepsi.Count == 3 && fit == m && sonRenk == m && sonSev == 2 && hp >= 15 && z.Uz(m) >= 3)
+            {
+                string kisa = null; int kisaUz = 2;
+                foreach (string r in Renkler)
+                {
+                    if (r == m || r == s) continue;
+                    int u = z.Uz(r);
+                    if (u < kisaUz) { kisa = r; kisaUz = u; }
+                }
+                if (kisa != null) return YK.T((m == "Kupa" && kisa == "Maça") ? 3 : 4, kisa);
+            }
+
+            // Açıcı: cevaplayan majöre 3 seviyesinde destek verdi (şlem denemesi, 16-17 HP). Açıcıda fazlalık (15+ HP)
+            // varsa Serious 3NT ile cevap verilir (Serious3NT konvansiyonuna bırak); minimumda 4M.
+            if (benAcici && z.Hepsi.Count == 4 && z.Hepsi[2] == "B:" + YK.T(2, m) && YK.Major(m) && fit == m && sonRenk == m && sonSev == 3 && hp >= 15) return null;
 
             // Cevaplayanın 2. turu: açıcının majöründe fit
             if (!benAcici && z.Hepsi.Count == 3 && fit == m)

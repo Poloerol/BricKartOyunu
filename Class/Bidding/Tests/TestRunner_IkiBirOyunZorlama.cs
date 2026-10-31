@@ -32,8 +32,8 @@ namespace BricKartOyunu.Tests
             T("A3 2C 4 club destek -> 3C", TestHelpers.ElOlustur("AQ842","K9","85","KJ72"), "3♣", "1♠","Pas","2♣","Pas");
             T("A4 2D 6 pik -> 2S", TestHelpers.ElOlustur("AQJ842","K93","85","J2"), "2♠", "1♠","Pas","2♦","Pas");
             T("A5 2C 4 kupa -> 2H", TestHelpers.ElOlustur("AQ842","KJ93","85","J2"), "2♥", "1♠","Pas","2♣","Pas");
-            T("A6 1S-2D 5-2-2-4, 3. seviye 2. renk icin 15+ yok -> 2S (Cuhadar 2014)", TestHelpers.ElOlustur("AQ842","93","85","KJ72"), "2♠", "1♠","Pas","2♦","Pas");
-            T("A7 1S-2D 5332 12-14 -> 2S tekrar (Cuhadar 2014)", TestHelpers.ElOlustur("AQ842","K93","85","QJ2"), "2♠", "1♠","Pas","2♦","Pas");
+            T("A6 2D 4 sinek 5-3-2-4... 3C", TestHelpers.ElOlustur("AQ842","93","85","KJ72"), "3♣", "1♠","Pas","2♦","Pas");
+            T("A7 dengeli stoplu 2NT", TestHelpers.ElOlustur("AQ842","K93","85","QJ2"), "2NT", "1♠","Pas","2♦","Pas");
             T("A8 pasli cevaplayan null", TestHelpers.ElOlustur("AQ842","K93","85","J72"), null, "Pas","Pas","1♠","Pas","2♦","Pas");
             T("A9 rakip mudahale null", TestHelpers.ElOlustur("AQ842","K93","85","J72"), null, "1♠","2♥","2♦","Pas");
             T("C1 ortak 2S, 3 pik min -> 4S", TestHelpers.ElOlustur("K32","A42","Q83","AJ97"), "4♠", "1♠","Pas","2♣","Pas","2♠","Pas");
