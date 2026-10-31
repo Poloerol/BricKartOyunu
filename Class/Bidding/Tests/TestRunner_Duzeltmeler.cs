@@ -146,6 +146,21 @@ namespace BricKartOyunu.Tests
             T("V7 1H-P-1S-P-? 16hcp 7 kupa -> 3H", TestHelpers.ElOlustur("A8", "AKQT832", "K63", "8"), "3♥", "1♥", "Pas", "1♠", "Pas");
             T("V8 1H-P-1S-P-? 14hcp 7 kupa -> 2H (sicrama yok)", TestHelpers.ElOlustur("A8", "KQJT832", "K63", "8"), "2♥", "1♥", "Pas", "1♠", "Pas");
 
+            // Vugraph Bord 8: 1NT–2♦–2♥–3NT (5'li kupa + oyun) sonrası açıcı 3 kartlık destekle 4♥'ye düzeltir
+            T("V9 1NT-2D-2H-3NT 15hcp 3 kupa -> 4H", TestHelpers.ElOlustur("AJT7", "K62", "T873", "AK"), "4♥", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "3NT", "Pas");
+            T("V10 1NT-2D-2H-3NT 2 kupa -> Pas", TestHelpers.ElOlustur("AJT7", "K6", "T8732", "AK"), "Pas", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas", "3NT", "Pas");
+            // Vugraph Bord 11: 1♣–1♥–2♥ ortağın desteği, reverse değil → 8 HP ile 3♥ yok
+            T("V11 1C-1H-2H-? 8hcp 5 kupa -> Pas", TestHelpers.ElOlustur("J73", "AQJ54", "T42", "42"), "Pas", "1♣", "Pas", "1♥", "Pas", "2♥", "Pas");
+            // Vugraph Bord 12: 1♥–1♠–2♥ misfit: tekil kupa + 5'li maça → 2♠ (Pas değil)
+            T("V12 1H-1S-2H-? 8hcp 5 maca tekil kupa -> 2S", TestHelpers.ElOlustur("KQ972", "9", "QT532", "J5"), "2♠", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
+
+            // Vugraph Bord 19: minör transferi açıkken 8-9 HP düz el 2NT (= karo transferi) demez; Stayman (2♣) ile davet eder
+            T("V13 1NT-? 8hcp duz el, minor transferi acik -> 2C", TestHelpers.ElOlustur("975", "AT7", "AT62", "986"), "2♣", "1NT", "Pas");
+            T("V14 1NT-2C-2D-? 8hcp duz el -> 2NT (davet)", TestHelpers.ElOlustur("975", "AT7", "AT62", "986"), "2NT", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas");
+            T("V15 1C-1D-? 12hcp 4 maca -> 1S (majör 4-4 ara)", TestHelpers.ElOlustur("AT75", "AQT", "74", "QT75"), "1♠", "1♣", "Pas", "1♦", "Pas");
+            T("V16 1D-1S-2H(reverse)-? 10hcp 4 kupa 6 maca -> 3H (fit)", TestHelpers.ElOlustur("AKT874", "KT93", "9", "T8"), "3♥", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas");
+            T("V17 1D-1S-2H-3H-? 17hcp 4 kupa -> 4H (pas degil)", TestHelpers.ElOlustur("J", "QJ72", "AKT73", "AQ4"), "4♥", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "3♥", "Pas");
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");

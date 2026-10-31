@@ -136,6 +136,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // 9+ OP: Natürel forcing
             if (hp >= 9)
             {
+                // Açıcının reverse renginde 4+ kart (majör fit) → önce fiti göster (3 seviye, forcing)
+                string revKoz = durum.PartnerTeklifleri.Where(t => t != "Pas").ElementAt(1).Substring(1);
+                string revIsim = revKoz == "♥" ? "Kupa" : revKoz == "♠" ? "Maça" : null;
+                if (revIsim != null && ElDegerlendirici.RenkUzunlugu(el, revIsim) >= 4)
+                    return "3" + revKoz;
                 // 4+ ♣
                 if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4) return "3♣";
                 // 4+ ♦

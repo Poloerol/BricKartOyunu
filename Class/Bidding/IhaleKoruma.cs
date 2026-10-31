@@ -191,6 +191,16 @@ namespace BricKartOyunu.Class.Bidding
                 }
                 if (a.Max < a.Min) a.Max = Math.Min(40, a.Min + 6);
             }
+            // Reverse'ümden sonra ortağın 3 seviye yeni/fit rengi (2NT Lebensohl hariç) = oyun kurmaya güçlü (9+, forcing)
+            if (benAcilis)
+            {
+                var gt = g.Where(x => Gercek(x.Teklif)).ToList();
+                if (gt.Count >= 4 && gt[0].Oyuncu == ben && gt[0].Teklif == "1♦" && gt[1].Oyuncu == ort &&
+                    (gt[1].Teklif == "1♠" || gt[1].Teklif == "1♥") && gt[2].Oyuncu == ben &&
+                    (gt[2].Teklif == "2♥" || gt[2].Teklif == "2♠") && gt[3].Oyuncu == ort &&
+                    Sev(gt[3].Teklif) == 3 && !gt[3].Teklif.EndsWith("NT"))
+                    a.Min = Math.Max(a.Min, 9);
+            }
             if (a.Max < a.Min) a.Max = a.Min;
             return a;
         }

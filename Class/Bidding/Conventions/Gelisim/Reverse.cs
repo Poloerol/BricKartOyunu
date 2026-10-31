@@ -92,6 +92,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (teklif3.Oyuncu != durum.Partner) return false;
                 if (teklif3.Seviye != 2) return false;
                 if (teklif3.Koz == "NT") return false;
+                if (teklif3.Koz == teklif2.Koz) return false;   // benim rengimin desteği (1♣–1♥–2♥) reverse değildir
 
                 // Reverse mi?
                 // teklif1.Koz < teklif3.Koz olmalı (renk sırası)

@@ -298,7 +298,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 {
                     if (fit != null && Major(fit) && fitToplam >= 8 && hp >= 10) return Seviye(d, fit, 4);
                     if (dengeli && hp >= 10) return Seviye(d, "NT", 3);
-                    if (dengeli && hp >= 8 && cur == 1) return Seviye(d, "NT", 2);
+                    if (dengeli && hp >= 8 && hp <= 9)
+                    {
+                        // Minör transferi açıkken 1NT–2NT transferdir (karo): doğal davet Stayman (2♣) yoluyla yapılır,
+                        // açıcının cevabından sonra 2NT. Kapalıyken doğrudan doğal 2NT.
+                        bool minTr = d.Anlasma != null && d.Anlasma.MinorTransfer;
+                        if (cur == 1) return minTr ? "2♣" : Seviye(d, "NT", 2);
+                        if (minTr && cur == 2 && gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "2♣") &&
+                            !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)))
+                            return Seviye(d, "NT", 2);
+                    }
                     return "Pas";
                 }
                 if (ilk.Seviye == 2) { if (hp >= 5 && cur <= 2) return Seviye(d, "NT", 3); return "Pas"; }
@@ -566,6 +575,23 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     return Seviye(d, major, 1);
             }
 
+            // Misfit: ortak açış rengini 2'de tekrarladı (1♥–1♠–2♥), bende o renkte en fazla 2 kart ve
+            // 1 seviyede söylediğim rengimde 5+ kart var (6-9 HP) → Pas yerine kendi rengimi tekrarla (2♠).
+            {
+                var benimMf = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagimMf = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (benimMf.Count == 1 && ortagimMf.Count == 2 && gercek.First().Oyuncu == d.Partner &&
+                    gercek.First().Koz != "NT" && benimMf[0].Koz != "NT" && benimMf[0].Seviye == 1 &&
+                    ortagimMf[1].Seviye == 2 && ortagimMf[1].Koz == ortagimMf[0].Koz &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && hp >= 6 && hp <= 9)
+                {
+                    string mk = benimMf[0].Koz;
+                    if (ElDegerlendirici.RenkUzunlugu(el, mk) >= 5 && ElDegerlendirici.RenkUzunlugu(el, ortagimMf[0].Koz) <= 2 &&
+                        mk != ortagimMf[0].Koz && Cheapest(d, mk) == 2)
+                        return Seviye(d, mk, 2);
+                }
+            }
+
             bool nt = dengeli || EnUzunUzunluk(el) <= 5;
             bool ntOlur = NTOlur(el, rakipRenkleri);
             // Ortak rakibin rengi söylendikten SONRA NT dediyse o rengi durdurduğunu vaat eder:
@@ -666,6 +692,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Zorunlu: açıcıya yeni renk geldi vs. → doğal cevap
             if (zorunlu)
             {
+                // Açıcının ikinci teklifi: ortak 1 seviyede doğal renk cevapladı (1♣–1♦), bende henüz söylemediğim
+                // 4+ kartlık majör var ve 1 seviyede gösterilebiliyor → NT demeden önce majörü göster (4-4 fit aranır).
+                if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                    gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" &&
+                    !rakipRenkleri.Any() && hp <= 17)
+                {
+                    foreach (var mj in new[] { "Kupa", "Maça" })   // en ucuzdan: ♥ sonra ♠ (yukarı doğru)
+                    {
+                        if (mj == gercek[0].Koz || mj == gercek[1].Koz) continue;
+                        if (ElDegerlendirici.RenkUzunlugu(el, mj) >= 4 && Cheapest(d, mj) == 1)
+                            return Seviye(d, mj, 1);
+                    }
+                }
                 if (dengeli) return EnUcuzNT(d, hp);
                 return EnUcuz(d, UzunKoz(el, gercek, d));
             }

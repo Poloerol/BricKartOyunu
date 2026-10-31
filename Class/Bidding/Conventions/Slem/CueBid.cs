@@ -79,6 +79,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
             if (hp < 15) return false;
 
+            // 5b. Slam umudu: kendi HP + ortağın en az HP'si ≥ 29 (yoksa cue-bid cevapsız kalıp 4 seviyede ölür)
+            var ortAr = IhaleKoruma.PartnerAraligi(durum);
+            if (hp + ortAr.Min < 29) return false;
+
             // 6. Bu elde daha önce cue bid yapılmış mı?
             if (DahaOnceCueBidYapildiMi(durum, koz)) return false;
 

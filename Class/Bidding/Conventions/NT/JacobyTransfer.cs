@@ -81,6 +81,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (Rol4Teklifi(durum) != null) return true;
             if (Rol5Teklifi(durum) != null) return true;
             if (Rol6Teklifi(durum) != null) return true;
+            if (Rol7Teklifi(durum) != null) return true;
 
             return false;
         }
@@ -173,6 +174,23 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return hp >= 16 ? "3NT" : null;
         }
 
+        /// <summary>1NT – transfer – tamamlama – 3NT (5'li majör + oyun gücü) sonrası açıcının kararı: majörde 3+ kart → 4M (5-3 fit), desteksiz → null (Pas, 3NT kalır).</summary>
+        private static string Rol7Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 2 || ortak.Count != 2 || kendi[0] != "1NT" || ortak[1] != "3NT") return null;
+            if (durum.RakipActiMi()) return null;
+            string major;
+            if (ortak[0] == "2♦" && kendi[1] == "2♥") major = "Kupa";
+            else if (ortak[0] == "2♥" && kendi[1] == "2♠") major = "Maça";
+            else return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, major) < 3) return null;
+            return "4" + KozYardimcisi.KozSembolu(major);
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         // TEKLİF VERME
         // ═══════════════════════════════════════════════════════════════════
@@ -209,6 +227,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (r5 != null) return r5;
             var r6 = Rol6Teklifi(durum);
             if (r6 != null) return r6;
+            var r7 = Rol7Teklifi(durum);
+            if (r7 != null) return r7;
 
             // ── ROL 2: Transfer kabulü ──
             if (durum.KendiTeklifleri.LastOrDefault() == "1NT")
