@@ -274,6 +274,7 @@
     <Compile Include="Class\SuronorKurali.cs" />
     <Compile Include="Class\DDSolver.cs" />
     <Compile Include="Class\DunyaOrnekleyici.cs" />
+    <Compile Include="Class\PimcOyuncu.cs" />
     <Compile Include="Forms\KartArkaYuzSecForm.cs">
       <SubType>Form</SubType>
     </Compile>

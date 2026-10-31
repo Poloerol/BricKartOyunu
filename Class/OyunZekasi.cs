@@ -142,6 +142,14 @@ namespace BricKartOyunu.Class
             if (atak == null) secilen = Lider(x, out neden);
             else secilen = Takip(x, legal, atak, out neden);
 
+            // PIMC: görünmeyen elleri örnekleyip çift dummy ile değerlendir; fark varsa sezgisel seçimin yerine geç
+            if (PimcOyuncu.Aktif)
+            {
+                string pn;
+                var pc = PimcOyuncu.Sec(b, legal, secilen, out pn);
+                if (pc != null && legal.Contains(pc)) { secilen = pc; neden = pn + " | " + neden; }
+            }
+
             // Güvenlik ağı: her koşulda yasal kart döndür
             if (secilen == null || !legal.Contains(secilen))
             {

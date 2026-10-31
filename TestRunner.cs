@@ -2834,6 +2834,81 @@ namespace BricKartOyunu
             return best;
         }
 
+        public static void Test_PimcOyuncu()
+        {
+            Yaz("════════════════════════════════════════");
+            Yaz("TEST 13.14 — PIMC kart seçimi (gizli elleri örnekleyip çift dummy ile değerlendirme)");
+            Yaz("════════════════════════════════════════");
+            int hata = 0;
+            Action<bool, string> kos = (sart, ad) => { if (!sart) { hata++; Yaz("❌ " + ad); } };
+            var rnd = new Random(77);
+            var renkler = OyunKurallari.Renkler;
+            var sira = new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            int karar = 0, deneme = 0;
+            double fark = 0;
+            for (int it = 0; it < 40; it++)
+            {
+                var deste = new List<Card>();
+                foreach (var r in renkler) for (int v = 2; v <= 14; v++) deste.Add(new Card { Suit = r, Value = v });
+                for (int i = deste.Count - 1; i > 0; i--) { int j = rnd.Next(i + 1); var t = deste[i]; deste[i] = deste[j]; deste[j] = t; }
+                var eller = new Dictionary<Player, List<Card>>();
+                for (int k = 0; k < 4; k++) eller[sira[k]] = deste.Skip(13 * k).Take(13).ToList();
+                string koz = it % 3 == 0 ? null : renkler[rnd.Next(4)];
+                Player deklaran = Player.Guney;
+                Player lider = Player.Bati;
+                var gecmis = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>();
+                int oynanan = 5 + (it % 3);                       // 5-7 el oynanmış: kalan 6-8 el
+                for (int el = 0; el < oynanan; el++)
+                {
+                    var masa = new List<(Player Oyuncu, Card Kart)>();
+                    int li = Array.IndexOf(sira, lider);
+                    for (int i = 0; i < 4; i++)
+                    {
+                        Player p = sira[(li + i) & 3];
+                        var leg = OyunKurallari.LegalKartlar(eller[p], masa.Count > 0 ? masa[0].Kart.Suit : null);
+                        var c = leg[rnd.Next(leg.Count)];
+                        eller[p].Remove(c);
+                        masa.Add((p, c));
+                    }
+                    var kaz = OyunKurallari.ElKazanani(masa, koz).Oyuncu;
+                    foreach (var m in masa) gecmis.Add((el, m.Oyuncu, m.Kart, m.Oyuncu == kaz));
+                    lider = kaz;
+                }
+                Player ben = lider;
+                bool dekTarafi = (ben == Player.Guney || ben == Player.Kuzey);
+                var bag = new OyunBaglami
+                {
+                    Ben = ben, Deklaran = deklaran, Koz = koz,
+                    Elim = new List<Card>(eller[ben]),
+                    Gecmis = gecmis, ElNo = oynanan, Seviye = 0
+                };
+                if (dekTarafi) bag.OrtakEli = new List<Card>(eller[OyunKurallari.Ortak(ben)]);
+                else bag.DummyEli = new List<Card>(eller[Player.Kuzey]);
+                var legal = OyunKurallari.LegalKartlar(bag.Elim, null);
+                deneme++;
+                string neden;
+                var secim = PimcOyuncu.Sec(bag, legal, null, out neden);
+                if (secim == null) continue;
+                karar++;
+                kos(legal.Contains(secim), "PIMC yasal olmayan kart döndürdü");
+
+                // Gerçek (açık) pozisyonda seçilen kartın değeri, yasal kartların ortalamasından kötü olmamalı (toplamda)
+                var h = new ulong[4];
+                for (int k = 0; k < 4; k++) foreach (var c in eller[sira[k]]) h[PimcOyuncu.Koltuk(sira[k])] |= 1UL << PimcOyuncu.Kod(c);
+                int[] kl, dg;
+                new DDSolver(koz == null ? -1 : Array.IndexOf(renkler, koz)).Degerler(h, PimcOyuncu.Koltuk(ben), new int[4], 0, out kl, out dg);
+                bool benNS = (PimcOyuncu.Koltuk(ben) & 1) == 0;
+                int kalan = bag.Elim.Count;
+                Func<int, double> deger = kod => { int ix = Array.IndexOf(kl, kod); return benNS ? dg[ix] : kalan - dg[ix]; };
+                double ort = legal.Average(c => deger(PimcOyuncu.Kod(c)));
+                fark += deger(PimcOyuncu.Kod(secim)) - ort;
+            }
+            Yaz("   PIMC karar verdi: " + karar + "/" + deneme + ", ortalama kazanç (yasal ortalamaya göre): " + (karar > 0 ? (fark / karar).ToString("0.00") : "-") + " löve");
+            kos(karar >= 10, "PIMC yeterince pozisyonda karar vermeli (" + karar + ")");
+            kos(karar == 0 || fark >= 0, "PIMC seçimleri rastgele yasal karttan kötü olmamalı (toplam fark " + fark.ToString("0.00") + ")");
+            Yaz(hata == 0 ? "✔ PIMC testleri geçti" : "❌ " + hata + " hata");
+        }
+
         public static void Test_MonteCarloAltyapisi()
         {
             Yaz("════════════════════════════════════════");
@@ -15398,6 +15473,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Test_DagilimVeRenkPlani();
             Test_AtakKitabi();
             Test_MonteCarloAltyapisi();
+            Test_PimcOyuncu();
             Test_SafetyPlay();
             Test_BergenUcKartDestek();
 
