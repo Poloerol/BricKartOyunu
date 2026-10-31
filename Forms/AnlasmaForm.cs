@@ -135,51 +135,54 @@ namespace BricKartOyunu.Forms
             Text = (_taraf == Taraf.NS ? "NS" : "EW") + " Ortaklık Profili";
             StartPosition = FormStartPosition.CenterParent;
             ShowInTaskbar = false;
-            FormBorderStyle = FormBorderStyle.Sizable;
-            MinimumSize = new Size(860, 600);
-            ClientSize = new Size(940, 640);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            ClientSize = new Size(810, 480);
             Font = new Font("Segoe UI", 9F);
 
-            // Sol sütun
-            var sol = new Panel { Dock = DockStyle.Left, Width = 330, Padding = new Padding(10) };
+            const int SolGenislik = 270;       // sol sütun (piksel); orta ve sağ sütun kalan genişliği paylaşır
+            const int AltYukseklik = 40;
 
-            var btnYeni = new Button { Text = "Yeni", Location = new Point(10, 10), Size = new Size(70, 28) };
-            var btnKopya = new Button { Text = "Kopyala", Location = new Point(86, 10), Size = new Size(70, 28) };
-            _btnDuzenle = new Button { Text = "Düzenle", Location = new Point(162, 10), Size = new Size(76, 28) };
-            _btnSil = new Button { Text = "Sil", Location = new Point(244, 10), Size = new Size(70, 28) };
+            // Sol sütun
+            var sol = new Panel { Dock = DockStyle.Fill, Padding = new Padding(0) };
+
+            var btnYeni = new Button { Text = "Yeni", Location = new Point(4, 6), Size = new Size(60, 26) };
+            var btnKopya = new Button { Text = "Kopyala", Location = new Point(68, 6), Size = new Size(60, 26) };
+            _btnDuzenle = new Button { Text = "Düzenle", Location = new Point(132, 6), Size = new Size(62, 26) };
+            _btnSil = new Button { Text = "Sil", Location = new Point(198, 6), Size = new Size(58, 26) };
             btnYeni.Click += (s, e) => YeniProfil(false);
             btnKopya.Click += (s, e) => YeniProfil(true);
             _btnDuzenle.Click += (s, e) => KonvansiyonlariDuzenle();
             _btnSil.Click += (s, e) => ProfilSil();
 
-            var lblProfil = new Label { Text = "Profil:", AutoSize = true, Location = new Point(10, 52) };
-            _cmbProfil = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(10, 70), Width = 304 };
+            var lblProfil = new Label { Text = "Profil:", AutoSize = true, Location = new Point(4, 44) };
+            _cmbProfil = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(50, 40), Width = 206 };
             _cmbProfil.SelectedIndexChanged += (s, e) => ProfilDegisti();
 
-            var lblSistem = new Label { Text = "İhale sistemi:", AutoSize = true, Location = new Point(10, 104) };
-            _cmbSistem = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(10, 122), Width = 304 };
+            var lblSistem = new Label { Text = "İhale sistemi:", AutoSize = true, Location = new Point(4, 72) };
+            _cmbSistem = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(4, 90), Width = 252 };
             _cmbSistem.Items.AddRange(OnAyarlar.Select(o => (object)o.Ad).ToArray());
             _cmbSistem.Items.Add(Ozel);
             _cmbSistem.SelectionChangeCommitted += (s, e) => OnAyarUygula();
 
-            _lblBeceri = new Label { AutoSize = true, Location = new Point(10, 160) };
-            _beceri = new TrackBar { Minimum = 1, Maximum = 20, TickFrequency = 1, Location = new Point(4, 180), Width = 316, Height = 40 };
+            _lblBeceri = new Label { AutoSize = true, Location = new Point(4, 120) };
+            _beceri = new TrackBar { Minimum = 1, Maximum = 20, TickFrequency = 1, Location = new Point(0, 136), Width = 260, Height = 32 };
             _beceri.ValueChanged += (s, e) => BeceriDegisti();
-            var lblBeceriIpucu = new Label
-            {
-                Text = "20 = hatasız. Düşük değerde yapay zekâ kart oynarken arada hata yapar.",
-                AutoSize = false, Size = new Size(304, 32), Location = new Point(10, 220), ForeColor = Color.DimGray
-            };
+            var ip = new ToolTip();
+            ip.SetToolTip(_beceri, "20 = hatasız. Düşük değerde yapay zekâ kart oynarken arada hata yapar.");
+            ip.SetToolTip(_lblBeceri, "20 = hatasız. Düşük değerde yapay zekâ kart oynarken arada hata yapar.");
 
-            var gAgr = new GroupBox { Text = "Agresiflik", Location = new Point(10, 262), Size = new Size(304, 120) };
-            gAgr.Controls.Add(new Label { Text = "Müdahale:", AutoSize = true, Location = new Point(10, 28) });
-            gAgr.Controls.Add(new Label { Text = "Önleyici açılış:", AutoSize = true, Location = new Point(10, 60) });
-            gAgr.Controls.Add(new Label { Text = "Açılış:", AutoSize = true, Location = new Point(10, 92) });
-            _cmbMudahale = AgrKutusu(); _cmbMudahale.Location = new Point(170, 24);
-            _cmbPreempt = AgrKutusu(); _cmbPreempt.Location = new Point(170, 56);
-            _cmbAcilis = AgrKutusu(); _cmbAcilis.Location = new Point(170, 88);
+            var gAgr = new GroupBox { Text = "Agresiflik", Location = new Point(4, 172), Size = new Size(252, 98) };
+            gAgr.Controls.Add(new Label { Text = "Müdahale:", AutoSize = true, Location = new Point(10, 24) });
+            gAgr.Controls.Add(new Label { Text = "Önleyici açılış:", AutoSize = true, Location = new Point(10, 49) });
+            gAgr.Controls.Add(new Label { Text = "Açılış:", AutoSize = true, Location = new Point(10, 74) });
+            _cmbMudahale = AgrKutusu(); _cmbMudahale.Location = new Point(130, 20);
+            _cmbPreempt = AgrKutusu(); _cmbPreempt.Location = new Point(130, 45);
+            _cmbAcilis = AgrKutusu(); _cmbAcilis.Location = new Point(130, 70);
             foreach (var c in new[] { _cmbMudahale, _cmbPreempt, _cmbAcilis })
             {
+                c.Width = 108;
                 c.SelectedIndexChanged += (s, e) => AgresiflikDegisti();
                 gAgr.Controls.Add(c);
             }
@@ -187,19 +190,19 @@ namespace BricKartOyunu.Forms
             _chkOgrenme = new CheckBox
             {
                 Text = "Öğrenme modu (teklifleri motor önerisiyle karşılaştır)",
-                AutoSize = false, Size = new Size(304, 36), Location = new Point(10, 396),
+                AutoSize = false, Size = new Size(252, 34), Location = new Point(4, 276),
                 Checked = AnlasmaYonetici.OgrenmeModuAcik
             };
 
             sol.Controls.AddRange(new Control[] { btnYeni, btnKopya, _btnDuzenle, _btnSil, lblProfil, _cmbProfil,
-                lblSistem, _cmbSistem, _lblBeceri, _beceri, lblBeceriIpucu, gAgr, _chkOgrenme });
+                lblSistem, _cmbSistem, _lblBeceri, _beceri, gAgr, _chkOgrenme });
 
             // Alt: Tamam / İptal
-            var alt = new Panel { Dock = DockStyle.Bottom, Height = 48 };
-            var btnTamam = new Button { Text = "Tamam", Size = new Size(96, 30), Anchor = AnchorStyles.Right | AnchorStyles.Top };
-            var btnIptal = new Button { Text = "İptal", Size = new Size(96, 30), Anchor = AnchorStyles.Right | AnchorStyles.Top };
-            btnTamam.Location = new Point(alt.Width - 216, 9);
-            btnIptal.Location = new Point(alt.Width - 108, 9);
+            var alt = new Panel { Dock = DockStyle.Bottom, Height = AltYukseklik };
+            var btnTamam = new Button { Text = "Tamam", Size = new Size(90, 28), Anchor = AnchorStyles.Right | AnchorStyles.Top };
+            var btnIptal = new Button { Text = "İptal", Size = new Size(90, 28), Anchor = AnchorStyles.Right | AnchorStyles.Top };
+            btnTamam.Location = new Point(810 - 200, 6);
+            btnIptal.Location = new Point(810 - 100, 6);
             btnTamam.Click += BtnTamam_Click;
             btnIptal.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
             alt.Controls.Add(btnTamam);
@@ -207,17 +210,40 @@ namespace BricKartOyunu.Forms
             AcceptButton = btnTamam;
             CancelButton = btnIptal;
 
-            // Sağ: kategori özet kutuları (iki sütun)
+            // Üç sütun (Bridge Baron düzeni): sol = profil ayarları + 1NT özeti,
+            // orta = minör / majör / 2NT-3NT, sağ = yüksek seviye / slam / rekabet / işaretleşme
             KutulariTanimla();
-            var tablo = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = (_kutular.Count + 1) / 2, Padding = new Padding(4) };
-            tablo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            tablo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            for (int i = 0; i < tablo.RowCount; i++) tablo.RowStyles.Add(new RowStyle(SizeType.Percent, 100f / tablo.RowCount));
-            for (int i = 0; i < _kutular.Count; i++)
-                tablo.Controls.Add(_kutular[i].Grup, i % 2, i / 2);
+            var ana = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Padding = new Padding(4) };
+            ana.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, SolGenislik));
+            ana.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            ana.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            ana.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-            Controls.Add(tablo);
-            Controls.Add(sol);
+            // Sol: 1NT özeti, profil ayarlarının altında
+            var bir = _kutular[0].Grup;
+            bir.Dock = DockStyle.Bottom;
+            bir.Height = 118;
+            sol.Controls.Add(bir);
+            ana.Controls.Add(sol, 0, 0);
+
+            var orta = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3 };
+            orta.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            orta.RowStyles.Add(new RowStyle(SizeType.Percent, 38));
+            orta.RowStyles.Add(new RowStyle(SizeType.Percent, 38));
+            orta.RowStyles.Add(new RowStyle(SizeType.Percent, 24));
+            for (int i = 1; i <= 3; i++) orta.Controls.Add(_kutular[i].Grup, 0, i - 1);
+            ana.Controls.Add(orta, 1, 0);
+
+            var sag = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4 };
+            sag.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            sag.RowStyles.Add(new RowStyle(SizeType.Percent, 24));
+            sag.RowStyles.Add(new RowStyle(SizeType.Percent, 24));
+            sag.RowStyles.Add(new RowStyle(SizeType.Percent, 32));
+            sag.RowStyles.Add(new RowStyle(SizeType.Percent, 20));
+            for (int i = 4; i <= 7; i++) sag.Controls.Add(_kutular[i].Grup, 0, i - 4);
+            ana.Controls.Add(sag, 2, 0);
+
+            Controls.Add(ana);
             Controls.Add(alt);
         }
 

@@ -56,11 +56,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // Ama 4'lü majörü Stayman ele alır → 5+ olmalı
                 if (macca >= 5 || kupa >= 5)
                 {
-                    // En az 6 HP gerekli (zayıf el bile transfer edebilir)
-                    if (ElDegerlendirici.HCP(el) >= 6)
-                    {
-                        return true;
-                    }
+                    // Her güçte transfer: 0-5 HP'lik 5'li majör de 2M'yi oynar (DD simülasyonu: 5 HP'de 2M +66 / 1NT 0,
+                    // 0-2 HP'de bile 2M −38 / 1NT −126). Zayıf el transferden sonra pas geçer.
+                    return true;
                 }
             }
 

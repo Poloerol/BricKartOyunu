@@ -159,7 +159,8 @@ namespace BricKartOyunu.Forms
         private readonly Dictionary<string, Madde> _madde = new Dictionary<string, Madde>();
         private readonly HashSet<string> _oynanan = new HashSet<string>();
         private ListBox _lstOynanan, _lstOynanmayan;
-        private Label _lblAciklama, _lblDurum;
+        private RichTextBox _lblAciklama;
+        private Label _lblDurum;
         private RadioButton _rb1Zayif, _rb1Guclu;
 
         // Motorun desteklediği aralıklar; diğerleri BB'deki gibi görünür ama seçilemez
@@ -201,8 +202,10 @@ namespace BricKartOyunu.Forms
             // Listeler ve oklar
             var lblSol = new Label { Text = "Oynanan konvansiyonlar", AutoSize = true, Location = new Point(10, 8) };
             var lblSag = new Label { Text = "Oynanmayan konvansiyonlar", AutoSize = true };
-            _lstOynanan = new ListBox { SelectionMode = SelectionMode.MultiExtended, IntegralHeight = false };
-            _lstOynanmayan = new ListBox { SelectionMode = SelectionMode.MultiExtended, IntegralHeight = false };
+            _lstOynanan = new ListBox { SelectionMode = SelectionMode.MultiExtended, IntegralHeight = false, DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 20 };
+            _lstOynanmayan = new ListBox { SelectionMode = SelectionMode.MultiExtended, IntegralHeight = false, DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 20 };
+            _lstOynanan.DrawItem += RenkliSatirCiz;
+            _lstOynanmayan.DrawItem += RenkliSatirCiz;
             var btnEkle = new Button { Text = "◄ Ekle", Size = new Size(84, 30) };
             var btnCikar = new Button { Text = "Çıkar ►", Size = new Size(84, 30) };
             btnEkle.Click += (s, e) => Tasi(_lstOynanmayan, true);
@@ -212,7 +215,7 @@ namespace BricKartOyunu.Forms
             _lstOynanan.SelectedIndexChanged += (s, e) => AciklamaGoster(_lstOynanan);
             _lstOynanmayan.SelectedIndexChanged += (s, e) => AciklamaGoster(_lstOynanmayan);
 
-            _lblAciklama = new Label { Dock = DockStyle.Bottom, Height = 36, ForeColor = Color.DimGray, Padding = new Padding(10, 4, 10, 0) };
+            _lblAciklama = new RichTextBox { Dock = DockStyle.Bottom, Height = 40, ReadOnly = true, BorderStyle = BorderStyle.None, ScrollBars = RichTextBoxScrollBars.None, TabStop = false, BackColor = SystemColors.Control, ForeColor = Color.DimGray, Cursor = Cursors.Default };
             _lblDurum = new Label { Dock = DockStyle.Bottom, Height = 22, ForeColor = Color.DarkOrange, Padding = new Padding(10, 0, 10, 0) };
 
             orta.Controls.Add(lblSol);
@@ -297,10 +300,83 @@ namespace BricKartOyunu.Forms
             return _madde.Values.FirstOrDefault(m => m.Baslik == baslik);
         }
 
+        // ── Renkli takım sembolleri: ♠ ve NT siyah, ♣ yeşil, ♦ turuncu, ♥ kırmızı ──
+        private static readonly Color RenkMaca = Color.Black;
+        private static readonly Color RenkSinek = Color.FromArgb(0, 140, 0);
+        private static readonly Color RenkKaro = Color.FromArgb(255, 140, 0);
+        private static readonly Color RenkKupa = Color.FromArgb(220, 0, 0);
+
+        /// <summary>Metni (renk, parça) dilimlerine böler; sembol ve "NT" kendi renginde, kalan metin varsayılan renkte (null).</summary>
+        private static List<KeyValuePair<string, Color?>> RenkliParcala(string metin)
+        {
+            var sonuc = new List<KeyValuePair<string, Color?>>();
+            var tampon = new System.Text.StringBuilder();
+            Action bosalt = () =>
+            {
+                if (tampon.Length > 0) sonuc.Add(new KeyValuePair<string, Color?>(tampon.ToString(), null));
+                tampon.Clear();
+            };
+            for (int i = 0; i < metin.Length; i++)
+            {
+                char c = metin[i];
+                Color? renk = null;
+                string parca = c.ToString();
+                if (c == '\u2660') renk = RenkMaca;
+                else if (c == '\u2663') renk = RenkSinek;
+                else if (c == '\u2666') renk = RenkKaro;
+                else if (c == '\u2665') renk = RenkKupa;
+                else if (c == 'N' && i + 1 < metin.Length && metin[i + 1] == 'T' &&
+                         (i == 0 || !char.IsLetter(metin[i - 1])) && (i + 2 >= metin.Length || !char.IsLetter(metin[i + 2])))
+                { renk = RenkMaca; parca = "NT"; i++; }
+                if (renk == null) { tampon.Append(c); continue; }
+                bosalt();
+                sonuc.Add(new KeyValuePair<string, Color?>(parca, renk));
+            }
+            bosalt();
+            return sonuc;
+        }
+
+        private static void RenkliYaz(RichTextBox kutu, string metin)
+        {
+            kutu.Clear();
+            foreach (var p in RenkliParcala(metin ?? ""))
+            {
+                kutu.SelectionStart = kutu.TextLength;
+                kutu.SelectionLength = 0;
+                kutu.SelectionColor = p.Value ?? Color.DimGray;
+                kutu.AppendText(p.Key);
+            }
+            kutu.SelectionStart = 0;
+            kutu.SelectionLength = 0;
+        }
+
+        private void RenkliSatirCiz(object sender, DrawItemEventArgs e)
+        {
+            var kutu = (ListBox)sender;
+            if (e.Index < 0 || e.Index >= kutu.Items.Count) return;
+            bool secili = (e.State & DrawItemState.Selected) != 0;
+            // Sembol renkleri okunabilsin diye seçili satır açık mavi zeminle çizilir
+            Color zemin = secili ? Color.FromArgb(205, 225, 255) : kutu.BackColor;
+            using (var f = new SolidBrush(zemin)) e.Graphics.FillRectangle(f, e.Bounds);
+            var bayrak = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.VerticalCenter | TextFormatFlags.Left;
+            int x = e.Bounds.Left + 3;
+            foreach (var p in RenkliParcala(Convert.ToString(kutu.Items[e.Index])))
+            {
+                Color renk = p.Value ?? kutu.ForeColor;
+                var kutuRect = new Rectangle(x, e.Bounds.Top, e.Bounds.Right - x, e.Bounds.Height);
+                // sondaki boşluklar ölçümde kaybolmasın diye '.' ekleyip çıkarıyoruz
+                int genis = TextRenderer.MeasureText(e.Graphics, p.Key + ".", e.Font, new Size(int.MaxValue, e.Bounds.Height), bayrak).Width
+                          - TextRenderer.MeasureText(e.Graphics, ".", e.Font, new Size(int.MaxValue, e.Bounds.Height), bayrak).Width;
+                TextRenderer.DrawText(e.Graphics, p.Key, e.Font, kutuRect, renk, bayrak);
+                x += genis;
+            }
+            if ((e.State & DrawItemState.Focus) != 0) e.DrawFocusRectangle();
+        }
+
         private void AciklamaGoster(ListBox kutu)
         {
             var m = BaslikToMadde(kutu.SelectedItem as string);
-            _lblAciklama.Text = m == null ? "" : m.Baslik + " — " + m.Aciklama;
+            RenkliYaz(_lblAciklama, m == null ? "" : m.Baslik + " — " + m.Aciklama);
         }
 
         private void Tasi(ListBox kaynak, bool ekle)

@@ -290,6 +290,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ── Fit bul ──
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int fitToplam);
+            // Ortak oyun seviyesinde (4M) anlaşılmış majörü ilan ettiyse, minör "fit" (ör. ortağın yapay 2♦'ı) onu geçersiz kılmaz.
+            {
+                var sg = gercek.Last();
+                if (sg.Oyuncu == d.Partner && sg.Seviye == 4 && Major(sg.Koz) && fit != sg.Koz &&
+                    d.AnlasilanKoz() == sg.Koz && ElDegerlendirici.RenkUzunlugu(el, sg.Koz) >= 3)
+                { fit = sg.Koz; fitToplam = ElDegerlendirici.RenkUzunlugu(el, sg.Koz) + PartnerUzunluk(d, gercek, sg.Koz); }
+            }
 
             // ── Ortak NT açtı (1NT/2NT) ve bizde doğal bir devam gerekiyor ──
             if (ortakNT)
@@ -353,6 +360,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Ters çevrilmiş minör (1m-2m): açıcı en az bir tur daha konuşmalı
             if (IMZorunlu(d, gercek)) return IMDevam(d, el, hp, dengeli, rakipRenkleri);
+
+            // Drury (1M–2♣) sonrası ortak 3 seviyesinde yan renk deneme teklifi yaptı: üst sınırda (11+ HP) kabul → 4M
+            if (gercek.Count == 3 && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 && Major(gercek[0].Koz) &&
+                gercek[1].Oyuncu == d.AktifOyuncu && gercek[1].Teklif == "2♣" &&
+                gercek[2].Oyuncu == d.Partner && gercek[2].Seviye == 3 && gercek[2].Koz != "NT" && gercek[2].Koz != gercek[0].Koz &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
+                ElDegerlendirici.RenkUzunlugu(el, gercek[0].Koz) >= 3 && hp >= 11)
+                return Seviye(d, gercek[0].Koz, 4);
 
             // Kendi takeout kontramdan sonra ortak (düşük seviyede) rengini söyledi, bende 4+ destek ve 17+ HP:
             // asgari raise (2M) göstermez; sıçrama raise (3 seviye) ile davet et.
@@ -466,7 +481,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private string RkcbKarari(IhaleDurumu d, List<Card> el, IhaleHamlesi cevap, double est)
         {
             string koz = d.AnlasilanKoz();
-            if (koz == null || koz == "NT" || !Major(koz)) return null;
+            if (koz == null || koz == "NT") return null;
             bool k1430 = d.Anlasma == null || d.Anlasma.RKCB1430;
             int ben = ElDegerlendirici.KilitKartSayisi(el, koz);
 
@@ -703,6 +718,20 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Zorunlu: açıcıya yeni renk geldi vs. → doğal cevap
             if (zorunlu)
             {
+                // 5-5 açıcı: ikinci 5'li renk birincinin altındaysa (1♦–1♠–2♣) reverse olmaz → ikinci rengi doğal göster
+                if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                    gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" &&
+                    !rakipRenkleri.Any() && hp <= 16 &&
+                    ElDegerlendirici.RenkUzunlugu(el, gercek[0].Koz) == 5)
+                {
+                    foreach (var r2 in Renkler)
+                    {
+                        if (r2 == gercek[0].Koz || r2 == gercek[1].Koz) continue;
+                        if (RenkSira(r2) < RenkSira(gercek[0].Koz) && ElDegerlendirici.RenkUzunlugu(el, r2) == 5 && Cheapest(d, r2) == 2)
+                            return Seviye(d, r2, 2);
+                    }
+                }
+
                 // Açıcının ikinci teklifi: ortak 1 seviyede doğal renk cevapladı (1♣–1♦), bende henüz söylemediğim
                 // 4+ kartlık majör var ve 1 seviyede gösterilebiliyor → NT demeden önce majörü göster (4-4 fit aranır).
                 if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
@@ -941,8 +970,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
 
             // (A) Ortak yeni renk söyledi (zorlayıcı), rakip araya girdi: 6+ kartlı rengimi göster
-            if (ortakKonustu && acilis != "NT" && hp >= 13 &&
-                ElDegerlendirici.RenkUzunlugu(el, acilis) >= 6 && Cheapest(d, acilis) <= 3)
+            if (ortakKonustu && acilis != "NT" &&
+                ((hp >= 13 && Cheapest(d, acilis) <= 3) || (hp >= 11 && Cheapest(d, acilis) <= 2)) &&
+                ElDegerlendirici.RenkUzunlugu(el, acilis) >= 6)
                 return EnUcuz(d, acilis);
 
             // (B) Ortak pas geçti, ben 16+ HP: rakip renginde kısa (<=2) ise rekabet kontrası
@@ -1092,6 +1122,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int gs = k == "NT" ? 3 : (Major(k) ? 4 : 5);
                 return son.Seviye < gs;
             }
+            // Kendi 4. renk zorlamamdan (1♦–1♠–2♣–2♥) sonra ortağın cevabı: oyun seviyesine kadar pas yok
+            for (int ti = 0; ti < gercek.Count; ti++)
+                if (IsTsfTeklifi(d, gercek, ti) && gercek.IndexOf(son) > ti &&
+                    (son.Koz != "NT" ? son.Seviye < OyunSeviyesi(son.Koz) : son.Seviye < 3))
+                    return true;
+
             // Açıcıya yeni renk (cevap veren yeni renkte teklif verdi): zorlayıcı
             var benimIlk = gercek.FirstOrDefault(h => h.Oyuncu == d.AktifOyuncu);
             var ortakIlk = gercek.FirstOrDefault(h => h.Oyuncu == d.Partner);

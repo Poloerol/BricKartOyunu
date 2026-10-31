@@ -307,6 +307,18 @@ namespace BricKartOyunu.Class.Bidding
                 }
             }
 
+            // 0c. Minör transferi: 1NT - 2♠ - 3♣ (sinek) ya da 1NT - 2NT - 3♦ (karo), rakip teklifsiz = transfer edilen minör koz
+            if (Anlasma != null && Anlasma.MinorTransfer)
+            {
+                var gm = Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                if (gm.Count >= 3 && gm[0].Teklif == "1NT" && gm[1].Oyuncu != gm[0].Oyuncu && gm[2].Oyuncu == gm[0].Oyuncu &&
+                    (gm[0].Oyuncu == AktifOyuncu || gm[0].Oyuncu == Partner) && (gm[1].Oyuncu == AktifOyuncu || gm[1].Oyuncu == Partner))
+                {
+                    if (gm[1].Teklif == "2♠" && gm[2].Teklif == "3♣") return "Sinek";
+                    if (gm[1].Teklif == "2NT" && gm[2].Teklif == "3♦") return "Karo";
+                }
+            }
+
             // 4NT / 5NT'ye verilen cevaplar (5♦, 6♥ gibi) yeni bir koz önerisi değildir; koz belirlemede sayılmaz.
             var yanitHamleleri = new HashSet<IhaleHamlesi>();
             {

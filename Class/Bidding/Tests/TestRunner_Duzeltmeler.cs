@@ -163,6 +163,13 @@ namespace BricKartOyunu.Tests
             T("V18 (1H)-Dbl-P-1S-P-? 18hcp 4 maca -> 3S (davet sicramasi)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "3♠", "1♥", "Dbl", "Pas", "1♠", "Pas");
             T("V19 (1H)-Dbl-P-1S-P-? 14hcp 4 maca -> 2S (asgari)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "8K93".Replace("8K","K8")), "2♠", "1♥", "Dbl", "Pas", "1♠", "Pas");
             T("V20 1C-P-1D-P-1S-? 14hcp 6 sinek (rakip rengi) -> Pas (2C degil)", TestHelpers.ElOlustur("43", "K98", "K6", "AKJ863"), "Pas", "1♣", "Pas", "1♦", "Pas", "1♠");
+            T("V21 1H-P-2C(Drury)-P-3C(deneme)-P-? 11hcp 3 kupa -> 4H", TestHelpers.ElOlustur("A9654", "632", "AQ", "JT4"), "4♥", "1♥", "Pas", "2♣", "Pas", "3♣", "Pas");
+            T("V22 1NT-? 5hcp 5 kupa -> 2D (zayif transfer)", TestHelpers.ElOlustur("542", "K9864", "Q85", "54"), "2♦", "1NT", "Pas");
+            T("V23 1D-P-1H-1S-? 11hcp 6 karo AKQJ76 -> 2D (rekabette 6'li rengi tekrarla)", TestHelpers.ElOlustur("J52", "9", "AKQJ76", "T75"), "2♦", "1♦", "Pas", "1♥", "1♠");
+            T("V24 1NT-P-2S-P-3C-P 8hcp 6 sinek KJ9862 -> 3NT (minor transfer sonrasi)", TestHelpers.ElOlustur("3", "A62", "432", "KJ9862"), "3NT", "1NT", "Pas", "2♠", "Pas", "3♣", "Pas");
+            T("V25 1D-P-1H-P-1S-P-2D-P-2S-P-4S-P: ortak 4M dediyse minor fit yok, Pas (5D degil)", TestHelpers.ElOlustur("QJ82", "T", "AQJT4", "AJ9"), "Pas", "1♦", "Pas", "1♥", "Pas", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "4♠", "Pas");
+            T("V26 1S-P-2D-P-2S-P-2NT-P: 6-5 void KQT984/-/AQ652/96, 10 kartlik karo uyumu -> 4D (3NT degil)", TestHelpers.ElOlustur("KQT984", "", "AQ652", "96"), "4♦", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "2NT", "Pas");
+            T("V27 acilis: AKQJ872 / - / T432 / 74 (10 HP, 7 kart) -> 1S", TestHelpers.ElOlustur("AKQJ872", "", "T432", "74"), "1♠");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");

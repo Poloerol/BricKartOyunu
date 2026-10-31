@@ -192,6 +192,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (fit != null)
             {
                 if (hp >= 20) return null;                          // slam bölgesi: diğer konvansiyonlara bırakılır
+                if (!YK.Major(fit) && z.Uz(fit) >= 5 && z.Uz(fit) + pm[fit] >= 9 && Renkler.Any(r => z.Uz(r) <= 1) && YK2.Yuksek(YK.T(4, fit), son))
+                    return YK.T(4, fit);                          // 9+ kartlık minör uyumu (kendi 5+) + kısalık/void: 3NT yerine 4m
                 return YK.Major(fit) ? YK.T(4, fit) : "3NT";
             }
 

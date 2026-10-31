@@ -221,6 +221,12 @@ namespace BricKartOyunu.Class.Bidding
             int hp = HCP(el);
             if (hp >= 12) return true;
             if (agresiflik < 0) return false;
+            // 10 HP + 7+ kartlık güçlü renk (ör. AKQJ872): 20 kuralı ile açılır (3. seviye engel yerine 1 seviye)
+            if (hp == 10 && agresiflik == 0)
+            {
+                var u = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
+                if (u[0] >= 7 && hp + u[0] + u[1] >= 20) return true;
+            }
             int alt = agresiflik > 0 ? 10 : 11;
             if (hp < alt) return false;
             var s = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();

@@ -201,6 +201,14 @@ namespace BricKartOyunu.Class.Bidding
                     Sev(gt[3].Teklif) == 3 && !gt[3].Teklif.EndsWith("NT"))
                     a.Min = Math.Max(a.Min, 9);
             }
+            // Drury (1M–2♣) sonrası açıcının 3 seviyesinde yan renk deneme teklifi: gerçek oyun denemesi (13+)
+            {
+                var gd = g.Where(x => Gercek(x.Teklif)).ToList();
+                if (gd.Count >= 3 && gd[0].Oyuncu == ort && gd[0].Seviye == 1 && (gd[0].Koz == "Maça" || gd[0].Koz == "Kupa") &&
+                    gd[1].Oyuncu == ben && gd[1].Teklif == "2♣" && gd[2].Oyuncu == ort && gd[2].Seviye == 3 &&
+                    gd[2].Koz != "NT" && gd[2].Koz != gd[0].Koz && !gd.Take(3).Any(x => x.Oyuncu != ort && x.Oyuncu != ben))
+                    a.Min = Math.Max(a.Min, 13);
+            }
             if (a.Max < a.Min) a.Max = a.Min;
             return a;
         }
@@ -417,6 +425,7 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         private const double CevapSlamEsigi = 26;
+        private static string[] Renkler4() { return new[] { "Maça", "Kupa", "Karo", "Sinek" }; }
 
         // ───────────────────────── Ana denetim ─────────────────────────
 
@@ -521,6 +530,12 @@ namespace BricKartOyunu.Class.Bidding
             {
                 int uzunluk = d.AktifOyuncuEli.Count(c => c.Suit == renk);
                 if (uzunluk >= 7) est += uzunluk - 5;
+            }
+            // NT oyununda 6+ kartlık uzun renk ek löve kaynağıdır (ör. 1NT–2♠–3♣–3NT: KJ9862 ♣ ile 8 HP)
+            if (renk == "NT" && sev == 3)
+            {
+                int mx = Renkler4().Max(r => d.AktifOyuncuEli.Count(c => c.Suit == r));
+                if (mx >= 6) est += (mx - 5) * 1.0;
             }
             int rakSev = RakipSeviyesi(d);
 

@@ -297,7 +297,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (fsfStopper && dengeli && hp >= 11 && hp <= 13)
                 return "2NT";
-            if (fsfStopper && dengeli && hp >= 14)
+            // 4. renkte As varsa (tek kartlı olsa bile) dengesiz elde de 3NT: durdurucu kesin (1♦–1♠–2♣–2♥–3NT)
+            bool asDurdurucu = el.Any(c => c.Suit == fsfRenk && c.Value == 14);
+            if (fsfStopper && (dengeli || asDurdurucu) && hp >= 14)
                 return "3NT";
 
             // ─── 3) Dördüncü renkte 4'lü ─────────────────────────
