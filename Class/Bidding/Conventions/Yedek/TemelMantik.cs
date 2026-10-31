@@ -205,8 +205,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
                     ((benim[0].Teklif == "2♠" && son.Teklif == "3♣") || (benim[0].Teklif == "2NT" && son.Teklif == "3♦")))
                 {
-                    // Ortak 15-17: 10+ HP ile oyun (3NT), daha zayıfsa transferde dur
-                    return hp >= 10 ? Seviye(d, "NT", 3) : "Pas";
+                    // Ortak 15-17: 10+ HP ile oyun (3NT), daha zayıfsa transferde dur.
+                    // İstisna: transfer ettiğim minörde güçlü 5'li (9 HP, 2+ onör) veya 6'lı (8 HP) = el kaynağı → 3NT
+                    string tMinor = benim[0].Teklif == "2♠" ? "Sinek" : "Karo";
+                    int tUz = ElDegerlendirici.RenkUzunlugu(el, tMinor);
+                    int tOnor = el.Count(c => c.Suit == tMinor && c.Value >= 11);
+                    bool kaynak = (hp >= 9 && tUz >= 5 && tOnor >= 2) || (hp >= 8 && tUz >= 6 && tOnor >= 2);
+                    return (hp >= 10 || kaynak) ? Seviye(d, "NT", 3) : "Pas";
                 }
             }
 
