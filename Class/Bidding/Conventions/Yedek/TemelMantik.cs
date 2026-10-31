@@ -353,6 +353,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Ters çevrilmiş minör (1m-2m): açıcı en az bir tur daha konuşmalı
             if (IMZorunlu(d, gercek)) return IMDevam(d, el, hp, dengeli, rakipRenkleri);
 
+            // Kendi takeout kontramdan sonra ortak (düşük seviyede) rengini söyledi, bende 4+ destek ve 17+ HP:
+            // asgari raise (2M) göstermez; sıçrama raise (3 seviye) ile davet et.
+            if (fit != null && fit != "NT" && sonOrtak && son.Koz == fit && son.Seviye <= 2 && ElDegerlendirici.RenkUzunlugu(el, fit) >= 4 &&
+                hp >= 17 && d.Gecmis.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "Dbl") &&
+                !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi))
+            {
+                int ucuz = Cheapest(d, fit);
+                if (ucuz <= 2) return Seviye(d, fit, ucuz + 1);
+            }
+
             // ── Fit varsa: fit rengiyle hedef ──
             if (fit != null && fit != "NT")
             {

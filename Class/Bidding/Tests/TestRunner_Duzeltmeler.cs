@@ -140,7 +140,7 @@ namespace BricKartOyunu.Tests
             // Vugraph Bord 4: (1♥)–? 18 HP, 4-3-2-4, kupada durdurucu yok → güçlü takeout kontra (Pas değil)
             T("V5 (1H)-? 18hcp 4S-3H-2D-4C -> Dbl", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "Dbl", "Pas", "Pas", "1♥");
             // Kontraya 1♠ cevabı 0-8 HP: 18 HP ile 4♠ değil, 2♠ (çift açık 9 el)
-            T("V6 (1H)-X-P-1S-P-? 18hcp 4 maca -> 2S (4S degil)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "2♠", "Pas", "Pas", "1♥", "Dbl", "Pas", "1♠", "Pas");
+            T("V6 (1H)-X-P-1S-P-? 18hcp 4 maca -> 3S (davet, 4S degil)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "3♠", "Pas", "Pas", "1♥", "Dbl", "Pas", "1♠", "Pas");
 
             // Vugraph Bord 5: 1♥–1♠ sonrası 16 HP + 7'li kupa (AKQT832) → sıçrama rebid 3♥ (16 HP + 1 uzunluk puanı)
             T("V7 1H-P-1S-P-? 16hcp 7 kupa -> 3H", TestHelpers.ElOlustur("A8", "AKQT832", "K63", "8"), "3♥", "1♥", "Pas", "1♠", "Pas");
@@ -160,6 +160,8 @@ namespace BricKartOyunu.Tests
             T("V15 1C-1D-? 12hcp 4 maca -> 1S (majör 4-4 ara)", TestHelpers.ElOlustur("AT75", "AQT", "74", "QT75"), "1♠", "1♣", "Pas", "1♦", "Pas");
             T("V16 1D-1S-2H(reverse)-? 10hcp 4 kupa 6 maca -> 3H (fit)", TestHelpers.ElOlustur("AKT874", "KT93", "9", "T8"), "3♥", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas");
             T("V17 1D-1S-2H-3H-? 17hcp 4 kupa -> 4H (pas degil)", TestHelpers.ElOlustur("J", "QJ72", "AKT73", "AQ4"), "4♥", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "3♥", "Pas");
+            T("V18 (1H)-Dbl-P-1S-P-? 18hcp 4 maca -> 3S (davet sicramasi)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "AK93"), "3♠", "1♥", "Dbl", "Pas", "1♠", "Pas");
+            T("V19 (1H)-Dbl-P-1S-P-? 14hcp 4 maca -> 2S (asgari)", TestHelpers.ElOlustur("AJ53", "J86", "KQ", "8K93".Replace("8K","K8")), "2♠", "1♥", "Dbl", "Pas", "1♠", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
