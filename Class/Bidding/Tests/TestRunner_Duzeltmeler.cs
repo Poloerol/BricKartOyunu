@@ -184,6 +184,9 @@ namespace BricKartOyunu.Tests
             T("V39 Serious 3NT: acici 17hp -> 3NT (1S-2D-2S-3S)", TestHelpers.ElOlustur("AKJ854", "AQ2", "K4", "65"), "3NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas");
             T("V40 Serious 3NT cevap: sinek asi -> 4C cue", TestHelpers.ElOlustur("Q63", "86", "AJ9852", "A8"), "4♣", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas");
             T("V41 Serious 3NT cevap: kontrol yok -> 4S", TestHelpers.ElOlustur("Q63", "J86", "KJ9852", "8"), "4♠", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas");
+            T("V42 Serious 3NT sonrasi: tum yanlar kontrollu (Hardy ex120) -> 4NT", TestHelpers.ElOlustur("AKJ854", "AQ2", "K4", "65"), "4NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas", "4♣", "Pas");
+            T("V43 Serious 3NT sonrasi: karo kontrolu yok -> 4D cue degil, 4S", TestHelpers.ElOlustur("AKJ854", "Q72", "986", "6"), "4♠", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas", "4♣", "Pas");
+            T("V44 Serious 3NT: acici 4H cue sonrasi cevapci karo asi -> 4NT", TestHelpers.ElOlustur("Q63", "86", "AJ9852", "A8"), "4NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas", "4♣", "Pas", "4♥", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");

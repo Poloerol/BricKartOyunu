@@ -175,9 +175,42 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // DEVAM TURLARI (iki taraf da oyuna kadar konuşur)
         // ═══════════════════════════════════════════════════════════════════
 
+        // Serious 3NT sonrası: cue edilmiş renkler (ikinci tur dahil) örtülü sayılır. Kalan her yan renkte kontrolüm
+        // (As, Papaz, tekli ya da void) varsa 4NT (RKCB); yoksa ortağın cue'sunun üstünde en ucuz kontrol rengini cue ederim;
+        // hiçbiri yoksa 4M ile dururum.
+        private static string SeriousKontrolDevam(Dz z, string m, string son, bool baslatan)
+        {
+            var ortulu = new HashSet<string>();
+            for (int i = 5; i < z.Hepsi.Count; i++)
+            {
+                string k = YK.KozOf(YK.Cagri(z.Hepsi[i]));
+                if (k != null && k != "NT") ortulu.Add(k);
+            }
+            Func<string, bool> kont = r => z.Uz(r) <= 1 || z.El.Any(c => c.Suit == r && (c.Value == 14 || c.Value == 13));
+            var acik = Renkler.Where(r => r != m && !ortulu.Contains(r)).ToList();
+            if (acik.All(kont))
+                return (baslatan || z.Hp >= 11) ? "4NT" : YK.T(4, m);
+            foreach (string r in new[] { "Sinek", "Karo", "Kupa" })
+            {
+                if (r == m || ortulu.Contains(r)) continue;
+                string aday = YK.T(4, r);
+                if (!YK2.Yuksek(aday, son) || YK2.Yuksek(aday, YK.T(4, m))) continue;
+                if (z.Uz(r) == 0 || z.El.Any(c => c.Suit == r && (c.Value == 14 || c.Value == 13))) return aday;
+            }
+            return YK2.Yuksek(YK.T(4, m), son) ? YK.T(4, m) : null;
+        }
+
         private static string Devam(Dz z, bool benAcici, string m, string s)
         {
             string son = YK.Cagri(z.Hepsi[z.Hepsi.Count - 1]);
+            // Serious 3NT sonrası kontrol cue-bid'leri (Hardy/Wold): 4 seviyesinde yan renk cue'su
+            if (YK.Major(m) && z.Hepsi.Count >= 6 && z.Hepsi[4].EndsWith(":3NT") && z.Hepsi[2].EndsWith(":" + YK.T(2, m))
+                && z.Hepsi[3].EndsWith(":" + YK.T(3, m)) && z.Hepsi[4][0] == z.Hepsi[0][0] && z.Hepsi[2][0] == z.Hepsi[0][0]
+                && YK.Sev(son) == 4 && YK.KozOf(son) != m && YK.KozOf(son) != "NT")
+            {
+                string sr = SeriousKontrolDevam(z, m, son, z.Hepsi[4][0] == 'B');
+                if (sr != null) return sr;
+            }
             // Serious 3NT (Hardy/Wold): majör fiti 3 seviyesinde kurulduktan sonra 3NT doğal değil, ciddi şlem ilgisidir.
             // Cevap (kontrol cue-bid'i ya da 4M) Serious3NT/CueBid konvansiyonlarına bırakılır.
             if (son == "3NT" && YK.Major(m) && !benAcici && z.Hepsi.Count == 5 && z.Hepsi[3] == "B:" + YK.T(3, m) && z.Hepsi[2] == "O:" + YK.T(2, m))
