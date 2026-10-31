@@ -49,7 +49,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (!benAcici && !z.Hepsi[0].StartsWith("O:")) return null;
 
             string m = YK2.BirRenk(z.Hepsi[0], benAcici ? "B" : "O");
-            if (m == null || !YK.Major(m)) return null;
+            if (m == null || !(YK.Major(m) || m == "Karo")) return null;
 
             // Cevaplayan daha önce pas geçtiyse (passed hand) 2/1 oyun zorlayıcı değildir
             Player cevaplayan = benAcici ? z.D.Partner : z.D.AktifOyuncu;
@@ -66,6 +66,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string s = YK.KozOf(t1);
             if (s == null || s == "NT" || s == m) return null;
             if (!(s == "Karo" || s == "Sinek" || (m == "Maça" && s == "Kupa"))) return null;   // 1♥–2♠ sıçramalıdır
+            if (m == "Karo" && s != "Sinek") return null;                                    // minör açılışta tek 2/1: 1♦–2♣
 
             // Sıra bende: ortağın son çağrısı olmalı
             if (!z.Hepsi[z.Hepsi.Count - 1].StartsWith("O:")) return null;
@@ -81,7 +82,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static string IlkCevap(Dz z, string m)
         {
             int uzun = Math.Max(Math.Max(z.Maca, z.Kupa), Math.Max(z.Karo, z.Sinek));
-            if (z.Hp < 12 || (z.Hp == 12 && uzun < 5)) return null;
+            if (m == "Karo")   // 1♦–2♣: oyun zorlayıcı, 13+ HP, 5+ sinek, 4'lü majör yok
+                return (z.Hp >= 13 && z.Sinek >= 5 && z.Maca < 4 && z.Kupa < 4) ? "2♣" : null;
+            if (z.Hp < 13) return null;   // 2/1 = 13+ HP
             if (z.Uz(m) >= 4) return null;                 // 4+ destek: Jacoby 2NT / Splinter
             if (m == "Kupa" && z.Maca >= 4) return null;   // 1♥–1♠ doğal ve zorlayıcıdır
 
@@ -103,8 +106,21 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // AÇICININ REBID'İ (1M – 2x – ?)
         // ═══════════════════════════════════════════════════════════════════
 
+        // 1♦–2♣ (GF) sonrası açıcı: sinek desteği 3♣, 4'lü majör doğal 2M, dengeli 12-14 2NT / 18-19 3NT, aksi halde 2♦
+        private static string AciciRebidKaro(Dz z)
+        {
+            int hp = z.Hp;
+            if (z.Sinek >= 4) return "3♣";
+            if (z.Kupa >= 4) return "2♥";
+            if (z.Maca >= 4) return "2♠";
+            if (ElDegerlendirici.DengeliEl(z.El) && z.Karo < 6)
+                return hp >= 18 ? "3NT" : "2NT";
+            return "2♦";
+        }
+
         private static string AciciRebid(Dz z, string m, string s)
         {
+            if (m == "Karo") return AciciRebidKaro(z);
             int mUz = z.Uz(m);
             int sUz = z.Uz(s);
             int hp = z.Hp;
@@ -128,9 +144,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int u = z.Uz(r);
                 if (u < 4) continue;
                 int sev = YK2.Yuksek(YK.T(2, r), ortSon) ? 2 : 3;
+                // Çuhadar 2014: 2. seviyede açış renginden pahalı yeni renk REVERSE'dür (17+ HP);
+                // 3. seviyede (sıçramasız) ikinci renk 15+ HP gerektirir. Yetmezse açış rengi tekrarlanır.
+                bool reverse = sev == 2 && System.Array.IndexOf(new[] { "Sinek", "Karo", "Kupa", "Maça" }, r) > System.Array.IndexOf(new[] { "Sinek", "Karo", "Kupa", "Maça" }, m);
+                if (reverse && hp < 17) continue;
+                if (sev == 3 && hp < 15) continue;
                 if (u > yUz || (u == yUz && sev < ySev)) { y = r; yUz = u; ySev = sev; }
             }
             if (y != null) return YK.T(ySev, y);                    // doğal ikinci renk
+
+            // 5332 (beşli majör), Çuhadar 2014: 12-14 majörü tekrarla, 15-17 2NT, 18-19 3NT (durdurucu şart değil)
+            if (mUz == 5 && ElDegerlendirici.DengeliEl(z.El))
+                return hp <= 14 ? YK.T(2, m) : (hp <= 17 ? "2NT" : "3NT");
 
             if (ElDegerlendirici.DengeliEl(z.El) && Durdurucular(z, m, s))
                 return hp >= 15 ? "3NT" : "2NT";

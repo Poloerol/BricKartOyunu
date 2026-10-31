@@ -170,6 +170,14 @@ namespace BricKartOyunu.Tests
             T("V25 1D-P-1H-P-1S-P-2D-P-2S-P-4S-P: ortak 4M dediyse minor fit yok, Pas (5D degil)", TestHelpers.ElOlustur("QJ82", "T", "AQJT4", "AJ9"), "Pas", "1♦", "Pas", "1♥", "Pas", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "4♠", "Pas");
             T("V26 1S-P-2D-P-2S-P-2NT-P: 6-5 void KQT984/-/AQ652/96, 10 kartlik karo uyumu -> 4D (3NT degil)", TestHelpers.ElOlustur("KQT984", "", "AQ652", "96"), "4♦", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "2NT", "Pas");
             T("V27 acilis: AKQJ872 / - / T432 / 74 (10 HP, 7 kart) -> 1S", TestHelpers.ElOlustur("AKQJ872", "", "T432", "74"), "1♠");
+            T("V28 1H-P-2D-P-?: 13hp 5-4 kupa/maca -> 2H (2S reverse 17+ ister)", TestHelpers.ElOlustur("KJ84", "AQ632", "K5", "87"), "2♥", "1♥", "Pas", "2♦", "Pas");
+            T("V29 1H-P-2D-P-?: 17hp 5-4 kupa/maca -> 2S (reverse)", TestHelpers.ElOlustur("AJ84", "AKQ32", "K5", "87"), "2♠", "1♥", "Pas", "2♦", "Pas");
+            T("V30 1S-P-2D-P-?: 5332 12hp -> 2S (12-14 majoru tekrarla)", TestHelpers.ElOlustur("AQJ52", "K83", "Q74", "J5"), "2♠", "1♠", "Pas", "2♦", "Pas");
+            T("V31 1S-P-2D-P-?: 5332 19hp -> 3NT", TestHelpers.ElOlustur("AKJ72", "AQ4", "K84", "Q5"), "3NT", "1♠", "Pas", "2♦", "Pas");
+            T("V32 1D-P-?: 14hp 5 sinek, majorsuz -> 2C (GF)", TestHelpers.ElOlustur("K32", "A5", "Q84", "AQ976"), "2♣", "1♦", "Pas");
+            T("V33 1D-P-2C-P-?: 4 kupa -> 2H dogal", TestHelpers.ElOlustur("A5", "KJ84", "KJ973", "63"), "2♥", "1♦", "Pas", "2♣", "Pas");
+            T("V34 1D-P-2C-P-?: dengeli 13hp -> 2NT", TestHelpers.ElOlustur("KJ3", "Q84", "AJ73", "K52"), "2NT", "1♦", "Pas", "2♣", "Pas");
+            T("V35 1D-P-2C-P-?: 4 sinek destegi -> 3C", TestHelpers.ElOlustur("A52", "8", "KQJ73", "Q864"), "3♣", "1♦", "Pas", "2♣", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
