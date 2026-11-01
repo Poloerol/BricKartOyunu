@@ -69,6 +69,46 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string tk = OrtakTakeoutKontrasinaCevap(d, el, hp, dengeli, g, gercek);
             if (tk != null) return tk;
 
+            // 2b. Ben 1NT açtım, rakip 3♣/3♦ ile araya girdi, ortak negatif kontra yaptı, rakip pas: dört kartlık majör -> 4M,
+            //     rakip renginde durdurucu -> 3NT, aksi halde ceza için Pas.
+            if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Teklif == "1NT" &&
+                d.Rakipler.Contains(gercek[1].Oyuncu) && gercek[1].Seviye == 3 && (gercek[1].Koz == "Sinek" || gercek[1].Koz == "Karo") &&
+                g.Count >= 2 && g[g.Count - 1].PasMi && d.Rakipler.Contains(g[g.Count - 1].Oyuncu) &&
+                g[g.Count - 2].Teklif == "Dbl" && g[g.Count - 2].Oyuncu == d.Partner)
+            {
+                int ms = ElDegerlendirici.RenkUzunlugu(el, "Maça"), kp = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                if (ms >= 4 || kp >= 4) return Seviye(d, ms >= kp ? "Maça" : "Kupa", 4);
+                if (ElDegerlendirici.StopperVar(el, gercek[1].Koz)) return Seviye(d, "NT", 3);
+                return "Pas";
+            }
+
+            // 2b'. 1X-(1M)-Dbl-(2M)-Pas-(Pas): negatif kontrayı ben yaptım, rakip yükseltti, ortak pas geçti (minimum) -> yeniden aç:
+            //      boştaki majörde 4+ kart -> doğal teklif (11+ HP), ya da durdurucu + 13+ HP -> 3NT.
+            var np = g.Where(h => !h.PasMi).ToList();
+            if (np.Count == 4 && np[0].Oyuncu == d.Partner && np[0].GercekTeklifMi && np[2].Oyuncu == d.AktifOyuncu && np[2].KontrMi &&
+                d.Rakipler.Contains(np[1].Oyuncu) && np[1].GercekTeklifMi && np[1].Seviye == 1 && (np[1].Koz == "Kupa" || np[1].Koz == "Maça") &&
+                d.Rakipler.Contains(np[3].Oyuncu) && np[3].GercekTeklifMi && np[3].Seviye == 2 && np[3].Koz == np[1].Koz &&
+                g.Count >= 2 && g[g.Count - 1].PasMi && g[g.Count - 2].PasMi && hp >= 11)
+            {
+                string serbest = np[1].Koz == "Kupa" ? "Maça" : "Kupa";
+                if (np[0].Koz != serbest && ElDegerlendirici.RenkUzunlugu(el, serbest) >= 4 && (serbest == "Maça" || hp >= 13))
+                    return Seviye(d, serbest, serbest == "Maça" ? 2 : 3);
+                if (hp >= 13 && ElDegerlendirici.StopperVar(el, np[1].Koz)) return Seviye(d, "NT", 3);
+            }
+
+            // 2b''. 1X-(1M overcall = ben)-(rakip 2 seviye)-3M (ortak rekabetçi yükseltme): puan + uzunluk + kısalık >= 13 ise 4M.
+            if (np.Count == 4 && np[1].Oyuncu == d.AktifOyuncu && np[1].GercekTeklifMi && np[1].Seviye == 1 &&
+                (np[1].Koz == "Kupa" || np[1].Koz == "Maça") && d.Rakipler.Contains(np[0].Oyuncu) && d.Rakipler.Contains(np[2].Oyuncu) &&
+                np[3].Oyuncu == d.Partner && np[3].GercekTeklifMi && np[3].Koz == np[1].Koz && np[3].Seviye == 3 &&
+                g[g.Count - 1].PasMi && d.Rakipler.Contains(g[g.Count - 1].Oyuncu))
+            {
+                int uz = ElDegerlendirici.RenkUzunlugu(el, np[1].Koz);
+                int kisa = 0;
+                foreach (var r in Renkler) { if (r == np[1].Koz) continue; int l = ElDegerlendirici.RenkUzunlugu(el, r); if (l == 0) kisa += 3; else if (l == 1) kisa += 2; else if (l == 2) kisa += 1; }
+                int puan = hp + Math.Max(0, uz - 5) + kisa;
+                if (uz >= 6 && puan >= 13) return Seviye(d, np[1].Koz, 4);
+            }
+
             // 2. Rakip açtı, bizim taraf henüz susuyor → doğal müdahale
             if (!ortakKonustu && !benKonustum && rakipKonustu)
                 return Mudahale(d, el, hp, gercek);
@@ -255,6 +295,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 {
                     string un = UnusualNTCevap(d, el, hp, ar, ilk.Koz);
                     if (un != null) return un;
+                }
+
+                // Ortağın 1NT'sine rakip 3♣/3♦ doğal müdahale etti, ben henüz konuşmadım (oyun değerleri 10+):
+                // 5+ kartlık majör -> 3M (zorlayıcı); 4 kartlık majör -> negatif kontra; rakip renginde durdurucu -> 3NT.
+                if (ilk.Oyuncu == d.Partner && ilk.Teklif == "1NT" && gercek.Count == 2 && gercek[1].Oyuncu != d.Partner &&
+                    d.Rakipler.Contains(gercek[1].Oyuncu) && gercek[1].Seviye == 3 &&
+                    (gercek[1].Koz == "Sinek" || gercek[1].Koz == "Karo") && hp >= 10)
+                {
+                    foreach (var mj in new[] { "Maça", "Kupa" })
+                        if (ElDegerlendirici.RenkUzunlugu(el, mj) >= 5 && Cheapest(d, mj) == 3) return Seviye(d, mj, 3);
+                    if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4 || ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
+                        return "Dbl";
+                    if (ElDegerlendirici.StopperVar(el, gercek[1].Koz) && Cheapest(d, "NT") <= 3) return Seviye(d, "NT", 3);
                 }
 
                 string bk = BalansKontrasi(d, el, hp, ar, son, rakipRenkleri, gercek);

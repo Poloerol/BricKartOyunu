@@ -78,6 +78,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // 2. Bir koz anlaşması var mı?
             string koz = durum.AnlasilanKoz();
             if (string.IsNullOrEmpty(koz)) return false;
+            // NT sekansında (koz yok) renk Blackwood'u sorulmaz; as sorusu Gerber'in işidir.
+            if (koz == "NT" && !(durum.SonGercekTeklif == "4NT" && durum.SonGercekTeklifSahibi == durum.Partner)) return false;
 
             // 3. Aktif oyuncu daha önce 4NT demedi mi?
             if (durum.KendiTeklifleri.Contains("4NT")) return false;

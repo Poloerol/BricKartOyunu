@@ -26,4 +26,24 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return null;
         }
     }
+
+    /// <summary>
+    /// Hardy: rakibin 1NT'mize yaptığı 2♣ müdahalesi YAPAY ise (Cappelletti / Multi-Landy) cevapçının kontrası Stayman'dır
+    /// ve sistem aynen sürer. Doğal 2♣ için Lebensohl geçerlidir (bu sınıf konuşmaz).
+    /// </summary>
+    internal sealed class ArtifisyelIkiSinekStayman : YeniKonvTaban
+    {
+        public override string Ad { get { return "Yapay 2♣ Sonrası Kontra Stayman"; } }
+        public override string Aciklama { get { return "1NT–(yapay 2♣): Dbl = Stayman; açıcı 2♥/2♠/2♦ ile cevap verir"; } }
+        protected override string Karar(Dz z)
+        {
+            var an = z.D.Anlasma;
+            if (an == null || !(an.Cappelletti || an.MultiLandy)) return null;
+            if (z.Es("O:1NT", "R:2♣"))
+                return (z.Hp >= 8 && (z.Maca >= 4 || z.Kupa >= 4)) ? "Dbl" : null;
+            if (z.Es("B:1NT", "L:2♣", "O:Dbl"))
+                return z.Kupa >= 4 ? "2♥" : z.Maca >= 4 ? "2♠" : "2♦";
+            return null;
+        }
+    }
 }

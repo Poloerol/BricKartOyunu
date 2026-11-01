@@ -2564,6 +2564,9 @@ namespace BricKartOyunu
             t("Sandwich 1NT: ilerletici uzun renk ♣ → 2♣", "S:J85 H:K42 D:Q43 C:KJ74", "R:1♥ L:1♠ O:1NT", "2♣", a => a.Sandwich1NT = true);
             t("Robinson: 5♠ → 2♥ transfer", "S:AJ743 H:62 D:853 C:Q42", "O:1NT R:Dbl", "2♥", a => a.Robinson = true);
             t("Robinson: açıcı 2♥ transferini 2♠ ile tamamlar", "S:KQ4 H:AQ52 D:KJ4 C:Q75", "B:1NT L:Dbl O:2♥", "2♠", a => a.Robinson = true);
+            t("Yapay 2♣ (Cappelletti): Dbl = Stayman", "S:KJ85 H:K765 D:K4 C:Q94", "O:1NT R:2♣", "Dbl", a => a.Cappelletti = true);
+            t("Yapay 2♣: açıcı Stayman'a 4'lü maça ile 2♠", "S:KQ42 H:K5 D:QT4 C:AJ75", "B:1NT L:2♣ O:Dbl", "2♠", a => a.Cappelletti = true);
+            t("Doğal 2♣: kontra Stayman değil (Lebensohl)", "S:KJ85 H:K765 D:K4 C:Q94", "O:1NT R:2♣", "3NT", a => { });
             t("Exit Transfer: zayıf 5♥ → 2♦", "S:5 H:Q8643 D:J74 C:9632", "O:1NT R:Dbl", "2♦", a => a.ExitTransfer = true);
             t("Exit Transfer: açıcı 2♦ → 2♥", "S:KQ4 H:AQ52 D:KJ4 C:Q75", "B:1NT L:Dbl O:2♦", "2♥", a => a.ExitTransfer = true);
             t("Gambling 3NT: AKQJ963 ♣ → 3NT", "S:5 H:J4 D:432 C:AKQJ963", "", "3NT", a => a.Gambling3NT = true);

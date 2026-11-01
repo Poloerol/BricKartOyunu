@@ -39,6 +39,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Ortağım Unusual 2NT yaptı: cevap ver
             if (CevapKozlari(durum) != null) return true;
+            if (RekabetFedasi(durum) != null) return true;
 
             // Rakip 1 seviyesinde bir renk açtı mı?
             if (durum.RakipTeklifleri.Count == 0) return false;
@@ -76,6 +77,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             var k = CevapKozlari(durum);
             if (k != null) return CevapTeklifi(durum, k);
+            string f = RekabetFedasi(durum);
+            if (f != null) return f;
             return "2NT";
         }
 
@@ -104,6 +107,34 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             return new List<string> { "Sinek", "Karo", "Kupa", "Maça" }
                 .Where(r => r != rakipKozu).Take(2).ToList();
+        }
+
+        /// <summary>
+        /// 1X-(Pas)-... ortak 2NT (Unusual) yaptı, rakip 3 seviyesinde doğal renge yükseldi (3♥/3♠), ben henüz teklif vermedim:
+        /// ortağın uzun olabilecek minöründe 4+ kartım varsa (9+ kart uyum) 4 seviyesinde minörü teklif et.
+        /// </summary>
+        private static string RekabetFedasi(IhaleDurumu durum)
+        {
+            if (durum.KendiTeklifleri.Any(t => t != "Pas")) return null;
+            var np = durum.Gecmis.Where(h => !h.PasMi).ToList();
+            if (np.Count < 3) return null;
+            var son = np[np.Count - 1];
+            var once = np[np.Count - 2];
+            if (!durum.Rakipler.Contains(son.Oyuncu) || !son.GercekTeklifMi || son.Seviye != 3) return null;
+            if (son.Koz != "Kupa" && son.Koz != "Maça") return null;
+            if (once.Oyuncu != durum.Partner || once.Teklif != "2NT") return null;
+            var acan = np.FirstOrDefault(h => h.GercekTeklifMi && durum.Rakipler.Contains(h.Oyuncu));
+            if (acan == null || acan.Seviye != 1) return null;
+            var kozlar = new List<string> { "Sinek", "Karo", "Kupa", "Maça" }.Where(r => r != acan.Koz).Take(2).ToList();
+            var el = durum.AktifOyuncuEli;
+            string sec = null; int en = 0;
+            foreach (var r in kozlar)
+            {
+                int l = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (l >= 4 && l >= en) { sec = r; en = l; }
+            }
+            if (sec == null) return null;
+            return "4" + KozYardimcisi.KozSembolu(sec);
         }
 
         private static string CevapTeklifi(IhaleDurumu durum, List<string> kozlar)

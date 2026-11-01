@@ -104,6 +104,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Walsh(),
                 new MiniRoman2D(),
                 new Robinson(),
+                new ArtifisyelIkiSinekStayman(),
                 new InvertedBergenRaises(),
                 new ExitTransfer(),
                 new Artificial2C2D(),

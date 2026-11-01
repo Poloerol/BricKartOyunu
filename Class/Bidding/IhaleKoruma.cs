@@ -504,6 +504,14 @@ namespace BricKartOyunu.Class.Bidding
                 }
             }
 
+            // Kendi 1M müdahalemi ortak 3M ile rekabetçi yükseltti: uzun renk + kısalık puanıyla 4M (HCP tahmini veto etmesin).
+            if (ad.StartsWith("Temel Mant") && teklif.Length == 2 && teklif[0] == '4' && teklif != "4NT")
+            {
+                var gx = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gx.Count == 4 && gx[1].Oyuncu == d.AktifOyuncu && gx[1].Seviye == 1 && gx[3].Oyuncu == d.Partner &&
+                    gx[3].Seviye == 3 && gx[3].Koz == gx[1].Koz && teklif.EndsWith(KozYardimcisi.KozSembolu(gx[1].Koz))) return true;
+            }
+
             if (ad == "Jacoby 2NT") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M) HCP tahminiyle veto edilmez
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale" || BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad))
                 return true;

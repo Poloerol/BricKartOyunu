@@ -103,7 +103,7 @@ namespace BricKartOyunu.Class
                 "Responsive Double", "Responsive Double Cevap", "Michaels", "Unusual 2NT", "Ghestem", "Cue Bid",
                 "Lebensohl (Reverse)", "Lebensohl (Zayıf 2)", "Weak Jump Overcalls", "Maximal Overcall Dbl.", "Artif. 2C/2D Resp. to 1M-X",
                 "Invisible Cue-Bids", "Limit-Plus Cue-Bids",
-                "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Sandwich 1NT", "Exit Transfer 1NT Runouts",
+                "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Yapay 2♣ Sonrası Kontra Stayman", "Sandwich 1NT", "Exit Transfer 1NT Runouts",
                 "Rubensohl", "Leaping Michaels" }),
             new KeyValuePair<string, string[]>("Slam", new[] {
                 "Blackwood", "RKCB", "Gerber", "Kickback", "Exclusion Blackwood", "Koz Q Sorusu", "Pick-a-Slam", "Grand Slam Force",

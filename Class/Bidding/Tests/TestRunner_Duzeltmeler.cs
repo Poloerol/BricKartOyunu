@@ -232,6 +232,13 @@ namespace BricKartOyunu.Tests
             T("V87 1NT-(Dbl): 4-4 majorler 12hp -> 2C Stayman", TestHelpers.ElOlustur("KJ85", "K765", "K4", "Q94"), "2♣", "1NT", "Dbl");
             T("V88 1NT-(Dbl)-2C Stayman: acici 4 kupa -> 2H", TestHelpers.ElOlustur("KQ4", "AQ52", "KJ4", "Q75"), "2♥", "1NT", "Dbl", "2♣", "Pas");
             T("V89 1NT-(Dbl)-2D transfer: acici 2H ile tamamlar", TestHelpers.ElOlustur("KQ4", "AQ52", "KJ4", "Q75"), "2♥", "1NT", "Dbl", "2♦", "Pas");
+            T("V90 1NT-(3D): 4-4 majorler 12hp -> negatif kontra", TestHelpers.ElOlustur("KJ85", "K765", "K4", "Q94"), "Dbl", "1NT", "3♦");
+            T("V91 1NT-(3D): 5 maca 12hp -> 3S", TestHelpers.ElOlustur("KJ854", "K65", "K4", "Q94"), "3♠", "1NT", "3♦");
+            T("V92 1NT-(3D)-Dbl-Pas: acici 4 maca -> 4S", TestHelpers.ElOlustur("KQ42", "K5", "QT4", "AJ75"), "4♠", "1NT", "3♦", "Dbl", "Pas");
+            T("V93 1NT-(3D)-Dbl-Pas: majorsuz, karo durdurucu -> 3NT", TestHelpers.ElOlustur("KQ2", "K65", "K32", "AJ75"), "3NT", "1NT", "3♦", "Dbl", "Pas");
+            T("V94 1D-(1H)-Dbl-(2H)-P-P: 13 HP, 4 maca -> 2S yeniden aç", TestHelpers.ElOlustur("J742", "QT", "K72", "AK74"), "2♠", "1♦", "1♥", "Dbl", "2♥", "Pas", "Pas");
+            T("V95 1H-(P)-1S-(2NT unusual)-3S: 4 karo destek -> 4D", TestHelpers.ElOlustur("A82", "T972", "K753", "J5"), "4♦", "1♥", "Pas", "1♠", "2NT", "3♠");
+            T("V96 1H-(1S)-2H-3S: 6 maca, 10 HP + kisalik -> 4S", TestHelpers.ElOlustur("KT8743", "4", "75", "AK94"), "4♠", "1♥", "1♠", "2♥", "3♠", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
