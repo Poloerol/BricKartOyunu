@@ -512,6 +512,14 @@ namespace BricKartOyunu.Class.Bidding
                     gx[3].Seviye == 3 && gx[3].Koz == gx[1].Koz && teklif.EndsWith(KozYardimcisi.KozSembolu(gx[1].Koz))) return true;
             }
 
+            // 1X-1Y-1NT-3Z (ortağın kendi rengiyle daveti) sonrası açıcının kabulü (3NT / 4M): HCP tahmini veto etmesin.
+            if (ad.StartsWith("Temel Mant") && (teklif == "3NT" || (teklif.Length == 2 && teklif[0] == '4')))
+            {
+                var gy = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gy.Count == 4 && gy[0].Oyuncu == d.AktifOyuncu && gy[0].Seviye == 1 && gy[1].Oyuncu == d.Partner && gy[1].Seviye == 1 &&
+                    gy[2].Oyuncu == d.AktifOyuncu && gy[2].Teklif == "1NT" && gy[3].Oyuncu == d.Partner && gy[3].Seviye == 3) return true;
+            }
+
             if (ad == "Jacoby 2NT") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M) HCP tahminiyle veto edilmez
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale" || BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad))
                 return true;

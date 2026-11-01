@@ -250,6 +250,8 @@ namespace BricKartOyunu.Tests
             T("V105 1NT-(3S): zayif el -> Pas", TestHelpers.ElOlustur("652", "K65", "AJ32", "975"), "Pas", "1NT", "3♠");
             TS("V106 1H-1S-1NT: 12 HP 7 karo -> 3D davet (Pas degil)", TestHelpers.ElOlustur("AKJ6", "98", "AT87653", ""), "3♦", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas");
             TS("V107 1H-1S-1NT: 7 HP 7 karo -> 2D oynamak icin", TestHelpers.ElOlustur("83", "98", "KQJ8765", "J4"), "2♦", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas");
+            TS("V108 1H-1S-1NT-3D: 12 HP, KQJ karo destek -> 3NT kabul", TestHelpers.ElOlustur("83", "AT762", "KQJ", "Q109"), "3NT", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "3♦", "Pas");
+            TS("V109 1H-1S-1NT-3D: 12 HP, QJ9 karo destek yok -> Pas", TestHelpers.ElOlustur("83", "AT762", "QJ9", "KQ10"), "Pas", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "3♦", "Pas");
 
             AcilisCevapTaramasi(8000);
 

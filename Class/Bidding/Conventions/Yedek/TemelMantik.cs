@@ -131,6 +131,25 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
             }
 
+            // 2b-4. 1X-(P)-1Y-(P)-1NT-(P)-3Z-(P): ortak 3 seviyede kendi 6+ kartlı rengiyle davet etti.
+            //      Minörde: 13+ HP, ya da 12 HP ve 3+ destek (en az iki A/K/Q) -> 3NT. Majörde: 12+ HP ve 3+ destek -> 4M. Aksi halde Pas.
+            if (np.Count == 4 && np[0].Oyuncu == d.AktifOyuncu && np[0].GercekTeklifMi && np[0].Seviye == 1 && np[0].Koz != "NT" &&
+                np[1].Oyuncu == d.Partner && np[1].GercekTeklifMi && np[1].Seviye == 1 && np[1].Koz != "NT" &&
+                np[2].Oyuncu == d.AktifOyuncu && np[2].Teklif == "1NT" &&
+                np[3].Oyuncu == d.Partner && np[3].GercekTeklifMi && np[3].Seviye == 3 && np[3].Koz != "NT" && np[3].Koz != np[0].Koz &&
+                g[g.Count - 1].PasMi && !g.Any(h => d.Rakipler.Contains(h.Oyuncu) && !h.PasMi))
+            {
+                string pz = np[3].Koz;
+                int dst = ElDegerlendirici.RenkUzunlugu(el, pz);
+                int onur = el.Count(c => c.Suit == pz && c.Value >= 12);
+                bool mjz = pz == "Maça" || pz == "Kupa";
+                if (mjz)
+                {
+                    if (hp >= 12 && dst >= 3) return Seviye(d, pz, 4);
+                }
+                else if (hp >= 13 || (hp >= 12 && ((dst >= 3 && onur >= 2) || dst >= 4))) return Seviye(d, "NT", 3);
+            }
+
             // 2. Rakip açtı, bizim taraf henüz susuyor → doğal müdahale
             if (!ortakKonustu && !benKonustum && rakipKonustu)
                 return Mudahale(d, el, hp, gercek);
