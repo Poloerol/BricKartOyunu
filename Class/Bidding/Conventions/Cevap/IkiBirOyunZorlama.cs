@@ -203,6 +203,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static string Devam(Dz z, bool benAcici, string m, string s)
         {
             string son = YK.Cagri(z.Hepsi[z.Hepsi.Count - 1]);
+            // Cevaplayanın splinter'ı (1M-2x-2M-4y / 1♥-2x-2♥-3♠): açıcı kısa rengindeki değerleri (K,Q,J) boşa giden sayar;
+            // kalan değeri 17+ ise 4NT (RKCB), aksi halde 4M ile durur (Hardy).
+            if (benAcici && YK.Major(m) && z.Hepsi.Count == 4 && z.Hepsi[2] == "B:" + YK.T(2, m) && z.Hepsi[3].StartsWith("O:")
+                && YK.KozOf(son) != null && YK.KozOf(son) != "NT" && YK.KozOf(son) != m && YK.KozOf(son) != s
+                && (YK.Sev(son) == 4 || (YK.Sev(son) == 3 && m == "Kupa" && YK.KozOf(son) == "Maça")))
+            {
+                string kisa = YK.KozOf(son);
+                int bos = z.El.Where(c => c.Suit == kisa).Sum(c => c.Value == 13 ? 3 : c.Value == 12 ? 2 : c.Value == 11 ? 1 : 0);
+                return (z.Hp - bos >= 17) ? "4NT" : YK.T(4, m);
+            }
             // Serious 3NT sonrası kontrol cue-bid'leri (Hardy/Wold): 4 seviyesinde yan renk cue'su
             if (YK.Major(m) && z.Hepsi.Count >= 6 && z.Hepsi[4].EndsWith(":3NT") && z.Hepsi[2].EndsWith(":" + YK.T(2, m))
                 && z.Hepsi[3].EndsWith(":" + YK.T(3, m)) && z.Hepsi[4][0] == z.Hepsi[0][0] && z.Hepsi[2][0] == z.Hepsi[0][0]
@@ -329,7 +339,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 sayi[r]++;
                 int min;
                 if (benim.Contains(r)) min = YK.Major(r) ? 3 : 4;                  // benim rengime destek
-                else if (sayi[r] >= 2) min = benAcici ? 6 : 5;                     // aynı rengi tekrar: cevaplayan 6+, açıcı 5+ (Hardy)
+                else if (sayi[r] >= 2) min = benAcici ? 6 : (r == m && YK.Sev(YK.Cagri(h)) == 3 ? 6 : 5);   // aynı rengi tekrar: cevaplayan 6+, açıcı 5+; açıcının sıçramalı 3M rebidi 6+ (Hardy)
                 else if (r == m && !benAcici) min = 5;                             // açıcının majörü
                 else if (r == "Kupa" && m == "Maça" && benAcici) min = 5;          // 1♠–2♥
                 else min = 4;

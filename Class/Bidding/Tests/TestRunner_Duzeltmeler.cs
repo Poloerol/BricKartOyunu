@@ -187,6 +187,9 @@ namespace BricKartOyunu.Tests
             T("V42 Serious 3NT sonrasi: tum yanlar kontrollu (Hardy ex120) -> 4NT", TestHelpers.ElOlustur("AKJ854", "AQ2", "K4", "65"), "4NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas", "4♣", "Pas");
             T("V43 Serious 3NT sonrasi: karo kontrolu yok -> 4D cue degil, 4S", TestHelpers.ElOlustur("AKJ854", "Q72", "986", "6"), "4♠", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas", "4♣", "Pas");
             T("V44 Serious 3NT: acici 4H cue sonrasi cevapci karo asi -> 4NT", TestHelpers.ElOlustur("Q63", "86", "AJ9852", "A8"), "4NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3♠", "Pas", "3NT", "Pas", "4♣", "Pas", "4♥", "Pas");
+            T("V45 1S-2D-3S (acici 6+ maca sicramali): 2 maca destegi -> 4S (3NT degil)", TestHelpers.ElOlustur("Q8", "J4", "AKJ962", "K54"), "4♠", "1♠", "Pas", "2♦", "Pas", "3♠", "Pas");
+            T("V46 Splinter 4D sonrasi acici: karoda bos K9, 15hp -> 4S", TestHelpers.ElOlustur("AKJ85", "Q72", "K9", "K64"), "4♠", "1♠", "Pas", "2♣", "Pas", "2♠", "Pas", "4♦", "Pas");
+            T("V47 Splinter 4D sonrasi acici: karoda deger yok, 18hp -> 4NT", TestHelpers.ElOlustur("AKJ85", "AQ2", "4", "KQ64"), "4NT", "1♠", "Pas", "2♣", "Pas", "2♠", "Pas", "4♦", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
