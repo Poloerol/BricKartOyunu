@@ -275,7 +275,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (benAcici && z.Hepsi.Count == 4 && z.Hepsi[2] == "B:" + YK.T(2, m) && YK.Major(m) && fit == m && sonRenk == m && sonSev == 3 && hp >= 15) return null;
 
             // Cevaplayanın 2. turu: açıcının majöründe fit
-            if (!benAcici && z.Hepsi.Count == 3 && fit == m)
+            if (!benAcici && z.Hepsi.Count == 3 && fit == m && YK.Major(m))
             {
                 if (hp >= 20) return null;
                 if (sonRenk == m && sonSev >= 3) return YK.T(4, m);
@@ -290,6 +290,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (fit != null)
             {
                 if (hp >= 20) return null;                          // slam bölgesi: diğer konvansiyonlara bırakılır
+                // Minör açılışta açıcının 2. rengi majörde fit (cevaplayan 15+ HP): 4M yerine 3M ile şlem ilgisi (4M atlamaz)
+                if (!benAcici && z.Hepsi.Count == 3 && YK.Major(fit) && !YK.Major(m) && hp >= 15 && sonSev == 2 && YK2.Yuksek(YK.T(3, fit), son))
+                    return YK.T(3, fit);
                 if (!YK.Major(fit) && z.Uz(fit) >= 5 && z.Uz(fit) + pm[fit] >= 9 && Renkler.Any(r => z.Uz(r) <= 1) && YK2.Yuksek(YK.T(4, fit), son))
                     return YK.T(4, fit);                          // 9+ kartlık minör uyumu (kendi 5+) + kısalık/void: 3NT yerine 4m
                 return YK.Major(fit) ? YK.T(4, fit) : "3NT";
@@ -309,6 +312,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 foreach (string r in Renkler)
                 {
                     if (r == m || r == s || pm[r] > 0 || z.Uz(r) < 4) continue;
+                    if (!YK.Major(m) && son == "2NT" && YK.Major(r)) continue;   // minör açılış + 2NT rebidi: açıcı 4'lü majörü yok (Hardy), majör aramak anlamsız
                     string iki = YK.T(2, r);
                     if (YK2.Yuksek(iki, son)) return iki;
                     string uc = YK.T(3, r);
@@ -340,7 +344,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int min;
                 if (benim.Contains(r)) min = YK.Major(r) ? 3 : 4;                  // benim rengime destek
                 else if (sayi[r] >= 2) min = benAcici ? 6 : (r == m && YK.Sev(YK.Cagri(h)) == 3 ? 6 : 5);   // aynı rengi tekrar: cevaplayan 6+, açıcı 5+; açıcının sıçramalı 3M rebidi 6+ (Hardy)
-                else if (r == m && !benAcici) min = 5;                             // açıcının majörü
+                else if (r == m && !benAcici) min = YK.Major(r) ? 5 : 4;                             // açıcının majörü
                 else if (r == "Kupa" && m == "Maça" && benAcici) min = 5;          // 1♠–2♥
                 else min = 4;
                 if (min > pm[r]) pm[r] = min;

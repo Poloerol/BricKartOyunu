@@ -190,6 +190,10 @@ namespace BricKartOyunu.Tests
             T("V45 1S-2D-3S (acici 6+ maca sicramali): 2 maca destegi -> 4S (3NT degil)", TestHelpers.ElOlustur("Q8", "J4", "AKJ962", "K54"), "4♠", "1♠", "Pas", "2♦", "Pas", "3♠", "Pas");
             T("V46 Splinter 4D sonrasi acici: karoda bos K9, 15hp -> 4S", TestHelpers.ElOlustur("AKJ85", "Q72", "K9", "K64"), "4♠", "1♠", "Pas", "2♣", "Pas", "2♠", "Pas", "4♦", "Pas");
             T("V47 Splinter 4D sonrasi acici: karoda deger yok, 18hp -> 4NT", TestHelpers.ElOlustur("AKJ85", "AQ2", "4", "KQ64"), "4NT", "1♠", "Pas", "2♣", "Pas", "2♠", "Pas", "4♦", "Pas");
+            T("V48 1D-2C-2NT: 5C 4H 14hp -> 3NT (acicinin 4lu majoru yok, 3H degil)", TestHelpers.ElOlustur("Q83", "KJ84", "9", "AKJ52"), "3NT", "1♦", "Pas", "2♣", "Pas", "2NT", "Pas");
+            T("V49 1D-2C-2NT: 3 karo 12hp dengeli -> 3NT (4D degil)", TestHelpers.ElOlustur("K83", "J4", "962", "AKJ52"), "3NT", "1♦", "Pas", "2♣", "Pas", "2NT", "Pas");
+            T("V50 1D-2C-2H: 4 kupa fiti 17hp -> 3H (sluem ilgisi)", TestHelpers.ElOlustur("A3", "KJ84", "96", "AKQ54"), "3♥", "1♦", "Pas", "2♣", "Pas", "2♥", "Pas");
+            T("V51 1D-2C-2H: 4 kupa fiti 12hp -> 4H", TestHelpers.ElOlustur("83", "KJ84", "96", "AKJ54"), "4♥", "1♦", "Pas", "2♣", "Pas", "2♥", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
