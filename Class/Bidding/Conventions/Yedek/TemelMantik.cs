@@ -618,7 +618,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
             }
 
-            bool nt = dengeli || EnUzunUzunluk(el) <= 5;
+            bool besBes = Renkler.Count(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 5) >= 2;   // 5-5 eller NT eli değildir
+            bool nt = dengeli || (EnUzunUzunluk(el) <= 5 && !besBes);
             bool ntOlur = NTOlur(el, rakipRenkleri);
             // Ortak rakibin rengi söylendikten SONRA NT dediyse o rengi durdurduğunu vaat eder:
             // 1♣–1♥–(1♠)–2NT'de ortağın ♠ durdurucusu var, bende olmasa da 3NT oynanır.
@@ -664,6 +665,21 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (ikinci != null && ikinciUz >= 4 && Cheapest(d, ikinci) <= 3)
                         return Seviye(d, ikinci, Cheapest(d, ikinci));
                 }
+            }
+
+            // Max Hardy: sıçramalı 3NT rebidi — minör açılış + 1 seviyesinde cevap; 6+ kartlı (neredeyse) kapalı minör,
+            // cevapçının renginde kısa (tekli/void), diğer renklerde durdurucu, yaklaşık 16-18 HP.
+            if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 &&
+                (gercek[0].Koz == "Karo" || gercek[0].Koz == "Sinek") &&
+                gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" && gercek[1].Koz != gercek[0].Koz &&
+                !rakipRenkleri.Any() && hp >= 15 && hp <= 18)
+            {
+                string mn = gercek[0].Koz, pr = gercek[1].Koz;
+                int ust = el.Count(c => c.Suit == mn && c.Value >= 12);   // A,K,Q sayısı
+                bool kapali = ElDegerlendirici.RenkUzunlugu(el, mn) >= 6 && (ust >= 3 || (ust >= 2 && el.Any(c => c.Suit == mn && c.Value == 14)));
+                if (kapali && ElDegerlendirici.RenkUzunlugu(el, pr) <= 1 &&
+                    Renkler.Where(r => r != mn && r != pr).All(r => ElDegerlendirici.StopperVar(el, r)))
+                    return Seviye(d, "NT", 3);
             }
 
             // Zorlayıcı durumda 6+ kartlık kendi rengim var ve ortağın son gösterdiği renkte durdurucum yok:
@@ -721,7 +737,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // 5-5 açıcı: ikinci 5'li renk birincinin altındaysa (1♦–1♠–2♣) reverse olmaz → ikinci rengi doğal göster
                 if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
                     gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" &&
-                    !rakipRenkleri.Any() && hp <= 16 &&
+                    !rakipRenkleri.Any() && hp <= 18 &&
                     ElDegerlendirici.RenkUzunlugu(el, gercek[0].Koz) == 5)
                 {
                     foreach (var r2 in Renkler)

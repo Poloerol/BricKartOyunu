@@ -211,6 +211,9 @@ namespace BricKartOyunu.Tests
             T("V66 1S-(X): 13hp, tekil maca, 5 karo -> Rdbl (3NT degil)", TestHelpers.ElOlustur("8", "K43", "AQJ962", "K54"), "Rdbl", "1♠", "Dbl");
             T("V67 1S-(X): 8hp, tekil maca, 5 karo -> 2D (non-forsing)", TestHelpers.ElOlustur("8", "K43", "QJ9862", "J54"), "2♦", "1♠", "Dbl");
             T("V68 1S-(X): 12hp dengeli, 2 maca -> Rdbl", TestHelpers.ElOlustur("83", "AQ4", "KQ96", "K542"), "Rdbl", "1♠", "Dbl");
+            T("V69 1D-1S: kapali 7 karo, durdurucular, 17hp -> 3NT sicramali (Hardy)", TestHelpers.ElOlustur("7", "K85", "AKQJ108", "A54"), "3NT", "1♦", "Pas", "1♠", "Pas");
+            T("V70 1D-1S: 7 karo ama sinek durdurucusu yok -> 3NT degil", TestHelpers.ElOlustur("7", "K85", "AKQJ108", "J54"), "2♦", "1♦", "Pas", "1♠", "Pas");
+            T("V71 1H-1S: 5-5 (H+C) tekli karo 17hp -> 2C (2NT degil)", TestHelpers.ElOlustur("94", "AKQ85", "2", "AKJ54"), "2♣", "1♥", "Pas", "1♠", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
