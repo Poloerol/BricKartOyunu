@@ -41,10 +41,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.KendiTeklifleri.Contains("4NT")) return false;
 
             string koz = durum.AnlasilanKoz();
-            if (koz != "Maça" && koz != "Kupa") return false;
+            if (koz != "Maça" && koz != "Kupa" && koz != "Karo" && koz != "Sinek") return false;
+            bool minor = koz == "Karo" || koz == "Sinek";
 
             int seviye = durum.KacinciSeviye();
             if (seviye < 3 || seviye > 4) return false;
+            // Minörde 4m (oyun) teklif edildiyse cue-bid devri geçti
+            if (minor && seviye >= 4 && durum.Gecmis.Any(h => h.GercekTeklifMi && h.Koz == koz && h.Seviye >= 4)) return false;
 
             string secim = Sec(durum, koz);
             return secim != null;
@@ -73,20 +76,26 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (gercek.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return null;
 
             string kozSembol = KozYardimcisi.KozSembolu(koz);
+            bool minor = koz == "Karo" || koz == "Sinek";
+            // Cue-bid sınırı: majörde 4M'nin altı; minörde 4m'nin altı (3NT atlanır)
+            int ustSeviye = 4;
             int kozUz = ElDegerlendirici.RenkUzunlugu(el, koz);
 
             // Zaten doğal teklif edilmiş (3. seviye ve altı) renkler cue-bid sayılmaz
-            var dogal = new HashSet<string>(gercek.Where(h => h.Seviye <= 3 && h.Koz != "NT" && h.Koz != koz).Select(h => h.Koz));
+            int dogalSv = (koz == "Karo" || koz == "Sinek") ? 2 : 3;
+            var dogal = new HashSet<string>(gercek.Where(h => h.Seviye <= dogalSv && h.Koz != "NT" && h.Koz != koz).Select(h => h.Koz));
             // Kendi cue-bid'lerim ve ortağınkiler (4 seviyesi, koz dışı, majörün altı)
-            Func<IhaleHamlesi, bool> cueMi = h => h.Seviye == 4 && h.Koz != "NT" && h.Koz != koz &&
-                                                  Sira(h.Koz) < Sira(koz) && !dogal.Contains(h.Koz);
+            Func<IhaleHamlesi, bool> cueMi = h => h.Koz != "NT" && h.Koz != koz && !dogal.Contains(h.Koz) &&
+                                                  (minor ? (h.Seviye == 3 || h.Seviye == 4) && (h.Seviye < 4 || Sira(h.Koz) < Sira(koz))
+                                                         : h.Seviye == 4 && Sira(h.Koz) < Sira(koz));
             var benCue = gercek.Where(h => h.Oyuncu == durum.AktifOyuncu && cueMi(h)).Select(h => h.Koz).ToList();
             var ortakCue = gercek.Where(h => h.Oyuncu == durum.Partner && cueMi(h)).Select(h => h.Koz).ToList();
 
             bool ortakSonCue = son.Oyuncu == durum.Partner && cueMi(son);
 
-            // 4M zaten teklif edildiyse (oyun sinyali) ya da seviye 4M üstü ise bu konvansiyon konuşmaz
+            // Oyun seviyesinde koz teklif edildiyse (oyun sinyali) bu konvansiyon konuşmaz
             if (son.Seviye >= 4 && son.Koz == koz) return null;
+            if (minor && son.Seviye >= 4 && son.Koz != "NT" && Sira(son.Koz) >= Sira(koz)) return null;
 
             int hp = ElDegerlendirici.HCP(el);
 
@@ -95,7 +104,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 if (hp < 15) return null;
                 var ortAr = IhaleKoruma.PartnerAraligi(durum);
-                if (hp + ortAr.Min < 29) return null;
+                if (hp + ortAr.Min < (minor ? 30 : 29)) return null;
             }
             else if (!ortakSonCue)
             {
@@ -104,12 +113,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
 
             // Aday renkler: yukarı doğru, son gerçek teklifin üzerinde, majörün altında, daha önce cue-bid yapmadığım
+            // Her aday (seviye, renk) çifti: majörde 4 seviyesi; minörde en ucuz yasal seviye (3 ya da 4), 3NT atlanır
             var adaylar = new List<string>();
+            var aday_seviye = new Dictionary<string, int>();
             foreach (var r in Siralama)
             {
-                if (r == koz || Sira(r) > Sira(koz) || dogal.Contains(r) || benCue.Contains(r)) continue;
-                if (!Yasal(son, 4, r)) continue;
-                adaylar.Add(r);
+                if (r == koz || dogal.Contains(r) || benCue.Contains(r)) continue;
+                if (!minor && Sira(r) > Sira(koz)) continue;
+                int lv = -1;
+                foreach (int l in minor ? new[] { 3, 4 } : new[] { 4 })
+                    if (Yasal(son, l, r)) { lv = l; break; }
+                if (lv < 0) continue;
+                if (minor && lv == 4 && Sira(r) > Sira(koz)) continue;   // 4 seviyesinde 4m'nin üstü cue-bid değil
+                adaylar.Add(r); aday_seviye[r] = lv;
             }
 
             // Önce birinci tur kontrol (As ya da void)
@@ -117,7 +133,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 int uz = ElDegerlendirici.RenkUzunlugu(el, r);
                 bool as_ = el.Any(c => c.Suit == r && c.Value == 14);
-                if (as_ || uz == 0) return "4" + KozYardimcisi.KozSembolu(r);
+                if (as_ || uz == 0) return aday_seviye[r] + KozYardimcisi.KozSembolu(r);
             }
 
             // İkinci tur kontrol (papaz ya da tek kart): yalnızca ortağın cue-bid'ine cevap / devam ederken
@@ -127,10 +143,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 {
                     int uz = ElDegerlendirici.RenkUzunlugu(el, r);
                     bool papaz = el.Any(c => c.Suit == r && c.Value == 13);
-                    if (papaz || (uz == 1 && kozUz >= 3)) return "4" + KozYardimcisi.KozSembolu(r);
+                    if (papaz || (uz == 1 && kozUz >= 3)) return aday_seviye[r] + KozYardimcisi.KozSembolu(r);
                 }
                 // Kontrolüm kalmadı: ortak cue-bid yaptıysa ve son söz onunsa slem ilgisizliği → 4M
-                if (ortakSonCue && Yasal(son, 4, koz)) return "4" + kozSembol;
+                if (ortakSonCue && !minor && Yasal(son, 4, koz)) return "4" + kozSembol;
+                if (ortakSonCue && minor)
+                {
+                    foreach (int l in new[] { 4, 5 })
+                        if (Yasal(son, l, koz)) return l + kozSembol;
+                }
             }
 
             return null;

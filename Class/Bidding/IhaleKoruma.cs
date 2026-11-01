@@ -110,6 +110,8 @@ namespace BricKartOyunu.Class.Bidding
                     else if (bergen && s == 3 && ayniRenk) { lo = 0; hi = 6; }                                // 3M = önleyici
                     else if (majAcilis && s == 4 && ayniRenk && !ortakBirsekacildi) { lo = 3; hi = 11; }      // 4M = oynamak için / önleyici
                     else if (d.Anlasma != null && d.Anlasma.Jacoby2NT && majAcilis && s == 2 && renk == "NT" && !ortakBirsekacildi && g.First(x => Gercek(x.Teklif)).Seviye == 1) { lo = 13; hi = 40; }   // Jacoby 2NT: oyun zorlayıcı, 4+ koz
+                    else if (d.Anlasma != null && d.Anlasma.IkiBirOyunZorlama && s == 2 && !ayniRenk && renk != "NT" && !ortakBirsekacildi &&
+                             g.First(x => Gercek(x.Teklif)).Seviye == 1 && KozSiraAl(renk) < KozSiraAl(acilisRengi)) { lo = 12; hi = 17; }   // 2/1 oyun zorlayıcı: 12+
                     else if (s == 1) { lo = 6; hi = renk == "NT" ? 10 : 14; }
                     else if (s == 2) { lo = ayniRenk ? 6 : (renk == "NT" ? 11 : 10); hi = ayniRenk ? 10 : (renk == "NT" ? 12 : 17); }
                     else if (s == 3 && ayniRenk && !(renk == "Kupa" || renk == "Maça")) { lo = 4; hi = 10; }   // minör 3 seviye sıçrama: zayıf

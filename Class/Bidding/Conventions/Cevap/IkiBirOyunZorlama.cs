@@ -393,7 +393,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Genel fit: majörde 4M, minörde 3NT
             if (fit != null)
             {
-                if (hp >= 20) return null;                          // slam bölgesi: diğer konvansiyonlara bırakılır
+                if (hp >= (YK.Major(fit) ? 20 : 17)) return null;   // slam bölgesi: diğer konvansiyonlara bırakılır (minörde 17+)
                 // Minör açılışta açıcının 2. rengi majörde fit (cevaplayan 15+ HP): 4M yerine 3M ile şlem ilgisi (4M atlamaz)
                 if (!benAcici && z.Hepsi.Count == 3 && YK.Major(fit) && !YK.Major(m) && hp >= 15 && sonSev == 2 && YK2.Yuksek(YK.T(3, fit), son))
                     return YK.T(3, fit);

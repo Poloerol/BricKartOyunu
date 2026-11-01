@@ -225,6 +225,7 @@ namespace BricKartOyunu.Tests
             T("V80 2C-2D-2NT: 14hp cevapci -> 6NT", TestHelpers.ElOlustur("K54", "QJ5", "AJ4", "QJ52"), "6NT", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
             T("V81 Cue-bid cevabi: ortak 4D cue, K(kupa) ikinci tur kontrol -> 4H", TestHelpers.ElOlustur("AKJ87", "K5", "AQ5", "Q32"), "4♥", "1♠", "Pas", "2NT", "Pas", "3♠", "Pas", "4♦", "Pas");
             T("V82 Cue-bid cevabi: ortak 4D cue, kontrol gosterilemiyor (4C atlandi) -> 4S", TestHelpers.ElOlustur("AKJ87", "Q5", "K65", "A32"), "4♠", "1♠", "Pas", "2NT", "Pas", "3♠", "Pas", "4♦", "Pas");
+            T("V83 Minor fit (karo) 1D-2C-2D-3D: 18hp As(maca) -> 3S cue-bid", TestHelpers.ElOlustur("A5", "K4", "AKJ62", "K432"), "3♠", "1♦", "Pas", "2♣", "Pas", "2♦", "Pas", "3♦", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
