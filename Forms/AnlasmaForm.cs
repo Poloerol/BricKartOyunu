@@ -166,7 +166,7 @@ namespace BricKartOyunu.Forms
             Yerlestir(lblSistemB, SolX, 98, 120, 18);
             _lblSistem = new Label { AutoSize = false, Font = new Font(Font, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft };
             Yerlestir(_lblSistem, SolX, 116, SolW - 84, 22);
-            var lnkSistem = new LinkLabel { Text = "değiştir", AutoSize = false, TextAlign = ContentAlignment.MiddleRight };
+            var lnkSistem = new LinkLabel { Text = "değiştir", AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
             Yerlestir(lnkSistem, SolX + SolW - 80, 116, 80, 22);
             lnkSistem.LinkClicked += (s, e) => SistemMenusu(lnkSistem);
 
@@ -227,11 +227,11 @@ namespace BricKartOyunu.Forms
 
             // ── Alt satır ──
             var btnYaz = new Button { Text = "Yazdır" };
-            var btnIsaret = new Button { Text = "İşaretleri göster" };
+            var btnSinyal = new Button { Text = "Sinyalleri göster" };
             Yerlestir(btnYaz, OrtaX, 464, 100, 28);
-            Yerlestir(btnIsaret, OrtaX + 108, 464, 130, 28);
+            Yerlestir(btnSinyal, OrtaX + 108, 464, 130, 28);
             btnYaz.Click += (s, e) => Yazdir();
-            btnIsaret.Click += (s, e) => IsaretleriGoster();
+            btnSinyal.Click += (s, e) => SinyalleriGoster();
 
             var btnIptal = new Button { Text = "İptal" };
             var btnTamam = new Button { Text = "Tamam" };
@@ -246,7 +246,7 @@ namespace BricKartOyunu.Forms
                 lblBeceriB, _lblBeceri, btnBeceri, _chkOgrenme, gAgr, bir,
                 _kutular[1].Grup, _kutular[2].Grup, _kutular[3].Grup,
                 _kutular[4].Grup, _kutular[5].Grup, _kutular[6].Grup, _kutular[7].Grup,
-                btnYaz, btnIsaret, btnIptal, btnTamam });
+                btnYaz, btnSinyal, btnIptal, btnTamam });
         }
 
         // ───────────────────────── Davranış ─────────────────────────
@@ -382,11 +382,9 @@ namespace BricKartOyunu.Forms
             a.AcilisAgresifligi = _agr[2];
         }
 
-        private void IsaretleriGoster()
+        private void SinyalleriGoster()
         {
-            string s = Liste(_secili.Anlasma, "StandartSignal=Standart", "UDCA=UDCA", "OddEvenDiscards=Tek-Çift atış",
-                "Lavinthal=Lavinthal", "SmithEcho=Smith echo");
-            MessageBox.Show(this, s.Replace(", ", "\n"), "Seçili işaretleşme yöntemleri", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var f = new SinyallerForm(_secili.Anlasma)) f.ShowDialog(this);
         }
 
         private void Yazdir()
@@ -512,6 +510,89 @@ namespace BricKartOyunu.Forms
             AnlasmaYonetici.OgrenmeModuAcik = _chkOgrenme.Checked;
             DialogResult = DialogResult.OK;
             Close();
+        }
+    }
+
+    /// <summary>Sinyaller ekranı (salt okunur): açılış kartı kuralları ve genel işaretleşme özeti.
+    /// Genel işaretleşme sekmesi, profildeki Konvansiyonlar'dan gelen seçimleri yansıtır.</summary>
+    public sealed class SinyallerForm : Form
+    {
+        private static readonly string[][] RenkKartlari =
+        {
+            new[] { "[x]x", " x x[x]", " x x x[x]", " x x x[x]x", " T x[x]", "[T]9 x", " H x[x]", " H x x[x]", "[K]Q x +", "[A]K x +", " A[K]", "[Q]J x +" },
+            new[] { "[J]T 9", " K[Q]T 9", " K[J]T x", " K[T]9 x", " Q[T]9 x", " A[Q]J", " A[J]T", " A[T]9", "[J]T x", "[K]Q T x", "[Q]J 9 x", "[J]T 8 x" },
+            new[] { "[K]Q", "[Q]J", "[J]T", "[T]9", " 9 x[x]", "[9]8 x" }
+        };
+        private static readonly string[][] NtKartlari =
+        {
+            new[] { "[x]x", "[x]x x", "[x]x x x", " x x x[x]x", " T x[x]", "[T]9 x", " H x[x]", " H x x[x]", "A[K]x +", "A[K]", "A[K]J x", "A[J]T x" },
+            new[] { "[K]Q J x", "[Q]J T x", "[J]T 9 x", " A[Q]J x", " A[T]9 x", " K[Q]T 9", " Q[T]9 x", "[A]K J T", "[A]K Q T", " K[J]T x", " K[T]9 x", "[K]Q x" },
+            new[] { "[Q]J x", "[J]T x", "[K]Q T x", "[Q]J 9 x", "[J]T 8 x", "[9]x x", "[9]8 x" }
+        };
+
+        public SinyallerForm(OrtaklikAnlasmasi a)
+        {
+            Text = "Sinyaller";
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterParent;
+            ShowInTaskbar = false; MinimizeBox = false; MaximizeBox = false;
+            ClientSize = new Size(480, 450);
+            Font = new Font("Segoe UI", 9F);
+
+            var tab = new TabControl { Location = new Point(6, 6), Size = new Size(468, 394) };
+            tab.TabPages.Add(KartSayfasi("Renge karşı açılış", RenkKartlari, false));
+            tab.TabPages.Add(KartSayfasi("NT'ye karşı açılış", NtKartlari, true));
+            tab.TabPages.Add(GenelSayfa(a));
+            if (Environment.GetEnvironmentVariable("SINTAB") == "2") tab.SelectedIndex = 2;
+
+            var tamam = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(306, 410), Size = new Size(80, 28) };
+            var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(392, 410), Size = new Size(80, 28) };
+            Controls.AddRange(new Control[] { tab, tamam, iptal });
+            AcceptButton = tamam; CancelButton = iptal;
+        }
+
+        private static TabPage KartSayfasi(string baslik, string[][] sutunlar, bool nt)
+        {
+            var p = new TabPage(baslik) { BackColor = SystemColors.Control };
+            var f = new Font("Arial", 11F, FontStyle.Bold);
+            for (int s = 0; s < sutunlar.Length; s++)
+                for (int i = 0; i < sutunlar[s].Length; i++)
+                    p.Controls.Add(new Label { Text = sutunlar[s][i], Font = f, AutoSize = false, Location = new Point(10 + 150 * s, 10 + 24 * i), Size = new Size(140, 22) });
+
+            string[] ozel = nt ? new[] { "Gazeteci (Journalist)", "Sıfır ya da iki üst", "MUD" } : new[] { "Rusinow", "Gazeteci (Journalist)", "Sıfır ya da iki üst", "MUD" };
+            int y = nt ? 196 : 190;
+            foreach (var t in ozel) { p.Controls.Add(new CheckBox { Text = t, AutoSize = true, Enabled = false, Location = new Point(316, y) }); y += 24; }
+            var g = new GroupBox { Text = nt ? "NT'ye karşı" : "Renge karşı", Location = new Point(312, nt ? 272 : 290), Size = new Size(140, nt ? 84 : 66) };
+            g.Controls.Add(new RadioButton { Text = "üçüncü/beşinci", AutoSize = true, Enabled = false, Location = new Point(10, 16) });
+            g.Controls.Add(new RadioButton { Text = "dördüncü", AutoSize = true, Enabled = false, Checked = true, Location = new Point(10, 36) });
+            if (nt) g.Controls.Add(new RadioButton { Text = "en düşük", AutoSize = true, Enabled = false, Location = new Point(10, 56) });
+            p.Controls.Add(g);
+            return p;
+        }
+
+        private static GroupBox Grup(string baslik, Rectangle r, int secili, params string[] secenekler)
+        {
+            var g = new GroupBox { Text = baslik, Bounds = r };
+            for (int i = 0; i < secenekler.Length; i++)
+                g.Controls.Add(new RadioButton { Text = secenekler[i], AutoSize = true, Enabled = false, Checked = i == secili, Location = new Point(8, 20 + 20 * i) });
+            return g;
+        }
+
+        private static TabPage GenelSayfa(OrtaklikAnlasmasi a)
+        {
+            var p = new TabPage("Genel sinyaller") { BackColor = SystemColors.Control };
+            int ilkAtma = a.Lavinthal ? 3 : a.OddEvenDiscards ? 2 : 0;
+            p.Controls.Add(Grup("Her türlü sinyal", new Rectangle(4, 6, 108, 80), 0, "Evet", "Hayır"));
+            p.Controls.Add(Grup("İlk atma anlamlı", new Rectangle(116, 6, 108, 80), 0, "Evet", "Hayır"));
+            p.Controls.Add(Grup("Birincil sinyal", new Rectangle(228, 6, 108, 100), 1, "Sayı", "Tutum", "Tek/Çift"));
+            p.Controls.Add(Grup("Smith (ortak)", new Rectangle(340, 6, 112, 100), a.SmithEcho ? 1 : 0, "Yok", "Yüksek-alçak", "Alçak-yüksek"));
+            p.Controls.Add(Grup("Sayı sinyali", new Rectangle(4, 120, 108, 80), a.UDCA ? 1 : 0, "Çift", "Tek"));
+            p.Controls.Add(Grup("Rakibe sayı", new Rectangle(116, 120, 108, 80), 0, "Evet", "Hayır"));
+            p.Controls.Add(Grup("İlk atma genelde", new Rectangle(228, 120, 108, 120), ilkAtma, "Tutum", "Sayı", "Tek/Çift", "Lavinthal"));
+            p.Controls.Add(Grup("Smith (açıcı)", new Rectangle(340, 120, 112, 100), 0, "Yok", "Yüksek-alçak", "Alçak-yüksek"));
+            p.Controls.Add(Grup("Tutum (yüksek)", new Rectangle(116, 214, 108, 80), a.UDCA ? 1 : 0, "Teşvik eder", "Caydırır"));
+            p.Controls.Add(Grup("Koz sinyali", new Rectangle(340, 234, 112, 100), 2, "Vinje", "Yok", "3+ yüks-alç"));
+            return p;
         }
     }
 }
