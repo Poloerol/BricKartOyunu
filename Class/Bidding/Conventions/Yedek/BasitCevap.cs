@@ -55,7 +55,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
                 // 1) Partnerin rengine 3+ destek varsa → 2 seviyesinde basit destek
                 //    (majörde her zaman; minörde yalnızca Inverted Minors kapalıysa)
-                if (!minorDestekAtla && !string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
+                bool digerMajor4 = partnerMinor && (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4 || ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4);   // majör önce
+                if (!minorDestekAtla && !digerMajor4 && !string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
                 {
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
                     if (destek >= 3)
@@ -77,6 +78,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (pidx < 0 || yidx > pidx) return yeniRenk;
                     if (hp >= 8) return "2" + yeniRenk.Substring(1);
                     yeniRenk = null;
+                }
+
+                // 2b) Majör 1 seviyede söylenebilir (ortak minör açtı): 4+ kartlı majör NT'den ve düşük renkten önce gelir
+                if (string.IsNullOrEmpty(yeniRenk) && partnerMinor)
+                {
+                    int sp = ElDegerlendirici.RenkUzunlugu(el, "Maça"), he = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                    if (sp >= 4 && sp > he) return "1♠";
+                    if (he >= 4) return "1♥";
                 }
 
                 // 3) Yeni renk yoksa → 1NT (dengeli)
@@ -193,9 +202,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (kupa >= 5 && maca >= 4 && kupa > maca && partnerKozu != "Kupa" && minUzunluk <= kupa)
                 return seviye + "♥";
 
-            if (karo >= 5 && sinek >= 4 && karo > sinek && partnerKozu != "Karo" && minUzunluk <= karo)
+            if (karo >= 5 && sinek >= 4 && karo > sinek && partnerKozu != "Karo" && minUzunluk <= karo && karo > Math.Max(maca, kupa))
                 return seviye + "♦";
-            if (sinek >= 5 && karo >= 4 && sinek > karo && partnerKozu != "Sinek" && minUzunluk <= sinek)
+            if (sinek >= 5 && karo >= 4 && sinek > karo && partnerKozu != "Sinek" && minUzunluk <= sinek && sinek > Math.Max(maca, kupa))
                 return seviye + "♣";
 
             if (maca >= 5 && kupa >= 5 && maca == kupa)
@@ -203,7 +212,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (partnerKozu != "Maça") return seviye + "♠";
                 if (partnerKozu != "Kupa") return seviye + "♥";
             }
-            if (karo >= 5 && sinek >= 5 && karo == sinek)
+            if (karo >= 5 && sinek >= 5 && karo == sinek && karo > Math.Max(maca, kupa))
             {
                 if (partnerKozu != "Karo") return seviye + "♦";
                 if (partnerKozu != "Sinek") return seviye + "♣";
@@ -214,7 +223,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (partnerKozu != "Kupa") return seviye + "♥";
                 if (partnerKozu != "Maça") return seviye + "♠";
             }
-            if (karo >= 4 && sinek >= 4 && karo == sinek)
+            if (karo >= 4 && sinek >= 4 && karo == sinek && karo > Math.Max(maca, kupa))
             {
                 if (partnerKozu != "Sinek") return seviye + "♣";
                 if (partnerKozu != "Karo") return seviye + "♦";

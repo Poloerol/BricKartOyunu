@@ -240,6 +240,9 @@ namespace BricKartOyunu.Tests
             T("V95 1H-(P)-1S-(2NT unusual)-3S: 4 karo destek -> 4D", TestHelpers.ElOlustur("A82", "T972", "K753", "J5"), "4♦", "1♥", "Pas", "1♠", "2NT", "3♠");
             T("V96 1H-(1S)-2H-3S: 6 maca, 10 HP + kisalik -> 4S", TestHelpers.ElOlustur("KT8743", "4", "75", "AK94"), "4♠", "1♥", "1♠", "2♥", "3♠", "Pas");
             T("V97 1C-(P)-?: 12 HP 5-4-2-2, 5 maca -> 1S (2C role degil)", TestHelpers.ElOlustur("KQT94", "K832", "T9", "A7"), "1♠", "1♣", "Pas");
+            T("V98 1H-(P)-?: 5 maca + 4-4 minor, 8 HP -> 1S", TestHelpers.ElOlustur("AQJ72", "", "9874", "J986"), "1♠", "1♥", "Pas");
+            T("V99 1D-(P)-?: 4 maca, 5 sinek, 6 HP -> 1S (1NT degil)", TestHelpers.ElOlustur("JT86", "73", "Q3", "QJT76"), "1♠", "1♦", "Pas");
+            T("V100 1D-(P)-?: 4 maca + 4 karo destek, 7 HP -> 1S (2D degil)", TestHelpers.ElOlustur("9876", "3", "AJT4", "QT97"), "1♠", "1♦", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
