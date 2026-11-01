@@ -111,8 +111,7 @@ namespace BricKartOyunu.Forms
 
         private void OrtaklikProfiliAc(Taraf taraf)
         {
-            using (var f = new AnlasmaForm(taraf))
-                f.ShowDialog(this);
+            AnlasmaForm.Goster(this, taraf);
         }
 
         private void BasitAnlasmaUygula(Taraf taraf)

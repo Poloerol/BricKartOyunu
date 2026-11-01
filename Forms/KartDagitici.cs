@@ -104,8 +104,8 @@ namespace BricKartOyunu.Forms
 
             var btnNS = new Button { Text = "N/S Ortaklık Profili", Location = new Point(10, 496), Size = new Size(140, 28) };
             var btnEW = new Button { Text = "E/W Ortaklık Profili", Location = new Point(160, 496), Size = new Size(140, 28) };
-            btnNS.Click += (s, e) => { using (var f = new AnlasmaForm(Taraf.NS)) f.ShowDialog(this); };
-            btnEW.Click += (s, e) => { using (var f = new AnlasmaForm(Taraf.EW)) f.ShowDialog(this); };
+            btnNS.Click += (s, e) => AnlasmaForm.Goster(this, Taraf.NS);
+            btnEW.Click += (s, e) => AnlasmaForm.Goster(this, Taraf.EW);
 
             // Üret
             var gUret = new GroupBox { Text = "Üret", Location = new Point(496, 8), Size = new Size(246, 262) };

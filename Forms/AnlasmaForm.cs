@@ -53,13 +53,16 @@ namespace BricKartOyunu.Forms
         private Button _btnSil, _btnDuzenle;
         private readonly List<Kutu> _kutular = new List<Kutu>();
 
-        public AnlasmaForm(Taraf taraf)
+        public AnlasmaForm(Taraf taraf) : this(taraf, null, null, null) { }
+
+        internal AnlasmaForm(Taraf taraf, List<AnlasmaProfil> devir, string seciliAd, bool? ogrenme)
         {
             _taraf = taraf;
-            _profiller = AnlasmaYonetici.Profiller(taraf);
-            string aktif = AnlasmaYonetici.AktifProfilAdi(taraf);
+            _profiller = devir ?? AnlasmaYonetici.Profiller(taraf);
+            string aktif = seciliAd ?? AnlasmaYonetici.AktifProfilAdi(taraf);
             _secili = _profiller.FirstOrDefault(p => p.Ad == aktif) ?? _profiller[0];
             Kur();
+            if (ogrenme.HasValue) _chkOgrenme.Checked = ogrenme.Value;
             ProfilListesiniDoldur();
             SeciliyiGoster();
         }
@@ -416,38 +419,47 @@ namespace BricKartOyunu.Forms
 
         private void KonvansiyonlariDuzenle()
         {
-            // Profil ekranı gizlenir, sihirbaz açılır; Son'dan sonra uyarı sorulur.
-            // Evet: değişiklikler uygulanır ve profil ekranı yeniden görünür. Hayır: değişiklikler atılır, profil ekranı kapanır.
-            Hide();
-            bool profilEkraniniAc = true;
-            try
+            // Bu form kapanır; Goster() ortaklık profili sihirbazını açar (bkz. Goster).
+            DuzenleIstendi = true;
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
+
+        internal bool DuzenleIstendi;
+        internal List<AnlasmaProfil> Profiller { get { return _profiller; } }
+        internal AnlasmaProfil Secili { get { return _secili; } }
+        internal bool OgrenmeIsareti { get { return _chkOgrenme.Checked; } }
+
+        /// <summary>
+        /// Ortaklık profili ekranını gösterir. Düzenle'ye basılırsa bu form kapanır ve Ortaklık Profili sihirbazı açılır;
+        /// sihirbaz Son ile kapanınca uyarı sorulur. Evet: değişiklikler uygulanır ve profil ekranı yeniden açılır
+        /// (ekrandaki kaydedilmemiş düzenlemeler korunur). Hayır: değişiklikler atılır, profil ekranı açılmaz.
+        /// Sihirbazda İptal: profil ekranı yeniden açılır.
+        /// </summary>
+        public static void Goster(IWin32Window sahip, Taraf taraf)
+        {
+            List<AnlasmaProfil> devir = null; string seciliAd = null; bool? ogrenme = null;
+            while (true)
             {
-                using (var f = new ProfilSihirbazi(_secili.Anlasma, _secili.Ad))
+                AnlasmaProfil secili;
+                using (var f = new AnlasmaForm(taraf, devir, seciliAd, ogrenme))
                 {
-                    f.StartPosition = FormStartPosition.Manual;
-                    f.Location = new Point(Math.Max(0, Left + (Width - f.Width) / 2), Math.Max(0, Top + (Height - f.Height) / 2));
-                    if (f.ShowDialog() == DialogResult.OK && f.Sonuc != null)
+                    f.ShowDialog(sahip);
+                    if (!f.DuzenleIstendi) return;
+                    devir = f.Profiller; secili = f.Secili; seciliAd = secili.Ad; ogrenme = f.OgrenmeIsareti;
+                }
+                using (var w = new ProfilSihirbazi(secili.Anlasma, secili.Ad))
+                {
+                    if (w.ShowDialog(sahip) != DialogResult.OK || w.Sonuc == null) continue;   // İptal: profil ekranı geri gelir
+                    var c = MessageBox.Show(sahip, "Yaptığınız değişiklikler ortaklık profiline uygulansın mı?", "Uyarı",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (c != DialogResult.Yes) return;                                           // Hayır
+                    foreach (var n in AyarAdlari)
                     {
-                        var c = MessageBox.Show("Yaptığınız değişiklikler ortaklık profiline uygulansın mı?", "Uyarı",
-                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                        if (c == DialogResult.Yes)
-                        {
-                            var hedef = _secili.Anlasma;
-                            foreach (var n in AyarAdlari)
-                            {
-                                var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
-                                p.SetValue(hedef, p.GetValue(f.Sonuc, null), null);
-                            }
-                            SeciliyiGoster();
-                        }
-                        else profilEkraniniAc = false;
+                        var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
+                        p.SetValue(secili.Anlasma, p.GetValue(w.Sonuc, null), null);
                     }
                 }
-            }
-            finally
-            {
-                if (profilEkraniniAc) Show();
-                else { DialogResult = DialogResult.Cancel; Close(); }
             }
         }
 
@@ -652,16 +664,16 @@ namespace BricKartOyunu.Forms
         private TabPage GenelSayfa()
         {
             var p = new TabPage("Genel sinyaller") { BackColor = SystemColors.Control };
-            p.Controls.Add(Grup("Her türlü sinyal", new Rectangle(4, 6, 108, 80), "SigAnySignal", "Evet", "Hayır"));
-            p.Controls.Add(Grup("İlk atma anlamlı", new Rectangle(116, 6, 108, 80), "SigFirstDiscardRelevant", "Evet", "Hayır"));
-            p.Controls.Add(Grup("Birincil sinyal", new Rectangle(228, 6, 108, 100), "SigPrimary", "Sayı", "Tutum", "Tek/Çift"));
-            p.Controls.Add(Grup("Smith (ortak)", new Rectangle(340, 6, 112, 100), "SigSmithPartner", "Yok", "Yüksek-alçak", "Alçak-yüksek"));
-            p.Controls.Add(Grup("Sayı sinyali", new Rectangle(4, 120, 108, 80), "SigCountHighLow", "Çift", "Tek"));
-            p.Controls.Add(Grup("Rakibe sayı", new Rectangle(116, 120, 108, 80), "SigCountOpp", "Evet", "Hayır"));
-            p.Controls.Add(Grup("İlk atma genelde", new Rectangle(228, 120, 108, 140), "SigFirstDiscard", "Tutum", "Sayı", "Tek/Çift", "Lavinthal", "Dönüşümlü"));
-            p.Controls.Add(Grup("Smith (açıcı)", new Rectangle(340, 120, 112, 100), "SigSmithLeader", "Yok", "Yüksek-alçak", "Alçak-yüksek"));
-            p.Controls.Add(Grup("Tutum (yüksek)", new Rectangle(116, 214, 108, 80), "SigAttitudeHigh", "Teşvik eder", "Caydırır"));
-            p.Controls.Add(Grup("Koz sinyali", new Rectangle(340, 234, 112, 100), "SigTrump", "Vinje", "Yok", "3+ yüks-alç"));
+            p.Controls.Add(Grup("Her türlü sinyal", new Rectangle(4, 6, 104, 80), "SigAnySignal", "Evet", "Hayır"));
+            p.Controls.Add(Grup("İlk atma anlamlı", new Rectangle(112, 6, 124, 80), "SigFirstDiscardRelevant", "Evet", "Hayır"));
+            p.Controls.Add(Grup("Birincil sinyal", new Rectangle(240, 6, 104, 100), "SigPrimary", "Sayı", "Tutum", "Tek/Çift"));
+            p.Controls.Add(Grup("Smith (ortak)", new Rectangle(348, 6, 104, 100), "SigSmithPartner", "Yok", "Yüksek-alçak", "Alçak-yüksek"));
+            p.Controls.Add(Grup("Sayı sinyali", new Rectangle(4, 120, 104, 80), "SigCountHighLow", "Çift", "Tek"));
+            p.Controls.Add(Grup("Rakibe sayı", new Rectangle(112, 120, 124, 80), "SigCountOpp", "Evet", "Hayır"));
+            p.Controls.Add(Grup("İlk atma şekli", new Rectangle(240, 120, 104, 140), "SigFirstDiscard", "Tutum", "Sayı", "Tek/Çift", "Lavinthal", "Dönüşümlü"));
+            p.Controls.Add(Grup("Smith (açıcı)", new Rectangle(348, 120, 104, 100), "SigSmithLeader", "Yok", "Yüksek-alçak", "Alçak-yüksek"));
+            p.Controls.Add(Grup("Tutum (yüksek)", new Rectangle(112, 234, 124, 80), "SigAttitudeHigh", "Teşvik eder", "Caydırır"));
+            p.Controls.Add(Grup("Koz sinyali", new Rectangle(348, 234, 104, 100), "SigTrump", "Vinje", "Yok", "3+ yüks-alç"));
             return p;
         }
     }
