@@ -244,6 +244,8 @@ namespace BricKartOyunu.Tests
             T("V99 1D-(P)-?: 4 maca, 5 sinek, 6 HP -> 1S (1NT degil)", TestHelpers.ElOlustur("JT86", "73", "Q3", "QJT76"), "1♠", "1♦", "Pas");
             T("V100 1D-(P)-?: 4 maca + 4 karo destek, 7 HP -> 1S (2D degil)", TestHelpers.ElOlustur("9876", "3", "AJT4", "QT97"), "1♠", "1♦", "Pas");
 
+            AcilisCevapTaramasi(8000);
+
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
@@ -261,6 +263,62 @@ namespace BricKartOyunu.Tests
             bool gecti = r == beklenen;
             if (gecti) _gecen++; else _kalan++;
             _yaz((gecti ? "✅ " : "❌ ") + ad + " → " + r + (gecti ? "" : "   [beklenen: " + beklenen + "]"));
+        }
+
+        /// <summary>
+        /// Rastgele elde genel tutarlılık taraması (rakip Pas): ortak 1 seviyede MİNÖR açtığında cevaplayan
+        /// (a) 5+ kartlı majörü varken NT / minör destek / aynı-kısa yeni minör demez,
+        /// (b) 4'lü majörü (5'li yok) varken 6+ HP ile minör destek / 1NT demez. İhlal çıkarsa test düşer.
+        /// </summary>
+        private static void AcilisCevapTaramasi(int n)
+        {
+            var koltuk = new[] { Player.Guney, Player.Bati, Player.Kuzey, Player.Dogu };
+            string[] renkler = { "Maça", "Kupa", "Karo", "Sinek" };
+            var an = OrtaklikAnlasmasi.Varsayilan();
+            int ihlal = 0, taranan = 0; var ornek = new List<string>();
+            for (int seed = 1; seed <= n; seed++)
+            {
+                var r = new Random(seed * 7919);
+                var dk = new List<Card>();
+                foreach (var s in renkler) for (int v = 2; v <= 14; v++) dk.Add(new Card { Suit = s, Value = v });
+                var kar = new List<Card>(dk); kar.Sort((x, y) => 0);
+                for (int i = kar.Count - 1; i > 0; i--) { int j = r.Next(i + 1); var tmp = kar[i]; kar[i] = kar[j]; kar[j] = tmp; }
+                var eller = new Dictionary<Player, List<Card>>();
+                for (int i = 0; i < 4; i++) eller[koltuk[i]] = kar.GetRange(i * 13, 13);
+                var m = new IhaleMotoru(an);
+                var d = new IhaleDurumu { AktifOyuncu = koltuk[seed % 4], Anlasma = an };
+                var l = new List<string>(); var who = new List<Player>(); int g = 0;
+                try
+                {
+                    while (!d.IhaleBittiMi() && g++ < 4)
+                    {
+                        d.AktifOyuncuEli = eller[d.AktifOyuncu]; who.Add(d.AktifOyuncu);
+                        string tk = m.TeklifVer(d); l.Add(tk); d.HamleEkle(tk);
+                    }
+                }
+                catch (Exception) { continue; }
+                int io = l.FindIndex(x => x != "Pas");
+                if (io < 0 || io + 2 >= l.Count) continue;
+                string op = l[io];
+                if (op != "1♣" && op != "1♦") continue;
+                if (l[io + 1] != "Pas") continue;
+                var ep = eller[who[io + 2]]; string c = l[io + 2]; int hp = ElDegerlendirici.HCP(ep);
+                taranan++;
+                if (hp < 6 || c == "Pas") continue;
+                string osm = op.Substring(1);
+                int sp = ElDegerlendirici.RenkUzunlugu(ep, "Maça"), he = ElDegerlendirici.RenkUzunlugu(ep, "Kupa");
+                bool nt = c.EndsWith("NT"); string rs = c.Substring(1);
+                bool destek = rs == osm;
+                bool yeniMinor = (rs == "♣" || rs == "♦") && rs != osm;
+                int yuz = yeniMinor ? ElDegerlendirici.RenkUzunlugu(ep, rs == "♣" ? "Sinek" : "Karo") : 0;
+                int major = Math.Max(sp, he);
+                bool kotu = (major >= 5 && (nt || destek || (yeniMinor && yuz <= major)))
+                         || (major == 4 && (destek || (nt && c == "1NT")));
+                if (kotu) { ihlal++; if (ornek.Count < 3) ornek.Add("#" + seed + " " + op + "-(P)-" + c + " [" + ep.Count + "k ♠" + sp + " ♥" + he + " " + hp + "HP]"); }
+            }
+            bool gecti = ihlal == 0;
+            if (gecti) _gecen++; else _kalan++;
+            _yaz((gecti ? "✅ " : "❌ ") + "TARAMA 1m-(P)-cevap: majör önceliği (" + taranan + " el)" + (gecti ? "" : " → " + ihlal + " ihlal: " + string.Join("; ", ornek)));
         }
 
         private static void T(string ad, List<Card> el, string beklenen, params string[] gecmis)
