@@ -214,11 +214,12 @@ namespace BricKartOyunu.Class.Bidding
             return AcilisGucuVarMi(el, 0);
         }
 
-        /// <summary>Agresiflik: -1 yalnız 12+ HP; 0 12+ HP veya 11 HP + 20 kuralı; +1 10 HP + 20 kuralı da.</summary>
+        /// <summary>Agresiflik: -2 yalnız 13+ HP; -1 yalnız 12+ HP; 0 12+ HP veya 11 HP + 20 kuralı; +1 10 HP + 20 kuralı da; +2 9 HP + 20 kuralı da.</summary>
         public static bool AcilisGucuVarMi(List<Card> el, int agresiflik)
         {
             if (el == null || el.Count != 13) return false;
             int hp = HCP(el);
+            if (agresiflik <= -2) return hp >= 13;   // çok temkinli: yalnız 13+ HP
             if (hp >= 12) return true;
             if (agresiflik < 0) return false;
             // 10 HP + 7+ kartlık güçlü renk (ör. AKQJ872): 20 kuralı ile açılır (3. seviye engel yerine 1 seviye)
@@ -227,7 +228,7 @@ namespace BricKartOyunu.Class.Bidding
                 var u = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
                 if (u[0] >= 7 && hp + u[0] + u[1] >= 20) return true;
             }
-            int alt = agresiflik > 0 ? 10 : 11;
+            int alt = agresiflik >= 2 ? 9 : (agresiflik > 0 ? 10 : 11);
             if (hp < alt) return false;
             var s = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
             return hp + s[0] + s[1] >= 20;

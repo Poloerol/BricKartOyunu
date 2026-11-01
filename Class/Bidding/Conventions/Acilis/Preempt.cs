@@ -48,7 +48,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
 
             int agr = durum.Anlasma != null ? durum.Anlasma.PreemptAgresifligi : 0;
-            int ust = agr < 0 ? 8 : (agr > 0 ? 10 : 9);
+            int ust = agr <= -2 ? 7 : (agr < 0 ? 8 : (agr >= 2 ? 11 : (agr > 0 ? 10 : 9)));
             if (hp > ust) return false;
             if (hp >= 22) return false;
             if (agr < 0 && !HonorluYedili(durum.AktifOyuncuEli)) return false;

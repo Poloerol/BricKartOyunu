@@ -1026,6 +1026,6 @@ namespace BricKartOyunu.Forms
 
         }
 
-        
+       
     }
 }

@@ -3987,6 +3987,14 @@ namespace BricKartOyunu
             kontrol("TEST 11.44 — 11 HP 5-4, varsayılan → 1♠", teklif(el11, Player.Guney, bos, null), r => r == "1♠", "1♠");
             kontrol("TEST 11.45 — 11 HP 5-4, temkinli açılış → Pas", teklif(el11, Player.Guney, bos, a => a.AcilisAgresifligi = -1), r => r == "Pas", "Pas");
 
+            // Çok temkinli / çok atak (±2)
+            var el12 = mk("S:KQ754 H:KJ8 D:Q2 C:J32");
+            kontrol("TEST 11.45a — 12 HP, çok temkinli açılış → Pas", teklif(el12, Player.Guney, bos, a => a.AcilisAgresifligi = -2), r => r == "Pas", "Pas");
+            kontrol("TEST 11.45b — 12 HP, varsayılan → 1♠", teklif(el12, Player.Guney, bos, null), r => r == "1♠", "1♠");
+            var el9 = mk("S:3 H:KJ854 D:2 C:KQ9754");
+            kontrol("TEST 11.45c — 9 HP 5♥ 6♣, atak açılış → Pas", teklif(el9, Player.Guney, bos, a => a.AcilisAgresifligi = 1), r => r == "Pas", "Pas");
+            kontrol("TEST 11.45d — 9 HP 5♥ 6♣, çok atak açılış → 1♥", teklif(el9, Player.Guney, bos, a => a.AcilisAgresifligi = 2), r => r == "1♥", "1♥");
+
             // Müdahale: Bati 1♥, Kuzey karar verir
             var g1 = new List<IhaleHamlesi> { h(Player.Bati, "1♥", 1) };
             var el7 = mk("S:KJ985 H:63 D:K82 C:743");
@@ -4003,6 +4011,19 @@ namespace BricKartOyunu
             kontrol("TEST 11.51 — 10 HP 7♠, atak önleyici → 3♠", teklif(el10p, Player.Guney, bos, a => a.PreemptAgresifligi = 1), r => r == "3♠", "3♠");
             kontrol("TEST 11.52 — 5 HP K987654, varsayılan → 3♠", teklif(el5p, Player.Guney, bos, null), r => r == "3♠", "3♠");
             kontrol("TEST 11.53 — 5 HP tek honörlü 7♠, temkinli önleyici → 3♠ değil", teklif(el5p, Player.Guney, bos, a => a.PreemptAgresifligi = -1), r => r != "3♠", "3♠ dışında");
+
+            var el6m = mk("S:KJ985 H:63 D:Q82 C:743");
+            var el10m = mk("S:AJ985 H:63 D:KQ2 C:743");
+            kontrol("TEST 11.49a — 6 HP 5♠, atak müdahale → Pas", teklif(el6m, Player.Kuzey, g1, a => a.MudahaleAgresifligi = 1), r => r == "Pas", "Pas");
+            kontrol("TEST 11.49b — 6 HP 5♠, çok atak müdahale → 1♠", teklif(el6m, Player.Kuzey, g1, a => a.MudahaleAgresifligi = 2), r => r == "1♠", "1♠");
+            kontrol("TEST 11.49c — 10 HP 5♠, temkinli müdahale → 1♠", teklif(el10m, Player.Kuzey, g1, a => a.MudahaleAgresifligi = -1), r => r == "1♠", "1♠");
+            kontrol("TEST 11.49d — 10 HP 5♠, çok temkinli müdahale → Pas", teklif(el10m, Player.Kuzey, g1, a => a.MudahaleAgresifligi = -2), r => r == "Pas", "Pas");
+            var el11p = mk("S:AKJ9754 H:32 D:K43 C:2");
+            var el8p = mk("S:AQ98765 H:32 D:Q43 C:2");
+            kontrol("TEST 11.53a — 11 HP 7♠, atak önleyici → 3♠ değil", teklif(el11p, Player.Guney, bos, a => a.PreemptAgresifligi = 1), r => r != "3♠", "3♠ dışında");
+            kontrol("TEST 11.53b — 11 HP 7♠, çok atak önleyici → 3♠", teklif(el11p, Player.Guney, bos, a => a.PreemptAgresifligi = 2), r => r == "3♠", "3♠");
+            kontrol("TEST 11.53c — 8 HP 7♠, temkinli önleyici → 3♠", teklif(el8p, Player.Guney, bos, a => a.PreemptAgresifligi = -1), r => r == "3♠", "3♠");
+            kontrol("TEST 11.53d — 8 HP 7♠, çok temkinli önleyici → 3♠ değil", teklif(el8p, Player.Guney, bos, a => a.PreemptAgresifligi = -2), r => r != "3♠", "3♠ dışında");
 
             // Beceri düzeyi: 20 hatasız, 1 sık hata
             var legal = new List<Card>();

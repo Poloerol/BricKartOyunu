@@ -206,7 +206,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int sev = son.Seviye;
             string rk = son.Koz;
             int agr = d.Anlasma != null ? d.Anlasma.MudahaleAgresifligi : 0;
-            int fark = agr < 0 ? 2 : (agr > 0 ? -1 : 0);   // temkinli +2 HP, atak -1 HP
+            int fark = agr <= -2 ? 4 : (agr < 0 ? 2 : (agr >= 2 ? -2 : (agr > 0 ? -1 : 0)));   // çok temkinli +4, temkinli +2, atak -1, çok atak -2 HP
             // 3 seviyesinde engel açılışına takeout kontra: kısa renk (≤2) ve diğer renklerde en az 3 kart.
             // Doğrudan koltukta 13+ HP; pass-out koltuğunda (iki pas sonrası) 10+ HP yeter.
             if (sev == 3 && gercek.Count == 1 && rk != "NT")

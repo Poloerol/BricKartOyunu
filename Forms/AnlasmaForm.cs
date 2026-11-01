@@ -32,7 +32,7 @@ namespace BricKartOyunu.Forms
         };
 
         // (özellik adı, görünen ad) — özet kutularında seçili olanlar listelenir
-        private static readonly string[] AgrAdlari = { "Temkinli", "Orta", "Atak" };
+        private static readonly string[] AgrAdlari = { "Çok temkinli", "Temkinli", "Orta", "Atak", "Çok atak" };
 
         private sealed class Kutu
         {
@@ -200,7 +200,7 @@ namespace BricKartOyunu.Forms
                     TextAlign = ContentAlignment.MiddleCenter
                 };
                 _lblAgr[i].Click += (s, e) => AgresiflikDegistir(k);
-                ip.SetToolTip(_lblAgr[i], "Değiştirmek için tıklayın (Temkinli → Orta → Atak).");
+                ip.SetToolTip(_lblAgr[i], "Değiştirmek için tıklayın (Çok temkinli → … → Çok atak).");
                 gAgr.Controls.Add(_lblAgr[i]);
             }
 
@@ -279,16 +279,19 @@ namespace BricKartOyunu.Forms
             try
             {
                 var a = _secili.Anlasma;
-                _agr[0] = Math.Max(-1, Math.Min(1, a.MudahaleAgresifligi));
-                _agr[1] = Math.Max(-1, Math.Min(1, a.PreemptAgresifligi));
-                _agr[2] = Math.Max(-1, Math.Min(1, a.AcilisAgresifligi));
-                for (int i = 0; i < 3; i++) _lblAgr[i].Text = AgrAdlari[_agr[i] + 1];
+                _agr[0] = Math.Max(-2, Math.Min(2, a.MudahaleAgresifligi));
+                _agr[1] = Math.Max(-2, Math.Min(2, a.PreemptAgresifligi));
+                _agr[2] = Math.Max(-2, Math.Min(2, a.AcilisAgresifligi));
+                for (int i = 0; i < 3; i++) _lblAgr[i].Text = AgrAdlari[_agr[i] + 2];
                 BeceriEtiketi();
                 SistemEtiketiniGuncelle();
             }
             finally { _yukleniyor = false; }
             OzetleriGuncelle();
         }
+
+        internal static readonly string[] AyarAdlari = typeof(OrtaklikAnlasmasi).GetProperties()
+            .Where(p => (p.PropertyType == typeof(bool) || p.PropertyType == typeof(int)) && p.CanWrite).Select(p => p.Name).ToArray();
 
         internal static readonly string[] BayrakAdlari = typeof(OrtaklikAnlasmasi).GetProperties()
             .Where(p => p.PropertyType == typeof(bool) && p.CanWrite).Select(p => p.Name).ToArray();
@@ -375,7 +378,7 @@ namespace BricKartOyunu.Forms
         private void AgresiflikDegistir(int i)
         {
             _agr[i] = _agr[i] >= 1 ? -1 : _agr[i] + 1;
-            _lblAgr[i].Text = AgrAdlari[_agr[i] + 1];
+            _lblAgr[i].Text = AgrAdlari[_agr[i] + 2];
             var a = _secili.Anlasma;
             a.MudahaleAgresifligi = _agr[0];
             a.PreemptAgresifligi = _agr[1];
@@ -391,7 +394,7 @@ namespace BricKartOyunu.Forms
         {
             var satirlar = new List<string> { Text + " — " + _secili.Ad, "İhale sistemi: " + _lblSistem.Text,
                 "Beceri düzeyi: " + _secili.Anlasma.BeceriDuzeyi + " / 20",
-                "Agresiflik: müdahale " + AgrAdlari[_agr[0] + 1] + ", önleyici " + AgrAdlari[_agr[1] + 1] + ", açılış " + AgrAdlari[_agr[2] + 1], "" };
+                "Agresiflik: müdahale " + AgrAdlari[_agr[0] + 2] + ", önleyici " + AgrAdlari[_agr[1] + 2] + ", açılış " + AgrAdlari[_agr[2] + 2], "" };
             foreach (var k in _kutular) { satirlar.Add(k.Baslik + ":"); satirlar.Add("   " + k.Ozet(_secili.Anlasma)); }
             satirlar.Add("İşaretleşme: " + Liste(_secili.Anlasma, "StandartSignal=Standart", "UDCA=UDCA", "OddEvenDiscards=Tek-Çift atış", "Lavinthal=Lavinthal", "SmithEcho=Smith echo"));
             try
@@ -430,14 +433,11 @@ namespace BricKartOyunu.Forms
                 if (f.ShowDialog(this) == DialogResult.OK && f.Sonuc != null)
                 {
                     var hedef = _secili.Anlasma;
-                    foreach (var n in BayrakAdlari)
+                    foreach (var n in AyarAdlari)
                     {
                         var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
                         p.SetValue(hedef, p.GetValue(f.Sonuc, null), null);
                     }
-                    hedef.AcilisAgresifligi = f.Sonuc.AcilisAgresifligi;
-                    hedef.MudahaleAgresifligi = f.Sonuc.MudahaleAgresifligi;
-                    hedef.PreemptAgresifligi = f.Sonuc.PreemptAgresifligi;
                     SeciliyiGoster();
                 }
             }
@@ -515,8 +515,12 @@ namespace BricKartOyunu.Forms
         }
     }
 
-    /// <summary>Sinyaller ekranı (salt okunur): açılış kartı kuralları ve genel işaretleşme özeti.
-    /// Genel işaretleşme sekmesi, profildeki Konvansiyonlar'dan gelen seçimleri yansıtır.</summary>
+    /// <summary>
+    /// Sinyaller ekranı (Bridge Baron "Signals"): açılış kartı kuralları ve genel işaretleşme.
+    /// Tamam'a basılınca seçimler anlaşmaya yazılır; İptal hiçbir şeyi değiştirmez.
+    /// UDCA, Tek-Çift, Lavinthal ve Smith echo seçimleri kart oyunu yapay zekâsının kullandığı bayraklara da yansır;
+    /// diğer seçenekler profilde saklanır.
+    /// </summary>
     public sealed class SinyallerForm : Form
     {
         private static readonly string[][] RenkKartlari =
@@ -532,8 +536,30 @@ namespace BricKartOyunu.Forms
             new[] { "[Q]J x", "[J]T x", "[K]Q T x", "[Q]J 9 x", "[J]T 8 x", "[9]x x", "[9]8 x" }
         };
 
+        // Anlaşmadaki tam sayı alanları (radyo: seçenek sırası; onay kutusu: 0/1)
+        private static readonly string[] Alanlar =
+        {
+            "SigAnySignal", "SigFirstDiscardRelevant", "SigPrimary", "SigSmithPartner", "SigSmithLeader", "SigCountHighLow",
+            "SigCountOpp", "SigFirstDiscard", "SigAttitudeHigh", "SigTrump", "LeadSuitStyle", "LeadNTStyle",
+            "LeadSuitRusinow", "LeadSuitJournalist", "LeadSuitZeroTwo", "LeadSuitMud",
+            "LeadNTJournalist", "LeadNTZeroTwo", "LeadNTMud"
+        };
+
+        private readonly OrtaklikAnlasmasi _a;
+        private readonly Dictionary<string, int> _v = new Dictionary<string, int>();
+
         public SinyallerForm(OrtaklikAnlasmasi a)
         {
+            _a = a;
+            foreach (var n in Alanlar) _v[n] = (int)typeof(OrtaklikAnlasmasi).GetProperty(n).GetValue(a, null);
+            // Atış/çağrı bayrakları asıl kaynaktır
+            _v["SigAttitudeHigh"] = a.UDCA ? 1 : 0;
+            if (a.Lavinthal) _v["SigFirstDiscard"] = 3;
+            else if (a.OddEvenDiscards) _v["SigFirstDiscard"] = 2;
+            else if (_v["SigFirstDiscard"] >= 2 && _v["SigFirstDiscard"] != 4) _v["SigFirstDiscard"] = 0;
+            if (a.SmithEcho && _v["SigSmithPartner"] == 0) _v["SigSmithPartner"] = 1;
+            if (!a.SmithEcho) _v["SigSmithPartner"] = 0;
+
             Text = "Sinyaller";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
@@ -544,11 +570,12 @@ namespace BricKartOyunu.Forms
             var tab = new TabControl { Location = new Point(6, 6), Size = new Size(468, 394) };
             tab.TabPages.Add(KartSayfasi("Renge karşı açılış", RenkKartlari, false));
             tab.TabPages.Add(KartSayfasi("NT'ye karşı açılış", NtKartlari, true));
-            tab.TabPages.Add(GenelSayfa(a));
+            tab.TabPages.Add(GenelSayfa());
             if (Environment.GetEnvironmentVariable("SINTAB") == "2") tab.SelectedIndex = 2;
 
-            var tamam = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(306, 410), Size = new Size(80, 28) };
+            var tamam = new Button { Text = "Tamam", Location = new Point(306, 410), Size = new Size(80, 28) };
             var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(392, 410), Size = new Size(80, 28) };
+            tamam.Click += (s, e) => { Uygula(); DialogResult = DialogResult.OK; Close(); };
             // Yardım: şimdilik boş; içerik daha sonra eklenecek (YardimTiklandi içine)
             var yardim = new Button { Text = "Yardım", Location = new Point(220, 410), Size = new Size(80, 28) };
             yardim.Click += (s, e) => YardimTiklandi();
@@ -561,7 +588,31 @@ namespace BricKartOyunu.Forms
             // TODO: Sinyaller yardım içeriği
         }
 
-        private static TabPage KartSayfasi(string baslik, string[][] sutunlar, bool nt)
+        private void Uygula()
+        {
+            foreach (var n in Alanlar) typeof(OrtaklikAnlasmasi).GetProperty(n).SetValue(_a, _v[n], null);
+            _a.UDCA = _v["SigAttitudeHigh"] == 1;
+            _a.StandartSignal = !_a.UDCA;
+            _a.Lavinthal = _v["SigFirstDiscard"] == 3;
+            _a.OddEvenDiscards = _v["SigFirstDiscard"] == 2;
+            _a.SmithEcho = _v["SigSmithPartner"] != 0;
+        }
+
+        private CheckBox Onay(string alan, string t, int x, int y)
+        {
+            var c = new CheckBox { Text = t, AutoSize = true, Location = new Point(x, y), Checked = _v[alan] != 0 };
+            c.Click += (s, e) => _v[alan] = c.Checked ? 1 : 0;
+            return c;
+        }
+
+        private RadioButton Radyo(string alan, int deger, string t, int x, int y)
+        {
+            var r = new RadioButton { Text = t, AutoSize = true, Location = new Point(x, y), Checked = _v[alan] == deger };
+            r.Click += (s, e) => _v[alan] = deger;
+            return r;
+        }
+
+        private TabPage KartSayfasi(string baslik, string[][] sutunlar, bool nt)
         {
             var p = new TabPage(baslik) { BackColor = SystemColors.Control };
             var f = new Font("Arial", 11F, FontStyle.Bold);
@@ -569,39 +620,39 @@ namespace BricKartOyunu.Forms
                 for (int i = 0; i < sutunlar[s].Length; i++)
                     p.Controls.Add(new Label { Text = sutunlar[s][i], Font = f, AutoSize = false, Location = new Point(10 + 150 * s, 10 + 24 * i), Size = new Size(140, 22) });
 
-            string[] ozel = nt ? new[] { "Gazeteci (Journalist)", "Sıfır ya da iki üst", "MUD" } : new[] { "Rusinow", "Gazeteci (Journalist)", "Sıfır ya da iki üst", "MUD" };
+            string pre = nt ? "LeadNT" : "LeadSuit";
+            var ozel = nt ? new[] { Tuple.Create("LeadNTJournalist", "Gazeteci (Journalist)"), Tuple.Create("LeadNTZeroTwo", "Sıfır ya da iki üst"), Tuple.Create("LeadNTMud", "MUD") }
+                          : new[] { Tuple.Create("LeadSuitRusinow", "Rusinow"), Tuple.Create("LeadSuitJournalist", "Gazeteci (Journalist)"), Tuple.Create("LeadSuitZeroTwo", "Sıfır ya da iki üst"), Tuple.Create("LeadSuitMud", "MUD") };
             int y = nt ? 196 : 190;
-            foreach (var t in ozel) { p.Controls.Add(new CheckBox { Text = t, AutoSize = true, Enabled = false, Location = new Point(316, y) }); y += 24; }
+            foreach (var o in ozel) { p.Controls.Add(Onay(o.Item1, o.Item2, 316, y)); y += 24; }
             var g = new GroupBox { Text = nt ? "NT'ye karşı" : "Renge karşı", Location = new Point(312, nt ? 272 : 290), Size = new Size(140, nt ? 84 : 66) };
-            g.Controls.Add(new RadioButton { Text = "üçüncü/beşinci", AutoSize = true, Enabled = false, Location = new Point(10, 16) });
-            g.Controls.Add(new RadioButton { Text = "dördüncü", AutoSize = true, Enabled = false, Checked = true, Location = new Point(10, 36) });
-            if (nt) g.Controls.Add(new RadioButton { Text = "en düşük", AutoSize = true, Enabled = false, Location = new Point(10, 56) });
+            g.Controls.Add(Radyo(pre + "Style", 0, "üçüncü/beşinci", 10, 16));
+            g.Controls.Add(Radyo(pre + "Style", 1, "dördüncü", 10, 36));
+            if (nt) g.Controls.Add(Radyo(pre + "Style", 2, "en düşük", 10, 56));
             p.Controls.Add(g);
             return p;
         }
 
-        private static GroupBox Grup(string baslik, Rectangle r, int secili, params string[] secenekler)
+        private GroupBox Grup(string baslik, Rectangle r, string alan, params string[] secenekler)
         {
             var g = new GroupBox { Text = baslik, Bounds = r };
-            for (int i = 0; i < secenekler.Length; i++)
-                g.Controls.Add(new RadioButton { Text = secenekler[i], AutoSize = true, Enabled = false, Checked = i == secili, Location = new Point(8, 20 + 20 * i) });
+            for (int i = 0; i < secenekler.Length; i++) g.Controls.Add(Radyo(alan, i, secenekler[i], 8, 20 + 20 * i));
             return g;
         }
 
-        private static TabPage GenelSayfa(OrtaklikAnlasmasi a)
+        private TabPage GenelSayfa()
         {
             var p = new TabPage("Genel sinyaller") { BackColor = SystemColors.Control };
-            int ilkAtma = a.Lavinthal ? 3 : a.OddEvenDiscards ? 2 : 0;
-            p.Controls.Add(Grup("Her türlü sinyal", new Rectangle(4, 6, 108, 80), 0, "Evet", "Hayır"));
-            p.Controls.Add(Grup("İlk atma anlamlı", new Rectangle(116, 6, 108, 80), 0, "Evet", "Hayır"));
-            p.Controls.Add(Grup("Birincil sinyal", new Rectangle(228, 6, 108, 100), 1, "Sayı", "Tutum", "Tek/Çift"));
-            p.Controls.Add(Grup("Smith (ortak)", new Rectangle(340, 6, 112, 100), a.SmithEcho ? 1 : 0, "Yok", "Yüksek-alçak", "Alçak-yüksek"));
-            p.Controls.Add(Grup("Sayı sinyali", new Rectangle(4, 120, 108, 80), a.UDCA ? 1 : 0, "Çift", "Tek"));
-            p.Controls.Add(Grup("Rakibe sayı", new Rectangle(116, 120, 108, 80), 0, "Evet", "Hayır"));
-            p.Controls.Add(Grup("İlk atma genelde", new Rectangle(228, 120, 108, 120), ilkAtma, "Tutum", "Sayı", "Tek/Çift", "Lavinthal"));
-            p.Controls.Add(Grup("Smith (açıcı)", new Rectangle(340, 120, 112, 100), 0, "Yok", "Yüksek-alçak", "Alçak-yüksek"));
-            p.Controls.Add(Grup("Tutum (yüksek)", new Rectangle(116, 214, 108, 80), a.UDCA ? 1 : 0, "Teşvik eder", "Caydırır"));
-            p.Controls.Add(Grup("Koz sinyali", new Rectangle(340, 234, 112, 100), 2, "Vinje", "Yok", "3+ yüks-alç"));
+            p.Controls.Add(Grup("Her türlü sinyal", new Rectangle(4, 6, 108, 80), "SigAnySignal", "Evet", "Hayır"));
+            p.Controls.Add(Grup("İlk atma anlamlı", new Rectangle(116, 6, 108, 80), "SigFirstDiscardRelevant", "Evet", "Hayır"));
+            p.Controls.Add(Grup("Birincil sinyal", new Rectangle(228, 6, 108, 100), "SigPrimary", "Sayı", "Tutum", "Tek/Çift"));
+            p.Controls.Add(Grup("Smith (ortak)", new Rectangle(340, 6, 112, 100), "SigSmithPartner", "Yok", "Yüksek-alçak", "Alçak-yüksek"));
+            p.Controls.Add(Grup("Sayı sinyali", new Rectangle(4, 120, 108, 80), "SigCountHighLow", "Çift", "Tek"));
+            p.Controls.Add(Grup("Rakibe sayı", new Rectangle(116, 120, 108, 80), "SigCountOpp", "Evet", "Hayır"));
+            p.Controls.Add(Grup("İlk atma genelde", new Rectangle(228, 120, 108, 140), "SigFirstDiscard", "Tutum", "Sayı", "Tek/Çift", "Lavinthal", "Dönüşümlü"));
+            p.Controls.Add(Grup("Smith (açıcı)", new Rectangle(340, 120, 112, 100), "SigSmithLeader", "Yok", "Yüksek-alçak", "Alçak-yüksek"));
+            p.Controls.Add(Grup("Tutum (yüksek)", new Rectangle(116, 214, 108, 80), "SigAttitudeHigh", "Teşvik eder", "Caydırır"));
+            p.Controls.Add(Grup("Koz sinyali", new Rectangle(340, 234, 112, 100), "SigTrump", "Vinje", "Yok", "3+ yüks-alç"));
             return p;
         }
     }
@@ -789,9 +840,9 @@ namespace BricKartOyunu.Forms
         private ComboBox Agr(Control ust, int x, int y, int w, Func<int> al, Action<int> koy)
         {
             var c = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = new Rectangle(x, y, w, 24) };
-            c.Items.AddRange(new object[] { "Temkinli", "Orta", "Atak" });
-            c.SelectedIndexChanged += (s, e) => { if (!_sync && c.SelectedIndex >= 0) koy(c.SelectedIndex - 1); };
-            _yenile.Add(() => c.SelectedIndex = Math.Max(0, Math.Min(2, al() + 1)));
+            c.Items.AddRange(new object[] { "Çok temkinli", "Temkinli", "Orta", "Atak", "Çok atak" });
+            c.SelectedIndexChanged += (s, e) => { if (!_sync && c.SelectedIndex >= 0) koy(c.SelectedIndex - 2); };
+            _yenile.Add(() => c.SelectedIndex = Math.Max(0, Math.Min(4, al() + 2)));
             ust.Controls.Add(c);
             return c;
         }
@@ -801,11 +852,11 @@ namespace BricKartOyunu.Forms
         private Panel Sayfa1()
         {
             var p = YeniSayfa();
-            Et(p, "Profil adı:", 60, 70, 84).TextAlign = ContentAlignment.MiddleRight;
-            p.Controls.Add(new TextBox { Text = _ad, Enabled = false, Bounds = new Rectangle(151, 66, 170, 24) });
+            Et(p, "Profil adı:", 60, 46, 84).TextAlign = ContentAlignment.MiddleRight;
+            p.Controls.Add(new TextBox { Text = _ad, Enabled = false, Bounds = new Rectangle(151, 42, 170, 24) });
 
-            Et(p, "İhale sistemi:", 40, 104, 104).TextAlign = ContentAlignment.MiddleRight;
-            var sis = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = new Rectangle(151, 100, 260, 24) };
+            Et(p, "İhale sistemi:", 40, 80, 104).TextAlign = ContentAlignment.MiddleRight;
+            var sis = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = new Rectangle(151, 76, 260, 24) };
             foreach (var o in AnlasmaForm.OnAyarlar) sis.Items.Add(o.Ad);
             sis.Items.Add("Özel");
             sis.SelectionChangeCommitted += (s, e) =>
@@ -825,15 +876,15 @@ namespace BricKartOyunu.Forms
             });
             p.Controls.Add(sis);
 
-            Et(p, "İki seviye açılışlar:", 28, 150);
-            var g = Gr(p, 152, 144, 270, 84);
+            Et(p, "İki seviye açılışlar:", 28, 126);
+            var g = Gr(p, 152, 120, 270, 84);
             Rb(g, "Yalnız güçlü 2♣", 0, 0, 250, () => !Al("BenjaminTwoBids") && !Al("ZayifIki") && !Al("Multi2D"),
                 () => { Koy("BenjaminTwoBids", false); Koy("ZayifIki", false); Koy("Multi2D", false); Koy("IkiliSinekGuclu", true); });
             Rb(g, "Zayıf 2'ler (güçlü 2♣ ile)", 0, 26, 250, () => !Al("BenjaminTwoBids") && (Al("ZayifIki") || Al("Multi2D")),
                 () => { Koy("BenjaminTwoBids", false); Koy("IkiliSinekGuclu", true); Koy("ZayifIki", true); });
             Rb(g, "Benjamin", 0, 52, 250, () => Al("BenjaminTwoBids"), () => Koy("BenjaminTwoBids", true));
 
-            var gb = new GroupBox { Text = "İhale agresifliği", Bounds = new Rectangle(44, 248, 350, 116) };
+            var gb = new GroupBox { Text = "İhale agresifliği", Bounds = new Rectangle(44, 224, 350, 116) };
             Et(gb, "Müdahale:", 20, 28, 80).TextAlign = ContentAlignment.MiddleRight;
             Et(gb, "Önleyici açılış:", 4, 58, 96).TextAlign = ContentAlignment.MiddleRight;
             Et(gb, "Açılış:", 20, 88, 80).TextAlign = ContentAlignment.MiddleRight;
@@ -842,7 +893,7 @@ namespace BricKartOyunu.Forms
             Agr(gb, 108, 84, 220, () => _a.AcilisAgresifligi, v => _a.AcilisAgresifligi = v);
             p.Controls.Add(gb);
 
-            var sy = new Button { Text = "Sinyalleri göster", Bounds = new Rectangle(123, 392, 173, 28) };
+            var sy = new Button { Text = "Sinyalleri göster", Bounds = new Rectangle(123, 358, 173, 28) };
             sy.Click += (s, e) => { using (var f = new SinyallerForm(_a)) f.ShowDialog(this); };
             p.Controls.Add(sy);
             return p;

@@ -225,9 +225,31 @@ namespace BricKartOyunu.Class.Bidding
         public bool Lavinthal { get; set; } = false;
         public bool SmithEcho { get; set; } = false;
 
+        // Sinyaller formu seçimleri (tam sayı: radyo = seçenek sırası, onay kutusu = 0/1). Bayrak olmadıkları için
+        // konvansiyon listelerinde görünmezler. UDCA/Tek-Çift/Lavinthal/Smith echo yukarıdaki bayraklara da yansır.
+        public int SigAnySignal { get; set; } = 0;              // 0 evet, 1 hayır
+        public int SigFirstDiscardRelevant { get; set; } = 0;   // 0 evet, 1 hayır
+        public int SigPrimary { get; set; } = 1;                // 0 sayı, 1 tutum, 2 tek/çift
+        public int SigSmithPartner { get; set; } = 0;           // 0 yok, 1 yüksek-alçak, 2 alçak-yüksek
+        public int SigSmithLeader { get; set; } = 0;
+        public int SigCountHighLow { get; set; } = 0;           // 0 çift, 1 tek
+        public int SigCountOpp { get; set; } = 0;               // 0 evet, 1 hayır
+        public int SigFirstDiscard { get; set; } = 0;           // 0 tutum, 1 sayı, 2 tek/çift, 3 Lavinthal, 4 dönüşümlü
+        public int SigAttitudeHigh { get; set; } = 0;           // 0 teşvik, 1 caydırır
+        public int SigTrump { get; set; } = 2;                  // 0 Vinje, 1 yok, 2 3+ ile yüksek-alçak
+        public int LeadSuitStyle { get; set; } = 1;            // 0 üçüncü/beşinci, 1 dördüncü
+        public int LeadNTStyle { get; set; } = 1;              // 0 üçüncü/beşinci, 1 dördüncü, 2 en düşük
+        public int LeadSuitRusinow { get; set; } = 0;
+        public int LeadSuitJournalist { get; set; } = 0;
+        public int LeadSuitZeroTwo { get; set; } = 0;
+        public int LeadSuitMud { get; set; } = 0;
+        public int LeadNTJournalist { get; set; } = 0;
+        public int LeadNTZeroTwo { get; set; } = 0;
+        public int LeadNTMud { get; set; } = 0;
+
         // ═══════════════════════════════════════════════════════════════════
         // AGRESİFLİK VE BECERİ (Bridge Baron tarzı profil ayarları)
-        // -1 = Temkinli, 0 = Orta (varsayılan davranış), +1 = Atak
+        // -2 = Çok temkinli, -1 = Temkinli, 0 = Orta (varsayılan davranış), +1 = Atak, +2 = Çok atak
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>Açılış: -1 yalnız 12+ HP, 0 12+ HP veya 11 HP + 20 kuralı, +1 10 HP + 20 kuralı da açar.</summary>
