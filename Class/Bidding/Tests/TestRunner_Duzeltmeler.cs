@@ -194,6 +194,12 @@ namespace BricKartOyunu.Tests
             T("V49 1D-2C-2NT: 3 karo 12hp dengeli -> 3NT (4D degil)", TestHelpers.ElOlustur("K83", "J4", "962", "AKJ52"), "3NT", "1♦", "Pas", "2♣", "Pas", "2NT", "Pas");
             T("V50 1D-2C-2H: 4 kupa fiti 17hp -> 3H (sluem ilgisi)", TestHelpers.ElOlustur("A3", "KJ84", "96", "AKQ54"), "3♥", "1♦", "Pas", "2♣", "Pas", "2♥", "Pas");
             T("V51 1D-2C-2H: 4 kupa fiti 12hp -> 4H", TestHelpers.ElOlustur("83", "KJ84", "96", "AKJ54"), "4♥", "1♦", "Pas", "2♣", "Pas", "2♥", "Pas");
+            T("V52 1S-2D-2S-2NT: acici 5-5 (S+H) -> 3H (3NT degil)", TestHelpers.ElOlustur("AKJ85", "KQ972", "9", "K6"), "3♥", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "2NT", "Pas");
+            T("V53 3NT sonrasi acici 24hp -> 6NT", TestHelpers.ElOlustur("AKJ85", "AQ2", "K8", "AK6"), "6NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas");
+            T("V54 3NT sonrasi acici 17hp -> 4NT (niceliksel)", TestHelpers.ElOlustur("AKJ85", "Q72", "98", "AK6"), "4NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas");
+            T("V55 3NT sonrasi acici 13hp -> Pas", TestHelpers.ElOlustur("AKJ85", "Q72", "98", "K64"), "Pas", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas");
+            T("V56 4NT niceliksele cevapci 17hp -> 6NT", TestHelpers.ElOlustur("Q63", "K8", "AKJ985", "A8"), "6NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas", "4NT", "Pas");
+            T("V57 4NT niceliksele cevapci 15hp -> Pas", TestHelpers.ElOlustur("K63", "K6", "AJ9852", "A8"), "Pas", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas", "4NT", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");

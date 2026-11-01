@@ -203,6 +203,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static string Devam(Dz z, bool benAcici, string m, string s)
         {
             string son = YK.Cagri(z.Hepsi[z.Hepsi.Count - 1]);
+            // Açıcının niceliksel 4NT'si (16-17 HP) cevaplayanın doğal 3NT'sinden sonra: 17 HP'de 6NT, aksi halde pas.
+            if (!benAcici && son == "4NT" && z.Hepsi.Count == 5 && z.Hepsi[3] == "B:3NT")
+                return z.Hp >= 17 ? "6NT" : "Pas";
+
+            // Cevaplayanın doğal 3NT'si (15-17 HP, fit yok): açıcıda 16+ HP varsa toplam 31+ → 4NT (niceliksel), 18+ → 6NT.
+            if (benAcici && son == "3NT" && z.Hepsi.Count <= 4 && z.Hp >= 16 && z.Hepsi.Count(h => h.StartsWith("B:") && YK.Cagri(h) == "4NT") == 0)
+                return z.Hp >= 18 ? "6NT" : "4NT";
+
             // Cevaplayanın splinter'ı (1M-2x-2M-4y / 1♥-2x-2♥-3♠): açıcı kısa rengindeki değerleri (K,Q,J) boşa giden sayar;
             // kalan değeri 17+ ise 4NT (RKCB), aksi halde 4M ile durur (Hardy).
             if (benAcici && YK.Major(m) && z.Hepsi.Count == 4 && z.Hepsi[2] == "B:" + YK.T(2, m) && z.Hepsi[3].StartsWith("O:")
@@ -273,6 +281,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Açıcı: cevaplayan majöre 3 seviyesinde destek verdi (şlem denemesi, 16-17 HP). Açıcıda fazlalık (15+ HP)
             // varsa Serious 3NT ile cevap verilir (Serious3NT konvansiyonuna bırak); minimumda 4M.
             if (benAcici && z.Hepsi.Count == 4 && z.Hepsi[2] == "B:" + YK.T(2, m) && YK.Major(m) && fit == m && sonRenk == m && sonSev == 3 && hp >= 15) return null;
+
+            // Açıcı: cevaplayan 2NT dedi (minimum, fit/2. renk yok). Açıcıda 5+ kartlık bildirilmemiş 2. renk varsa 3 seviyesinde doğal göster.
+            if (benAcici && z.Hepsi.Count == 4 && son == "2NT")
+            {
+                foreach (string r in Renkler)
+                    if (r != m && r != s && BenimSay(z, r) == 0 && z.Uz(r) >= 5 && YK2.Yuksek(YK.T(3, r), son)) return YK.T(3, r);
+            }
 
             // Cevaplayanın 2. turu: açıcının majöründe fit
             if (!benAcici && z.Hepsi.Count == 3 && fit == m && YK.Major(m))
