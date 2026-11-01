@@ -206,6 +206,11 @@ namespace BricKartOyunu.Tests
             T("V61 1S-(2H)-3D-P: acici kupa durdurucusu, 14hp -> 3NT", TestHelpers.ElOlustur("AKJ85", "K72", "98", "K64"), "3NT", "1♠", "2♥", "3♦", "Pas");
             T("V62 1S-(2H)-3D-P: acici 6 maca, durdurucu yok -> 3S", TestHelpers.ElOlustur("AKJ854", "972", "98", "K6"), "3♠", "1♠", "2♥", "3♦", "Pas");
             T("V63 1S-(2H)-3D-P: acici 3 karo, durdurucu yok -> 4D", TestHelpers.ElOlustur("AKJ85", "972", "K98", "K6"), "4♦", "1♠", "2♥", "3♦", "Pas");
+            T("V64 1S-(2H)-3D-P-3S-P: 2 maca -> 4S", TestHelpers.ElOlustur("83", "K4", "AQJ962", "K54"), "4♠", "1♠", "2♥", "3♦", "Pas", "3♠", "Pas");
+            T("V65 1S-(2H)-3D-P-3NT-P: pas", TestHelpers.ElOlustur("83", "K4", "AQJ962", "K54"), "Pas", "1♠", "2♥", "3♦", "Pas", "3NT", "Pas");
+            T("V66 1S-(X): 13hp, tekil maca, 5 karo -> Rdbl (3NT degil)", TestHelpers.ElOlustur("8", "K43", "AQJ962", "K54"), "Rdbl", "1♠", "Dbl");
+            T("V67 1S-(X): 8hp, tekil maca, 5 karo -> 2D (non-forsing)", TestHelpers.ElOlustur("8", "K43", "QJ9862", "J54"), "2♦", "1♠", "Dbl");
+            T("V68 1S-(X): 12hp dengeli, 2 maca -> Rdbl", TestHelpers.ElOlustur("83", "AQ4", "KQ96", "K542"), "Rdbl", "1♠", "Dbl");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");

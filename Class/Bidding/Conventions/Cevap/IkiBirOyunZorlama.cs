@@ -42,8 +42,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (z.Hepsi.Count == 0) return null;
 
             // Serbest artırma (Hardy): 1M–(2x) sonrası 3 seviyesinde yeni renk her zaman oyun zorlayıcıdır (5+ kart, 13+ HP)
+            if (z.Hepsi.Count == 2 && z.Hepsi[0].StartsWith("O:") && z.Hepsi[1] == "R:Dbl")
+                return KontrdanSonra(z);
             if (z.Hepsi.Count == 2 && z.Hepsi[0].StartsWith("O:") && z.Hepsi[1].StartsWith("R:"))
                 return SerbestArtirma(z);
+
+            // Cevaplayan: 1M–(2x)–3y–pas–açıcının cevabı; GF olduğundan oyun seviyesine kadar pas yok
+            if (z.Hepsi.Count == 4 && z.Hepsi[0].StartsWith("O:") && z.Hepsi[1].StartsWith("R:") && z.Hepsi[2].StartsWith("B:") && z.Hepsi[3].StartsWith("O:"))
+                return CevapciSerbestDevam(z);
 
             // Açıcı: 1M–(2x)–3y serbest artırması (oyun zorlayıcı); sağ rakip pas geçti → oyun seviyesinden önce pas yok
             if (z.Hepsi.Count == 3 && z.Hepsi[0].StartsWith("B:") && z.Hepsi[1].StartsWith("L:") && z.Hepsi[2].StartsWith("O:"))
@@ -86,6 +92,47 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════════
         // CEVAPLAYANIN İLK TEKLİFİ
         // ═══════════════════════════════════════════════════════════════════
+
+        private static string CevapciSerbestDevam(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "O");
+            if (m == null || !YK.Major(m)) return null;
+            string ov = YK.Cagri(z.Hepsi[1]), mine = YK.Cagri(z.Hepsi[2]), son = YK.Cagri(z.Hepsi[3]);
+            string ovS = YK.KozOf(ov), y = YK.KozOf(mine), sr = YK.KozOf(son);
+            if (ovS == null || ovS == "NT" || YK.Sev(ov) != 2 || y == null || y == "NT" || YK.Sev(mine) != 3) return null;
+            if (son == "3NT" || (sr == m && YK.Sev(son) >= 4)) return z.Hp >= 18 ? null : "Pas";
+            if (sr == m && YK.Sev(son) == 3)                       // açıcı majörü tekrarladı: fit varsa 4M
+            {
+                if (z.Uz(m) >= 2) return YK.T(4, m);
+                return ElDegerlendirici.StopperVar(z.El, ovS) ? "3NT" : null;
+            }
+            if (sr == y && YK.Sev(son) == 4)                       // açıcı benim rengimi destekledi
+                return YK.Major(y) ? (z.Hp >= 18 ? null : "Pas") : (z.Hp >= 16 ? null : YK.T(5, y));
+            return null;
+        }
+
+        private static string KontrdanSonra(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "O");
+            if (m == null || !YK.Major(m)) return null;
+            if (z.D.Gecmis.Any(h => h.PasMi && h.Oyuncu == z.D.AktifOyuncu)) return null;   // pastan gelen cevapçı
+            if (z.Uz(m) >= 3 || z.Hp < 6) return null;               // fit: raise/Jordan/Truscott çağrıları öncelikli
+            if (m == "Kupa" && z.Maca >= 4) return null;             // 1♥–(X)–1♠ doğal ve zorlayıcı
+            // Majörde kısa (tekli/void) + 5 kartlık renk, zayıf/orta el: iki seviyesinde doğal, forsing olmayan renk
+            if (z.Uz(m) <= 1 && z.Hp <= 11)
+            {
+                string en = null; int enUz = 0;
+                foreach (string r in Renkler)
+                {
+                    if (r == m || z.Uz(r) < 5) continue;
+                    if (z.Uz(r) > enUz) { en = r; enUz = z.Uz(r); }
+                }
+                if (en != null) return YK.T(2, en);
+            }
+            // 10+ HP (Hardy: 9+ iyi değerler) ve uygun doğal çağrısı yok: sürkontur
+            if (z.Hp >= 10 && z.Uz(m) <= 2) return "Rdbl";
+            return null;
+        }
 
         private static string AciciSerbestCevap(Dz z)
         {
