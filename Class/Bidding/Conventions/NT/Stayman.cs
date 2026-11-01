@@ -95,7 +95,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ═══════════════════════════════════════════════════════════════
             if (Gercek(durum, durum.Partner).LastOrDefault() == "1NT"
                 && Gercek(durum, durum.AktifOyuncu).Count == 0
-                && !durum.RakipActiMi())
+                && !durum.RakipMudahaleliMi())
             {
                 // 5+ majör kontrolü
                 bool besliMaca = ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 5;

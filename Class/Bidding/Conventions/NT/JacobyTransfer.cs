@@ -46,7 +46,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ── ROL 1: Partner 1NT açtı, ben transfer sorusu soracağım ──
             if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
                 && GercekTeklifSayisi(durum) == 0   // önceki Pas'lar sayılmaz
-                && !durum.RakipActiMi())
+                && !durum.RakipMudahaleliMi())
             {
                 // 5+ majör var mı?
                 int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
@@ -101,7 +101,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
             var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
             if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
-            if (durum.RakipActiMi()) return null;
+            if (durum.RakipMudahaleliMi()) return null;
 
             string major;
             if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
@@ -124,7 +124,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
             var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
             if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
-            if (durum.RakipActiMi()) return null;
+            if (durum.RakipMudahaleliMi()) return null;
             string major;
             if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
             else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
@@ -143,7 +143,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
             var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
             if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
-            if (durum.RakipActiMi()) return null;
+            if (durum.RakipMudahaleliMi()) return null;
             string major;
             if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
             else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
@@ -161,7 +161,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
             var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
             if (kendi.Count != 2 || ortak.Count != 2 || kendi[0] != "1NT" || ortak[1] != "2NT") return null;
-            if (durum.RakipActiMi()) return null;
+            if (durum.RakipMudahaleliMi()) return null;
             string major;
             if (ortak[0] == "2♦" && kendi[1] == "2♥") major = "Kupa";
             else if (ortak[0] == "2♥" && kendi[1] == "2♠") major = "Maça";
@@ -180,7 +180,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
             var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
             if (kendi.Count != 2 || ortak.Count != 2 || kendi[0] != "1NT" || ortak[1] != "3NT") return null;
-            if (durum.RakipActiMi()) return null;
+            if (durum.RakipMudahaleliMi()) return null;
             string major;
             if (ortak[0] == "2♦" && kendi[1] == "2♥") major = "Kupa";
             else if (ortak[0] == "2♥" && kendi[1] == "2♠") major = "Maça";

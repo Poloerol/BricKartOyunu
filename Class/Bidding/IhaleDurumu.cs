@@ -221,6 +221,22 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         /// <summary>
+        /// Rakip gerçek müdahale yaptı mı? 1NT açılışımıza hemen verilen rakip kontrası müdahale sayılmaz
+        /// (Hardy: kontra sonrası normal sistem — Stayman, transferler — aynen geçerlidir).
+        /// </summary>
+        public bool RakipMudahaleliMi()
+        {
+            for (int i = 0; i < Gecmis.Count; i++)
+            {
+                var h = Gecmis[i];
+                if (!Rakipler.Contains(h.Oyuncu)) continue;
+                if (h.GercekTeklifMi || h.SKontrMi) return true;
+                if (h.KontrMi && !(i > 0 && Gecmis[i - 1].Teklif == "1NT" && !Rakipler.Contains(Gecmis[i - 1].Oyuncu))) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// İhale ortasında mıyız? (İlk teklif değil, ama ihale de bitmemiş.)
         /// </summary>
         /// <summary>

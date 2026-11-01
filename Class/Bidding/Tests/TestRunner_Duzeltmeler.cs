@@ -226,6 +226,12 @@ namespace BricKartOyunu.Tests
             T("V81 Cue-bid cevabi: ortak 4D cue, K(kupa) ikinci tur kontrol -> 4H", TestHelpers.ElOlustur("AKJ87", "K5", "AQ5", "Q32"), "4♥", "1♠", "Pas", "2NT", "Pas", "3♠", "Pas", "4♦", "Pas");
             T("V82 Cue-bid cevabi: ortak 4D cue, kontrol gosterilemiyor (4C atlandi) -> 4S", TestHelpers.ElOlustur("AKJ87", "Q5", "K65", "A32"), "4♠", "1♠", "Pas", "2NT", "Pas", "3♠", "Pas", "4♦", "Pas");
             T("V83 Minor fit (karo) 1D-2C-2D-3D: 18hp As(maca) -> 3S cue-bid", TestHelpers.ElOlustur("A5", "K4", "AKJ62", "K432"), "3♠", "1♦", "Pas", "2♣", "Pas", "2♦", "Pas", "3♦", "Pas");
+            T("V84 1D-1NT: 5-5 minor 20hp -> 3C (sicrama, Pas degil)", TestHelpers.ElOlustur("5", "K4", "AKJ62", "AKQ43"), "3♣", "1♦", "Pas", "1NT", "Pas");
+            T("V85 1D-1S: 5-5 minor 20hp tekli maca -> 3C (3NT degil)", TestHelpers.ElOlustur("5", "K4", "AKJ62", "AKQ43"), "3♣", "1♦", "Pas", "1♠", "Pas");
+            T("V86 1NT-(Dbl): 5 kupa zayif -> 2D transfer (sistem acik, Hardy)", TestHelpers.ElOlustur("5", "K8765", "984", "T842"), "2♦", "1NT", "Dbl");
+            T("V87 1NT-(Dbl): 4-4 majorler 12hp -> 2C Stayman", TestHelpers.ElOlustur("KJ85", "K765", "K4", "Q94"), "2♣", "1NT", "Dbl");
+            T("V88 1NT-(Dbl)-2C Stayman: acici 4 kupa -> 2H", TestHelpers.ElOlustur("KQ4", "AQ52", "KJ4", "Q75"), "2♥", "1NT", "Dbl", "2♣", "Pas");
+            T("V89 1NT-(Dbl)-2D transfer: acici 2H ile tamamlar", TestHelpers.ElOlustur("KQ4", "AQ52", "KJ4", "Q75"), "2♥", "1NT", "Dbl", "2♦", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");

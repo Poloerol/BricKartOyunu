@@ -651,6 +651,20 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
             }
 
+            // Güçlü 5-5 açıcı (19-21 HP): ortak 1 seviyesinde ya da 1NT ile cevapladı → ikinci rengi sıçrayarak (jump shift) göster, oyun zorlar
+            if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && !rakipRenkleri.Any() &&
+                hp >= 19 && hp <= 21 && ElDegerlendirici.RenkUzunlugu(el, gercek[0].Koz) >= 5)
+            {
+                foreach (var r2 in Renkler)
+                {
+                    if (r2 == gercek[0].Koz || r2 == gercek[1].Koz) continue;
+                    if (ElDegerlendirici.RenkUzunlugu(el, r2) < 5) continue;
+                    int cj = Cheapest(d, r2);
+                    if (cj == 2 && !Major(r2) || cj == 2 && Major(r2)) { var js = Seviye(d, r2, 3); if (js != "Pas") return js; }
+                }
+            }
+
             // Ortağın aralığı dar (örn. 1♦–1♥–2NT = 18-19) ve kendi elimle toplam en az 25 HP:
             // tahmin eşiğine takılmadan 3NT'ye taşı (18+9=27 HP'de Pas demek hatadır).
             var ortAr = IhaleKoruma.PartnerAraligi(d);
