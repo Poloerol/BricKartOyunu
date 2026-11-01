@@ -243,6 +243,13 @@ namespace BricKartOyunu.Tests
             T("V98 1H-(P)-?: 5 maca + 4-4 minor, 8 HP -> 1S", TestHelpers.ElOlustur("AQJ72", "", "9874", "J986"), "1♠", "1♥", "Pas");
             T("V99 1D-(P)-?: 4 maca, 5 sinek, 6 HP -> 1S (1NT degil)", TestHelpers.ElOlustur("JT86", "73", "Q3", "QJT76"), "1♠", "1♦", "Pas");
             T("V100 1D-(P)-?: 4 maca + 4 karo destek, 7 HP -> 1S (2D degil)", TestHelpers.ElOlustur("9876", "3", "AJT4", "QT97"), "1♠", "1♦", "Pas");
+            T("V101 1NT-(3H): 5 maca, oyun degeri -> 3S", TestHelpers.ElOlustur("KQ652", "K5", "K32", "A75"), "3♠", "1NT", "3♥");
+            T("V102 1NT-(3H): 4 kupa, oyun degeri -> ceza kontrasi", TestHelpers.ElOlustur("K65", "QJ98", "K32", "AJ5"), "Dbl", "1NT", "3♥");
+            T("V103 1NT-(3H): kupa durdurucu -> 3NT", TestHelpers.ElOlustur("KQ5", "K65", "J32", "AQ75"), "3NT", "1NT", "3♥");
+            T("V104 1NT-(3S): 5 kupa, oyun degeri -> 4H", TestHelpers.ElOlustur("K5", "KQ652", "K32", "A75"), "4♥", "1NT", "3♠");
+            T("V105 1NT-(3S): zayif el -> Pas", TestHelpers.ElOlustur("652", "K65", "AJ32", "975"), "Pas", "1NT", "3♠");
+            TS("V106 1H-1S-1NT: 12 HP 7 karo -> 3D davet (Pas degil)", TestHelpers.ElOlustur("AKJ6", "98", "AT87653", ""), "3♦", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas");
+            TS("V107 1H-1S-1NT: 7 HP 7 karo -> 2D oynamak icin", TestHelpers.ElOlustur("83", "98", "KQJ8765", "J4"), "2♦", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas");
 
             AcilisCevapTaramasi(8000);
 
@@ -250,6 +257,20 @@ namespace BricKartOyunu.Tests
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
             return _kalan;
+        }
+
+        /// <summary>İki Yönlü Checkback kapalı anlaşmayla (genel mantık yedeği) test.</summary>
+        private static void TS(string ad, List<Card> el, string beklenen, params string[] gecmis)
+        {
+            var an = OrtaklikAnlasmasi.Varsayilan();
+            an.ZayifIki = true; an.TwoWayCheckback = false; an.NewMinorForcing = false;
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, gecmis);
+            durum.Anlasma = an;
+            var motor = new IhaleMotoru(an);
+            string r = motor.TeklifVer(durum);
+            bool gecti = r == beklenen;
+            if (gecti) _gecen++; else _kalan++;
+            _yaz((gecti ? "✅ " : "❌ ") + ad + " → " + r + (gecti ? "" : "   [beklenen: " + beklenen + "]"));
         }
 
         private static void TZ(string ad, List<Card> el, string beklenen, params string[] gecmis)
