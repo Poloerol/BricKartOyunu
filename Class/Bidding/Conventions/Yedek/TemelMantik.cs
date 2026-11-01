@@ -229,6 +229,22 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (ortak2C && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
                 return Cevap2C(d, el, hp, dengeli, rakipRenkleri);
 
+            // Ortak 2♣ açtı, ben 2♦ bekledim, ortak 2NT (22-24) / 3NT (25-27) dedi: slem değerlendirmesi
+            if (ortak2C && gercek.Count == 3 && gercek[1].Oyuncu == d.AktifOyuncu && gercek[1].Teklif == "2♦" &&
+                sonOrtak && (son.Teklif == "2NT" || son.Teklif == "3NT") && !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && dengeli)
+            {
+                if (son.Teklif == "2NT")
+                {
+                    if (hp >= 15) return "7NT";
+                    if (hp >= 12) return "6NT";
+                    if (hp >= 10) return "4NT";
+                    return Seviye(d, "NT", 3);
+                }
+                if (hp >= 12) return "7NT";
+                if (hp >= 7) return "6NT";
+                return "Pas";
+            }
+
             // Rakip son sözü söylemiş → rekabet
             if (!sonBizim)
             {
@@ -843,6 +859,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
             var cev = gercek[1];
 
+            // Ortak pozitif 2NT (dengeli, 10+ HP) dedi: toplam 32+ -> niceliksel 4NT, 33+ -> 6NT, 37+ -> 7NT
+            if (dengeli && hp >= 22 && cev.Teklif == "2NT")
+            {
+                if (hp >= 27) return "7NT";
+                if (hp >= 23) return "6NT";
+                return "4NT";
+            }
             if (dengeli && hp >= 22)
             {
                 int hedef = hp >= 25 ? 3 : 2;

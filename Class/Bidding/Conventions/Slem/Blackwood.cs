@@ -128,7 +128,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 int hp = ElDegerlendirici.HCP(el);
                 string ntTeklif = durum.KendiTeklifleri.LastOrDefault(t => t.EndsWith("NT")) ?? "3NT";
-                int esik = ntTeklif.StartsWith("1") ? 17 : ntTeklif.StartsWith("2") ? 19 : 15;
+                int esik = ntTeklif.StartsWith("1") ? 17 : ntTeklif.StartsWith("2") ? (durum.KendiTeklifleri.Contains("2♣") ? 23 : 21) : 15;
                 return hp >= esik ? "6NT" : "Pas";
             }
 

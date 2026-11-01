@@ -33,6 +33,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return !string.IsNullOrEmpty(kozGsf) && kozGsf != "NT";
             }
 
+            // NT sekansındaki 4NT niceliksel davettir; GSF yalnızca koz anlaşıldıktan sonra sorulur
+            if (Blackwood.NicelikselMi(durum)) return false;
+            string kozSor = durum.AnlasilanKoz();
+            if (string.IsNullOrEmpty(kozSor) || kozSor == "NT") return false;
+
             int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
             if (hp < 16) return false;
 

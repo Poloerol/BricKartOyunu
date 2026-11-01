@@ -82,6 +82,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             string dv = DevamDurumu(durum);
             if (dv == "SORAN") return SoranDevami(durum, el);
+            if (dv == "KRAL_CEVAP")
+            {
+                int krallar = el.Count(c => c.Value == 13);
+                return krallar == 0 ? "5♦" : krallar == 1 ? "5♥" : krallar == 2 ? "5♠" : krallar == 3 ? "5NT" : "6♣";
+            }
+            if (dv == "KRAL_SORAN")
+            {
+                var gk = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                int toplamKral = el.Count(c => c.Value == 13) + KralSayisi(gk[gk.Count - 1].Teklif);
+                return toplamKral >= 4 ? "7NT" : "6NT";
+            }
             if (dv == "CEVAPLAYAN") return "Pas";   // soran 4NT ile bitirdi (as eksik): oyun 4NT'de kalır
 
             // Ortak 4♣ sordu → As sayısına göre cevap
@@ -112,6 +123,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// "CEVAPLAYAN": ben cevap verdim, soran 4NT ile devam etti (oyun/niceliksel değil, as eksik → bitir).
         /// Aksi halde null.
         /// </summary>
+        private static bool KralCevabiMi(string t) { return t == "5♦" || t == "5♥" || t == "5♠" || t == "5NT" || t == "6♣"; }
+
+        private static int KralSayisi(string t)
+        {
+            return t == "5♦" ? 0 : t == "5♥" ? 1 : t == "5♠" ? 2 : t == "5NT" ? 3 : 4;
+        }
+
         private static string DevamDurumu(IhaleDurumu durum)
         {
             var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
@@ -119,6 +137,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (gercek.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return null;
             var son = gercek[gercek.Count - 1];
             if (son.Oyuncu != durum.Partner) return null;
+
+            // Kral sorusu (5♣): NT – 4♣ – as cevabı – 5♣ – kral cevabı
+            int n = gercek.Count;
+            if (n >= 5 && KralCevabiMi(son.Teklif) && gercek[n - 2].Oyuncu == durum.AktifOyuncu && gercek[n - 2].Teklif == "5♣" &&
+                gercek[n - 4].Oyuncu == durum.AktifOyuncu && gercek[n - 4].Teklif == "4♣" &&
+                gercek[n - 5].Oyuncu == durum.Partner && gercek[n - 5].Koz == "NT" && gercek[n - 5].Seviye <= 2)
+                return "KRAL_SORAN";
+            if (n >= 4 && son.Teklif == "5♣" && gercek[n - 2].Oyuncu == durum.AktifOyuncu &&
+                (gercek[n - 2].Teklif == "4♦" || gercek[n - 2].Teklif == "4♥" || gercek[n - 2].Teklif == "4♠" || gercek[n - 2].Teklif == "4NT") &&
+                gercek[n - 3].Oyuncu == durum.Partner && gercek[n - 3].Teklif == "4♣" &&
+                gercek[n - 4].Oyuncu == durum.AktifOyuncu && gercek[n - 4].Koz == "NT" && gercek[n - 4].Seviye <= 2)
+                return "KRAL_CEVAP";
 
             var onceki = gercek[gercek.Count - 2];
             if (onceki.Oyuncu == durum.AktifOyuncu && onceki.Teklif == "4♣" && gercek.Count >= 3)
@@ -152,7 +182,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (benAs + ortakAs >= 4)
             {
-                if (toplamHp >= 37) return "7NT";
+                if (benAs + ortakAs >= 4 && toplamHp >= 36 && son.Teklif != "4NT") return "5♣";   // 4 as da var: kral sor
                 if (toplamHp >= 33) return "6NT";
             }
             // Bir as eksik ya da güç yetersiz: oyunu bitir (4NT bir sonraki basamaktır; cevap 4NT ise zaten orada)

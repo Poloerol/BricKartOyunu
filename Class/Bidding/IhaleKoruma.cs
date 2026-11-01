@@ -390,7 +390,7 @@ namespace BricKartOyunu.Class.Bidding
                     return true;
 
                 case "Gerber":
-                    return ortakSonra && ortSon.Teklif == "4♣" && ilk != null && ilk.Koz == "NT";
+                    return ortakSonra && (ortSon.Teklif == "4♣" || ortSon.Teklif == "5♣") && ilk != null && ilk.Koz == "NT";
 
                 // NT açıcısı olarak yapay sorulara cevap
                 case "Puppet Stayman":

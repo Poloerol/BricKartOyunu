@@ -218,6 +218,11 @@ namespace BricKartOyunu.Tests
             T("V73 RKCB: 3 kilit kart cevabi ve As eksik -> 6♠ (7 degil)", TestHelpers.ElOlustur("Q963", "A32", "K4", "KJ65"), "6♠", "1♠", "Pas", "2NT", "Pas", "3♠", "Pas", "4♠", "Pas", "4NT", "Pas", "5♣", "Pas");
             T("V74 1S-3D(Bergen limit)-: 19hp 5 kozlu acici -> 4NT (slem)", TestHelpers.ElOlustur("AKJ87", "K5", "AQ5", "Q32"), "4NT", "1♠", "Pas", "3♦", "Pas");
             T("V75 1S-3D-4NT-5C: koz Maca anlasildi, 5NT degil", TestHelpers.ElOlustur("AKJ87", "K5", "AQ5", "Q32"), "5♠", "1♠", "Pas", "3♦", "Pas", "4NT", "Pas", "5♣", "Pas");
+            T("V76 Gerber: 4 as + 36hp -> 5C (kral sor), dogrudan 7NT degil", TestHelpers.ElOlustur("QJ4", "AQ5", "AK43", "AQ5"), "5♣", "1NT", "Pas", "4♣", "Pas", "4♥", "Pas");
+            T("V77 Gerber kral cevabi: 3 papaz -> 5NT", TestHelpers.ElOlustur("AK5", "KJ4", "QJ52", "K43"), "5NT", "1NT", "Pas", "4♣", "Pas", "4♥", "Pas", "5♣", "Pas");
+            T("V78 1NT-4NT niceliksel: 16hp -> Pas (GSF degil)", TestHelpers.ElOlustur("AK5", "KJ4", "QJ52", "Q43"), "Pas", "1NT", "Pas", "4NT", "Pas");
+            T("V79 2C-2NT(poz): 25hp dengeli acici -> 6NT", TestHelpers.ElOlustur("AKQ", "AKJ", "KQ52", "K43"), "6NT", "2♣", "Pas", "2NT", "Pas");
+            T("V80 2C-2D-2NT: 14hp cevapci -> 6NT", TestHelpers.ElOlustur("K54", "QJ5", "AJ4", "QJ52"), "6NT", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
