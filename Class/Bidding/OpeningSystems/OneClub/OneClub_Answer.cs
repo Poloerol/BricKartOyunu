@@ -59,7 +59,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
                 return "2♠";
 
             // ─── 3) 2♣: FG Röle (12+ HCP dengeli veya 12+ HCP 5+♣) ───
-            if (hcp >= 12 && (dengeli || c >= 5))
+            if (hcp >= 12 && ((dengeli && s < 5 && h < 5) || c >= 5))   // 5'li majörlü el röle yapmaz: 1♠/1♥ (doğal) der
                 return "2♣";
 
             // ─── 4) 2♥: 5♠ 4+♥, 3-8 HCP (ters Flannery) ───
