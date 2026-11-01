@@ -18,13 +18,13 @@ namespace BricKartOyunu.Forms
     {
         private const string Ozel = "Özel";
 
-        private sealed class OnAyar
+        internal sealed class OnAyar
         {
             public string Ad; public Func<OrtaklikAnlasmasi> Uret;
             public OnAyar(string ad, Func<OrtaklikAnlasmasi> uret) { Ad = ad; Uret = uret; }
         }
 
-        private static readonly OnAyar[] OnAyarlar =
+        internal static readonly OnAyar[] OnAyarlar =
         {
             new OnAyar("Standart (5'li majör, güçlü NT)", () => OrtaklikAnlasmasi.Varsayilan()),
             new OnAyar("Başlangıç (basit)", () => OrtaklikAnlasmasi.Basit()),
@@ -290,10 +290,10 @@ namespace BricKartOyunu.Forms
             OzetleriGuncelle();
         }
 
-        private static readonly string[] BayrakAdlari = typeof(OrtaklikAnlasmasi).GetProperties()
+        internal static readonly string[] BayrakAdlari = typeof(OrtaklikAnlasmasi).GetProperties()
             .Where(p => p.PropertyType == typeof(bool) && p.CanWrite).Select(p => p.Name).ToArray();
 
-        private static bool AyniBayraklar(OrtaklikAnlasmasi x, OrtaklikAnlasmasi y)
+        internal static bool AyniBayraklar(OrtaklikAnlasmasi x, OrtaklikAnlasmasi y)
         {
             foreach (var n in BayrakAdlari)
             {
@@ -425,18 +425,20 @@ namespace BricKartOyunu.Forms
 
         private void KonvansiyonlariDuzenle()
         {
-            using (var f = new KonvansiyonSecimForm(_secili.Anlasma))
+            using (var f = new ProfilSihirbazi(_secili.Anlasma, _secili.Ad))
             {
                 if (f.ShowDialog(this) == DialogResult.OK && f.Sonuc != null)
                 {
-                    // Agresiflik/beceri bu ekranda; yalnız konvansiyon bayrakları geri alınır
+                    var hedef = _secili.Anlasma;
                     foreach (var n in BayrakAdlari)
                     {
                         var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
-                        p.SetValue(_secili.Anlasma, p.GetValue(f.Sonuc, null), null);
+                        p.SetValue(hedef, p.GetValue(f.Sonuc, null), null);
                     }
-                    SistemEtiketiniGuncelle();
-                    OzetleriGuncelle();
+                    hedef.AcilisAgresifligi = f.Sonuc.AcilisAgresifligi;
+                    hedef.MudahaleAgresifligi = f.Sonuc.MudahaleAgresifligi;
+                    hedef.PreemptAgresifligi = f.Sonuc.PreemptAgresifligi;
+                    SeciliyiGoster();
                 }
             }
         }
@@ -547,8 +549,16 @@ namespace BricKartOyunu.Forms
 
             var tamam = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(306, 410), Size = new Size(80, 28) };
             var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(392, 410), Size = new Size(80, 28) };
-            Controls.AddRange(new Control[] { tab, tamam, iptal });
+            // Yardım: şimdilik boş; içerik daha sonra eklenecek (YardimTiklandi içine)
+            var yardim = new Button { Text = "Yardım", Location = new Point(220, 410), Size = new Size(80, 28) };
+            yardim.Click += (s, e) => YardimTiklandi();
+            Controls.AddRange(new Control[] { tab, yardim, tamam, iptal });
             AcceptButton = tamam; CancelButton = iptal;
+        }
+
+        private void YardimTiklandi()
+        {
+            // TODO: Sinyaller yardım içeriği
         }
 
         private static TabPage KartSayfasi(string baslik, string[][] sutunlar, bool nt)
@@ -592,6 +602,538 @@ namespace BricKartOyunu.Forms
             p.Controls.Add(Grup("Smith (açıcı)", new Rectangle(340, 120, 112, 100), 0, "Yok", "Yüksek-alçak", "Alçak-yüksek"));
             p.Controls.Add(Grup("Tutum (yüksek)", new Rectangle(116, 214, 108, 80), a.UDCA ? 1 : 0, "Teşvik eder", "Caydırır"));
             p.Controls.Add(Grup("Koz sinyali", new Rectangle(340, 234, 112, 100), 2, "Vinje", "Yok", "3+ yüks-alç"));
+            return p;
+        }
+    }
+
+    /// <summary>
+    /// Ortaklık profili sihirbazı (Bridge Baron "Pair Profile" sayfaları): 8 sayfa, Geri / Sonraki / Son / İptal / Yardım.
+    /// Çalışma kopyası üzerinde düzenler; Son ile Sonuc'a yazılır. Motorda karşılığı olmayan seçenekler soluk (pasif) gösterilir.
+    /// </summary>
+    public sealed class ProfilSihirbazi : Form
+    {
+        private static readonly string[] Basliklar =
+        {
+            "Ortaklık Profili", "1NT Açılışları", "Majör Açılışlar", "Minör Açılışlar",
+            "Yüksek Seviye Açılışlar", "Yüksek NT Açılışları", "Slam Teklifleri", "Rekabetli İhale"
+        };
+
+        // Aynı anda yalnızca biri açık olabilen alanlar (KonvansiyonSecimForm ile aynı kurallar)
+        private static readonly string[][] Dislayan =
+        {
+            new[] { "Cappelletti", "Dont", "MultiLandy", "HelloOver1NT" },
+            new[] { "Serious3NT", "NonSerious3NT" },
+            new[] { "Drury", "ReverseDrury" },
+            new[] { "ZayifIki", "Multi2D" },
+            new[] { "IkiliSinekGuclu", "BenjaminTwoBids" },
+            new[] { "BergenRaises", "InvertedBergenRaises" },
+            new[] { "TrialBid", "LongShortGameTries" },
+            new[] { "TwoWayCheckback", "NewMinorForcing", "WolffSignoff" },
+            new[] { "Robinson", "ExitTransfer" },
+            new[] { "Ghestem", "Michaels" },
+            new[] { "Ghestem", "Unusual2NT" },
+            new[] { "MinorTransfer", "MinorStayman" },
+            new[] { "Flannery", "ZayifIki" },
+            new[] { "Flannery", "Multi2D" },
+            new[] { "Flannery", "MiniRoman2D" },
+            new[] { "Lebensohl", "Rubensohl" }
+        };
+
+        private static readonly Dictionary<string, string> Gerektirir = new Dictionary<string, string>
+        {
+            { "Smolen", "Stayman" },
+            { "RKCB1430", "RKCB" },
+            { "SpecificKingAsks", "RKCB" },
+            { "Kokish", "IkiliSinekGuclu" },
+            { "IkiBirOyunZorlama", "BesliMajor" },
+            { "ExtendedStayman", "Stayman" }
+        };
+
+        private const int SayfaY = 420;
+
+        private readonly OrtaklikAnlasmasi _a;
+        private readonly string _ad;
+        private readonly List<Panel> _sayfalar = new List<Panel>();
+        private readonly List<Action> _yenile = new List<Action>();
+        private Button _geri, _ileri;
+        private int _i;
+        private bool _sync;
+
+        /// <summary>Son ile onaylanan düzenlenmiş anlaşma; İptal'de null.</summary>
+        public OrtaklikAnlasmasi Sonuc { get; private set; }
+
+        public ProfilSihirbazi(OrtaklikAnlasmasi anlasma, string profilAdi, int baslangicSayfa = 0)
+        {
+            _a = anlasma.Kopya();
+            _ad = profilAdi;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterParent;
+            ShowInTaskbar = false; MinimizeBox = false; MaximizeBox = false;
+            ClientSize = new Size(440, 470);
+            Font = new Font("Segoe UI", 9F);
+
+            _sayfalar.Add(Sayfa1()); _sayfalar.Add(Sayfa2()); _sayfalar.Add(Sayfa3()); _sayfalar.Add(Sayfa4());
+            _sayfalar.Add(Sayfa5()); _sayfalar.Add(Sayfa6()); _sayfalar.Add(Sayfa7()); _sayfalar.Add(Sayfa8());
+            foreach (var p in _sayfalar) { p.Visible = false; Controls.Add(p); }
+
+            var cizgi = new Label { BorderStyle = BorderStyle.Fixed3D, Bounds = new Rectangle(12, SayfaY + 2, 416, 2) };
+            _geri = Dugme("< Geri", 12); _ileri = Dugme("Sonraki >", 95);
+            var son = Dugme("Son", 180); var iptal = Dugme("İptal", 266); var yardim = Dugme("Yardım", 351);
+            _geri.Click += (s, e) => Git(_i - 1);
+            _ileri.Click += (s, e) => Git(_i + 1);
+            son.Click += (s, e) => { Sonuc = _a; DialogResult = DialogResult.OK; Close(); };
+            iptal.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
+            yardim.Click += (s, e) => { /* TODO: yardım içeriği */ };
+            Controls.AddRange(new Control[] { cizgi, _geri, _ileri, son, iptal, yardim });
+            CancelButton = iptal;
+            Hepsi();
+            Git(Math.Max(0, Math.Min(_sayfalar.Count - 1, baslangicSayfa)));
+        }
+
+        private Button Dugme(string t, int x) { return new Button { Text = t, Bounds = new Rectangle(x, SayfaY + 12, 78, 28) }; }
+
+        private void Git(int i)
+        {
+            if (i < 0 || i >= _sayfalar.Count) return;
+            _sayfalar[_i].Visible = false;
+            _i = i;
+            _sayfalar[_i].Visible = true;
+            Text = Basliklar[_i];
+            _geri.Enabled = _i > 0;
+            _ileri.Enabled = _i < _sayfalar.Count - 1;
+        }
+
+        // ───────────── Veri erişimi ─────────────
+
+        private static PropertyInfo Pr(string ad) { return typeof(OrtaklikAnlasmasi).GetProperty(ad); }
+        private bool Al(string ad) { return (bool)Pr(ad).GetValue(_a, null); }
+
+        private void Koy(string ad, bool v)
+        {
+            Pr(ad).SetValue(_a, v, null);
+            if (v)
+            {
+                foreach (var g in Dislayan)
+                {
+                    if (!g.Contains(ad)) continue;
+                    foreach (var d in g) if (d != ad) Pr(d).SetValue(_a, false, null);
+                }
+                string gerek;
+                if (Gerektirir.TryGetValue(ad, out gerek)) Pr(gerek).SetValue(_a, true, null);
+            }
+            else
+            {
+                foreach (var kv in Gerektirir) if (kv.Value == ad) Pr(kv.Key).SetValue(_a, false, null);
+            }
+        }
+
+        private void Hepsi()
+        {
+            _sync = true;
+            try { foreach (var y in _yenile) y(); }
+            finally { _sync = false; }
+        }
+
+        // ───────────── Denetim üreticileri ─────────────
+
+        private static Panel YeniSayfa()
+        {
+            return new Panel { Bounds = new Rectangle(0, 0, 440, SayfaY) };
+        }
+
+        private static Label Et(Control ust, string t, int x, int y, int w = 0)
+        {
+            var l = new Label { Text = t, Location = new Point(x, y) };
+            if (w > 0) { l.AutoSize = false; l.Size = new Size(w, 20); } else l.AutoSize = true;
+            ust.Controls.Add(l);
+            return l;
+        }
+
+        private static Panel Gr(Control ust, int x, int y, int w, int h)
+        {
+            var p = new Panel { Bounds = new Rectangle(x, y, w, h) };
+            ust.Controls.Add(p);
+            return p;
+        }
+
+        private CheckBox Cb(Control ust, string alan, string t, int x, int y, int w = 200)
+        {
+            var c = new CheckBox { Text = t, AutoSize = false, Bounds = new Rectangle(x, y, w, 20) };
+            c.Click += (s, e) => { Koy(alan, c.Checked); Hepsi(); };
+            _yenile.Add(() => c.Checked = Al(alan));
+            ust.Controls.Add(c);
+            return c;
+        }
+
+        private static CheckBox CbPasif(Control ust, string t, int x, int y, int w = 200)
+        {
+            var c = new CheckBox { Text = t, AutoSize = false, Bounds = new Rectangle(x, y, w, 20), Enabled = false };
+            ust.Controls.Add(c);
+            return c;
+        }
+
+        /// <summary>al == null: motorda karşılığı yok, pasif.</summary>
+        private RadioButton Rb(Control ust, string t, int x, int y, int w, Func<bool> al, Action koy = null, bool pasifIsaretli = false)
+        {
+            var r = new RadioButton { Text = t, AutoSize = false, Bounds = new Rectangle(x, y, w, 20) };
+            if (al == null) { r.Enabled = false; r.Checked = pasifIsaretli; }
+            else
+            {
+                r.Click += (s, e) => { koy(); Hepsi(); };
+                _yenile.Add(() => r.Checked = al());
+            }
+            ust.Controls.Add(r);
+            return r;
+        }
+
+        private ComboBox Agr(Control ust, int x, int y, int w, Func<int> al, Action<int> koy)
+        {
+            var c = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = new Rectangle(x, y, w, 24) };
+            c.Items.AddRange(new object[] { "Temkinli", "Orta", "Atak" });
+            c.SelectedIndexChanged += (s, e) => { if (!_sync && c.SelectedIndex >= 0) koy(c.SelectedIndex - 1); };
+            _yenile.Add(() => c.SelectedIndex = Math.Max(0, Math.Min(2, al() + 1)));
+            ust.Controls.Add(c);
+            return c;
+        }
+
+        // ───────────── Sayfa 1: Ortaklık profili ─────────────
+
+        private Panel Sayfa1()
+        {
+            var p = YeniSayfa();
+            Et(p, "Profil adı:", 60, 70, 84).TextAlign = ContentAlignment.MiddleRight;
+            p.Controls.Add(new TextBox { Text = _ad, Enabled = false, Bounds = new Rectangle(151, 66, 170, 24) });
+
+            Et(p, "İhale sistemi:", 40, 104, 104).TextAlign = ContentAlignment.MiddleRight;
+            var sis = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = new Rectangle(151, 100, 260, 24) };
+            foreach (var o in AnlasmaForm.OnAyarlar) sis.Items.Add(o.Ad);
+            sis.Items.Add("Özel");
+            sis.SelectionChangeCommitted += (s, e) =>
+            {
+                int i = sis.SelectedIndex;
+                if (i < 0 || i >= AnlasmaForm.OnAyarlar.Length) { Hepsi(); return; }
+                var yeni = AnlasmaForm.OnAyarlar[i].Uret();
+                foreach (var n in AnlasmaForm.BayrakAdlari) Pr(n).SetValue(_a, Pr(n).GetValue(yeni, null), null);
+                Hepsi();
+            };
+            _yenile.Add(() =>
+            {
+                int k = AnlasmaForm.OnAyarlar.Length;
+                for (int i = 0; i < AnlasmaForm.OnAyarlar.Length; i++)
+                    if (AnlasmaForm.AyniBayraklar(_a, AnlasmaForm.OnAyarlar[i].Uret())) { k = i; break; }
+                sis.SelectedIndex = k;
+            });
+            p.Controls.Add(sis);
+
+            Et(p, "İki seviye açılışlar:", 28, 150);
+            var g = Gr(p, 152, 144, 270, 84);
+            Rb(g, "Yalnız güçlü 2♣", 0, 0, 250, () => !Al("BenjaminTwoBids") && !Al("ZayifIki") && !Al("Multi2D"),
+                () => { Koy("BenjaminTwoBids", false); Koy("ZayifIki", false); Koy("Multi2D", false); Koy("IkiliSinekGuclu", true); });
+            Rb(g, "Zayıf 2'ler (güçlü 2♣ ile)", 0, 26, 250, () => !Al("BenjaminTwoBids") && (Al("ZayifIki") || Al("Multi2D")),
+                () => { Koy("BenjaminTwoBids", false); Koy("IkiliSinekGuclu", true); Koy("ZayifIki", true); });
+            Rb(g, "Benjamin", 0, 52, 250, () => Al("BenjaminTwoBids"), () => Koy("BenjaminTwoBids", true));
+
+            var gb = new GroupBox { Text = "İhale agresifliği", Bounds = new Rectangle(44, 248, 350, 116) };
+            Et(gb, "Müdahale:", 20, 28, 80).TextAlign = ContentAlignment.MiddleRight;
+            Et(gb, "Önleyici açılış:", 4, 58, 96).TextAlign = ContentAlignment.MiddleRight;
+            Et(gb, "Açılış:", 20, 88, 80).TextAlign = ContentAlignment.MiddleRight;
+            Agr(gb, 108, 24, 220, () => _a.MudahaleAgresifligi, v => _a.MudahaleAgresifligi = v);
+            Agr(gb, 108, 54, 220, () => _a.PreemptAgresifligi, v => _a.PreemptAgresifligi = v);
+            Agr(gb, 108, 84, 220, () => _a.AcilisAgresifligi, v => _a.AcilisAgresifligi = v);
+            p.Controls.Add(gb);
+
+            var sy = new Button { Text = "Sinyalleri göster", Bounds = new Rectangle(123, 392, 173, 28) };
+            sy.Click += (s, e) => { using (var f = new SinyallerForm(_a)) f.ShowDialog(this); };
+            p.Controls.Add(sy);
+            return p;
+        }
+
+        // ───────────── Sayfa 2: 1NT ─────────────
+
+        private Panel Sayfa2()
+        {
+            var p = YeniSayfa();
+            Et(p, "1NT açılış aralığı:", 22, 12);
+            string[] ar = { "10-12", "11-13", "12-14", "13-15", "14-16", "15-17", "16-18" };
+            int[] sx = { 0, 0, 1, 1, 2, 2, 3 }, sy = { 0, 1, 0, 1, 0, 1, 0 };
+            for (int k = 0; k < ar.Length; k++)
+            {
+                int x = 150 + 68 * sx[k], y = 8 + 22 * sy[k];
+                if (ar[k] == "12-14") Rb(p, ar[k], x, y, 66, () => !_a.StrongNT, () => _a.StrongNT = false);
+                else if (ar[k] == "15-17") Rb(p, ar[k], x, y, 66, () => _a.StrongNT, () => _a.StrongNT = true);
+                else Rb(p, ar[k], x, y, 66, null);
+            }
+            CbPasif(p, "5-4-2-2 el ile 1NT", 56, 54, 150);
+            CbPasif(p, "Tekil A/K ile 1NT", 214, 54, 170);
+            CbPasif(p, "5'li majör ile 1NT", 56, 74, 150);
+            CbPasif(p, "6'lı minör ile 1NT", 214, 74, 170);
+
+            Et(p, "1NT açılışlarına cevaplar:", 22, 100);
+            Et(p, "2♣:", 40, 124);
+            var g = Gr(p, 72, 120, 190, 70);
+            Rb(g, "Doğal", 0, 0, 90, () => !Al("Stayman"), () => { Koy("Stayman", false); Koy("Smolen", false); Koy("ExtendedStayman", false); });
+            Rb(g, "Stayman", 90, 0, 98, () => Al("Stayman") && !Al("ExtendedStayman"), () => { Koy("Stayman", true); Koy("ExtendedStayman", false); });
+            Rb(g, "Extended Stayman", 0, 24, 188, () => Al("ExtendedStayman"), () => Koy("ExtendedStayman", true));
+            Rb(g, "Puppet Stayman", 0, 48, 188, null);
+            Et(p, "Transfer teklifleri:", 276, 102);
+            Cb(p, "JacobyTransfer", "Jacoby transferleri", 266, 122, 160);
+            Cb(p, "TexasTransfers", "Texas transferleri", 266, 144, 160);
+            Cb(p, "Smolen", "Smolen", 266, 166, 160);
+
+            Et(p, "Konvansiyonel minör teklifleri:", 22, 194);
+            var m = Gr(p, 40, 214, 390, 70);
+            Rb(m, "Yok", 0, 0, 60, () => !Al("MinorStayman") && !Al("MinorTransfer"), () => { Koy("MinorStayman", false); Koy("MinorTransfer", false); });
+            Rb(m, "Minör Stayman", 70, 0, 120, () => Al("MinorStayman"), () => Koy("MinorStayman", true));
+            Rb(m, "1NT-2♠ → 3♣ röle", 200, 0, 180, null);
+            Rb(m, "Minör transferleri (süper kabullü, 2NT→♦)", 0, 24, 380, null);
+            Rb(m, "Minör transferleri (süper kabulsüz, 2NT→♦)", 0, 48, 380, () => Al("MinorTransfer"), () => Koy("MinorTransfer", true));
+
+            Cb(p, "Lebensohl", "Lebensohl", 40, 290, 150);
+            Cb(p, "Rubensohl", "Rubensohl", 200, 290, 150);
+
+            Et(p, "1NT'ye karşı savunma:", 22, 318);
+            var d = Gr(p, 150, 314, 280, 46);
+            Func<bool> dogal = () => !Al("Cappelletti") && !Al("Dont") && !Al("MultiLandy") && !Al("HelloOver1NT");
+            Rb(d, "Doğal", 0, 0, 64, dogal, () => { Koy("Cappelletti", false); Koy("Dont", false); Koy("MultiLandy", false); Koy("HelloOver1NT", false); });
+            Rb(d, "D.O.N.T.", 66, 0, 74, () => Al("Dont"), () => Koy("Dont", true));
+            Rb(d, "Brozel", 142, 0, 66, null);
+            Rb(d, "Hello", 210, 0, 66, () => Al("HelloOver1NT"), () => Koy("HelloOver1NT", true));
+            Rb(d, "Cappelletti", 0, 22, 90, () => Al("Cappelletti"), () => Koy("Cappelletti", true));
+            Rb(d, "Astro", 92, 22, 56, null);
+            Rb(d, "Landy", 150, 22, 62, () => Al("MultiLandy"), () => Koy("MultiLandy", true));
+
+            Et(p, "1NT'ye penaltı kontra\nsonrası kaçış:", 22, 368);
+            var k2 = Gr(p, 150, 364, 280, 46);
+            Rb(k2, "Doğal", 0, 0, 64, () => !Al("Robinson") && !Al("ExitTransfer"), () => { Koy("Robinson", false); Koy("ExitTransfer", false); });
+            Rb(k2, "Robinson", 66, 0, 80, () => Al("Robinson"), () => Koy("Robinson", true));
+            Rb(k2, "Exit transfer", 150, 0, 120, () => Al("ExitTransfer"), () => Koy("ExitTransfer", true));
+            Rb(k2, "D.O.N.T. (kaçış)", 0, 22, 130, null);
+            Rb(k2, "Helvic", 150, 22, 80, null);
+            return p;
+        }
+
+        // ───────────── Sayfa 3: Majör ─────────────
+
+        private Panel Sayfa3()
+        {
+            var p = YeniSayfa();
+            Et(p, "Majör açılışlara cevaplar:", 22, 18);
+            var g = Gr(p, 40, 40, 390, 52);
+            Rb(g, "Standart raise'ler", 0, 0, 190, () => !Al("BergenRaises") && !Al("InvertedBergenRaises"), () => { Koy("BergenRaises", false); Koy("InvertedBergenRaises", false); });
+            Rb(g, "Bergen raise'ler", 0, 26, 190, () => Al("BergenRaises"), () => Koy("BergenRaises", true));
+            Rb(g, "Limit majör raise'ler", 190, 0, 190, null);
+            Rb(g, "Ters Bergen raise'ler", 190, 26, 190, () => Al("InvertedBergenRaises"), () => Koy("InvertedBergenRaises", true));
+
+            Cb(p, "Jacoby2NT", "Jacoby 2NT", 40, 112, 170);
+            Cb(p, "Truscott2NT", "Kontra sonrası Truscott 2NT", 210, 112, 220);
+            Cb(p, "Splinter", "Splinter'lar", 40, 136, 170);
+            Cb(p, "PreemptiveReraises", "Önleyici reraise'ler", 210, 136, 220);
+            Cb(p, "Artificial2C2D", "Kontra sonrası yapay 2♣/2♦ raise'ler", 40, 160, 380);
+
+            Et(p, "Oyun denemeleri:", 22, 196);
+            var t = Gr(p, 40, 218, 390, 52);
+            Rb(t, "Yok", 0, 0, 190, () => !Al("TrialBid") && !Al("LongShortGameTries"), () => { Koy("TrialBid", false); Koy("LongShortGameTries", false); });
+            Rb(t, "Uzun renk", 0, 26, 190, () => Al("TrialBid"), () => Koy("TrialBid", true));
+            Rb(t, "Kısa renk", 190, 0, 190, null);
+            Rb(t, "Hem uzun hem kısa renk", 190, 26, 190, () => Al("LongShortGameTries"), () => Koy("LongShortGameTries", true));
+
+            Et(p, "1NT:", 22, 292);
+            var n = Gr(p, 40, 314, 390, 26);
+            Rb(n, "Doğal", 0, 0, 100, () => !Al("ForcingNT"), () => Koy("ForcingNT", false));
+            Rb(n, "Zorlayıcı", 110, 0, 110, () => Al("ForcingNT"), () => Koy("ForcingNT", true));
+            Rb(n, "Yarı zorlayıcı", 230, 0, 140, null);
+
+            Et(p, "Üçüncü el açılışlarına konvansiyonel cevaplar:", 22, 360);
+            var d = Gr(p, 40, 384, 390, 26);
+            Rb(d, "Yok", 0, 0, 100, () => !Al("Drury") && !Al("ReverseDrury"), () => { Koy("Drury", false); Koy("ReverseDrury", false); });
+            Rb(d, "Drury", 110, 0, 110, () => Al("Drury"), () => Koy("Drury", true));
+            Rb(d, "Ters Drury", 230, 0, 140, () => Al("ReverseDrury"), () => Koy("ReverseDrury", true));
+            return p;
+        }
+
+        // ───────────── Sayfa 4: Minör ─────────────
+
+        private Panel Sayfa4()
+        {
+            var p = YeniSayfa();
+            Et(p, "Minör açılışlar:", 22, 12);
+            Rb(p, "En iyi minör", 40, 32, 190, () => true, () => { }, true).Enabled = false;
+            Rb(p, "Kısa sinek", 240, 32, 170, null);
+
+            Et(p, "Minör açılışlara cevaplar:", 22, 62);
+            var g = Gr(p, 40, 82, 190, 48);
+            Rb(g, "Standart", 0, 0, 180, () => !Al("InvertedMinors"), () => Koy("InvertedMinors", false));
+            Rb(g, "Ters minör raise'ler", 0, 24, 180, () => Al("InvertedMinors"), () => Koy("InvertedMinors", true));
+            Cb(p, "Walsh", "Walsh", 240, 82, 170);
+            Cb(p, "OneClub_AnswerSistemi", "1♣ cevap sistemi", 240, 106, 170);
+
+            Et(p, "2NT'ye sıçrama:", 22, 136);
+            var j = Gr(p, 40, 156, 190, 48);
+            Rb(j, "Zorlayıcı", 0, 0, 180, () => !Al("OneMinorTwoNTInv"), () => Koy("OneMinorTwoNTInv", false));
+            Rb(j, "Davet", 0, 24, 180, () => Al("OneMinorTwoNTInv"), () => Koy("OneMinorTwoNTInv", true));
+            Cb(p, "XYZ", "XYZ", 240, 156, 170);
+            Cb(p, "ThirdSuitForcing", "3. renk zorlaması", 240, 180, 170);
+
+            Et(p, "Özel checkback teklifleri:", 22, 210);
+            var c = Gr(p, 40, 230, 190, 76);
+            Rb(c, "Yok", 0, 0, 180, () => !Al("TwoWayCheckback") && !Al("NewMinorForcing"), () => { Koy("TwoWayCheckback", false); Koy("NewMinorForcing", false); });
+            Rb(c, "Yeni minör zorlaması", 0, 24, 180, () => Al("NewMinorForcing"), () => Koy("NewMinorForcing", true));
+            Rb(c, "Crowhurst", 0, 48, 180, null);
+            Cb(p, "WolffSignoff", "Wolff bırakma", 240, 230, 170);
+            var c2 = Gr(p, 240, 254, 180, 26);
+            Rb(c2, "İki yönlü checkback", 0, 0, 180, () => Al("TwoWayCheckback"), () => Koy("TwoWayCheckback", true));
+            Cb(p, "German2CRelays", "Alman 2♣ röleleri", 240, 284, 170);
+
+            Et(p, "Sıçrama cevapları:", 22, 312);
+            var sj = Gr(p, 40, 334, 400, 24);
+            Rb(sj, "Güçlü sıçrama-shift", 0, 0, 190, () => !Al("WeakJumpShiftResp"), () => Koy("WeakJumpShiftResp", false));
+            Rb(sj, "Zayıf sıçrama-shift", 200, 0, 190, () => Al("WeakJumpShiftResp"), () => Koy("WeakJumpShiftResp", true));
+
+            Et(p, "Dördüncü renk teklifleri:", 22, 364);
+            var f = Gr(p, 40, 386, 400, 24);
+            Rb(f, "Doğal", 0, 0, 100, () => !Al("FourthSuitForcing"), () => Koy("FourthSuitForcing", false));
+            Rb(f, "Oyuna kadar zorlayıcı", 100, 0, 170, () => Al("FourthSuitForcing"), () => Koy("FourthSuitForcing", true));
+            Rb(f, "Bir tur zorlayıcı", 270, 0, 130, null);
+            return p;
+        }
+
+        // ───────────── Sayfa 5: Yüksek seviye ─────────────
+
+        private Panel Sayfa5()
+        {
+            var p = YeniSayfa();
+            Et(p, "Konvansiyonel iki seviye açılışlar:", 22, 18);
+            Cb(p, "Multi2D", "Multi 2♦", 40, 42, 120);
+            Cb(p, "Flannery", "Flannery 2♦", 164, 42, 120);
+            Cb(p, "MiniRoman2D", "Mini-Roman 2♦", 290, 42, 130);
+
+            Et(p, "Güçlü 2♣ açılışına cevap:", 22, 88);
+            Cb(p, "German2CRelays", "Alman 2♣ röleleri", 40, 112, 190);
+            Cb(p, "Kokish", "Kokish (2♣–2♦–2♥)", 240, 112, 180);
+
+            Et(p, "Zayıf iki açılışlarına konvansiyonel cevaplar:", 22, 158);
+            Cb(p, "Ogust", "Ogust", 40, 182, 190);
+
+            Et(p, "Zayıf iki açılışlarına karşı savunma:", 22, 228);
+            CbPasif(p, "Zayıf ikilere karşı Lebensohl", 40, 252, 260);
+
+            Et(p, "Dört seviye minör açılışlar:", 22, 298);
+            Cb(p, "Namyats", "Namyats", 40, 322, 190);
+
+            Et(p, "Önleyici açılışlar:", 22, 368);
+            Cb(p, "Preempt", "3. ve 4. seviye önleyici açılışlar", 40, 392, 300);
+            return p;
+        }
+
+        // ───────────── Sayfa 6: Yüksek NT ─────────────
+
+        private Panel Sayfa6()
+        {
+            var p = YeniSayfa();
+            Et(p, "2NT açılışı:", 22, 18);
+            string[] r1 = { "19-20", "20-21", "21-22", "22-23", "23-24" };
+            string[] r2 = { "19-21", "20-22", "21-23", "22-24" };
+            for (int k = 0; k < r1.Length; k++)
+            {
+                if (r1[k] == "20-21") Rb(p, r1[k], 24 + 80 * k, 42, 76, () => true, () => { });
+                else Rb(p, r1[k], 24 + 80 * k, 42, 76, null);
+            }
+            for (int k = 0; k < r2.Length; k++) Rb(p, r2[k], 24 + 80 * k, 66, 76, null);
+
+            Et(p, "2NT açılışına cevaplar:", 22, 112);
+            Et(p, "3♣:", 40, 138);
+            var g = Gr(p, 80, 134, 300, 78);
+            Rb(g, "Doğal", 0, 0, 200, null);
+            Rb(g, "Stayman", 0, 26, 200, () => !Al("PuppetStayman"), () => Koy("PuppetStayman", false));
+            Rb(g, "Puppet Stayman", 0, 52, 200, () => Al("PuppetStayman"), () => Koy("PuppetStayman", true));
+
+            Et(p, "3NT açılışı:", 22, 236);
+            var t = Gr(p, 60, 260, 340, 52);
+            Rb(t, "25+ HP dengeli", 0, 0, 300, () => !Al("Gambling3NT"), () => Koy("Gambling3NT", false));
+            Rb(t, "Gambling 3NT", 0, 26, 300, () => Al("Gambling3NT"), () => Koy("Gambling3NT", true));
+            return p;
+        }
+
+        // ───────────── Sayfa 7: Slam ─────────────
+
+        private Panel Sayfa7()
+        {
+            var p = YeniSayfa();
+            Et(p, "As soran teklifler:", 22, 18);
+            var g = Gr(p, 40, 40, 390, 52);
+            Rb(g, "Blackwood", 0, 0, 190, () => !Al("RKCB") && !Al("RKCB1430"), () => { Koy("RKCB1430", false); Koy("RKCB", false); Koy("Blackwood", true); });
+            Rb(g, "RKC 1430", 0, 26, 190, () => Al("RKCB1430"), () => { Koy("RKCB", true); Koy("RKCB1430", true); Koy("Blackwood", true); });
+            Rb(g, "Roman Keycard Blackwood", 190, 0, 200, () => Al("RKCB") && !Al("RKCB1430"), () => { Koy("RKCB", true); Koy("RKCB1430", false); Koy("Blackwood", true); });
+
+            Et(p, "Blackwood sonrası papaz soran 5NT:", 22, 112);
+            var k = Gr(p, 40, 134, 390, 26);
+            Rb(k, "Standart", 0, 0, 190, () => !Al("SpecificKingAsks"), () => Koy("SpecificKingAsks", false));
+            Rb(k, "Belirli papazlar", 190, 0, 190, () => Al("SpecificKingAsks"), () => Koy("SpecificKingAsks", true));
+
+            Et(p, "Diğer slam konvansiyonları:", 22, 184);
+            Cb(p, "DopiRopi", "DOPI / ROPI", 40, 208, 170);
+            CbPasif(p, "Büyük slam zorlaması", 220, 208, 200);
+            Cb(p, "VoluntaryFiveMajor", "Gönüllü 5 majör", 40, 232, 170);
+            Cb(p, "CueBid", "Kontrol gösteren cue-bid'ler", 220, 232, 210);
+            Cb(p, "MatheAskingBids", "Mathe soru teklifleri", 40, 256, 170);
+            Cb(p, "ControlAskingBids", "Kontrol soran teklifler", 220, 256, 210);
+            Cb(p, "Gerber", "Gerber", 40, 280, 170);
+            Cb(p, "FitCueBid", "Fit cue-bid (müdahalede)", 220, 280, 210);
+            Cb(p, "Serious3NT", "Ciddi 3NT", 40, 304, 170);
+            Cb(p, "NonSerious3NT", "Ciddi olmayan 3NT", 220, 304, 210);
+            Cb(p, "LastTrain", "Last Train", 40, 328, 170);
+            Cb(p, "LightnerDouble", "Lightner kontra", 220, 328, 210);
+            return p;
+        }
+
+        // ───────────── Sayfa 8: Rekabet ─────────────
+
+        private Panel Sayfa8()
+        {
+            var p = YeniSayfa();
+            Et(p, "İki renkli teklifler:", 22, 14);
+            Cb(p, "Unusual2NT", "Unusual 2NT", 40, 36, 150);
+            Cb(p, "Michaels", "Michaels", 40, 58, 150);
+
+            Et(p, "Kapsamlı iki renkli teklifler:", 222, 14);
+            var gh = Gr(p, 232, 34, 200, 70);
+            Rb(gh, "Kapalı", 0, 0, 90, () => !Al("Ghestem"), () => Koy("Ghestem", false));
+            Rb(gh, "Ghestem", 0, 24, 120, () => Al("Ghestem"), () => Koy("Ghestem", true));
+            Rb(gh, "La Majeure 2 renkli", 90, 0, 110, null).Visible = false;
+
+            Et(p, "Gecikmeli iki renkli teklifler:", 22, 96);
+            CbPasif(p, "Forum D", 40, 118, 150);
+
+            Et(p, "Rakip renk cue-bid'leri:", 222, 108);
+            var cu = Gr(p, 232, 128, 200, 100);
+            Rb(cu, "Güç gösteren", 0, 0, 190, () => !Al("LimitPlusCueBids"), () => Koy("LimitPlusCueBids", false));
+            Rb(cu, "Batı cue-bid'leri", 0, 22, 190, null);
+            Rb(cu, "Doğu cue-bid'leri", 0, 44, 190, null);
+            Rb(cu, "Ortağın majörüne limit raise ya da üstü", 0, 66, 190, () => Al("LimitPlusCueBids"), () => Koy("LimitPlusCueBids", true)).Height = 34;
+
+            Et(p, "Negatif kontra sınırı:", 22, 146);
+            var cmb = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = new Rectangle(40, 170, 60, 24), Enabled = false };
+            cmb.Items.Add("2♠"); cmb.SelectedIndex = 0;
+            p.Controls.Add(cmb);
+
+            Et(p, "İki renkli tekliflere karşı savunma:", 22, 214);
+            var sv = Gr(p, 40, 236, 190, 70);
+            Rb(sv, "Doğal", 0, 0, 180, () => !Al("InvisibleCueBids"), () => Koy("InvisibleCueBids", false));
+            Rb(sv, "Unusual over Unusual", 0, 22, 180, null);
+            Rb(sv, "Görünmez cue-bid'ler", 0, 44, 180, () => Al("InvisibleCueBids"), () => Koy("InvisibleCueBids", true));
+
+            Et(p, "Diğer rekabet teklifleri:", 234, 234);
+            Cb(p, "WeakJumpOvercalls", "Zayıf sıçramalı müdahale", 232, 256, 200);
+            Cb(p, "Sandwich1NT", "Sandwich 1NT", 232, 278, 200);
+            Cb(p, "LeapingMichaels", "Leaping Michaels", 232, 300, 200);
+
+            Et(p, "Özel kontralar:", 22, 332);
+            Cb(p, "NegativeDouble", "Negatif kontra", 40, 356, 170);
+            Cb(p, "ResponsiveDouble", "Responsive kontra", 40, 378, 170);
+            CbPasif(p, "Atak yönlendiren kontra", 40, 400, 180);
+            Cb(p, "SupportDouble", "Support kontra", 232, 356, 200);
+            Cb(p, "MaximalOvercallDbl", "Maximal müdahale kontrası", 232, 378, 200);
+            Cb(p, "TakeoutDouble", "Takeout kontra", 232, 400, 200);
             return p;
         }
     }
