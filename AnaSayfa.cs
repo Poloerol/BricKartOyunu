@@ -117,7 +117,7 @@ namespace BricKartOyunu.Forms
 
         private void BasitAnlasmaUygula(Taraf taraf)
         {
-            string ad = taraf == Taraf.NS ? "NS" : "EW";
+            string ad = taraf == Taraf.NS ? "N/S" : "E/W";
             string profil = AnlasmaYonetici.AktifProfilAdi(taraf);
             if (MessageBox.Show(this,
                     ad + " tarafının etkin profiline (" + profil + ") basit anlaşma uygulansın mı?\n" +

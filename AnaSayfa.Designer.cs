@@ -188,26 +188,26 @@
             // 
             this.nSOrtaklıkAyarlarıToolStripMenuItem.Name = "nSOrtaklıkAyarlarıToolStripMenuItem";
             this.nSOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.nSOrtaklıkAyarlarıToolStripMenuItem.Text = "NS Ortaklık Ayarları";
+            this.nSOrtaklıkAyarlarıToolStripMenuItem.Text = "N/S Ortaklık Ayarları";
             // 
             // eWOrtaklıkAyarlarıToolStripMenuItem
             // 
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Name = "eWOrtaklıkAyarlarıToolStripMenuItem";
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.eWOrtaklıkAyarlarıToolStripMenuItem.Text = "EW Ortaklık Ayarları";
+            this.eWOrtaklıkAyarlarıToolStripMenuItem.Text = "E/W Ortaklık Ayarları";
             this.eWOrtaklıkAyarlarıToolStripMenuItem.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // basitNSOrtaklıkAyarlarıToolStripMenuItem
             // 
             this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Name = "basitNSOrtaklıkAyarlarıToolStripMenuItem";
             this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit NS Ortaklık Ayarları";
+            this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit N/S Ortaklık Ayarları";
             // 
             // basitEWOrtaklıkAyarlarıToolStripMenuItem
             // 
             this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Name = "basitEWOrtaklıkAyarlarıToolStripMenuItem";
             this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit EW Ortaklık Ayarları";
+            this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit E/W Ortaklık Ayarları";
             // 
             // toolStripSeparator1
             // 
@@ -597,13 +597,13 @@
             // 
             this.eWEliniGösterToolStripMenuItem.Name = "eWEliniGösterToolStripMenuItem";
             this.eWEliniGösterToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.eWEliniGösterToolStripMenuItem.Text = "EW Elini Göster";
+            this.eWEliniGösterToolStripMenuItem.Text = "E/W Elini Göster";
             // 
             // nSEliniGösterToolStripMenuItem
             // 
             this.nSEliniGösterToolStripMenuItem.Name = "nSEliniGösterToolStripMenuItem";
             this.nSEliniGösterToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.nSEliniGösterToolStripMenuItem.Text = "NS Elini Göster";
+            this.nSEliniGösterToolStripMenuItem.Text = "N/S Elini Göster";
             // 
             // sıradakiOyuncuEliToolStripMenuItem
             // 

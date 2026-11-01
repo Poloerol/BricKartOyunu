@@ -133,7 +133,7 @@ namespace BricKartOyunu.Forms
 
         private void Kur()
         {
-            Text = (_taraf == Taraf.NS ? "NS" : "EW") + " Ortaklık Profili";
+            Text = (_taraf == Taraf.NS ? "N/S" : "E/W") + " Ortaklık Profili";
             StartPosition = FormStartPosition.CenterParent;
             ShowInTaskbar = false;
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -191,16 +191,13 @@ namespace BricKartOyunu.Forms
             string[] ad = { "Müdahale:", "Önleyici açılış:", "Açılış:" };
             for (int i = 0; i < 3; i++)
             {
-                int k = i;
                 gAgr.Controls.Add(new Label { Text = ad[i], AutoSize = true, Location = new Point(10, 20 + 21 * i) });
+                // Yalnız gösterim: değiştirme profil sihirbazından (Düzenle) yapılır
                 _lblAgr[i] = new Label
                 {
-                    AutoSize = false, Location = new Point(140, 18 + 21 * i), Size = new Size(110, 20),
-                    BorderStyle = BorderStyle.Fixed3D, BackColor = SystemColors.Window, Cursor = Cursors.Hand,
-                    TextAlign = ContentAlignment.MiddleCenter
+                    AutoSize = false, Location = new Point(110, 20 + 21 * i), Size = new Size(130, 18),
+                    TextAlign = ContentAlignment.MiddleLeft
                 };
-                _lblAgr[i].Click += (s, e) => AgresiflikDegistir(k);
-                ip.SetToolTip(_lblAgr[i], "Değiştirmek için tıklayın (Çok temkinli → … → Çok atak).");
                 gAgr.Controls.Add(_lblAgr[i]);
             }
 
@@ -247,6 +244,7 @@ namespace BricKartOyunu.Forms
                 _kutular[1].Grup, _kutular[2].Grup, _kutular[3].Grup,
                 _kutular[4].Grup, _kutular[5].Grup, _kutular[6].Grup, _kutular[7].Grup,
                 btnYaz, btnSinyal, btnIptal, btnTamam });
+            BaslikBicimi.Uygula(this, true);
         }
 
         // ───────────────────────── Davranış ─────────────────────────
@@ -375,16 +373,6 @@ namespace BricKartOyunu.Forms
             }
         }
 
-        private void AgresiflikDegistir(int i)
-        {
-            _agr[i] = _agr[i] >= 1 ? -1 : _agr[i] + 1;
-            _lblAgr[i].Text = AgrAdlari[_agr[i] + 2];
-            var a = _secili.Anlasma;
-            a.MudahaleAgresifligi = _agr[0];
-            a.PreemptAgresifligi = _agr[1];
-            a.AcilisAgresifligi = _agr[2];
-        }
-
         private void SinyalleriGoster()
         {
             using (var f = new SinyallerForm(_secili.Anlasma)) f.ShowDialog(this);
@@ -428,18 +416,38 @@ namespace BricKartOyunu.Forms
 
         private void KonvansiyonlariDuzenle()
         {
-            using (var f = new ProfilSihirbazi(_secili.Anlasma, _secili.Ad))
+            // Profil ekranı gizlenir, sihirbaz açılır; Son'dan sonra uyarı sorulur.
+            // Evet: değişiklikler uygulanır ve profil ekranı yeniden görünür. Hayır: değişiklikler atılır, profil ekranı kapanır.
+            Hide();
+            bool profilEkraniniAc = true;
+            try
             {
-                if (f.ShowDialog(this) == DialogResult.OK && f.Sonuc != null)
+                using (var f = new ProfilSihirbazi(_secili.Anlasma, _secili.Ad))
                 {
-                    var hedef = _secili.Anlasma;
-                    foreach (var n in AyarAdlari)
+                    f.StartPosition = FormStartPosition.Manual;
+                    f.Location = new Point(Math.Max(0, Left + (Width - f.Width) / 2), Math.Max(0, Top + (Height - f.Height) / 2));
+                    if (f.ShowDialog() == DialogResult.OK && f.Sonuc != null)
                     {
-                        var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
-                        p.SetValue(hedef, p.GetValue(f.Sonuc, null), null);
+                        var c = MessageBox.Show("Yaptığınız değişiklikler ortaklık profiline uygulansın mı?", "Uyarı",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                        if (c == DialogResult.Yes)
+                        {
+                            var hedef = _secili.Anlasma;
+                            foreach (var n in AyarAdlari)
+                            {
+                                var p = typeof(OrtaklikAnlasmasi).GetProperty(n);
+                                p.SetValue(hedef, p.GetValue(f.Sonuc, null), null);
+                            }
+                            SeciliyiGoster();
+                        }
+                        else profilEkraniniAc = false;
                     }
-                    SeciliyiGoster();
                 }
+            }
+            finally
+            {
+                if (profilEkraniniAc) Show();
+                else { DialogResult = DialogResult.Cancel; Close(); }
             }
         }
 
@@ -581,6 +589,7 @@ namespace BricKartOyunu.Forms
             yardim.Click += (s, e) => YardimTiklandi();
             Controls.AddRange(new Control[] { tab, yardim, tamam, iptal });
             AcceptButton = tamam; CancelButton = iptal;
+            BaslikBicimi.Uygula(this, false);   // kart etiketlerine dokunulmaz
         }
 
         private void YardimTiklandi()
@@ -737,6 +746,7 @@ namespace BricKartOyunu.Forms
             yardim.Click += (s, e) => { /* TODO: yardım içeriği */ };
             Controls.AddRange(new Control[] { cizgi, _geri, _ileri, son, iptal, yardim });
             CancelButton = iptal;
+            foreach (var pg in _sayfalar) BaslikBicimi.Uygula(pg, true);
             Hepsi();
             Git(Math.Max(0, Math.Min(_sayfalar.Count - 1, baslangicSayfa)));
         }
@@ -749,7 +759,7 @@ namespace BricKartOyunu.Forms
             _sayfalar[_i].Visible = false;
             _i = i;
             _sayfalar[_i].Visible = true;
-            Text = Basliklar[_i];
+            Text = BaslikBicimi.Bas(Basliklar[_i]);
             _geri.Enabled = _i > 0;
             _ileri.Enabled = _i < _sayfalar.Count - 1;
         }
@@ -1186,6 +1196,40 @@ namespace BricKartOyunu.Forms
             Cb(p, "MaximalOvercallDbl", "Maximal müdahale kontrası", 232, 378, 200);
             Cb(p, "TakeoutDouble", "Takeout kontra", 232, 400, 200);
             return p;
+        }
+    }
+
+    /// <summary>Başlık biçimi: her sözcüğün ilk harfi büyük (Türkçe kurallarıyla; ör. "Profil Adı:").</summary>
+    internal static class BaslikBicimi
+    {
+        private static readonly System.Globalization.CultureInfo Tr = new System.Globalization.CultureInfo("tr-TR");
+
+        public static string Bas(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            var ch = s.ToCharArray();
+            bool bas = true;
+            for (int i = 0; i < ch.Length; i++)
+            {
+                char c = ch[i];
+                if (char.IsWhiteSpace(c) || c == '(' || c == '/') { bas = true; continue; }
+                if (bas) ch[i] = char.ToUpper(c, Tr);
+                bas = false;
+            }
+            return new string(ch);
+        }
+
+        /// <summary>Düğme, grup başlığı, sekme ve (isteğe bağlı) etiket yazılarına uygular; onay/radyo seçeneklerine dokunmaz.</summary>
+        public static void Uygula(Control kok, bool etiketler)
+        {
+            foreach (Control c in kok.Controls)
+            {
+                if (c is Button || c is GroupBox) c.Text = Bas(c.Text);
+                else if (c is Label && etiketler && c.Cursor != Cursors.Hand) c.Text = Bas(c.Text);
+                var tc = c as TabControl;
+                if (tc != null) foreach (TabPage tp in tc.TabPages) tp.Text = Bas(tp.Text);
+                Uygula(c, etiketler);
+            }
         }
     }
 }
