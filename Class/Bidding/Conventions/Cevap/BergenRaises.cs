@@ -253,6 +253,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 string smj = KozYardimcisi.KozSembolu(majör);
                 int ah = ElDegerlendirici.HCP(el);
                 int kozUz = ElDegerlendirici.RenkUzunlugu(el, majör);
+                // 19+ HP: ortak 11-12 ile 30+ -> slem denemesi (4NT RKCB, koz anlasildi)
+                if (ah >= 19 && kozUz >= 5) return "4NT";
                 return (ah >= 15 || (ah >= 14 && kozUz >= 6)) ? "4" + smj : "3" + smj;
             }
 

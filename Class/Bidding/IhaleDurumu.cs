@@ -296,6 +296,16 @@ namespace BricKartOyunu.Class.Bidding
                     return gg[0].Koz;
             }
 
+            // 0a. Bergen: 1M açılış - 3♣/3♦ cevabı (rakip teklifsiz) = açılan majör koz
+            if (Anlasma != null && Anlasma.BergenRaises)
+            {
+                var gb = Gecmis.Where(h => h.GercekTeklifMi).ToList();
+                if (gb.Count >= 2 && (gb[0].Teklif == "1♠" || gb[0].Teklif == "1♥") && (gb[1].Teklif == "3♣" || gb[1].Teklif == "3♦") &&
+                    gb[0].Oyuncu != gb[1].Oyuncu && (gb[0].Oyuncu == AktifOyuncu || gb[0].Oyuncu == Partner) &&
+                    (gb[1].Oyuncu == AktifOyuncu || gb[1].Oyuncu == Partner))
+                    return gb[0].Koz;
+            }
+
             // 0b. Majör transferi: 1NT - 2♦ - 2♥ (ya da 1NT - 2♥ - 2♠), rakip teklifsiz = transfer edilen majör koz
             {
                 var gt = Gecmis.Where(h => h.GercekTeklifMi).ToList();
