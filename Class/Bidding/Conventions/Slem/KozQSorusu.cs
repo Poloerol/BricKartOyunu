@@ -183,7 +183,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Toplam enFazla'yı aşamaz: imkânsız seçenekleri ele, kalanın en küçüğünü varsay (temkinli)
             var olasi = secenek.Where(s => s + benim <= enFazla).ToList();
-            int toplam = (olasi.Count > 0 ? olasi.Min() : secenek.Min()) + benim;
+            // Belirsiz cevap (0/3, 1/4): ortağın gösterdiği güce bak. Slem denemesi yapmış güçlü ortak 0 kilit kartlı olamaz.
+            int ortMin = IhaleKoruma.PartnerAraligi(durum).Min;
+            int secilen;
+            if (olasi.Count == 0) secilen = secenek.Min();
+            else if (olasi.Count == 1) secilen = olasi[0];
+            else
+            {
+                int kucuk = olasi.Min(), buyuk = olasi.Max();
+                int esik = kucuk == 0 ? 10 : kucuk == 1 ? 15 : 20;
+                secilen = ortMin >= esik ? buyuk : kucuk;
+            }
+            int toplam = secilen + benim;
 
             string sembol = KozYardimcisi.KozSembolu(koz);
             int eksik = enFazla - toplam;   // eksik as / kilit kart

@@ -109,6 +109,7 @@ namespace BricKartOyunu.Class.Bidding
                     else if (bergen && s == 3 && !ayniRenk && renk == "Karo") { lo = 11; hi = 12; }           // 3♦ = 11-12
                     else if (bergen && s == 3 && ayniRenk) { lo = 0; hi = 6; }                                // 3M = önleyici
                     else if (majAcilis && s == 4 && ayniRenk && !ortakBirsekacildi) { lo = 3; hi = 11; }      // 4M = oynamak için / önleyici
+                    else if (d.Anlasma != null && d.Anlasma.Jacoby2NT && majAcilis && s == 2 && renk == "NT" && !ortakBirsekacildi && g.First(x => Gercek(x.Teklif)).Seviye == 1) { lo = 13; hi = 40; }   // Jacoby 2NT: oyun zorlayıcı, 4+ koz
                     else if (s == 1) { lo = 6; hi = renk == "NT" ? 10 : 14; }
                     else if (s == 2) { lo = ayniRenk ? 6 : (renk == "NT" ? 11 : 10); hi = ayniRenk ? 10 : (renk == "NT" ? 12 : 17); }
                     else if (s == 3 && ayniRenk && !(renk == "Kupa" || renk == "Maça")) { lo = 4; hi = 10; }   // minör 3 seviye sıçrama: zayıf
@@ -208,6 +209,20 @@ namespace BricKartOyunu.Class.Bidding
                     gd[1].Oyuncu == ben && gd[1].Teklif == "2♣" && gd[2].Oyuncu == ort && gd[2].Seviye == 3 &&
                     gd[2].Koz != "NT" && gd[2].Koz != gd[0].Koz && !gd.Take(3).Any(x => x.Oyuncu != ort && x.Oyuncu != ben))
                     a.Min = Math.Max(a.Min, 13);
+            }
+            // Jacoby 2NT (1M–2NT) sonrası açıcının cevabı (Hardy): 3M = 16+, 3NT = 14–15, 4M = asgari (12–14)
+            {
+                var gj = g.Where(x => Gercek(x.Teklif)).ToList();
+                if (gj.Count >= 3 && gj[0].Oyuncu == ort && gj[0].Seviye == 1 && (gj[0].Koz == "Maça" || gj[0].Koz == "Kupa") &&
+                    gj[1].Oyuncu == ben && gj[1].Teklif == "2NT" && gj[2].Oyuncu == ort &&
+                    d.Anlasma != null && d.Anlasma.Jacoby2NT)
+                {
+                    string r2 = gj[2].Teklif;
+                    string m2 = gj[0].Teklif.Substring(1);
+                    if (r2 == "3" + m2) { a.Min = Math.Max(a.Min, 16); a.Max = Math.Max(a.Max, 21); }
+                    else if (r2 == "3NT") { a.Min = Math.Max(a.Min, 14); a.Max = Math.Max(a.Min, 15); }
+                    else if (r2 == "4" + m2) { a.Min = Math.Max(a.Min, 12); a.Max = Math.Max(a.Min, 14); }
+                }
             }
             if (a.Max < a.Min) a.Max = a.Min;
             return a;
