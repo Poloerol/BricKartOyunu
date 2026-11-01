@@ -6,204 +6,143 @@ using BricKartOyunu.Class.Bidding;   // KozYardimcisi için
 namespace BricKartOyunu.Class.Bidding.Conventions
 {
     /// <summary>
-    /// Cue Bid (Kontrol Gösterimi) Konvansiyonu.
-    /// 
-    /// Kural:
-    /// - Partner ile bir MAJÖR kozda anlaşıldı (Maça veya Kupa)
-    /// - Seviye 3 veya 4'te (genelde 3. seviyeden sonra)
-    /// - Elimde 15+ HP var (slam denemesi)
-    /// - Koz dışında bir renkte KONTROL (A veya K) var
-    /// - O rengi teklif ederim → "bu renkte kontrolüm var, slam düşünelim"
-    /// 
-    /// Öncelik: 14 (Blackwood 15'ten ÖNCE)
-    /// 
-    /// Örnek:
-    ///   1♠ (Partner) - 3♠ (Ben) - Pas - Pas
-    ///   Ben: 4♣ derim (Sinek'te kontrolüm var)
-    ///   Partner: 4♦ der (Karo'da kontrolüm var) → ikimiz de cue bid yaptık
-    ///   Ben: 4NT derim (Blackwood, artık As sorabilirim)
-    /// 
-    /// NOT: Cue Bid, Blackwood'dan ÖNCE denenir. Çünkü önce kontrol
-    ///      gösterilir, sonra As sorulur.
+    /// Cue Bid (Kontrol Gösterimi) — Max Hardy'ye göre.
+    ///
+    /// Koz MAJÖR anlaşıldıktan sonra (3M/4M fit, oyun zorlayıcı), 4 seviyesinde ve 4M'nin ALTINDA
+    /// yapılan yan renk teklifleri kontrol gösterir:
+    ///  - Birinci tur kontrol: As ya da void. Önce birinci tur kontroller, en ucuz renkten yukarı doğru.
+    ///  - İkinci tur kontrol (papaz ya da tek kart): ortak cue-bid yaptıktan sonra, birinci tur kontrol kalmadıysa.
+    ///  - Bir rengi atlamak o renkte (o adımda) kontrol olmadığını gösterir; cue-bid'ler yalnızca yukarı doğru gider.
+    ///  - Ortak cue-bid yaptığında cevap verilir: kontrolü olan en ucuz renk, yoksa 4M (slem ilgisizliği).
+    ///  - Cue-bid başlatmak için slem değeri gerekir (15+ HP, ortak alt sınırı ile toplam 29+); cevap vermek için HP şartı yoktur.
+    ///  - Zaten doğal teklif edilmiş renkler cue-bid sayılmaz.
+    ///
+    /// Öncelik 14 (Serious 3NT 13'ten sonra, Blackwood 15'ten önce).
     /// </summary>
     public class CueBid : IKonvansiyon
     {
-        // ═══════════════════════════════════════════════════════════════════
-        // ARAYÜZ PROPERTYLERİ
-        // ═══════════════════════════════════════════════════════════════════
-
         public string Ad => "Cue Bid";
         public string Aciklama => "Kontrol gösteren cue-bid";
         public bool AktifMi { get; set; } = true;
-        public int Oncelik => 14;   // Blackwood (15) ÖNCESİ
+        public int Oncelik => 14;
 
-        // ═══════════════════════════════════════════════════════════════════
-        // UYGUNLUK KONTROLÜ
-        // ═══════════════════════════════════════════════════════════════════
+        private static readonly string[] Siralama = { "Sinek", "Karo", "Kupa", "Maça" };
+
+        private static int Sira(string renk) { return Array.IndexOf(Siralama, renk); }
 
         public bool UygunMu(IhaleDurumu durum)
         {
             if (durum == null) return false;
-
-            // ═══════════════════════════════════════════════════════════════
-            // KRİTİK: Partner 4NT dediyse → RKCB/Blackwood sekansıdır
-            // CueBid devre dışı
-            // ═══════════════════════════════════════════════════════════════
-            if (durum.SonGercekTeklif == "4NT" &&
-                durum.SonGercekTeklifSahibi == durum.Partner)
-                return false;
-
-            // Ayrıca kendi tekliflerimizde 4NT varsa da devre dışı
-            if (durum.KendiTeklifleri.Contains("4NT"))
-                return false;
-
-            if (durum == null) return false;
-            if (durum.AktifOyuncuEli == null) return false;
-            if (durum.AktifOyuncuEli.Count != 13) return false;
-
-            // 1. İhale zaten bitmişse → hayır
+            if (durum.AktifOyuncuEli == null || durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
-            // 2. Bir koz anlaşması var mı?
-            string koz = durum.AnlasilanKoz();
-            if (string.IsNullOrEmpty(koz)) return false;
+            // 4NT (RKCB/Blackwood) sekansı: cue-bid yok
+            if (durum.SonGercekTeklif == "4NT" && durum.SonGercekTeklifSahibi == durum.Partner) return false;
+            if (durum.KendiTeklifleri.Contains("4NT")) return false;
 
-            // 3. Koz MAJÖR mü? (Maça veya Kupa)
+            string koz = durum.AnlasilanKoz();
             if (koz != "Maça" && koz != "Kupa") return false;
 
-            // 4. Seviye 3 veya 4 mü?
             int seviye = durum.KacinciSeviye();
             if (seviye < 3 || seviye > 4) return false;
 
-            // 5. Elinde yeterli puan var mı? (slam denemesi için 15+ HP)
-            int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
-            if (hp < 15) return false;
-
-            // 5b. Slam umudu: kendi HP + ortağın en az HP'si ≥ 29 (yoksa cue-bid cevapsız kalıp 4 seviyede ölür)
-            var ortAr = IhaleKoruma.PartnerAraligi(durum);
-            if (hp + ortAr.Min < 29) return false;
-
-            // 6. Bu elde daha önce cue bid yapılmış mı?
-            if (DahaOnceCueBidYapildiMi(durum, koz)) return false;
-
-            // 7. Kontrolü olan bir yan renk var mı?
-            string kontrolRengi = KontroluOlanYanRengiBul(
-                durum.AktifOyuncuEli, koz, durum);
-
-            if (string.IsNullOrEmpty(kontrolRengi)) return false;
-
-            // Tüm koşullar sağlandı → Cue Bid yapılabilir
-            return true;
+            string secim = Sec(durum, koz);
+            return secim != null;
         }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // TEKLİF VERME
-        // ═══════════════════════════════════════════════════════════════════
 
         public string TeklifVer(IhaleDurumu durum)
         {
-            var el = durum.AktifOyuncuEli;
             string koz = durum.AnlasilanKoz();
-
-            // En ucuz kontrolü olan yan rengi bul
-            string kontrolRengi = KontroluOlanYanRengiBul(el, koz, durum);
-            if (string.IsNullOrEmpty(kontrolRengi)) return "Pas";
-
-            // Seviyeyi belirle (mevcut seviyeden 1 fazlası veya 4)
-            int seviye = durum.KacinciSeviye();
-
-            // Cue bid genelde 4. seviyede yapılır
-            if (seviye < 4) seviye = 4;
-
-            // Rengi sembole çevir
-            string sembol = KozYardimcisi.KozSembolu(kontrolRengi);
-            return $"{seviye}{sembol}";
+            string secim = Sec(durum, koz);
+            return secim ?? "Pas";
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // YARDIMCI METOTLAR
+        // SEÇİM
         // ═══════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Bu elde daha önce cue bid yapılmış mı?
-        /// (Hem benim hem partnerin tekliflerini kontrol eder.)
-        /// </summary>
-        private bool DahaOnceCueBidYapildiMi(IhaleDurumu durum, string koz)
+        /// <summary>Bu elde yapılacak cue-bid ("4♣" gibi), 4M (slem ilgisizliği) ya da null (bu konvansiyon konuşmaz).</summary>
+        private static string Sec(IhaleDurumu durum, string koz)
         {
-            // Tüm gerçek teklifleri tara
-            var teklifler = durum.Gecmis
-                .Where(h => h.GercekTeklifMi)
-                .ToList();
+            var el = durum.AktifOyuncuEli;
+            var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (gercek.Count == 0) return null;
+            var son = gercek[gercek.Count - 1];
 
-            foreach (var h in teklifler)
+            // Rakip müdahalesi varsa karışma
+            if (gercek.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return null;
+
+            string kozSembol = KozYardimcisi.KozSembolu(koz);
+            int kozUz = ElDegerlendirici.RenkUzunlugu(el, koz);
+
+            // Zaten doğal teklif edilmiş (3. seviye ve altı) renkler cue-bid sayılmaz
+            var dogal = new HashSet<string>(gercek.Where(h => h.Seviye <= 3 && h.Koz != "NT" && h.Koz != koz).Select(h => h.Koz));
+            // Kendi cue-bid'lerim ve ortağınkiler (4 seviyesi, koz dışı, majörün altı)
+            Func<IhaleHamlesi, bool> cueMi = h => h.Seviye == 4 && h.Koz != "NT" && h.Koz != koz &&
+                                                  Sira(h.Koz) < Sira(koz) && !dogal.Contains(h.Koz);
+            var benCue = gercek.Where(h => h.Oyuncu == durum.AktifOyuncu && cueMi(h)).Select(h => h.Koz).ToList();
+            var ortakCue = gercek.Where(h => h.Oyuncu == durum.Partner && cueMi(h)).Select(h => h.Koz).ToList();
+
+            bool ortakSonCue = son.Oyuncu == durum.Partner && cueMi(son);
+
+            // 4M zaten teklif edildiyse (oyun sinyali) ya da seviye 4M üstü ise bu konvansiyon konuşmaz
+            if (son.Seviye >= 4 && son.Koz == koz) return null;
+
+            int hp = ElDegerlendirici.HCP(el);
+
+            // Başlatma: ortak henüz cue-bid yapmadı → slem değeri şart
+            if (ortakCue.Count == 0)
             {
-                // Koz dışında bir renk mi teklif edilmiş?
-                if (!string.IsNullOrEmpty(h.Koz) &&
-                    h.Koz != koz &&
-                    h.Koz != "NT")
-                {
-                    // Bu renk daha önce "doğal" olarak teklif edilmiş mi?
-                    bool dogalTeklif = durum.Gecmis.Any(gg =>
-                        gg.GercekTeklifMi &&
-                        gg.Koz == h.Koz &&
-                        gg.Sira < h.Sira &&
-                        (gg.Seviye == 1 || gg.Seviye == 2));
-
-                    // Eğer 1-2 seviyesinde doğal teklif edilmişse ve şimdi 4 seviyesinde
-                    // teklif ediliyorsa → cue bid
-                    if (dogalTeklif && h.Seviye >= 4)
-                    {
-                        return true;
-                    }
-                }
+                if (hp < 15) return null;
+                var ortAr = IhaleKoruma.PartnerAraligi(durum);
+                if (hp + ortAr.Min < 29) return null;
+            }
+            else if (!ortakSonCue)
+            {
+                // Ortak daha önce cue-bid yaptı ama son hamle onun değil (ör. ben sonra konuştum): devam sadece slem değeriyle
+                if (hp < 15) return null;
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Koz dışında, elde kontrol (A veya K) olan en ucuz yan rengi bulur.
-        /// Öncelik: Sinek → Karo → Kupa (Maça koz ise)
-        /// </summary>
-        private string KontroluOlanYanRengiBul(
-            List<Card> el, string koz, IhaleDurumu durum)
-        {
-            // Yan renkleri sırayla dene: Sinek → Karo → diğer majör
-            var renkSirasi = new List<string> { "Sinek", "Karo", "Kupa", "Maça" };
-
-            foreach (var renk in renkSirasi)
+            // Aday renkler: yukarı doğru, son gerçek teklifin üzerinde, majörün altında, daha önce cue-bid yapmadığım
+            var adaylar = new List<string>();
+            foreach (var r in Siralama)
             {
-                // Koz rengi atla
-                if (renk == koz) continue;
+                if (r == koz || Sira(r) > Sira(koz) || dogal.Contains(r) || benCue.Contains(r)) continue;
+                if (!Yasal(son, 4, r)) continue;
+                adaylar.Add(r);
+            }
 
-                // Bu renk daha önce cue bid olarak kullanıldı mı?
-                if (BuRenkDahaOnceTeklifEdildiMi(durum, renk, koz)) continue;
+            // Önce birinci tur kontrol (As ya da void)
+            foreach (var r in adaylar)
+            {
+                int uz = ElDegerlendirici.RenkUzunlugu(el, r);
+                bool as_ = el.Any(c => c.Suit == r && c.Value == 14);
+                if (as_ || uz == 0) return "4" + KozYardimcisi.KozSembolu(r);
+            }
 
-                // Bu renkte kontrol var mı? (A veya K)
-                if (ElDegerlendirici.PapazVar(el, renk) ||
-                    ElDegerlendirici.AsSayisi(el.Where(c => c.Suit == renk).ToList()) > 0)
+            // İkinci tur kontrol (papaz ya da tek kart): yalnızca ortağın cue-bid'ine cevap / devam ederken
+            if (ortakCue.Count > 0)
+            {
+                foreach (var r in adaylar)
                 {
-                    // Bu renk uygun → döndür
-                    return renk;
+                    int uz = ElDegerlendirici.RenkUzunlugu(el, r);
+                    bool papaz = el.Any(c => c.Suit == r && c.Value == 13);
+                    if (papaz || (uz == 1 && kozUz >= 3)) return "4" + KozYardimcisi.KozSembolu(r);
                 }
+                // Kontrolüm kalmadı: ortak cue-bid yaptıysa ve son söz onunsa slem ilgisizliği → 4M
+                if (ortakSonCue && Yasal(son, 4, koz)) return "4" + kozSembol;
             }
 
             return null;
         }
 
-        /// <summary>
-        /// Bu renk daha önce (cue bid dışı) teklif edilmiş mi?
-        /// </summary>
-        private bool BuRenkDahaOnceTeklifEdildiMi(
-            IhaleDurumu durum, string renk, string koz)
+        /// <summary>"seviye renk" teklifi, son gerçek teklifin üzerinde mi?</summary>
+        private static bool Yasal(IhaleHamlesi son, int seviye, string renk)
         {
-            bool dogalTeklifVar = durum.Gecmis.Any(h =>
-                h.GercekTeklifMi &&
-                h.Koz == renk &&
-                h.Seviye >= 1 &&
-                h.Seviye <= 2);
-
-            return dogalTeklifVar;
+            if (son.Seviye < seviye) return true;
+            if (son.Seviye > seviye) return false;
+            if (son.Koz == "NT") return false;
+            return Sira(renk) > Sira(son.Koz);
         }
     }
 }
