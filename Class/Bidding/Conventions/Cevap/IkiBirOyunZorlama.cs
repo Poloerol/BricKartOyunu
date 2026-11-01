@@ -41,6 +41,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             if (z.Hepsi.Count == 0) return null;
 
+            // Serbest artırma (Hardy): 1M–(2x) sonrası 3 seviyesinde yeni renk her zaman oyun zorlayıcıdır (5+ kart, 13+ HP)
+            if (z.Hepsi.Count == 2 && z.Hepsi[0].StartsWith("O:") && z.Hepsi[1].StartsWith("R:"))
+                return SerbestArtirma(z);
+
+            // Açıcı: 1M–(2x)–3y serbest artırması (oyun zorlayıcı); sağ rakip pas geçti → oyun seviyesinden önce pas yok
+            if (z.Hepsi.Count == 3 && z.Hepsi[0].StartsWith("B:") && z.Hepsi[1].StartsWith("L:") && z.Hepsi[2].StartsWith("O:"))
+                return AciciSerbestCevap(z);
+
             // Yalnızca rakipsiz (rakip pas dışında konuşmamış) diziler
             foreach (string h in z.Hepsi)
                 if (h.StartsWith("L:") || h.StartsWith("R:")) return null;
@@ -78,6 +86,40 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═══════════════════════════════════════════════════════════════════
         // CEVAPLAYANIN İLK TEKLİFİ
         // ═══════════════════════════════════════════════════════════════════
+
+        private static string AciciSerbestCevap(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "B");
+            if (m == null || !YK.Major(m)) return null;
+            string ov = YK.Cagri(z.Hepsi[1]), son = YK.Cagri(z.Hepsi[2]);
+            string ovS = YK.KozOf(ov), y = YK.KozOf(son);
+            if (ovS == null || ovS == "NT" || YK.Sev(ov) != 2 || y == null || y == "NT" || y == m || y == ovS || YK.Sev(son) != 3) return null;
+            if (YK.Major(y) && z.Uz(y) >= 3) return YK.T(4, y);                         // majör fiti
+            if (z.Uz(m) >= 6 && YK2.Yuksek(YK.T(3, m), son)) return YK.T(3, m);       // altılı majör
+            if (ElDegerlendirici.StopperVar(z.El, ovS)) return "3NT";                   // rakip renginde durdurucu
+            if (z.Uz(y) >= 3) return YK.T(4, y);                                        // minör fiti
+            if (z.Uz(m) >= 5 && YK2.Yuksek(YK.T(3, m), son)) return YK.T(3, m);       // beşli majörü tekrar (forsing)
+            return "3NT";
+        }
+
+        private static string SerbestArtirma(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "O");
+            if (m == null || !YK.Major(m)) return null;
+            if (z.D.Gecmis.Any(h => h.PasMi && h.Oyuncu == z.D.AktifOyuncu)) return null;   // pastan gelen cevapçı
+            string ov = YK.Cagri(z.Hepsi[1]);
+            string ovS = YK.KozOf(ov);
+            if (ovS == null || ovS == "NT" || YK.Sev(ov) != 2) return null;
+            if (z.Hp < 13 || z.Uz(m) >= 3) return null;      // 3+ destek: destek/limit-plus çağrıları öncelikli
+            string en = null; int enUz = 0;
+            foreach (string r in Renkler)
+            {
+                if (r == m || r == ovS || z.Uz(r) < 5) continue;
+                if (YK2.Yuksek(YK.T(2, r), ov)) continue;     // 2 seviyesinde söylenebiliyorsa normal akış
+                if (z.Uz(r) > enUz) { en = r; enUz = z.Uz(r); }
+            }
+            return en == null ? null : YK.T(3, en);
+        }
 
         private static string IlkCevap(Dz z, string m)
         {

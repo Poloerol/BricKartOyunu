@@ -200,6 +200,12 @@ namespace BricKartOyunu.Tests
             T("V55 3NT sonrasi acici 13hp -> Pas", TestHelpers.ElOlustur("AKJ85", "Q72", "98", "K64"), "Pas", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas");
             T("V56 4NT niceliksele cevapci 17hp -> 6NT", TestHelpers.ElOlustur("Q63", "K8", "AKJ985", "A8"), "6NT", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas", "4NT", "Pas");
             T("V57 4NT niceliksele cevapci 15hp -> Pas", TestHelpers.ElOlustur("K63", "K6", "AJ9852", "A8"), "Pas", "1♠", "Pas", "2♦", "Pas", "2♠", "Pas", "3NT", "Pas", "4NT", "Pas");
+            T("V58 1S-(2H)-?: 5D 13hp 2 maca -> 3D serbest artirma (GF)", TestHelpers.ElOlustur("83", "K4", "AQJ962", "K54"), "3♦", "1♠", "2♥");
+            T("V59 1S-(2D)-?: 6C 13hp -> 3C", TestHelpers.ElOlustur("83", "K4", "96", "AKQJ952"), "3♣", "1♠", "2♦");
+            T("V60 1S-(2H)-?: 5D 11hp -> 3D degil", TestHelpers.ElOlustur("83", "K4", "AQJ962", "954"), "Pas", "1♠", "2♥");
+            T("V61 1S-(2H)-3D-P: acici kupa durdurucusu, 14hp -> 3NT", TestHelpers.ElOlustur("AKJ85", "K72", "98", "K64"), "3NT", "1♠", "2♥", "3♦", "Pas");
+            T("V62 1S-(2H)-3D-P: acici 6 maca, durdurucu yok -> 3S", TestHelpers.ElOlustur("AKJ854", "972", "98", "K6"), "3♠", "1♠", "2♥", "3♦", "Pas");
+            T("V63 1S-(2H)-3D-P: acici 3 karo, durdurucu yok -> 4D", TestHelpers.ElOlustur("AKJ85", "972", "K98", "K6"), "4♦", "1♠", "2♥", "3♦", "Pas");
 
             sonucEkle("");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
