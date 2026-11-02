@@ -101,6 +101,7 @@ namespace BricKartOyunu.Forms
             eWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => OrtaklikProfiliAc(Taraf.EW);
             basitNSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.NS);
             basitEWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.EW);
+            ayarlarıSıfırlaToolStripMenuItem.Click += (s, e) => AyarlariSifirla();
             kartDağıtıcıToolStripMenuItem.Click += (s, e) => ShowChildForm(new KartDagitici());
             briçMaçıToolStripMenuItem.Click += (s, e) => MacMenusunuAc();
         }
@@ -112,6 +113,29 @@ namespace BricKartOyunu.Forms
         private void OrtaklikProfiliAc(Taraf taraf)
         {
             AnlasmaForm.Goster(this, taraf);
+        }
+
+        /// <summary>
+        /// Ayarlar > Ayarları Sıfırla: uyarı gösterilir; Tamam'a basılınca ortaklık profilleri, oyun planı,
+        /// kart seti, masa rengi ve kart arka yüzü varsayılan değerlere döner (kalıcı depoya da yazılır).
+        /// </summary>
+        private void AyarlariSifirla()
+        {
+            MessageBox.Show(this, "Seçenekleriniz varsayılan değerlere sıfırlandı!", "Briç Kart Oyunu",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+            bool kaydedildi = AnlasmaYonetici.VarsayilanaDon();
+            OyunPlani = new OyunPlaniSecenekleri();
+            kaydedildi &= OyunPlani.Kaydet();
+
+            AppState.SeciliKartSeti = "Classic";
+            MasaRengi = Color.Green;
+            BackColor = MasaRengi;
+            ArkaYuzuUygula(AppState.ArkaYuzKirmizi);
+
+            if (!kaydedildi)
+                MessageBox.Show(this, "Ayarlar bu oturum için sıfırlandı ama dosyaya kaydedilemedi:\n" + AyarDeposu.KlasorYolu,
+                    "Ayarlar kaydedilemedi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void BasitAnlasmaUygula(Taraf taraf)

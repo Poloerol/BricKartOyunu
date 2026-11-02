@@ -10,7 +10,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public static readonly string[] Adlar =
         {
             "Benjamin Two-Bids", "Extended Stayman", "Hello over 1NT", "Truscott 2NT", "Preemptive Reraises",
-            "Long & Short Game Tries", "New Minor Forcing", "Weak Jump-Shift Resp.", "Ogust", "Gambling 3NT",
+            "Long & Short Game Tries", "New Minor Forcing", "Weak Jump-Shift Resp.", "Ogust", "Feature Asking 2NT", "Gambling 3NT",
             "Specific King Asks", "Voluntary Five Major Bid", "Mathe Asking Bids", "Control Asking Bids", "Ghestem",
             "Invisible Cue-Bids", "Limit-Plus Cue-Bids", "Weak Jump Overcalls", "Sandwich 1NT", "Maximal Overcall Dbl.",
             "1m-2NT Invitational", "German 2C Relays", "Walsh", "Mini-Roman 2D", "Robinson",

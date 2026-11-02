@@ -88,6 +88,7 @@ namespace BricKartOyunu.Class.Bidding
                 new NewMinorForcing(),
                 new WeakJumpShiftResp(),
                 new Ogust(),
+                new FeatureAsk2NT(),
                 new Gambling3NT(),
                 new SpecificKingAsks(),
                 new VoluntaryFiveMajor(),
@@ -532,6 +533,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "New Minor Forcing": return _anlasma.NewMinorForcing || _anlasma.CheckbackCrowhurst == 1;
                 case "Weak Jump-Shift Resp.": return _anlasma.WeakJumpShiftResp;
                 case "Ogust": return _anlasma.Ogust;
+                case "Feature Asking 2NT": return _anlasma.FeatureAsking2NT && !_anlasma.Ogust;
                 case "Gambling 3NT": return _anlasma.Gambling3NT;
                 case "Specific King Asks": return _anlasma.SpecificKingAsks;
                 case "Voluntary Five Major Bid": return _anlasma.VoluntaryFiveMajor;

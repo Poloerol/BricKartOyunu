@@ -78,7 +78,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string kozSembol = KozYardimcisi.KozSembolu(koz);
             bool minor = koz == "Karo" || koz == "Sinek";
             // Cue-bid sınırı: majörde 4M'nin altı; minörde 4m'nin altı (3NT atlanır)
-            int ustSeviye = 4;
             int kozUz = ElDegerlendirici.RenkUzunlugu(el, koz);
 
             // Zaten doğal teklif edilmiş (3. seviye ve altı) renkler cue-bid sayılmaz

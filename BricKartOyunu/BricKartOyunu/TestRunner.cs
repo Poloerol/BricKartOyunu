@@ -4108,6 +4108,38 @@ namespace BricKartOyunu
             kontrol("TEST 12.39 — atak yönlendiren kontra: 1NT–(2♣) KQJ96♣ → Dbl", teklif(elLD, Player.Guney, stayR, a => a.LeadDirectingDbl = 1), r => r == "Dbl", "Dbl");
             kontrol("TEST 12.40 — atak yönlendiren kontra kapalı → Dbl değil", teklif(elLD, Player.Guney, stayR, null), r => r != "Dbl", "Dbl dışında");
 
+            // "2/1 Game Force Temel" ön ayarı (Bridge Baron Two Over One - Basic)
+            Action<OrtaklikAnlasmasi> temel = x =>
+            {
+                var tp = OrtaklikAnlasmasi.IkiBirTemel();
+                foreach (var pi in typeof(OrtaklikAnlasmasi).GetProperties())
+                    if (pi.CanWrite && (pi.PropertyType == typeof(bool) || pi.PropertyType == typeof(int)) && !pi.Name.EndsWith("Agresifligi") && pi.Name != "BeceriDuzeyi")
+                        pi.SetValue(x, pi.GetValue(tp, null), null);
+            };
+            var tpa = OrtaklikAnlasmasi.IkiBirTemel();
+            kontrol("TEST 12.41 — Temel ön ayar: seçimler", (tpa.StrongNT && tpa.BesliMajor && tpa.IkiBirOyunZorlama && tpa.ForcingNT && !tpa.Smolen && !tpa.MinorTransfer && !tpa.PuppetStayman && !tpa.BergenRaises && tpa.MajorRaiseLimit == 1 && tpa.NT1MinorBid == 2 && tpa.NegDblLimit == 4 && tpa.NT2Range == 6 && tpa.FitCueBid && tpa.FeatureAsking2NT && tpa.TrialBid && tpa.FourthSuitForcing && !tpa.OneMinorTwoNTInv && !tpa.WeakJumpShiftResp && tpa.Preempt && tpa.ZayifIki && tpa.IkiliSinekGuclu && tpa.Blackwood && tpa.CueBid) ? "ok" : "hata", r => r == "ok", "ok");
+            var tpo = OrtaklikAnlasmasi.IkiBirOrta(); var tpg = OrtaklikAnlasmasi.IkiBirGelismis();
+            kontrol("TEST 12.41b — Orta/Gelişmiş ön ayar: seçimler ve bağımlılıklar", (tpo.Smolen && tpo.Stayman && tpo.InvertedMinors && tpo.NewMinorForcing && !tpo.TwoWayCheckback && tpo.Splinter && tpo.ReverseDrury && !tpo.Drury && tpo.Truscott2NT && tpo.FitCueBid && tpo.FeatureAsking2NT && tpo.NT2Range == 6 && tpo.RKCB && !tpo.RKCB1430 && tpo.TexasTransfers && tpo.MinorStayman && tpo.Lebensohl && tpo.Cappelletti && !tpo.Dont && tpo.Gambling3NT && tpo.PuppetStayman && tpo.Sandwich1NT && tpo.LimitPlusCueBids && tpo.SupportDouble && tpo.ResponsiveDouble && tpo.VoluntaryFiveMajor && tpo.DopiRopi && tpo.GrandSlamForce == 1 && tpo.LebensohlWeakTwo == 1 && tpo.UnusualOverUnusual == 1 && tpo.NT1OvercallSystemsOn && tpo.NTDefenseBalancing && !tpo.BergenRaises && tpo.MajorRaiseLimit == 1
+                && tpg.RKCB && !tpg.BergenRaises && tpg.ReverseDrury && !tpg.Drury && tpg.NewMinorForcing && !tpg.TwoWayCheckback && tpg.Cappelletti && !tpg.Dont && tpg.Michaels && tpg.Unusual2NT && tpg.ZayifIki && tpg.IkiliSinekGuclu && !tpg.Ogust && tpg.FeatureAsking2NT) ? "ok" : "hata", r => r == "ok", "ok");
+            kontrol("TEST 12.42 — Temel ön ayar: 1NT–2♠ röle (zayıf 6'lı ♣)", teklif(mk("S:872 H:83 D:42 C:KQ9763"), Player.Guney, ortak1NT, temel), r => r == "2♠", "2♠");
+            kontrol("TEST 12.43 — Temel ön ayar: 1NT–2♣ Stayman (4♠, 10 HP)", teklif(mk("S:KJ96 H:Q83 D:KJ4 C:T52"), Player.Guney, ortak1NT, temel), r => r == "2♣", "2♣");
+
+            var o2s = new List<IhaleHamlesi> { h(Player.Kuzey, "2♠", 1), h(Player.Dogu, "Pas", 2) };
+            kontrol("TEST 12.44 — Temel: zayıf iki 2♠ + 16 HP, 3 kart maça → Feature-asking 2NT", teklif(mk("S:Q74 H:AKJ5 D:AQ4 C:K83"), Player.Guney, o2s, temel), r => r == "2NT", "2NT");
+            var o2sSor = new List<IhaleHamlesi> { h(Player.Guney, "2♠", 1), h(Player.Bati, "Pas", 2), h(Player.Kuzey, "2NT", 3), h(Player.Dogu, "Pas", 4) };
+            kontrol("TEST 12.44b — Temel: 2♠–2NT, yan renk papazı (♥K) → 3♥ (özellik)", teklif(mk("S:KJ9843 H:K52 D:73 C:82"), Player.Guney, o2sSor, temel), r => r == "3♥", "3♥");
+            kontrol("TEST 12.44c — Temel: 2♠–2NT, özelliksiz → 3♠", teklif(mk("S:QJ9843 H:82 D:73 C:T82"), Player.Guney, o2sSor, temel), r => r == "3♠", "3♠");
+
+            var orta = (Action<OrtaklikAnlasmasi>)(x =>
+            {
+                var tp = OrtaklikAnlasmasi.IkiBirOrta();
+                foreach (var pi in typeof(OrtaklikAnlasmasi).GetProperties())
+                    if (pi.CanWrite && (pi.PropertyType == typeof(bool) || pi.PropertyType == typeof(int)) && !pi.Name.EndsWith("Agresifligi") && pi.Name != "BeceriDuzeyi")
+                        pi.SetValue(x, pi.GetValue(tp, null), null);
+            });
+            kontrol("TEST 12.45 — Orta ön ayar: 1NT–4♥ Texas transferi (6♠, 10 HP)", teklif(mk("S:AJ9843 H:82 D:K73 C:Q2"), Player.Guney, ortak1NT, orta), r => r == "4♥", "4♥");
+            kontrol("TEST 12.45b — Orta ön ayar: 1NT–2♣ Stayman", teklif(mk("S:KJ96 H:Q83 D:KJ4 C:T52"), Player.Guney, ortak1NT, orta), r => r == "2♣", "2♣");
+
             // Beceri düzeyi: 20 hatasız, 1 sık hata
             var legal = new List<Card>();
             foreach (var c in mk("S:AKQJ7")) legal.Add(c);
