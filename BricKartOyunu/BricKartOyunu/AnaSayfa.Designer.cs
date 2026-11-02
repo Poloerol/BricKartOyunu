@@ -188,26 +188,26 @@
             // 
             this.nSOrtaklıkAyarlarıToolStripMenuItem.Name = "nSOrtaklıkAyarlarıToolStripMenuItem";
             this.nSOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.nSOrtaklıkAyarlarıToolStripMenuItem.Text = "NS Ortaklık Ayarları";
+            this.nSOrtaklıkAyarlarıToolStripMenuItem.Text = "N/S Ortaklık Ayarları";
             // 
             // eWOrtaklıkAyarlarıToolStripMenuItem
             // 
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Name = "eWOrtaklıkAyarlarıToolStripMenuItem";
             this.eWOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.eWOrtaklıkAyarlarıToolStripMenuItem.Text = "EW Ortaklık Ayarları";
+            this.eWOrtaklıkAyarlarıToolStripMenuItem.Text = "E/W Ortaklık Ayarları";
             this.eWOrtaklıkAyarlarıToolStripMenuItem.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // basitNSOrtaklıkAyarlarıToolStripMenuItem
             // 
             this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Name = "basitNSOrtaklıkAyarlarıToolStripMenuItem";
             this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit NS Ortaklık Ayarları";
+            this.basitNSOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit N/S Ortaklık Ayarları";
             // 
             // basitEWOrtaklıkAyarlarıToolStripMenuItem
             // 
             this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Name = "basitEWOrtaklıkAyarlarıToolStripMenuItem";
             this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit EW Ortaklık Ayarları";
+            this.basitEWOrtaklıkAyarlarıToolStripMenuItem.Text = "Basit E/W Ortaklık Ayarları";
             // 
             // toolStripSeparator1
             // 
@@ -597,13 +597,13 @@
             // 
             this.eWEliniGösterToolStripMenuItem.Name = "eWEliniGösterToolStripMenuItem";
             this.eWEliniGösterToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.eWEliniGösterToolStripMenuItem.Text = "EW Elini Göster";
+            this.eWEliniGösterToolStripMenuItem.Text = "E/W Elini Göster";
             // 
             // nSEliniGösterToolStripMenuItem
             // 
             this.nSEliniGösterToolStripMenuItem.Name = "nSEliniGösterToolStripMenuItem";
             this.nSEliniGösterToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.nSEliniGösterToolStripMenuItem.Text = "NS Elini Göster";
+            this.nSEliniGösterToolStripMenuItem.Text = "N/S Elini Göster";
             // 
             // sıradakiOyuncuEliToolStripMenuItem
             // 
@@ -654,14 +654,14 @@
             // kartDağıtıcıToolStripMenuItem
             // 
             this.kartDağıtıcıToolStripMenuItem.Name = "kartDağıtıcıToolStripMenuItem";
-            this.kartDağıtıcıToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.kartDağıtıcıToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.kartDağıtıcıToolStripMenuItem.Text = "Kart Dağıtıcı";
             // 
             // dağılımKütüphanesiToolStripMenuItem
             // 
             this.dağılımKütüphanesiToolStripMenuItem.Name = "dağılımKütüphanesiToolStripMenuItem";
-            this.dağılımKütüphanesiToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.dağılımKütüphanesiToolStripMenuItem.Text = "Dağılım Kütüphanesi";
+            this.dağılımKütüphanesiToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.dağılımKütüphanesiToolStripMenuItem.Text = "Dağılım Deposu";
             // 
             // yarışmaToolStripMenuItem
             // 
@@ -780,7 +780,7 @@
             this.BtnToolArkaYuz.Image = ((System.Drawing.Image)(resources.GetObject("BtnToolArkaYuz.Image")));
             this.BtnToolArkaYuz.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.BtnToolArkaYuz.Name = "BtnToolArkaYuz";
-            this.BtnToolArkaYuz.Size = new System.Drawing.Size(23, 22);
+            this.BtnToolArkaYuz.Size = new System.Drawing.Size(28, 28);
             this.BtnToolArkaYuz.Text = "Kart Arka Yüzü";
             this.BtnToolArkaYuz.ToolTipText = "Kart Arka Yüzü";
             this.BtnToolArkaYuz.Click += new System.EventHandler(this.BtnToolArkaYuz_Click);
@@ -791,14 +791,14 @@
             this.toolStripButton3.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton3.Image")));
             this.toolStripButton3.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton3.Name = "toolStripButton3";
-            this.toolStripButton3.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButton3.Size = new System.Drawing.Size(28, 28);
             this.toolStripButton3.Text = "Masa Arka Rengi";
             this.toolStripButton3.ToolTipText = "Masa Arka Rengi";
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 31);
             // 
             // toolStrip1
             // 
@@ -809,7 +809,7 @@
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1366, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1366, 31);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -856,6 +856,7 @@
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "AnaSayfa";

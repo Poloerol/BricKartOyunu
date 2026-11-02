@@ -54,6 +54,8 @@ namespace BricKartOyunu.Class.Bidding
                         {
                             ortakAcilis = true; ortakBirsey = true;
                             a = AcilisAraligi(t);
+                            if (t == "1NT") { a.Min = NTA.Lo1(d.Anlasma); a.Max = NTA.Hi1(d.Anlasma); }
+                            else if (t == "2NT") { a.Min = NTA.Lo2(d.Anlasma); a.Max = NTA.Hi2(d.Anlasma); }
                             acilisBir = Sev(t) == 1 && KozYardimcisi.TekliftenKozCikar(t) != "NT";
                         }
                         else if (h.Oyuncu == ben)
@@ -95,7 +97,8 @@ namespace BricKartOyunu.Class.Bidding
                     {
                         ortakBirsekacildi = true;
                         var ra = NTCevapAraligi(acilisYapisi, t);
-                        a.Min = ra.Min; a.Max = ra.Max;
+                        int dd = acilisYapisi == "1NT" ? NTA.D1(d.Anlasma) : acilisYapisi == "2NT" ? NTA.D2(d.Anlasma) : 0;   // cevaplayanın gerçek HCP = standart - fark
+                        a.Min = Math.Max(0, ra.Min - dd); a.Max = Math.Max(a.Min, ra.Max - dd);
                     }
                 }
                 else if (benAcilis)
@@ -109,6 +112,9 @@ namespace BricKartOyunu.Class.Bidding
                     else if (bergen && s == 3 && !ayniRenk && renk == "Karo") { lo = 11; hi = 12; }           // 3♦ = 11-12
                     else if (bergen && s == 3 && ayniRenk) { lo = 0; hi = 6; }                                // 3M = önleyici
                     else if (majAcilis && s == 4 && ayniRenk && !ortakBirsekacildi) { lo = 3; hi = 11; }      // 4M = oynamak için / önleyici
+                    else if (d.Anlasma != null && d.Anlasma.Jacoby2NT && majAcilis && s == 2 && renk == "NT" && !ortakBirsekacildi && g.First(x => Gercek(x.Teklif)).Seviye == 1) { lo = 13; hi = 40; }   // Jacoby 2NT: oyun zorlayıcı, 4+ koz
+                    else if (d.Anlasma != null && d.Anlasma.IkiBirOyunZorlama && s == 2 && !ayniRenk && renk != "NT" && !ortakBirsekacildi &&
+                             g.First(x => Gercek(x.Teklif)).Seviye == 1 && KozSiraAl(renk) < KozSiraAl(acilisRengi)) { lo = 12; hi = 17; }   // 2/1 oyun zorlayıcı: 12+
                     else if (s == 1) { lo = 6; hi = renk == "NT" ? 10 : 14; }
                     else if (s == 2) { lo = ayniRenk ? 6 : (renk == "NT" ? 11 : 10); hi = ayniRenk ? 10 : (renk == "NT" ? 12 : 17); }
                     else if (s == 3 && ayniRenk && !(renk == "Kupa" || renk == "Maça")) { lo = 4; hi = 10; }   // minör 3 seviye sıçrama: zayıf
@@ -116,6 +122,7 @@ namespace BricKartOyunu.Class.Bidding
                     else if (s == 4) { lo = (renk == "NT") ? 15 : 12; hi = ayniRenk ? 17 : 21; }
                     else { lo = 15; hi = 40; }
                     if (a.Min < 6 || a.Max >= 40 || !ortakBirsekacildi) { a.Min = Math.Max(a.Min, lo); a.Max = hi; }
+                    else if (s >= 4 && ayniRenk && majAcilis && a.Max <= 12) a.Min = Math.Max(a.Min, Math.Min(a.Max, 8));   // sınırlı raise sonrası oyun kabulü (1M–2M–3x–4M): yeni güç değil, üst yarı
                     else if (s >= 4 && renk != "NT") a.Min = Math.Max(a.Min, Math.Min(lo, 12));   // sonraki teklifler yeni güç göstermez
                     ortakBirsekacildi = true;
                 }
@@ -159,15 +166,68 @@ namespace BricKartOyunu.Class.Bidding
                 {
                     // Rakip açtı, ortak müdahale/cevap
                     int hi;
+                    // Ben (rakip açılışına) kontra yaptım, ortak ilk kez cevap veriyor: kontra cevabı (müdahale değil)
+                    bool benKontrlu = !ortakBirsekacildi &&
+                        g.Take(i).Any(x => x.Oyuncu == ben && (x.Teklif == "Dbl" || x.Teklif == "Kontr"));
+                    if (benKontrlu)
+                    {
+                        if (renk == "NT") { if (s == 1) { lo = 6; hi = 10; } else if (s == 2) { lo = 11; hi = 12; } else { lo = 13; hi = 16; } }
+                        else
+                        {
+                            int pL2 = 0, pR2 = -1;
+                            for (int j = i - 1; j >= 0; j--)
+                                if (Gercek(g[j].Teklif)) { pL2 = Sev(g[j].Teklif); pR2 = KozSiraAl(KozYardimcisi.TekliftenKozCikar(g[j].Teklif)); break; }
+                            int ucuz2 = pL2 + (KozSiraAl(renk) > pR2 ? 0 : 1);
+                            int atl = s - ucuz2;
+                            if (atl <= 0) { lo = 0; hi = s == 1 ? 8 : 9; }      // en ucuz renk cevabı: zayıf/asgari
+                            else if (atl == 1) { lo = 9; hi = 12; }              // atlama: davet
+                            else { lo = 0; hi = 12; }                            // oyun/önleyici
+                        }
+                    }
+                    else
+                    {
                     if (s == 1) { lo = 8; hi = 16; }
                     else if (s == 2) { lo = 10; hi = 17; }
                     else if (s == 3) { lo = 5; hi = 11; }
                     else { lo = 5; hi = 12; }
                     if (renk == "NT") { if (s == 1) { lo = 15; hi = 18; } else { lo = 5; hi = 11; } }   // 2NT müdahale: Unusual (5-5 minör)
+                    }
                     if (!ortakBirsekacildi) { a.Min = lo; a.Max = hi; ortakBirsekacildi = true; }
                     else a.Min = Math.Max(a.Min, lo);
                 }
                 if (a.Max < a.Min) a.Max = Math.Min(40, a.Min + 6);
+            }
+            // Reverse'ümden sonra ortağın 3 seviye yeni/fit rengi (2NT Lebensohl hariç) = oyun kurmaya güçlü (9+, forcing)
+            if (benAcilis)
+            {
+                var gt = g.Where(x => Gercek(x.Teklif)).ToList();
+                if (gt.Count >= 4 && gt[0].Oyuncu == ben && gt[0].Teklif == "1♦" && gt[1].Oyuncu == ort &&
+                    (gt[1].Teklif == "1♠" || gt[1].Teklif == "1♥") && gt[2].Oyuncu == ben &&
+                    (gt[2].Teklif == "2♥" || gt[2].Teklif == "2♠") && gt[3].Oyuncu == ort &&
+                    Sev(gt[3].Teklif) == 3 && !gt[3].Teklif.EndsWith("NT"))
+                    a.Min = Math.Max(a.Min, 9);
+            }
+            // Drury (1M–2♣) sonrası açıcının 3 seviyesinde yan renk deneme teklifi: gerçek oyun denemesi (13+)
+            {
+                var gd = g.Where(x => Gercek(x.Teklif)).ToList();
+                if (gd.Count >= 3 && gd[0].Oyuncu == ort && gd[0].Seviye == 1 && (gd[0].Koz == "Maça" || gd[0].Koz == "Kupa") &&
+                    gd[1].Oyuncu == ben && gd[1].Teklif == "2♣" && gd[2].Oyuncu == ort && gd[2].Seviye == 3 &&
+                    gd[2].Koz != "NT" && gd[2].Koz != gd[0].Koz && !gd.Take(3).Any(x => x.Oyuncu != ort && x.Oyuncu != ben))
+                    a.Min = Math.Max(a.Min, 13);
+            }
+            // Jacoby 2NT (1M–2NT) sonrası açıcının cevabı (Hardy): 3M = 16+, 3NT = 14–15, 4M = asgari (12–14)
+            {
+                var gj = g.Where(x => Gercek(x.Teklif)).ToList();
+                if (gj.Count >= 3 && gj[0].Oyuncu == ort && gj[0].Seviye == 1 && (gj[0].Koz == "Maça" || gj[0].Koz == "Kupa") &&
+                    gj[1].Oyuncu == ben && gj[1].Teklif == "2NT" && gj[2].Oyuncu == ort &&
+                    d.Anlasma != null && d.Anlasma.Jacoby2NT)
+                {
+                    string r2 = gj[2].Teklif;
+                    string m2 = gj[0].Teklif.Substring(1);
+                    if (r2 == "3" + m2) { a.Min = Math.Max(a.Min, 16); a.Max = Math.Max(a.Max, 21); }
+                    else if (r2 == "3NT") { a.Min = Math.Max(a.Min, 14); a.Max = Math.Max(a.Min, 15); }
+                    else if (r2 == "4" + m2) { a.Min = Math.Max(a.Min, 12); a.Max = Math.Max(a.Min, 14); }
+                }
             }
             if (a.Max < a.Min) a.Max = a.Min;
             return a;
@@ -254,18 +314,6 @@ namespace BricKartOyunu.Class.Bidding
             return false;
         }
 
-        private static bool OrtakDbl(IhaleDurumu d)
-        {
-            // son gerçek olmayan-pas hamle ortağın dbl'ı mı
-            var g = d.Gecmis ?? new List<IhaleHamlesi>();
-            for (int i = g.Count - 1; i >= 0; i--)
-            {
-                if (g[i].Teklif == "Pas") continue;
-                return g[i].Oyuncu == d.Partner && (g[i].Teklif == "Dbl" || g[i].Teklif == "Kontr");
-            }
-            return false;
-        }
-
         private static readonly HashSet<string> SoruKonv = new HashSet<string>
         {
             "Blackwood","RKCB","Gerber","Kickback","Exclusion Blackwood","Koz Q Sorusu",
@@ -347,7 +395,7 @@ namespace BricKartOyunu.Class.Bidding
                     return true;
 
                 case "Gerber":
-                    return ortakSonra && ortSon.Teklif == "4♣" && ilk != null && ilk.Koz == "NT";
+                    return ortakSonra && (ortSon.Teklif == "4♣" || ortSon.Teklif == "5♣") && ilk != null && ilk.Koz == "NT";
 
                 // NT açıcısı olarak yapay sorulara cevap
                 case "Puppet Stayman":
@@ -397,6 +445,7 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         private const double CevapSlamEsigi = 26;
+        private static string[] Renkler4() { return new[] { "Maça", "Kupa", "Karo", "Sinek" }; }
 
         // ───────────────────────── Ana denetim ─────────────────────────
 
@@ -447,17 +496,34 @@ namespace BricKartOyunu.Class.Bidding
 
             // 1NT açıcısı olarak ortağın minör transferini tamamlama (2♠→3♣, 2NT→3♦): rakip kontrası dahil
             // her durumda yapılır; ortağın güç aralığı tahmini bu zorunlu cevabı veto etmesin.
-            if (ad.StartsWith("Temel Mant") && (teklif == "3♣" || teklif == "3♦"))
+            if (ad.StartsWith("Temel Mant") && (teklif == "3♣" || teklif == "3♦" || teklif == "3♥"))
             {
                 var gg = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
                 if (gg.Count >= 2 && gg[0].Oyuncu == d.AktifOyuncu && gg[0].Teklif == "1NT" &&
                     gg.Count(h => h.Oyuncu == d.AktifOyuncu) == 1 && gg.Count(h => h.Oyuncu == d.Partner) == 1)
                 {
                     var ortT = gg.First(h => h.Oyuncu == d.Partner);
-                    if ((ortT.Teklif == "2♠" && teklif == "3♣") || (ortT.Teklif == "2NT" && teklif == "3♦")) return true;
+                    if ((ortT.Teklif == "2♠" && (teklif == "3♣" || teklif == "3♦")) || (ortT.Teklif == "2NT" && (teklif == "3♦" || teklif == "3♥"))) return true;
                 }
             }
 
+            // Kendi 1M müdahalemi ortak 3M ile rekabetçi yükseltti: uzun renk + kısalık puanıyla 4M (HCP tahmini veto etmesin).
+            if (ad.StartsWith("Temel Mant") && teklif.Length == 2 && teklif[0] == '4' && teklif != "4NT")
+            {
+                var gx = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gx.Count == 4 && gx[1].Oyuncu == d.AktifOyuncu && gx[1].Seviye == 1 && gx[3].Oyuncu == d.Partner &&
+                    gx[3].Seviye == 3 && gx[3].Koz == gx[1].Koz && teklif.EndsWith(KozYardimcisi.KozSembolu(gx[1].Koz))) return true;
+            }
+
+            // 1X-1Y-1NT-3Z (ortağın kendi rengiyle daveti) sonrası açıcının kabulü (3NT / 4M): HCP tahmini veto etmesin.
+            if (ad.StartsWith("Temel Mant") && (teklif == "3NT" || (teklif.Length == 2 && teklif[0] == '4')))
+            {
+                var gy = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gy.Count == 4 && gy[0].Oyuncu == d.AktifOyuncu && gy[0].Seviye == 1 && gy[1].Oyuncu == d.Partner && gy[1].Seviye == 1 &&
+                    gy[2].Oyuncu == d.AktifOyuncu && gy[2].Teklif == "1NT" && gy[3].Oyuncu == d.Partner && gy[3].Seviye == 3) return true;
+            }
+
+            if (ad == "Jacoby 2NT") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M) HCP tahminiyle veto edilmez
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale" || BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad))
                 return true;
 
@@ -500,6 +566,12 @@ namespace BricKartOyunu.Class.Bidding
             {
                 int uzunluk = d.AktifOyuncuEli.Count(c => c.Suit == renk);
                 if (uzunluk >= 7) est += uzunluk - 5;
+            }
+            // NT oyununda 6+ kartlık uzun renk ek löve kaynağıdır (ör. 1NT–2♠–3♣–3NT: KJ9862 ♣ ile 8 HP)
+            if (renk == "NT" && sev == 3)
+            {
+                int mx = Renkler4().Max(r => d.AktifOyuncuEli.Count(c => c.Suit == r));
+                if (mx >= 6) est += (mx - 5) * 1.0;
             }
             int rakSev = RakipSeviyesi(d);
 

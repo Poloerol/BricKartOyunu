@@ -1,0 +1,1501 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BricKartOyunu.Class.Bidding.Conventions
+{
+    /// <summary>
+    /// TEMEL MANTIK (fallback) — doğal ihale motoru.
+    ///
+    /// Hiçbir özel konvansiyon uymadığında çalışır. Rastgele "bir sonraki teklif" yerine
+    /// her adımda şu soruyu cevaplar: "Ortaklığın tahmini toplam gücü ve fiti ile
+    /// hangi kontratta oynamalıyız, şu an hangi seviyedeyiz?"
+    ///
+    ///   1. Açılış (kimse açmadıysa)
+    ///   2. Rakip açtı, ortak susuyor → doğal müdahale
+    ///   3. Ortaklık: tahmini güç (IhaleKoruma.PartnerAraligi) + fit → hedef seviye
+    ///        - hedef seviyeye ulaşıldıysa Pas
+    ///        - hedefin altındaysa hedef kontratı (veya en ucuz yasal teklifi) ver
+    ///   4. Rekabet: Toplam Kart Kanunu (LOTT) ile en fazla fit kadar yarış
+    ///   5. Zorlayıcı durumlar (2♣ güçlü açılış, açıcıya yeni renk): Pas yasak
+    /// </summary>
+    public class TemelMantik : IKonvansiyon
+    {
+        public string Ad => "Temel Mantık (Fallback)";
+        public string Aciklama => "Evrensel briç kuralları (fit, NT, puan)";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 999;
+
+        public bool UygunMu(IhaleDurumu durum) => true;
+
+        private static readonly string[] Renkler = { "Sinek", "Karo", "Kupa", "Maça" };
+
+        private static int RenkSira(string koz)
+        {
+            switch (koz)
+            {
+                case "Sinek": return 0;
+                case "Karo": return 1;
+                case "Kupa": return 2;
+                case "Maça": return 3;
+                case "NT": return 4;
+            }
+            return -1;
+        }
+
+        private static bool Major(string r) => r == "Kupa" || r == "Maça";
+
+        // ═════════════════════════════════════════════════════════════════
+        // ANA GİRİŞ
+        // ═════════════════════════════════════════════════════════════════
+        public string TeklifVer(IhaleDurumu d)
+        {
+            var el = d?.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return "Pas";
+
+            var g = d.Gecmis ?? new List<IhaleHamlesi>();
+            var gercek = g.Where(h => h.GercekTeklifMi).ToList();
+            int hp = NTA.HcpStd(d, el);   // ortak/ben NT açtıysa 15-17 / 20-21 ölçeğinde
+            bool dengeli = ElDegerlendirici.DengeliEl(el);
+
+            // 1. AÇILIŞ
+            if (gercek.Count == 0)
+            {
+                _kisaSinek = d.Anlasma != null && d.Anlasma.MinorShortClub == 1;
+                return Acilis(d, el, hp, dengeli, g.Count, d.Anlasma != null ? d.Anlasma.AcilisAgresifligi : 0);
+            }
+
+            bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
+            bool benKonustum = gercek.Any(h => h.Oyuncu == d.AktifOyuncu);
+            bool rakipKonustu = gercek.Any(h => d.Rakipler.Contains(h.Oyuncu));
+
+            // 2a. Ortak 3 seviyesindeki rakip engel açılışına takeout kontra yaptı, sağdaki rakip pas: pas yok (ceza pası hariç)
+            string tk = OrtakTakeoutKontrasinaCevap(d, el, hp, dengeli, g, gercek);
+            if (tk != null) return tk;
+
+            // 2b. Ben 1NT açtım, rakip 3♣/3♦ ile araya girdi, ortak negatif kontra yaptı, rakip pas: dört kartlık majör -> 4M,
+            //     rakip renginde durdurucu -> 3NT, aksi halde ceza için Pas.
+            if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Teklif == "1NT" &&
+                d.Rakipler.Contains(gercek[1].Oyuncu) && gercek[1].Seviye == 3 && (gercek[1].Koz == "Sinek" || gercek[1].Koz == "Karo") &&
+                g.Count >= 2 && g[g.Count - 1].PasMi && d.Rakipler.Contains(g[g.Count - 1].Oyuncu) &&
+                g[g.Count - 2].Teklif == "Dbl" && g[g.Count - 2].Oyuncu == d.Partner)
+            {
+                int ms = ElDegerlendirici.RenkUzunlugu(el, "Maça"), kp = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                if (ms >= 4 || kp >= 4) return Seviye(d, ms >= kp ? "Maça" : "Kupa", 4);
+                if (ElDegerlendirici.StopperVar(el, gercek[1].Koz)) return Seviye(d, "NT", 3);
+                return "Pas";
+            }
+
+            // 2b'. 1X-(1M)-Dbl-(2M)-Pas-(Pas): negatif kontrayı ben yaptım, rakip yükseltti, ortak pas geçti (minimum) -> yeniden aç:
+            //      boştaki majörde 4+ kart -> doğal teklif (11+ HP), ya da durdurucu + 13+ HP -> 3NT.
+            var np = g.Where(h => !h.PasMi).ToList();
+            if (np.Count == 4 && np[0].Oyuncu == d.Partner && np[0].GercekTeklifMi && np[2].Oyuncu == d.AktifOyuncu && np[2].KontrMi &&
+                d.Rakipler.Contains(np[1].Oyuncu) && np[1].GercekTeklifMi && np[1].Seviye == 1 && (np[1].Koz == "Kupa" || np[1].Koz == "Maça") &&
+                d.Rakipler.Contains(np[3].Oyuncu) && np[3].GercekTeklifMi && np[3].Seviye == 2 && np[3].Koz == np[1].Koz &&
+                g.Count >= 2 && g[g.Count - 1].PasMi && g[g.Count - 2].PasMi && hp >= 11)
+            {
+                string serbest = np[1].Koz == "Kupa" ? "Maça" : "Kupa";
+                if (np[0].Koz != serbest && ElDegerlendirici.RenkUzunlugu(el, serbest) >= 4 && (serbest == "Maça" || hp >= 13))
+                    return Seviye(d, serbest, serbest == "Maça" ? 2 : 3);
+                if (hp >= 13 && ElDegerlendirici.StopperVar(el, np[1].Koz)) return Seviye(d, "NT", 3);
+            }
+
+            // 2b''. 1X-(1M overcall = ben)-(rakip 2 seviye)-3M (ortak rekabetçi yükseltme): puan + uzunluk + kısalık >= 13 ise 4M.
+            if (np.Count == 4 && np[1].Oyuncu == d.AktifOyuncu && np[1].GercekTeklifMi && np[1].Seviye == 1 &&
+                (np[1].Koz == "Kupa" || np[1].Koz == "Maça") && d.Rakipler.Contains(np[0].Oyuncu) && d.Rakipler.Contains(np[2].Oyuncu) &&
+                np[3].Oyuncu == d.Partner && np[3].GercekTeklifMi && np[3].Koz == np[1].Koz && np[3].Seviye == 3 &&
+                g[g.Count - 1].PasMi && d.Rakipler.Contains(g[g.Count - 1].Oyuncu))
+            {
+                int uz = ElDegerlendirici.RenkUzunlugu(el, np[1].Koz);
+                int kisa = 0;
+                foreach (var r in Renkler) { if (r == np[1].Koz) continue; int l = ElDegerlendirici.RenkUzunlugu(el, r); if (l == 0) kisa += 3; else if (l == 1) kisa += 2; else if (l == 2) kisa += 1; }
+                int puan = hp + Math.Max(0, uz - 5) + kisa;
+                if (uz >= 6 && puan >= 13) return Seviye(d, np[1].Koz, 4);
+            }
+
+            // 2b-3. 1X-(P)-1Y-(P)-1NT-(P): cevaplayan olarak 6+ kartlı kendi rengim varsa Pas yok:
+            //      6-9 HP -> 2 seviye (oynamak için), 10-12 -> 3 seviye (davet), 13+ -> 3NT (7+ minör) / oyun (4M) / 3 seviye zorlayıcı.
+            if (np.Count == 3 && np[0].Oyuncu == d.Partner && np[0].GercekTeklifMi && np[0].Seviye == 1 && np[0].Koz != "NT" &&
+                np[1].Oyuncu == d.AktifOyuncu && np[1].GercekTeklifMi && np[1].Seviye == 1 && np[1].Koz != "NT" &&
+                np[2].Oyuncu == d.Partner && np[2].Teklif == "1NT" && g[g.Count - 1].PasMi && hp >= 6)
+            {
+                string uzun = null; int ul = 0;
+                foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                {
+                    int l = ElDegerlendirici.RenkUzunlugu(el, r);
+                    if (r != np[0].Koz && l >= 6 && l > ul) { uzun = r; ul = l; }
+                }
+                if (uzun != null)
+                {
+                    bool mj = uzun == "Maça" || uzun == "Kupa";
+                    if (hp <= 9) return Seviye(d, uzun, 2);
+                    if (hp <= 12) return Seviye(d, uzun, 3);
+                    if (mj) return Seviye(d, uzun, 4);
+                    return ul >= 7 ? Seviye(d, "NT", 3) : Seviye(d, uzun, 3);
+                }
+            }
+
+            // 2b-4. 1X-(P)-1Y-(P)-1NT-(P)-3Z-(P): ortak 3 seviyede kendi 6+ kartlı rengiyle davet etti.
+            //      Minörde: 13+ HP, ya da 12 HP ve 3+ destek (en az iki A/K/Q) -> 3NT. Majörde: 12+ HP ve 3+ destek -> 4M. Aksi halde Pas.
+            if (np.Count == 4 && np[0].Oyuncu == d.AktifOyuncu && np[0].GercekTeklifMi && np[0].Seviye == 1 && np[0].Koz != "NT" &&
+                np[1].Oyuncu == d.Partner && np[1].GercekTeklifMi && np[1].Seviye == 1 && np[1].Koz != "NT" &&
+                np[2].Oyuncu == d.AktifOyuncu && np[2].Teklif == "1NT" &&
+                np[3].Oyuncu == d.Partner && np[3].GercekTeklifMi && np[3].Seviye == 3 && np[3].Koz != "NT" && np[3].Koz != np[0].Koz &&
+                g[g.Count - 1].PasMi && !g.Any(h => d.Rakipler.Contains(h.Oyuncu) && !h.PasMi))
+            {
+                string pz = np[3].Koz;
+                int dst = ElDegerlendirici.RenkUzunlugu(el, pz);
+                int onur = el.Count(c => c.Suit == pz && c.Value >= 12);
+                bool mjz = pz == "Maça" || pz == "Kupa";
+                if (mjz)
+                {
+                    if (hp >= 12 && dst >= 3) return Seviye(d, pz, 4);
+                }
+                else if (hp >= 13 || (hp >= 12 && ((dst >= 3 && onur >= 2) || dst >= 4))) return Seviye(d, "NT", 3);
+            }
+
+            // 2. Rakip açtı, bizim taraf henüz susuyor → doğal müdahale
+            if (!ortakKonustu && !benKonustum && rakipKonustu)
+                return Mudahale(d, el, hp, gercek);
+
+            // 2b. Ortağın rekabet kontrasına (ben açıcı değilim, ortak açtı) cevap
+            string rk2 = OrtakRekabetKontrasinaCevap(d, el, hp, g, gercek);
+            if (rk2 != null) return rk2;
+
+            // 2c. Ben 2♣ (güçlü, oyun zorlayıcı) açtım, ortak cevap verdi, rakip susuyor: pas yok, doğal devam
+            string c2 = Ikili2CAciciDevam(d, el, hp, dengeli, gercek);
+            if (c2 != null) return c2;
+
+            // 3. Genel yerleştirme motoru
+            return Yerlestir(d, el, hp, dengeli, gercek);
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // 1. AÇILIŞ
+        // ═════════════════════════════════════════════════════════════════
+        private string Acilis(IhaleDurumu d, List<Card> el, int hp, bool dengeli, int onceki, int agr)
+        {
+            if (NTA.Acilis2NT(el, d.Anlasma)) return "2NT";
+            if (hp >= 22) return "2♣";
+            if (NTA.Acilis1NT(el, d.Anlasma)) return "1NT";
+            if (ElDegerlendirici.AcilisGucuVarMi(el, agr)) return EnUzunRengiAc(el);   // 12+ HCP veya 11 HCP + 20 kuralı
+            // 3. / 4. el: 11 HCP + güçlü 5'li renk (Rule of 20 benzeri)
+            if (onceki >= 2 && hp == 11 && EnUzunUzunluk(el) >= 5) return EnUzunRengiAc(el);
+            return "Pas";
+        }
+
+        private static int EnUzunUzunluk(List<Card> el) =>
+            Renkler.Max(r => ElDegerlendirici.RenkUzunlugu(el, r));
+
+        private bool _kisaSinek = true;
+        private string EnUzunRengiAc(List<Card> el)
+        {
+            int ma = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+            int ku = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            int ka = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int si = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+            if (ma >= 5 && ma >= ku) return "1♠";
+            if (ku >= 5) return "1♥";
+            if (ma >= 5) return "1♠";
+            if (_kisaSinek) { if (ka >= 4 && ka >= si) return "1♦"; return "1♣"; }
+            if (ka > si || (ka == si && ka >= 4)) return "1♦";   // en iyi minör: uzun olan; eşitlikte 4-4 → ♦, 3-3 → ♣
+            return "1♣";
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // 2. DOĞAL MÜDAHALE (rakip açtı, ortak henüz yok)
+        // ═════════════════════════════════════════════════════════════════
+        private string Mudahale(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> gercek)
+        {
+            var son = gercek.Last();
+            if (!d.Rakipler.Contains(son.Oyuncu)) return "Pas";   // rakip desteklendi/yükseldi vs.
+            int sev = son.Seviye;
+            string rk = son.Koz;
+            int agr = d.Anlasma != null ? d.Anlasma.MudahaleAgresifligi : 0;
+            int fark = agr <= -2 ? 4 : (agr < 0 ? 2 : (agr >= 2 ? -2 : (agr > 0 ? -1 : 0)));   // çok temkinli +4, temkinli +2, atak -1, çok atak -2 HP
+            // 3 seviyesinde engel açılışına takeout kontra: kısa renk (≤2) ve diğer renklerde en az 3 kart.
+            // Doğrudan koltukta 13+ HP; pass-out koltuğunda (iki pas sonrası) 10+ HP yeter.
+            if (sev == 3 && gercek.Count == 1 && rk != "NT")
+            {
+                int pasSay = 0;
+                for (int i = d.Gecmis.Count - 1; i >= 0 && d.Gecmis[i].PasMi; i--) pasSay++;
+                int esik = pasSay == 2 ? 10 : (pasSay == 0 ? 13 : 99);
+                if (hp >= esik && ElDegerlendirici.RenkUzunlugu(el, rk) <= 2 &&
+                    Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
+                    return "Dbl";
+            }
+            if (sev >= 3 || hp < 8 + fark) return "Pas";
+
+            // Dengeli 15-18 HP, rakibin rengini durduruyor: NT müdahalesi (1♦ – (1NT), 2♥ – (2NT) = 15-18).
+            // Güçlü 2♣ açılışına karşı uygulanmaz.
+            bool ntMud = (sev == 1 || (sev == 2 && gercek.Count == 1)) && rk != "NT" && son.Teklif != "2♣" && hp >= 15 && ElDegerlendirici.DengeliEl(el);
+            if (ntMud && hp <= 18 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == sev)
+                return Seviye(d, "NT", sev);
+            // Dengeli 15+ HP, rakibin rengini durduramıyor ve diğer renklerde en az 3 kart: takeout kontra
+            if (ntMud && !ElDegerlendirici.StopperVar(el, rk) &&
+                Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
+                return "Dbl";
+
+            // Çok güçlü (17+ HP) el, rakibin 1 seviye renk açılışı; 5'li renk ve NT müdahalesi yok:
+            // pas geçmek yerine takeout kontra (güçlü kontra: sonra renk/NT ile devam edilir).
+            // Açılan majörse diğer majörde 4+ kart, açılan minörse en az bir majörde 4+ kart ve diğer renklerin çoğunda 3+ kart aranır.
+            if (sev == 1 && rk != "NT" && hp >= 17 && ElDegerlendirici.RenkUzunlugu(el, rk) <= 3 &&
+                !Renkler.Any(r => r != rk && ElDegerlendirici.RenkUzunlugu(el, r) >= 5) &&
+                Renkler.Count(r => r != rk && ElDegerlendirici.RenkUzunlugu(el, r) >= 3) >= 2 &&
+                Renkler.Any(r => (r == "Kupa" || r == "Maça") && r != rk && ElDegerlendirici.RenkUzunlugu(el, r) >= 4))
+                return "Dbl";
+
+            // En iyi 5+ renk (rakibin rengi hariç)
+            string en = null; int enUz = 0;
+            foreach (var r in Renkler)
+            {
+                if (r == rk) continue;
+                if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi && h.Koz == r)) continue;   // rakibin söylediği renk doğal müdahale olamaz
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u >= 5 && (u > enUz || (u == enUz && RenkSira(r) > RenkSira(en)))) { en = r; enUz = u; }
+            }
+            if (en == null) return "Pas";
+            int lvl = Cheapest(d, en);
+            if (lvl == 1 && hp >= 8 + fark) return "1" + KozYardimcisi.KozSembolu(en);
+            if (lvl == 2 && hp >= 11 + fark && enUz >= 5 && IyiRenk(el, en)) return "2" + KozYardimcisi.KozSembolu(en);
+            return "Pas";
+        }
+
+        private static bool IyiRenk(List<Card> el, string r) =>
+            ElDegerlendirici.RenkUzunlugu(el, r) >= 6 || ElDegerlendirici.IyiRenk(el, r);
+
+        // ═════════════════════════════════════════════════════════════════
+        // 3. YERLEŞTİRME MOTORU
+        // ═════════════════════════════════════════════════════════════════
+        private string Yerlestir(IhaleDurumu d, List<Card> el, int hp, bool dengeli, List<IhaleHamlesi> gercek)
+        {
+            var son = gercek.Last();
+            bool sonBizim = son.Oyuncu == d.Partner || son.Oyuncu == d.AktifOyuncu;
+            bool sonOrtak = son.Oyuncu == d.Partner;
+            int cur = son.Seviye;
+
+            var ar = IhaleKoruma.PartnerAraligi(d);
+            var rakipRenkleri = gercek.Where(h => d.Rakipler.Contains(h.Oyuncu) && h.Koz != "NT")
+                                      .Select(h => h.Koz).Distinct().ToList();
+
+            // Ortağın açılışı NT mi? (1NT/2NT sistemi: dar aralık, doğrudan HCP kuralları)
+            var ilk = gercek.First();
+            bool ortakNT = ilk.Oyuncu == d.Partner && ilk.Koz == "NT" && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu);
+            bool ortak2C = ilk.Oyuncu == d.Partner && ilk.Teklif == "2♣";
+            bool benNTAcildi = ilk.Oyuncu == d.AktifOyuncu && ilk.Koz == "NT";
+
+            // Ben 1NT açtım, ortak minör transferi yaptı → transferi tamamla
+            if (benNTAcildi && ilk.Teklif == "1NT" && sonOrtak && d.Anlasma != null && (d.Anlasma.MinorTransfer || d.Anlasma.NT1MinorBid == 3) &&
+                gercek.Count(h => h.Oyuncu == d.AktifOyuncu) == 1 && gercek.Count(h => h.Oyuncu == d.Partner) == 1 &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)))
+            {
+                bool superKabul = d.Anlasma.NT1MinorBid == 3 && hp >= 16;   // 4+ kart + maksimum (standart ölçekte 16-17)
+                if (son.Teklif == "2♠") return superKabul && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4 ? Seviye(d, "Karo", 3) : Seviye(d, "Sinek", 3);
+                if (son.Teklif == "2NT") return superKabul && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4 ? Seviye(d, "Kupa", 3) : Seviye(d, "Karo", 3);
+            }
+
+            // Ben minör transferi yaptım (1NT – 2♠/2NT), ortak tamamladı → güce göre devam
+            {
+                var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (ilk.Oyuncu == d.Partner && ilk.Teklif == "1NT" && sonOrtak &&
+                    benim.Count == 1 && ortagim.Count == 2 &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
+                    ((benim[0].Teklif == "2♠" && son.Teklif == "3♣") || (benim[0].Teklif == "2NT" && son.Teklif == "3♦")))
+                {
+                    // Ortak 15-17: 10+ HP ile oyun (3NT), daha zayıfsa transferde dur.
+                    // İstisna: transfer ettiğim minörde güçlü 5'li (9 HP, 2+ onör) veya 6'lı (8 HP) = el kaynağı → 3NT
+                    string tMinor = benim[0].Teklif == "2♠" ? "Sinek" : "Karo";
+                    int tUz = ElDegerlendirici.RenkUzunlugu(el, tMinor);
+                    int tOnor = el.Count(c => c.Suit == tMinor && c.Value >= 11);
+                    bool kaynak = (hp >= 9 && tUz >= 5 && tOnor >= 2) || (hp >= 8 && tUz >= 6 && tOnor >= 2);
+                    return (hp >= 10 || kaynak) ? Seviye(d, "NT", 3) : "Pas";
+                }
+            }
+
+            // Süper kabul sonrası (2♠→3♦ = ♣ fiti + maksimum, 2NT→3♥ = ♦ fiti + maksimum): 9+ HP 3NT, daha zayıfsa minörde 4 seviye
+            {
+                var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (ilk.Oyuncu == d.Partner && ilk.Teklif == "1NT" && sonOrtak && benim.Count == 1 && ortagim.Count == 2 &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && d.Anlasma != null && d.Anlasma.NT1MinorBid == 3 &&
+                    ((benim[0].Teklif == "2♠" && son.Teklif == "3♦") || (benim[0].Teklif == "2NT" && son.Teklif == "3♥")))
+                    return hp >= 9 ? Seviye(d, "NT", 3) : Seviye(d, benim[0].Teklif == "2♠" ? "Sinek" : "Karo", 4);
+            }
+
+            // Ortak 2♣ (güçlü) açtı, ben ilk kez cevap veriyorum
+            if (ortak2C && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
+                return Cevap2C(d, el, hp, dengeli, rakipRenkleri);
+
+            // Ortak 2♣ açtı, ben 2♦ bekledim, ortak 2NT (22-24) / 3NT (25-27) dedi: slem değerlendirmesi
+            if (ortak2C && gercek.Count == 3 && gercek[1].Oyuncu == d.AktifOyuncu && gercek[1].Teklif == "2♦" &&
+                sonOrtak && (son.Teklif == "2NT" || son.Teklif == "3NT") && !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && dengeli)
+            {
+                if (son.Teklif == "2NT")
+                {
+                    if (hp >= 15) return "7NT";
+                    if (hp >= 12) return "6NT";
+                    if (hp >= 10) return "4NT";
+                    return Seviye(d, "NT", 3);
+                }
+                if (hp >= 12) return "7NT";
+                if (hp >= 7) return "6NT";
+                return "Pas";
+            }
+
+            // Rakip son sözü söylemiş → rekabet
+            if (!sonBizim)
+            {
+                // Rakip, ortağımın 1 seviye renk açılışına 2NT (Unusual: en düşük iki renk) dedi,
+                // ben henüz konuşmadım: güçlü elle 3NT (iki rakip rengi de tutulmuşsa) ya da doğal renk
+                if (son.Teklif == "2NT" && ilk.Oyuncu == d.Partner && ilk.Seviye == 1 && ilk.Koz != "NT" &&
+                    !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
+                {
+                    string un = UnusualNTCevap(d, el, hp, ar, ilk.Koz);
+                    if (un != null) return un;
+                }
+
+                // Ortağın 1NT'sine rakip 3♣/3♦ doğal müdahale etti, ben henüz konuşmadım (oyun değerleri 10+):
+                // 5+ kartlık majör -> 3M (zorlayıcı); 4 kartlık majör -> negatif kontra; rakip renginde durdurucu -> 3NT.
+                if (ilk.Oyuncu == d.Partner && ilk.Teklif == "1NT" && gercek.Count == 2 && gercek[1].Oyuncu != d.Partner &&
+                    d.Rakipler.Contains(gercek[1].Oyuncu) && gercek[1].Seviye == 3 &&
+                    (gercek[1].Koz == "Sinek" || gercek[1].Koz == "Karo") && hp >= 10)
+                {
+                    foreach (var mj in new[] { "Maça", "Kupa" })
+                        if (ElDegerlendirici.RenkUzunlugu(el, mj) >= 5 && Cheapest(d, mj) == 3) return Seviye(d, mj, 3);
+                    if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4 || ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
+                        return "Dbl";
+                    if (ElDegerlendirici.StopperVar(el, gercek[1].Koz) && Cheapest(d, "NT") <= 3) return Seviye(d, "NT", 3);
+                }
+
+                // Ortağın 1NT'sine rakip 3♥/3♠ ile müdahale etti (ben henüz konuşmadım): diğer majörde 5+ kart -> doğal (3♠ zorlayıcı / 4♥),
+                // rakip majöründe 4+ kart -> ceza kontrası, durdurucu -> 3NT, 3 kart + 11+ HP -> ceza kontrası.
+                if (ilk.Oyuncu == d.Partner && ilk.Teklif == "1NT" && gercek.Count == 2 && gercek[1].Oyuncu != d.Partner &&
+                    d.Rakipler.Contains(gercek[1].Oyuncu) && gercek[1].Seviye == 3 &&
+                    (gercek[1].Koz == "Kupa" || gercek[1].Koz == "Maça") && hp >= 9)
+                {
+                    string rm = gercek[1].Koz, dm = rm == "Kupa" ? "Maça" : "Kupa";
+                    int dl = ElDegerlendirici.RenkUzunlugu(el, dm), rl = ElDegerlendirici.RenkUzunlugu(el, rm);
+                    if (hp >= 10 && dl >= 5) return dm == "Maça" ? Seviye(d, dm, 3) : Seviye(d, dm, 4);
+                    if (rl >= 4) return "Dbl";
+                    if (hp >= 10 && ElDegerlendirici.StopperVar(el, rm) && Cheapest(d, "NT") <= 3) return Seviye(d, "NT", 3);
+                    if (hp >= 11 && rl >= 3) return "Dbl";
+                }
+
+                string bk = BalansKontrasi(d, el, hp, ar, son, rakipRenkleri, gercek);
+                if (bk != null) return bk;
+
+                string rk = Rekabet(d, el, hp, dengeli, ar, son, rakipRenkleri, gercek);
+                if (rk == "Pas") rk = RekabetYeniRenk(d, el, hp, rakipRenkleri, gercek);
+                if (rk == "Pas") rk = RekabetNT(d, el, hp, dengeli, son, rakipRenkleri, gercek);
+                return rk;
+            }
+
+            // Ortak rakip açılışına 2NT ile müdahale etti (Unusual: iki minör) → uzun minörü seç
+            if (sonOrtak && son.Teklif == "2NT" && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu) &&
+                gercek.First().Oyuncu != d.Partner && gercek.First().Oyuncu != d.AktifOyuncu)
+            {
+                int ka = ElDegerlendirici.RenkUzunlugu(el, "Karo"), si = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+                string m = ka > si ? "Karo" : "Sinek";
+                int c3 = Cheapest(d, m);
+                return c3 <= 3 ? KozYardimcisi.TeklifOlustur(c3, m) : "Pas";
+            }
+
+            // Ortak, benim majörümü 3. seviyeye sıçrayarak destekledi (davet: 16-18 HP) →
+            // kendi gücümle toplam 24+ ise oyunu (4M) kabul et: 1♣–1♥–(1♠)–3♥ sonrası 8 HP → 4♥.
+            if (sonOrtak && son.Koz != "NT" && Major(son.Koz) && son.Seviye == 3 && cur == 3 &&
+                gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == son.Koz) &&
+                gercek.IndexOf(son) > 0 && ElDegerlendirici.RenkUzunlugu(el, son.Koz) >= 3 &&
+                hp + ar.Min >= 24)
+                return Seviye(d, son.Koz, 4);
+
+            // Ben 1M açtım, ortak (doğal, forcing olmayan) 1NT dedi: 17+ HP ile davet/oyun denemesi yap.
+            {
+                string nd = AciciDoganNTSonrasi(d, el, hp, dengeli, gercek, rakipRenkleri);
+                if (nd != null) return nd;
+            }
+
+            {
+                string rd = CevapciRekabetDevam(d, el, hp, gercek, rakipRenkleri);
+                if (rd != null) return rd;
+            }
+            {
+                string rr = CevapciMajorTekrarSonrasi(d, el, hp, dengeli, gercek);
+                if (rr != null) return rr;
+            }
+
+            {
+                string sj = CevapciSicramaSonrasi(d, el, hp, gercek);
+                if (sj != null) return sj;
+            }
+
+            // ── Fit bul ──
+            string fit = FitBul(d, el, gercek, rakipRenkleri, out int fitToplam);
+            // Ortak oyun seviyesinde (4M) anlaşılmış majörü ilan ettiyse, minör "fit" (ör. ortağın yapay 2♦'ı) onu geçersiz kılmaz.
+            {
+                var sg = gercek.Last();
+                if (sg.Oyuncu == d.Partner && sg.Seviye == 4 && Major(sg.Koz) && fit != sg.Koz &&
+                    d.AnlasilanKoz() == sg.Koz && ElDegerlendirici.RenkUzunlugu(el, sg.Koz) >= 3)
+                { fit = sg.Koz; fitToplam = ElDegerlendirici.RenkUzunlugu(el, sg.Koz) + PartnerUzunluk(d, gercek, sg.Koz); }
+            }
+
+            // ── Ortak NT açtı (1NT/2NT) ve bizde doğal bir devam gerekiyor ──
+            if (ortakNT)
+            {
+                if (cur >= 3) return "Pas";
+                if (ilk.Seviye == 1)
+                {
+                    if (fit != null && Major(fit) && fitToplam >= 8 && hp >= 10) return Seviye(d, fit, 4);
+                    if (dengeli && hp >= 10) return Seviye(d, "NT", 3);
+                    if (dengeli && hp >= 8 && hp <= 9)
+                    {
+                        // Minör transferi açıkken 1NT–2NT transferdir (karo): doğal davet Stayman (2♣) yoluyla yapılır,
+                        // açıcının cevabından sonra 2NT. Kapalıyken doğrudan doğal 2NT.
+                        bool minTr = d.Anlasma != null && (d.Anlasma.MinorTransfer || d.Anlasma.NT1MinorBid == 3) && d.Anlasma.NT1MinorBid != 2;
+                        if (cur == 1) return minTr ? "2♣" : Seviye(d, "NT", 2);
+                        if (minTr && cur == 2 && gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "2♣") &&
+                            !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)))
+                            return Seviye(d, "NT", 2);
+                    }
+                    return "Pas";
+                }
+                if (ilk.Seviye == 2) { if (hp >= 5 && cur <= 2) return Seviye(d, "NT", 3); return "Pas"; }
+            }
+
+            // ── Tahmini toplam güç ──
+            double kismi = ar.Min + 0.35 * (ar.Max - ar.Min);
+            double est = (fit != null && fit != "NT" ? ElDegerlendirici.ToplamPuan(el, fit) : hp) + kismi;
+            if (ortak2C) est = Math.Max(est, 26);
+
+            bool dar = false;   // (dar aralık ayarı denendi, ölçümde fayda sağlamadı)
+            bool zorunlu = Zorunlu(d, el, gercek, ortak2C);
+            if (fit != null && fit != "NT" && sonOrtak && son.Koz != fit && son.Koz != "NT" && son.Seviye >= 3 && Cheapest(d, fit) <= 5)
+                zorunlu = true;   // ortak kontrol (cue) teklifi verdi: fit renginde oyuna git
+
+            // Kendi 4NT (RKCB) sorumun cevabı geldi: toplam kilit kartı say, slam karar ver.
+            if (sonOrtak && son.Seviye == 5 && son.Koz != "NT" &&
+                gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT"))
+            {
+                string rk = RkcbKarari(d, el, son, est);
+                if (rk != null) return rk;
+            }
+
+            // Ortak 4. seviyede kontrol (cue) teklifi verdi ve majör koz anlaşıldı (ör. 1♠–2♦–2♠–3♥–3♠–4♦):
+            // Pas yasak. Slam ilgisine karşılık: 13+ HP ile 4NT (RKCB), değilse 4M ile kapat.
+            {
+                string ak = d.AnlasilanKoz();
+                if (sonOrtak && ak != null && Major(ak) && son.Seviye == 4 && son.Koz != "NT" && son.Koz != ak &&
+                    RenkSira(son.Koz) < RenkSira(ak) &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi) &&
+                    !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT"))
+                    return hp >= 13 ? "4NT" : Seviye(d, ak, 4);
+            }
+
+            // Tek taraflı koz: ortak majör rengini ≥2 kez söyledi (6+), bende o renkte onur var ve
+            // güç slam bölgesinde → 4. seviyede kontrol teklifi (4M ile kapatma, slam ara).
+            if (sonOrtak && est >= 31 && cur <= 3)
+            {
+                string cue = KontrolTeklifi(d, el, gercek);
+                if (cue != null) return cue;
+            }
+
+            // Ters çevrilmiş minör (1m-2m): açıcı en az bir tur daha konuşmalı
+            if (IMZorunlu(d, gercek)) return IMDevam(d, el, hp, dengeli, rakipRenkleri);
+
+            // Drury (1M–2♣) sonrası ortak 3 seviyesinde yan renk deneme teklifi yaptı: üst sınırda (11+ HP) kabul → 4M
+            if (gercek.Count == 3 && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 && Major(gercek[0].Koz) &&
+                gercek[1].Oyuncu == d.AktifOyuncu && gercek[1].Teklif == "2♣" &&
+                gercek[2].Oyuncu == d.Partner && gercek[2].Seviye == 3 && gercek[2].Koz != "NT" && gercek[2].Koz != gercek[0].Koz &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
+                ElDegerlendirici.RenkUzunlugu(el, gercek[0].Koz) >= 3 && hp >= 11)
+                return Seviye(d, gercek[0].Koz, 4);
+
+            // Kendi takeout kontramdan sonra ortak (düşük seviyede) rengini söyledi, bende 4+ destek ve 17+ HP:
+            // asgari raise (2M) göstermez; sıçrama raise (3 seviye) ile davet et.
+            if (fit != null && fit != "NT" && sonOrtak && son.Koz == fit && son.Seviye <= 2 && ElDegerlendirici.RenkUzunlugu(el, fit) >= 4 &&
+                hp >= 17 && d.Gecmis.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "Dbl") &&
+                !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi))
+            {
+                int ucuz = Cheapest(d, fit);
+                if (ucuz <= 2) return Seviye(d, fit, ucuz + 1);
+            }
+
+            // ── Fit varsa: fit rengiyle hedef ──
+            if (fit != null && fit != "NT")
+            {
+                int T = HedefFit(fit, est, dengeli && NTOlur(el, rakipRenkleri), dar, fitToplam);
+                // Bergen açıkken 3 kartlık destekle ilk cevapta 3M sıçraması yapılmaz: 5+ kartlık yan renk varsa onu söyle.
+                if (T >= 3 && d.Anlasma != null && d.Anlasma.BergenRaises && !d.Anlasma.InvertedBergenRaises &&
+                    Major(fit) && gercek.Count == 1 && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 &&
+                    gercek[0].Koz == fit && ElDegerlendirici.RenkUzunlugu(el, fit) == 3 && Cheapest(d, fit) == 2)
+                {
+                    string yan = null;
+                    foreach (var r in Renkler)
+                        if (r != fit && ElDegerlendirici.RenkUzunlugu(el, r) >= 5 && Cheapest(d, r) <= 3 &&
+                            (yan == null || ElDegerlendirici.RenkUzunlugu(el, r) > ElDegerlendirici.RenkUzunlugu(el, yan))) yan = r;
+                    if (yan != null) return Seviye(d, yan, Cheapest(d, yan));
+                }
+                if (T == -1) // 3NT tercih
+                    return cur < 3 ? Seviye(d, "NT", 3) : (zorunlu ? EnUcuz(d, fit) : "Pas");
+                // Ortağın son teklifi fit renginde ve hedefin altına ulaştık mı
+                if (cur >= T && !(zorunlu && cur < OyunSeviyesi(fit))) return "Pas";
+                int ucuz = Cheapest(d, fit);
+                if (ucuz > T && !zorunlu) return "Pas";
+                int hedef = Math.Max(T, ucuz);
+                return Seviye(d, fit, Math.Min(hedef, 6));
+            }
+
+            // ── Fit yok: NT / uzun renk ──
+            return FitsizDevam(d, el, hp, dengeli, est, cur, rakipRenkleri, gercek, zorunlu, benNTAcildi, dar);
+        }
+
+        /// <summary>
+        /// 1M – 1NT (doğal, forcing değil: ortak pas geçmiş el ya da Forcing NT kapalı) sonrası açıcının
+        /// ikinci teklifi. Asgari elle (≤16 HP) pas; 17+ HP'de davet/oyun: uzun majör tekrarı, yeni renk
+        /// ya da NT daveti. Ortağın 1NT'si 6-9 (10) HP'dir.
+        /// </summary>
+        private string AciciDoganNTSonrasi(IhaleDurumu d, List<Card> el, int hp, bool dengeli,
+                                           List<IhaleHamlesi> gercek, List<string> rakipRenkleri)
+        {
+            if (hp < 17 || gercek.Count == 0) return null;
+            var son = gercek.Last();
+            if (son.Oyuncu != d.Partner || son.Teklif != "1NT") return null;
+            var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+            if (benim.Count != 1 || benim[0].Seviye != 1 || !Major(benim[0].Koz)) return null;
+            if (gercek.Count(h => h.Oyuncu == d.Partner) != 1) return null;
+            // Rakip 1NT'den sonra konuşmadıysa (son teklif ortağımın 1NT'si) devam ediyoruz.
+            string m = benim[0].Koz;
+            int mL = ElDegerlendirici.RenkUzunlugu(el, m);
+            if (mL >= 6) return Seviye(d, m, hp >= 19 ? 4 : 3);
+            // 4+ kartlık ikinci renk: en ucuzdan göster (2. seviye); sıçrama yok
+            string yan = null; int yanL = 0;
+            foreach (var r in Renkler)
+            {
+                if (r == m || rakipRenkleri.Contains(r)) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u >= 4 && Cheapest(d, r) <= 2 && u > yanL) { yan = r; yanL = u; }
+            }
+            if (yan != null && !(dengeli && mL == 5 && hp >= 18 && yanL == 4 && false))
+                return Seviye(d, yan, Cheapest(d, yan));
+            if (hp >= 19) return Seviye(d, "NT", 3);
+            return Seviye(d, "NT", 2);
+        }
+
+        private static bool Tutuk(List<Card> el, string r)
+        {
+            var k = el.Where(c => c.Suit == r).Select(c => c.Value).ToList();
+            int n = k.Count;
+            if (k.Contains(14)) return true;
+            if (k.Contains(13) && n >= 2) return true;
+            if (k.Contains(12) && n >= 3) return true;
+            if (k.Contains(11) && n >= 4) return true;
+            return n >= 5;
+        }
+
+        /// <summary>
+        /// 1x – (2NT Unusual) – ?  Rakip iki rengi (en düşük iki açılmamış renk) gösterdi.
+        /// Toplam güç ≥ 25 ve iki rakip rengi de tutuluysa 3NT; kalan açılmamış renkte
+        /// uzun (5+, ya da 4 ve güçlü) renk varsa onu doğal söyle. Aksi halde null.
+        /// </summary>
+        private string UnusualNTCevap(IhaleDurumu d, List<Card> el, int hp, IhaleKoruma.Aralik ar, string ortakRengi)
+        {
+            var acilmamis = Renkler.Where(r => r != ortakRengi).OrderBy(RenkSira).ToList();
+            if (acilmamis.Count != 3) return null;
+            var rakip = acilmamis.Take(2).ToList();
+            string serbest = acilmamis[2];
+
+            double est = hp + ar.Min;
+            if (est < 25) return null;
+
+            if (rakip.All(r => Tutuk(el, r)) && ElDegerlendirici.DengeliEl(el)) return Seviye(d, "NT", 3);
+
+            int u = ElDegerlendirici.RenkUzunlugu(el, serbest);
+            if (u >= 5 || (u == 4 && hp >= 12 && Major(serbest))) return Seviye(d, serbest, Cheapest(d, serbest) <= 3 ? Cheapest(d, serbest) : 3);
+            return null;
+        }
+
+        /// <summary>
+        /// Sorduğum 4NT'nin cevabı (5. seviye) geldi. Kilit kart toplamıma göre 6M / 5M / Pas.
+        /// RKCB 1430 (varsayılan): 5♣=1 ya da 4, 5♦=0 ya da 3, 5♥=2 (Q yok), 5♠=2 (Q var).
+        /// Belirsiz cevapta toplamı 5'i aşmayan yorum seçilir.
+        /// </summary>
+        private string RkcbKarari(IhaleDurumu d, List<Card> el, IhaleHamlesi cevap, double est)
+        {
+            string koz = d.AnlasilanKoz();
+            if (koz == null || koz == "NT") return null;
+            bool k1430 = d.Anlasma == null || d.Anlasma.RKCB1430;
+            int ben = ElDegerlendirici.KilitKartSayisi(el, koz);
+
+            int a, b;   // olası kilit kart sayıları
+            switch (cevap.Teklif)
+            {
+                case "5♣": a = k1430 ? 1 : 0; b = k1430 ? 4 : 3; break;
+                case "5♦": a = k1430 ? 0 : 1; b = k1430 ? 3 : 4; break;
+                case "5♥": case "5♠": a = b = 2; break;
+                default: return null;
+            }
+            int ort = (ben + b <= 5) ? b : a;
+            int toplam = ben + ort;
+
+            // Cevap 5M'yi geçtiyse (ör. koz ♥, cevap 5♠) 6M dışında seçenek yok
+            int ucuz5 = Cheapest(d, koz);
+            if (toplam >= 5) return Seviye(d, koz, 6);
+            if (toplam == 4) return est >= 32 ? Seviye(d, koz, 6) : (ucuz5 <= 5 ? Seviye(d, koz, 5) : "Pas");
+            return ucuz5 <= 5 ? Seviye(d, koz, 5) : "Pas";
+        }
+
+        /// <summary>
+        /// Ortak bir majörü en az iki kez söylediyse (6+ kart), ben o rengi hiç söylemedim ve o renkte
+        /// A/K/Q taşıyorsam koz kabul edilir. 4M'nin altında, ilk turda kontrolüm olan (A veya
+        /// kısalık) en ucuz renkte 4. seviye kontrol teklifi döndürür; yoksa null.
+        /// </summary>
+        private string KontrolTeklifi(IhaleDurumu d, List<Card> el, List<IhaleHamlesi> gercek)
+        {
+            string koz = null;
+            foreach (var r in new[] { "Maça", "Kupa" })
+            {
+                int ort = gercek.Count(h => h.Oyuncu == d.Partner && h.Koz == r);
+                bool benBu = gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == r);
+                if (ort >= 2 && !benBu && el.Any(c => c.Suit == r && c.Value >= 12)) { koz = r; break; }
+                // Ortak majörde sıçramalı yeni renk (1♣–2♠) yaptı, bende 3+ kart destek var
+                if (!benBu && IhaleDurumu.SicramaliMajor(gercek, d.Partner, r) &&
+                    ElDegerlendirici.RenkUzunlugu(el, r) >= 3) { koz = r; break; }
+            }
+            if (koz == null) return null;
+
+            // Daha önce 4. seviyede kontrol teklifi vermişsem tekrarlama
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Seviye == 4 && h.Koz != "NT")) return null;
+
+            foreach (var r in Renkler)
+            {
+                if (r == koz || RenkSira(r) > RenkSira(koz)) continue;
+                int uz = ElDegerlendirici.RenkUzunlugu(el, r);
+                bool kontrol = uz == 0 || el.Any(c => c.Suit == r && c.Value == 14);
+                if (!kontrol) continue;
+                if (Cheapest(d, r) != 4) continue;
+                return Seviye(d, r, 4);
+            }
+            // Sıçramalı majöre (1♣–2♠) 4. seviyede kontrol teklifi mümkün değilse: slam ilgisiyle
+            // 3M (destek, forsing) göster; 4M ile kapatma. Ortak 4NT/kontrol ile devam eder.
+            if (IhaleDurumu.SicramaliMajor(gercek, d.Partner, koz) && Cheapest(d, koz) == 3)
+                return Seviye(d, koz, 3);
+            return null;
+        }
+
+        // ── Ters çevrilmiş minör (1m–2m): açıcı rebid yapmak zorunda ──
+        private bool IMZorunlu(IhaleDurumu d, List<IhaleHamlesi> gercek)
+        {
+            var ilk = gercek.First();
+            if (ilk.Oyuncu != d.AktifOyuncu || ilk.Seviye != 1 || (ilk.Koz != "Karo" && ilk.Koz != "Sinek")) return false;
+            if (gercek.Count(h => h.Oyuncu == d.AktifOyuncu) != 1) return false;
+            var son = gercek.Last();
+            return son.Oyuncu == d.Partner && son.Koz == ilk.Koz && son.Seviye == 2 &&
+                   !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu));
+        }
+
+        private string IMDevam(IhaleDurumu d, List<Card> el, int hp, bool dengeli, List<string> rakip)
+        {
+            if (dengeli && NTOlur(el, rakip)) return Seviye(d, "NT", hp >= 15 ? 3 : 2);
+            // 4'lü majör
+            foreach (var r in new[] { "Maça", "Kupa" })
+                if (ElDegerlendirici.RenkUzunlugu(el, r) >= 4 && Cheapest(d, r) <= 2) return Seviye(d, r, Cheapest(d, r));
+            int c = Cheapest(d, "NT");
+            return c <= 3 ? KozYardimcisi.TeklifOlustur(Math.Max(c, 2), "NT") : "Pas";
+        }
+
+        // ── 2♣ açılışına ilk cevap: 2♦ bekleme; 8+ HCP ve iyi renk/dengeli ise pozitif ──
+        private string Cevap2C(IhaleDurumu d, List<Card> el, int hp, bool dengeli, List<string> rakipRenkleri)
+        {
+            if (hp >= 8)
+            {
+                foreach (var r in new[] { "Maça", "Kupa", "Karo" })
+                    if (!rakipRenkleri.Contains(r) && ElDegerlendirici.RenkUzunlugu(el, r) >= 5 &&
+                        ElDegerlendirici.IyiRenk(el, r) && Cheapest(d, r) <= 2)
+                        return Seviye(d, r, Cheapest(d, r));
+                if (dengeli && NTOlur(el, rakipRenkleri) && hp >= 10) return Seviye(d, "NT", 2);
+            }
+            int c = Cheapest(d, "Karo");
+            return c <= 2 ? KozYardimcisi.TeklifOlustur(2, "Karo") : "Pas";
+        }
+
+        // ── Fitsiz devam: NT yerleştirme, uzun renk tekrarı, yeni renk ──
+        private string FitsizDevam(IhaleDurumu d, List<Card> el, int hp, bool dengeli, double est, int cur,
+                                   List<string> rakipRenkleri, List<IhaleHamlesi> gercek, bool zorunlu, bool benNTAcildi, bool dar)
+        {
+            // İlk cevap: ortak (NT/2♣ dışında) açtı ve ben henüz konuşmadım → 1 seviyede 4+ kartlık
+            // majör varsa NT davetinden/oyun gücünden ÖNCE o majörü göster (fit aranır).
+            // Örn. 1♣ - ? ile 5♠ + 11 HP: 2NT değil 1♠.
+            if (!gercek.Any(h => h.Oyuncu == d.AktifOyuncu) && gercek.Count > 0 &&
+                gercek.First().Oyuncu == d.Partner && gercek.First().Koz != "NT" &&
+                gercek.First().Teklif != "2♣" && hp >= 6)
+            {
+                int sL = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                int hL = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                string major = null;
+                if (sL >= 4 || hL >= 4)
+                {
+                    if (sL > hL) major = "Maça";
+                    else if (hL > sL) major = "Kupa";
+                    else major = sL >= 5 ? "Maça" : "Kupa";   // 5-5: ♠, 4-4: ♥ (en ucuzdan)
+                }
+                if (major != null && !rakipRenkleri.Contains(major) && Cheapest(d, major) == 1)
+                    return Seviye(d, major, 1);
+            }
+
+            // Misfit: ortak açış rengini 2'de tekrarladı (1♥–1♠–2♥), bende o renkte en fazla 2 kart ve
+            // 1 seviyede söylediğim rengimde 5+ kart var (6-9 HP) → Pas yerine kendi rengimi tekrarla (2♠).
+            {
+                var benimMf = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagimMf = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (benimMf.Count == 1 && ortagimMf.Count == 2 && gercek.First().Oyuncu == d.Partner &&
+                    gercek.First().Koz != "NT" && benimMf[0].Koz != "NT" && benimMf[0].Seviye == 1 &&
+                    ortagimMf[1].Seviye == 2 && ortagimMf[1].Koz == ortagimMf[0].Koz &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && hp >= 6 && hp <= 9)
+                {
+                    string mk = benimMf[0].Koz;
+                    if (ElDegerlendirici.RenkUzunlugu(el, mk) >= 5 && ElDegerlendirici.RenkUzunlugu(el, ortagimMf[0].Koz) <= 2 &&
+                        mk != ortagimMf[0].Koz && Cheapest(d, mk) == 2)
+                        return Seviye(d, mk, 2);
+                }
+            }
+
+            bool besBes = Renkler.Count(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 5) >= 2;   // 5-5 eller NT eli değildir
+            bool nt = dengeli || (EnUzunUzunluk(el) <= 5 && !besBes);
+            bool ntOlur = NTOlur(el, rakipRenkleri);
+            // Ortak rakibin rengi söylendikten SONRA NT dediyse o rengi durdurduğunu vaat eder:
+            // 1♣–1♥–(1♠)–2NT'de ortağın ♠ durdurucusu var, bende olmasa da 3NT oynanır.
+            if (!ntOlur)
+            {
+                var ortakNTh = gercek.FirstOrDefault(h => h.Oyuncu == d.Partner && h.Koz == "NT" && h.Seviye >= 2);
+                if (ortakNTh != null)
+                {
+                    int ix = gercek.IndexOf(ortakNTh);
+                    ntOlur = rakipRenkleri.All(r =>
+                        ElDegerlendirici.StopperVar(el, r) ||
+                        gercek.Take(ix).Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Koz == r));
+                }
+            }
+
+            // Güçlü 5-5 açıcı (19-21 HP): ortak 1 seviyesinde ya da 1NT ile cevapladı → ikinci rengi sıçrayarak (jump shift) göster, oyun zorlar
+            if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && !rakipRenkleri.Any() &&
+                hp >= 19 && hp <= 21 && ElDegerlendirici.RenkUzunlugu(el, gercek[0].Koz) >= 5)
+            {
+                foreach (var r2 in Renkler)
+                {
+                    if (r2 == gercek[0].Koz || r2 == gercek[1].Koz) continue;
+                    if (ElDegerlendirici.RenkUzunlugu(el, r2) < 5) continue;
+                    int cj = Cheapest(d, r2);
+                    if (cj == 2 && !Major(r2) || cj == 2 && Major(r2)) { var js = Seviye(d, r2, 3); if (js != "Pas") return js; }
+                }
+            }
+
+            // Ortağın aralığı dar (örn. 1♦–1♥–2NT = 18-19) ve kendi elimle toplam en az 25 HP:
+            // tahmin eşiğine takılmadan 3NT'ye taşı (18+9=27 HP'de Pas demek hatadır).
+            var ortAr = IhaleKoruma.PartnerAraligi(d);
+            if ((ortAr.Max - ortAr.Min) <= 3 && ortAr.Min + hp >= 25 && ntOlur && nt && cur <= 2 &&
+                gercek.Any(h => h.Oyuncu == d.Partner && h.Koz == "NT" && h.Seviye == 2) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Seviye >= 2))
+                return Seviye(d, "NT", 3);
+
+            // 2/1 sonrası ikinci renk: ortak açtı, ben yeni renkle (2. seviye) cevap verdim, ortak kendi
+            // açış rengini tekrarladı (ör. 1♠–2♦–2♠). Oyun gücündeyim ve henüz söylemediğim 4+ kartlık
+            // bir renk var → 3NT ile ihaleyi kapatmadan o rengi göster (fit/slam aranır).
+            {
+                var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (benim.Count == 1 && ortagim.Count == 2 && gercek.First().Oyuncu == d.Partner &&
+                    gercek.First().Koz != "NT" && benim[0].Koz != "NT" && benim[0].Seviye == 2 &&
+                    ortagim[1].Koz == ortagim[0].Koz && ortagim[1].Seviye == 2 &&
+                    gercek.Last().Oyuncu == d.Partner && !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
+                    est >= 26 && hp >= 12)
+                {
+                    string ikinci = null; int ikinciUz = 3;
+                    foreach (var r in new[] { "Maça", "Kupa", "Sinek", "Karo" })
+                    {
+                        if (r == ortagim[0].Koz || r == benim[0].Koz) continue;
+                        int rUz = ElDegerlendirici.RenkUzunlugu(el, r);
+                        if (rUz > ikinciUz || (rUz == ikinciUz && rUz >= 4 && ikinci != null && Major(r) && !Major(ikinci))) { ikinci = r; ikinciUz = rUz; }
+                    }
+                    if (ikinci != null && ikinciUz >= 4 && Cheapest(d, ikinci) <= 3)
+                        return Seviye(d, ikinci, Cheapest(d, ikinci));
+                }
+            }
+
+            // Max Hardy: sıçramalı 3NT rebidi — minör açılış + 1 seviyesinde cevap; 6+ kartlı (neredeyse) kapalı minör,
+            // cevapçının renginde kısa (tekli/void), diğer renklerde durdurucu, yaklaşık 16-18 HP.
+            if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 &&
+                (gercek[0].Koz == "Karo" || gercek[0].Koz == "Sinek") &&
+                gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" && gercek[1].Koz != gercek[0].Koz &&
+                !rakipRenkleri.Any() && hp >= 15 && hp <= 18)
+            {
+                string mn = gercek[0].Koz, pr = gercek[1].Koz;
+                int ust = el.Count(c => c.Suit == mn && c.Value >= 12);   // A,K,Q sayısı
+                bool kapali = ElDegerlendirici.RenkUzunlugu(el, mn) >= 6 && (ust >= 3 || (ust >= 2 && el.Any(c => c.Suit == mn && c.Value == 14)));
+                if (kapali && ElDegerlendirici.RenkUzunlugu(el, pr) <= 1 &&
+                    Renkler.Where(r => r != mn && r != pr).All(r => ElDegerlendirici.StopperVar(el, r)))
+                    return Seviye(d, "NT", 3);
+            }
+
+            // Zorlayıcı durumda 6+ kartlık kendi rengim var ve ortağın son gösterdiği renkte durdurucum yok:
+            // 3NT yerine rengi tekrarla (ör. 1♠–2♦–2♠–3♥ sonrası ♠AQ10874, ♥94 → 3♠).
+            if (zorunlu && cur <= 3 && gercek.Last().Oyuncu == d.Partner && gercek.Last().Koz != "NT")
+            {
+                string ur = EnUzunRenk(el);
+                if (ElDegerlendirici.RenkUzunlugu(el, ur) >= 6 && ur != gercek.Last().Koz &&
+                    gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == ur) &&
+                    !ElDegerlendirici.StopperVar(el, gercek.Last().Koz) &&
+                    !rakipRenkleri.Contains(ur) && Cheapest(d, ur) <= 3)
+                    return Seviye(d, ur, Cheapest(d, ur));
+            }
+
+            // Oyun gücü: 3NT (veya 6+ majörde 4)
+            double oyunEsik = dar ? 26 : 27.5, davetEsik = dar ? 24 : 25.5;
+            if (est >= oyunEsik)
+            {
+                string uzun = EnUzunRenk(el);
+                if (ElDegerlendirici.RenkUzunlugu(el, uzun) >= 6 && Major(uzun) && cur <= 4) return Seviye(d, uzun, 4);
+                if (ntOlur && cur <= 3) return Seviye(d, "NT", 3);
+                if (zorunlu) return EnUcuz(d, UzunKoz(el, gercek, d));
+            }
+            if (est >= davetEsik && est < oyunEsik && ntOlur && cur <= 1 && nt && !benNTAcildi)
+            {
+                // Ortağın 1M açılışına ilk cevapta doğal 2NT yok (2NT = Jacoby, 4+ destek): 1NT (forcing) söyle
+                if (gercek.Count >= 1 && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 && Major(gercek[0].Koz) &&
+                    !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
+                    return Seviye(d, "NT", 1);
+                return Seviye(d, "NT", 2);                        // davet
+            }
+            if (cur >= 3 && !zorunlu) return "Pas";
+
+            // 6+ kartlık renk tekrarı (ortak desteklemediyse)
+            string uz = EnUzunRenk(el);
+            int uzLen = ElDegerlendirici.RenkUzunlugu(el, uz);
+            bool benBu = gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == uz);
+            if (benBu && uzLen >= 6 && !rakipRenkleri.Contains(uz) && hp >= 6 && cur <= 2)
+            {
+                int u = Cheapest(d, uz);
+                // Açıcının ikinci teklifi: ortak 1 seviyede yeni renk dedi, rakip konuşmadı, 17+ HP ve 6+ kartlık
+                // kendi rengim var → sıçrama rebid (1♦–1♠–3♦ = 17-18 HP, davet); asgari 2♦ güçlü eli gösteremez.
+                // 7+ kartlık renkte her fazla kart 1 dağılım puanı: 16 HP + 7'li renk = 17 değer
+                int degerSic = hp + (uzLen >= 7 ? uzLen - 6 : 0);
+                if (degerSic >= 17 && u == 2 && gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu &&
+                    gercek[0].Koz == uz && gercek[0].Seviye == 1 && gercek[1].Oyuncu == d.Partner &&
+                    gercek[1].Seviye == 1 && gercek[1].Koz != "NT" && gercek[1].Koz != uz)
+                    return Seviye(d, uz, 3);
+                if (u <= 2 + (est >= 22 ? 1 : 0)) return Seviye(d, uz, u);
+            }
+
+            // Zorunlu: açıcıya yeni renk geldi vs. → doğal cevap
+            if (zorunlu)
+            {
+                // 5-5 açıcı: ikinci 5'li renk birincinin altındaysa (1♦–1♠–2♣) reverse olmaz → ikinci rengi doğal göster
+                if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                    gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" &&
+                    !rakipRenkleri.Any() && hp <= 18 &&
+                    ElDegerlendirici.RenkUzunlugu(el, gercek[0].Koz) == 5)
+                {
+                    foreach (var r2 in Renkler)
+                    {
+                        if (r2 == gercek[0].Koz || r2 == gercek[1].Koz) continue;
+                        if (RenkSira(r2) < RenkSira(gercek[0].Koz) && ElDegerlendirici.RenkUzunlugu(el, r2) == 5 && Cheapest(d, r2) == 2)
+                            return Seviye(d, r2, 2);
+                    }
+                }
+
+                // Açıcının ikinci teklifi: ortak 1 seviyede doğal renk cevapladı (1♣–1♦), bende henüz söylemediğim
+                // 4+ kartlık majör var ve 1 seviyede gösterilebiliyor → NT demeden önce majörü göster (4-4 fit aranır).
+                if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                    gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" &&
+                    !rakipRenkleri.Any() && hp <= 17)
+                {
+                    foreach (var mj in new[] { "Kupa", "Maça" })   // en ucuzdan: ♥ sonra ♠ (yukarı doğru)
+                    {
+                        if (mj == gercek[0].Koz || mj == gercek[1].Koz) continue;
+                        if (ElDegerlendirici.RenkUzunlugu(el, mj) >= 4 && Cheapest(d, mj) == 1)
+                            return Seviye(d, mj, 1);
+                    }
+                }
+                if (dengeli) return EnUcuzNT(d, hp);
+                return EnUcuz(d, UzunKoz(el, gercek, d));
+            }
+
+            // Cevap veren, ortak açtı, ben ilk kez konuşuyorum
+            bool benSusmus = !gercek.Any(h => h.Oyuncu == d.AktifOyuncu);
+            if (benSusmus && gercek.Any(h => h.Oyuncu == d.Partner) && hp >= 6)
+                return IlkCevap(d, el, hp, dengeli, cur, rakipRenkleri, ntOlur);
+
+            return "Pas";
+        }
+
+        // ── Ortak açtı, ilk cevabım ──
+        private string IlkCevap(IhaleDurumu d, List<Card> el, int hp, bool dengeli, int cur,
+                                List<string> rakipRenkleri, bool ntOlur)
+        {
+            // Yeni renk: 4+ majör (1 seviyede), 5+ minör vs.
+            foreach (var r in new[] { "Maça", "Kupa" })
+            {
+                if (rakipRenkleri.Contains(r)) continue;
+                if (ElDegerlendirici.RenkUzunlugu(el, r) >= 4 && Cheapest(d, r) == 1) return Seviye(d, r, 1);
+            }
+            foreach (var r in new[] { "Karo", "Sinek" })
+            {
+                if (rakipRenkleri.Contains(r)) continue;
+                int u = Cheapest(d, r);
+                if (ElDegerlendirici.RenkUzunlugu(el, r) >= 5 && (u == 1 || (u == 2 && hp >= 10))) return Seviye(d, r, u);
+            }
+            if (dengeli && ntOlur)
+            {
+                if (hp >= 13) return Seviye(d, "NT", 3);
+                if (hp >= 11) return Seviye(d, "NT", 2);
+                if (cur == 1) return Seviye(d, "NT", 1);
+            }
+            foreach (var r in new[] { "Karo", "Sinek", "Kupa", "Maça" })
+            {
+                if (rakipRenkleri.Contains(r)) continue;
+                int u = Cheapest(d, r);
+                if (ElDegerlendirici.RenkUzunlugu(el, r) >= 4 && u <= 2 && hp >= 10) return Seviye(d, r, u);
+            }
+            return "Pas";
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // 4. REKABET (son söz rakipte)
+        // ═════════════════════════════════════════════════════════════════
+        private string Rekabet(IhaleDurumu d, List<Card> el, int hp, bool dengeli, IhaleKoruma.Aralik ar,
+                               IhaleHamlesi son, List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
+        {
+            string fit = FitBul(d, el, gercek, rakipRenkleri, out int toplam);
+            if (fit == null || fit == "NT" || toplam < 8) return AciciRekabeti(d, el, hp, son, rakipRenkleri, gercek);
+
+            // Toplam Kart Kanunu: seviye = toplam koz - 6
+            int lott = toplam - 6;
+            double kismi = ar.Min + 0.35 * (ar.Max - ar.Min);
+            double est = ElDegerlendirici.ToplamPuan(el, fit) + kismi;
+
+            int T = HedefFit(fit, est, false);
+            int ucuz = Cheapest(d, fit);
+
+            // Oyun gücü varsa oyuna git (rakip engel yapsa bile)
+            if (est >= 26.5 && T >= 4 && ucuz <= T) return Seviye(d, fit, T);
+
+            // Yarış: ancak yeterli puan + LOTT izin veriyorsa ve ortak zaten güç gösterdiyse
+            bool ortakGuc = ar.Min >= 6;
+            // Güçlü el (davet+): ortağın cevabını sıçramalı destekle (1♣–1♥–(1♠)–3♥), 2. seviyede kalma
+            if (ortakGuc && Major(fit) && est >= 23 && ucuz == 2) return Seviye(d, fit, 3);
+            if (ortakGuc && est >= 19 && ucuz <= lott && ucuz <= 3) return Seviye(d, fit, ucuz);
+            return "Pas";
+        }
+
+        /// <summary>
+        /// 2♣ açıcısının ilk devamı (ortağın cevabından sonra, rakip teklifsiz): dengeli 22-24 → 2NT, 25-27 → 3NT;
+        /// aksi halde en uzun rengi (5+, yoksa 4+) en ucuz seviyede söyle. Dönüş null: bu durum değil.
+        /// </summary>
+        private string Ikili2CAciciDevam(IhaleDurumu d, List<Card> el, int hp, bool dengeli, List<IhaleHamlesi> gercek)
+        {
+            if (gercek.Count != 2 || gercek[0].Oyuncu != d.AktifOyuncu || gercek[0].Teklif != "2♣") return null;
+            if (gercek[1].Oyuncu != d.Partner) return null;
+            if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            var cev = gercek[1];
+
+            // Ortak pozitif 2NT (dengeli, 10+ HP) dedi: toplam 32+ -> niceliksel 4NT, 33+ -> 6NT, 37+ -> 7NT
+            if (dengeli && hp >= 22 && cev.Teklif == "2NT")
+            {
+                if (hp >= 27) return "7NT";
+                if (hp >= 23) return "6NT";
+                return "4NT";
+            }
+            if (dengeli && hp >= 22)
+            {
+                int hedef = hp >= 25 ? 3 : 2;
+                string nt = Seviye(d, "NT", hedef);
+                if (nt != "Pas") return nt;
+                nt = Seviye(d, "NT", 3);
+                if (nt != "Pas") return nt;
+            }
+            string en = null; int enUz = 0;
+            foreach (var r in Renkler)
+            {
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u > enUz || (u == enUz && en != null && RenkSira(r) > RenkSira(en))) { en = r; enUz = u; }
+            }
+            if (en != null && enUz >= 4 && Cheapest(d, en) <= 3) return EnUcuz(d, en);
+            string n3 = Seviye(d, "NT", Math.Max(Cheapest(d, "NT"), 2));
+            return n3 == "Pas" ? EnUcuzNT(d, hp) : n3;
+        }
+
+        /// <summary>
+        /// Rakip 3 seviyesinde renk açtı (engel), ortak takeout kontra yaptı, sağdaki rakip pas dedi, sıra bende:
+        /// rakip renginde 5+ kart ve en az 3 onör varsa pas (ceza); yoksa en uzun yan rengi (majör öncelikli) en ucuz
+        /// seviyede söyle; yan renklerin hepsi kısa ve dengeliysem ve durdurucu varsa 3NT. Dönüş null: bu durum değil.
+        /// </summary>
+        private string OrtakTakeoutKontrasinaCevap(IhaleDurumu d, List<Card> el, int hp, bool dengeli,
+                                                   List<IhaleHamlesi> g, List<IhaleHamlesi> gercek)
+        {
+            if (gercek.Count != 1 || g.Count == 0) return null;
+            var son = g[g.Count - 1];
+            if (!son.PasMi || !d.Rakipler.Contains(son.Oyuncu)) return null;
+            var dbl = g.LastOrDefault(h => h.Teklif != "Pas");
+            if (dbl == null || dbl.Teklif != "Dbl" || dbl.Oyuncu != d.Partner) return null;
+            var acilis = gercek[0];
+            if (!d.Rakipler.Contains(acilis.Oyuncu) || acilis.Seviye != 3 || acilis.Koz == "NT") return null;
+            string rk = acilis.Koz;
+
+            int rkUz = ElDegerlendirici.RenkUzunlugu(el, rk);
+            int onor = el.Count(c => c.Suit == rk && c.Value >= 10);
+            if (rkUz >= 5 && onor >= 3) return "Pas";
+
+            // Oyun değeri (13+ HP; ortağın kontrası 10+ HP ve diğer renklerde 3+ kart vaat eder): 4+ kartlık majörde 4M
+            if (hp >= 13)
+                foreach (var mj in new[] { "Maça", "Kupa" })
+                    if (mj != rk && ElDegerlendirici.RenkUzunlugu(el, mj) >= 4 && Cheapest(d, mj) <= 4)
+                        return Seviye(d, mj, 4);
+
+            if (hp >= 10 && dengeli && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") <= 3)
+                return Seviye(d, "NT", 3);
+
+            // Asgari güçte 3 seviyesinde söylenebilen 4+ kartlık majör, 4 seviyesindeki minörden önce gelir
+            string mjSec = null; int mjUz = 3;
+            foreach (var mj in new[] { "Maça", "Kupa" })
+            {
+                int u = ElDegerlendirici.RenkUzunlugu(el, mj);
+                if (mj != rk && u >= 4 && u > mjUz && Cheapest(d, mj) <= 3) { mjSec = mj; mjUz = u; }
+            }
+            if (mjSec != null) return Seviye(d, mjSec, Cheapest(d, mjSec));
+
+            string en = null; int enUz = -1;
+            foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })   // eşitlikte majör önce gelir
+            {
+                if (r == rk) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u > enUz) { en = r; enUz = u; }
+            }
+            if (en == null) return null;
+            int seviye = Cheapest(d, en);
+            return seviye <= 4 ? Seviye(d, en, seviye) : null;
+        }
+
+        /// <summary>
+        /// Ortak açtı, rakip müdahale etti, ortak kontra yaptı (rekabet/takeout kontrası), rakip pas: ben henüz konuşmadım.
+        /// Pas = ceza kontrası olurdu; bu yüzden rakip rengi 5+ değilse en uzun yeni renkte teklif verilir.
+        /// Dönüş null: bu durum değil.
+        /// </summary>
+        private string OrtakRekabetKontrasinaCevap(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> g, List<IhaleHamlesi> gercek)
+        {
+            var sonCagri = g.LastOrDefault(h => h.Teklif != "Pas");
+            if (sonCagri == null || sonCagri.Teklif != "Dbl" || sonCagri.Oyuncu != d.Partner) return null;
+            if (gercek.Count == 0 || gercek[0].Oyuncu != d.Partner) return null;
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu)) return null;
+            var rakipSon = gercek.LastOrDefault(h => d.Rakipler.Contains(h.Oyuncu));
+            if (rakipSon == null || rakipSon.Koz == "NT") return null;
+            string rr = rakipSon.Koz;
+
+            // Rakip rengi 5+ ve en az 6 HP: pas (ceza)
+            if (ElDegerlendirici.RenkUzunlugu(el, rr) >= 5 && hp >= 6) return "Pas";
+
+            string en = null; int enUz = 0;
+            foreach (var r in Renkler)
+            {
+                if (r == rr) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u >= 4 && (u > enUz || (u == enUz && Major(r) && (en == null || !Major(en))) || (u == enUz && RenkSira(r) > RenkSira(en)))) { en = r; enUz = u; }
+            }
+            if (en != null && Cheapest(d, en) <= 3) return EnUcuz(d, en);
+
+            string ortakRenk = gercek[0].Koz;
+            if (ortakRenk != "NT" && ortakRenk != rr && ElDegerlendirici.RenkUzunlugu(el, ortakRenk) >= 3 && Cheapest(d, ortakRenk) <= 3)
+                return EnUcuz(d, ortakRenk);
+            if (Tutuk(el, rr) && Cheapest(d, "NT") <= 2) return EnUcuz(d, "NT");
+            // son çare: rakip dışındaki en uzun renk
+            string son = null; int sUz = 0;
+            foreach (var r in Renkler) { if (r == rr) continue; int u = ElDegerlendirici.RenkUzunlugu(el, r); if (u > sUz) { son = r; sUz = u; } }
+            if (son != null && Cheapest(d, son) <= 3) return EnUcuz(d, son);
+            return "Pas";
+        }
+
+        /// <summary>
+        /// Ortak açtı, rakip 2. seviyede kendi rengini oynuyor (ör. Michaels sonrası 2M) ve iki pas geldi:
+        /// toplam güç oyun civarındaysa (hp + ortak asgari ≥ 26) ve rakip rengimde kısaysam (&lt;=3) balans kontrası.
+        /// </summary>
+        private string BalansKontrasi(IhaleDurumu d, List<Card> el, int hp, IhaleKoruma.Aralik ar, IhaleHamlesi son,
+                                      List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
+        {
+            if (rakipRenkleri.Count < 2 || son.Koz == "NT" || son.Seviye < 2 || son.Seviye > 3) return null;
+            if (!d.Rakipler.Contains(son.Oyuncu)) return null;
+            if (gercek.Count == 0 || gercek[0].Oyuncu != d.Partner) return null;
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu)) return null;
+            if (d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr")) return null;
+            // son = rakip teklifi; ardından partnerim ve rakip pas: gecmişin son 3 çağrısı Pas olmamalı kuralı: son 2 çağrı Pas
+            var g = d.Gecmis;
+            if (g.Count < 3 || g[g.Count - 1].Teklif != "Pas" || g[g.Count - 2].Teklif != "Pas") return null;
+            if (hp < 12 || hp + ar.Min < (son.Seviye == 2 ? 26 : 27)) return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, son.Koz) > 3) return null;
+            return "Dbl";
+        }
+
+        /// <summary>
+        /// Ben açtım, rakip müdahale etti, ortak fit göstermedi: güçlü elle pas geçmek yerine
+        ///  (A) ortak yeni renk söylediyse (zorlayıcı) ve 6+ kartlı kendi rengim varsa onu tekrarla,
+        ///  (B) ortak pas geçtiyse, 16+ HP ve rakip rengi kısaysa rekabet kontrası.
+        /// </summary>
+        private string AciciRekabeti(IhaleDurumu d, List<Card> el, int hp, IhaleHamlesi son,
+                                     List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
+        {
+            if (gercek.Count == 0 || gercek[0].Oyuncu != d.AktifOyuncu) return "Pas";
+            if (gercek.Count(h => h.Oyuncu == d.AktifOyuncu) != 1) return "Pas";       // yalnız açılışım var
+            if (rakipRenkleri.Count == 0 || son.Koz == "NT") return "Pas";
+            string acilis = gercek[0].Koz;
+            bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
+
+            // (A) Ortak yeni renk söyledi (zorlayıcı), rakip araya girdi: 6+ kartlı rengimi göster
+            if (ortakKonustu && acilis != "NT" &&
+                ((hp >= 13 && Cheapest(d, acilis) <= 3) || (hp >= 11 && Cheapest(d, acilis) <= 2)) &&
+                ElDegerlendirici.RenkUzunlugu(el, acilis) >= 6)
+                return EnUcuz(d, acilis);
+
+            // (B) Ortak pas geçti, ben 16+ HP: rakip renginde kısa (<=2) ise rekabet kontrası
+            // (iki renkli müdahalede (Michaels/Unusual) rakibin son söylediği renge bakılır)
+            if (!ortakKonustu && hp >= 16 && son.Seviye <= 2 && rakipRenkleri.Count >= 1 &&
+                ElDegerlendirici.RenkUzunlugu(el, son.Koz) <= 2 &&
+                !d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr"))
+                return "Dbl";
+
+            // (C) İki renkli müdahale (Unusual/Michaels) sonrası rakip 3. seviyede kaldı: 16+ HP ile kontra
+            // (kısa → takeout, 4+ kart ve 2 üst onör → ceza)
+            if (!ortakKonustu && hp >= 16 && son.Seviye == 3 && son.Koz != "NT" && gercek.Count(h => d.Rakipler.Contains(h.Oyuncu)) >= 2 &&
+                d.Rakipler.Contains(son.Oyuncu) && !d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr"))
+            {
+                int u = ElDegerlendirici.RenkUzunlugu(el, son.Koz);
+                int ust = el.Count(c => c.Suit == son.Koz && c.Value >= 12);
+                if (u <= 2 || (u >= 4 && ust >= 2)) return "Dbl";
+            }
+
+            return "Pas";
+        }
+
+        /// <summary>
+        /// Ortak 1 seviye açtı, ben 1 seviyede yeni renk (majör) dedim, ortak kendi rengini 3 seviyeye sıçrattı
+        /// (1♦–1♠–3♦ = 17-18 HP, 6+ kart): 9+ HP ile pas geçme. 5+ kartlık majör → 4M, aksi halde 3NT.
+        /// </summary>
+        private string CevapciSicramaSonrasi(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> gercek)
+        {
+            if (hp < 9 || gercek.Count != 3) return null;
+            if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            var a1 = gercek[0]; var b = gercek[1]; var a2 = gercek[2];
+            if (a1.Oyuncu != d.Partner || a2.Oyuncu != d.Partner || b.Oyuncu != d.AktifOyuncu) return null;
+            if (a1.Seviye != 1 || a1.Koz == "NT" || a2.Koz != a1.Koz || a2.Seviye != 3) return null;
+            if (b.Seviye != 1 || !Major(b.Koz)) return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, b.Koz) >= 5) return Seviye(d, b.Koz, 4);
+            return Seviye(d, "NT", 3);
+        }
+
+        /// <summary>
+        /// 1M (ortak) - 1Y (ben, yeni renk) - 2M (ortak, kendi majörünü tekrarladı, rakip yok): cevapçı 11+ HP ile pas geçmez.
+        /// 11-12 HP: 3+ destekle 3M, dengeliyse 2NT davet; 13+ HP: 3+ destekle 4M, dengeliyse 3NT.
+        /// </summary>
+        private string CevapciMajorTekrarSonrasi(IhaleDurumu d, List<Card> el, int hp, bool dengeli, List<IhaleHamlesi> gercek)
+        {
+            if (hp < 11 || gercek.Count != 3) return null;
+            if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            var a1 = gercek[0]; var b = gercek[1]; var a2 = gercek[2];
+            if (a1.Oyuncu != d.Partner || a2.Oyuncu != d.Partner || b.Oyuncu != d.AktifOyuncu) return null;
+            if (a1.Seviye != 1 || !Major(a1.Koz) || a2.Koz != a1.Koz || a2.Seviye != 2) return null;
+            if (b.Seviye != 1 || b.Koz == "NT" || b.Koz == a1.Koz) return null;
+            int destek = ElDegerlendirici.RenkUzunlugu(el, a1.Koz);
+            if (hp <= 12)
+            {
+                if (destek >= 3) return Seviye(d, a1.Koz, 3);
+                if (dengeli) return Seviye(d, "NT", 2);
+                return null;
+            }
+            if (destek >= 3) return Seviye(d, a1.Koz, 4);
+            if (dengeli) return Seviye(d, "NT", 3);
+            return null;
+        }
+
+        /// <summary>
+        /// Ortak 1 seviye açtı, rakip müdahale etti, ben yeni renkle cevap verdim, ortak 2 seviyede asgari
+        /// yeniden teklif etti ve rakipler pas geçti: 15+ HP (oyun gücü) ile pas geçme.
+        /// 6+ kartlı majör → 4M; kendi 4+ kartlık diğer majörüm → en ucuz; yoksa null.
+        /// </summary>
+        private string CevapciRekabetDevam(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> gercek,
+                                           List<string> rakipRenkleri)
+        {
+            if (hp < 15 || rakipRenkleri.Count == 0) return null;
+            if (gercek.Count < 4 || gercek[0].Oyuncu != d.Partner || gercek[0].Seviye != 1) return null;
+            var son = gercek[gercek.Count - 1];
+            if (son.Oyuncu != d.Partner || son.Seviye != 2) return null;
+            var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+            if (benim.Count != 1 || benim[0].Seviye != 1 || benim[0].Koz == "NT") return null;
+            if (!gercek.Any(h => d.Rakipler.Contains(h.Oyuncu))) return null;
+            if (d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr")) return null;
+            string mine = benim[0].Koz;
+            if (Major(mine) && ElDegerlendirici.RenkUzunlugu(el, mine) >= 6) return Seviye(d, mine, 4);
+            foreach (var m in new[] { "Kupa", "Maça" })
+            {
+                if (m == mine || m == son.Koz || rakipRenkleri.Contains(m)) continue;
+                if (ElDegerlendirici.RenkUzunlugu(el, m) >= 4 && Cheapest(d, m) <= 3) return EnUcuz(d, m);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Ortak 1 seviye renk açtı, rakip tek renk müdahale etti (1 seviye), ben ilk kez konuşuyorum:
+        /// dengeli el + rakip renginde tutuk varsa doğal NT (6-12 HP: 1NT, 13-15: 2NT, 16+: 3NT). Pas yerine.
+        /// </summary>
+        private string RekabetNT(IhaleDurumu d, List<Card> el, int hp, bool dengeli, IhaleHamlesi son,
+                                 List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
+        {
+            if (!dengeli || hp < 6 || son.Koz == "NT" || son.Seviye != 1) return "Pas";
+            if (!d.Rakipler.Contains(son.Oyuncu) || rakipRenkleri.Count != 1) return "Pas";
+            if (gercek.Count != 2 || gercek[0].Oyuncu != d.Partner || gercek[0].Seviye != 1) return "Pas";
+            if (d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr")) return "Pas";
+            if (!Tutuk(el, son.Koz)) return "Pas";
+            foreach (var m in new[] { "Maça", "Kupa" })
+                if (m != son.Koz && ElDegerlendirici.RenkUzunlugu(el, m) >= 4) return "Pas";   // majör fiti aranmalı
+            int hedef = hp >= 16 ? 3 : (hp >= 13 ? 2 : 1);
+            return Seviye(d, "NT", hedef);
+        }
+
+        /// <summary>
+        /// Ortak açtı, rakip müdahale etti, ben ilk kez konuşuyorum: fit yoksa 5+ kartlık
+        /// yeni rengi doğal teklif et (1 seviyede 6+ HP, 2 seviyede 10+ HP).
+        /// Ör: 1♦ - (1♥) - 1♠ (6 kartlı ♠, 8 HP).
+        /// </summary>
+        private string RekabetYeniRenk(IhaleDurumu d, List<Card> el, int hp, List<string> rakipRenkleri,
+                                       List<IhaleHamlesi> gercek)
+        {
+            if (hp < 6) return "Pas";
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu)) return "Pas";
+            var ortakTeklif = gercek.FirstOrDefault(h => h.Oyuncu == d.Partner);
+            if (ortakTeklif == null) return "Pas";
+
+            string en = null; int enUz = 0;
+            foreach (var r in Renkler)
+            {
+                if (r == ortakTeklif.Koz || rakipRenkleri.Contains(r)) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u >= 5 && (u > enUz || (u == enUz && RenkSira(r) > RenkSira(en)))) { en = r; enUz = u; }
+            }
+            if (en == null) return "Pas";
+            int lvl = Cheapest(d, en);
+            if (lvl == 1) return Seviye(d, en, 1);
+            if (lvl == 2 && hp >= 10) return Seviye(d, en, 2);
+            return "Pas";
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // YARDIMCILAR
+        // ═════════════════════════════════════════════════════════════════
+
+        /// <summary>Zorlayıcı durum mu (Pas yasak sayılır)?</summary>
+        private bool Zorunlu(IhaleDurumu d, List<Card> el, List<IhaleHamlesi> gercek, bool ortak2C)
+        {
+            var son = gercek.Last();
+            if (son.Oyuncu != d.Partner) return false;
+            if (ortak2C)
+            {
+                // 2♣ güçlü: oyun seviyesine kadar zorunlu (4M / 3NT / 5m) — 2♣ → 2♦ → …
+                string k = son.Koz;
+                int gs = k == "NT" ? 3 : (Major(k) ? 4 : 5);
+                return son.Seviye < gs;
+            }
+            // Kendi 4. renk zorlamamdan (1♦–1♠–2♣–2♥) sonra ortağın cevabı: oyun seviyesine kadar pas yok
+            for (int ti = 0; ti < gercek.Count; ti++)
+                if (IsTsfTeklifi(d, gercek, ti) && gercek.IndexOf(son) > ti &&
+                    (son.Koz != "NT" ? son.Seviye < OyunSeviyesi(son.Koz) : son.Seviye < 3))
+                    return true;
+
+            // Açıcıya yeni renk (cevap veren yeni renkte teklif verdi): zorlayıcı
+            var benimIlk = gercek.FirstOrDefault(h => h.Oyuncu == d.AktifOyuncu);
+            var ortakIlk = gercek.FirstOrDefault(h => h.Oyuncu == d.Partner);
+            if (benimIlk != null && ortakIlk != null && gercek.IndexOf(benimIlk) < gercek.IndexOf(ortakIlk) &&
+                son == ortakIlk && son.Koz != "NT" && son.Seviye <= 2 &&
+                !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == son.Koz) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && gercek.IndexOf(h) > gercek.IndexOf(ortakIlk)))
+                return true;
+
+            // 2/1 oyun zorlaması: ortak 2. seviyede yeni renkle cevap verdi, sonra 3. seviyede başka bir yeni
+            // renk gösterdi (ör. 1♠–2♦–2♠–3♥) → oyuna ulaşana dek Pas yasak.
+            if (benimIlk != null && ortakIlk != null && gercek.IndexOf(benimIlk) < gercek.IndexOf(ortakIlk) &&
+                ortakIlk.Koz != "NT" && ortakIlk.Seviye == 2 && son != ortakIlk &&
+                son.Koz != "NT" && son.Seviye <= 3 && son.Koz != ortakIlk.Koz &&
+                !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == son.Koz) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)))
+                return true;
+            return false;
+        }
+
+        private static int OyunSeviyesi(string koz) => koz == "NT" ? 3 : (Major(koz) ? 4 : 5);
+
+        /// <summary>Fit rengi ve kombine uzunluk. Yoksa null.</summary>
+        private string FitBul(IhaleDurumu d, List<Card> el, List<IhaleHamlesi> gercek, List<string> rakipRenkleri,
+                              out int toplamUzunluk)
+        {
+            toplamUzunluk = 0;
+            string en = null; int enToplam = 0;
+            foreach (var r in Renkler)
+            {
+                if (rakipRenkleri.Contains(r) && !gercek.Any(h => h.Oyuncu == d.Partner && h.Koz == r)) continue;
+                int pu = PartnerUzunluk(d, gercek, r);
+                if (pu == 0) continue;
+                int toplam = ElDegerlendirici.RenkUzunlugu(el, r) + pu;
+                if (toplam < 8) continue;
+                bool dahaIyi = en == null ||
+                               (Major(r) && !Major(en)) ||
+                               (Major(r) == Major(en) && (toplam > enToplam || (toplam == enToplam && RenkSira(r) > RenkSira(en))));
+                if (dahaIyi) { en = r; enToplam = toplam; }
+            }
+            toplamUzunluk = enToplam;
+            return en;
+        }
+
+        /// <summary>gercek[i] benim yaptığım yapay üçüncü/dördüncü renk teklifi mi (daha önce hiç söylenmemiş renk, seviye 2+, ortak iki ayrı renk söylemiş).</summary>
+        private bool IsTsfTeklifi(IhaleDurumu d, List<IhaleHamlesi> gercek, int i)
+        {
+            var t = gercek[i];
+            if (t.Oyuncu != d.AktifOyuncu || t.Koz == "NT" || t.Seviye < 2) return false;
+            var once = gercek.Take(i).ToList();
+            if (once.Any(h => h.Koz == t.Koz)) return false;
+            if (once.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi)) return false;
+            var ort = once.Where(h => h.Oyuncu == d.Partner && h.Koz != "NT").Select(h => h.Koz).Distinct().ToList();
+            var ben = once.Where(h => h.Oyuncu == d.AktifOyuncu && h.Koz != "NT").Select(h => h.Koz).Distinct().ToList();
+            return ort.Count >= 1 && ben.Count >= 1 && ort.Union(ben).Count() >= 2 && once.Count(h => h.Oyuncu == d.Partner && h.GercekTeklifMi) >= 2;
+        }
+
+        /// <summary>Ortağın bu renkte tahmini minimum uzunluğu (0 = bilinmiyor).</summary>
+        public static bool OrtakMudahaleSayilir = true;
+
+        private int PartnerUzunluk(IhaleDurumu d, List<IhaleHamlesi> gercek, string renk)
+        {
+            int uz = 0;
+            int partnerSayi = 0;
+            bool benOnceBu = false;
+            foreach (var h in gercek)
+            {
+                if (h.Koz != renk) continue;
+                if (h.Oyuncu == d.AktifOyuncu) { benOnceBu = true; continue; }
+                if (h.Oyuncu != d.Partner) continue;
+                partnerSayi++;
+                if (partnerSayi == 1)
+                {
+                    // Ortak, benim yapay "üçüncü/dördüncü renk" teklifime (zorlayıcı) cevap veriyor: bu cevap 3 kartlık
+                    // destek ya da 4 kartlık yeni renk olabilir; "5+/4+ vaat" varsayımı slemi yanlış fitle şişirir.
+                    int hi = gercek.IndexOf(h);
+                    if (hi > 0 && IsTsfTeklifi(d, gercek, hi - 1))
+                    {
+                        if (benOnceBu) { uz = 3; continue; }
+                        uz = 4; continue;
+                    }
+                    bool acilis = gercek.First() == h;
+                    if (benOnceBu)
+                    {
+                        // Destek verdi. Ben ortağın AÇTIĞI bir sekansta bu rengi cevap olarak söylediysem ve
+                        // ortak (açıcı) onu destekliyorsa 4+ kart vaat eder (1♦–1♥–2♥: açıcıda ♥4+);
+                        // kendi açtığım/müdahale ettiğim rengi ortak destekliyorsa majörde 3+ yeter.
+                        var ilkGercek = gercek.First();
+                        bool benCevapladim = ilkGercek.Oyuncu == d.Partner && ilkGercek.Koz != renk;
+                        uz = benCevapladim ? 4 : (Major(renk) ? 3 : 4);
+                    }
+                    else if (acilis) uz = renk == "Maça" || renk == "Kupa" ? 5 : (renk == "Karo" ? 4 : 3);
+                    else if (OrtakMudahaleSayilir && d.Rakipler.Contains(gercek.First().Oyuncu) &&
+                             !gercek.Any(x => x.Oyuncu == d.Partner && gercek.IndexOf(x) < gercek.IndexOf(h)))
+                        uz = 5;   // ortağın doğal müdahalesi (overcall) 5+ kart vaat eder
+                    else uz = h.Seviye >= 2 ? 5 : 4;
+                }
+                else uz = Math.Min(7, uz + 1);
+            }
+            return uz;
+        }
+
+        /// <summary>Fit kontratı için hedef seviye (-1: 3NT tercih edilir).</summary>
+        private int HedefFit(string fit, double est, bool ntSecenegi, bool dar = false, int fitToplam = 0)
+        {
+            est += dar ? 2.5 : 0;     // dar aralıkta tahmin güvenilir: eşikleri aşağı çek
+            if (Major(fit))
+            {
+                if (est >= 36) return 6;
+                if (est >= 28.5) return 4;
+                if (est >= 25.5) return 3;
+                return 2;
+            }
+            // minör
+            if (est >= 36) return 6;
+            // 8 kartlık minör uyumda dengeli el + durdurucular varken 3NT (9 el) 5m'den (11 el) çok daha kolay.
+            // 5m ancak 9+ kartlık uyumda ya da slam'a yakın güçte (est>=34) seçilir.
+            if (est >= 29) return (ntSecenegi && fitToplam <= 8 && est < 34) ? -1 : 5;
+            if (est >= 27.5) return ntSecenegi ? -1 : 4;
+            if (est >= 25.5) return 3;
+            return 2;
+        }
+
+        private bool NTOlur(List<Card> el, List<string> rakipRenkleri)
+        {
+            foreach (var r in rakipRenkleri)
+                if (!ElDegerlendirici.StopperVar(el, r)) return false;
+            return true;
+        }
+
+        private string EnUzunRenk(List<Card> el)
+        {
+            string en = "Sinek"; int u = -1;
+            foreach (var r in Renkler)
+            {
+                int x = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (x > u || (x == u && RenkSira(r) > RenkSira(en))) { en = r; u = x; }
+            }
+            return en;
+        }
+
+        /// <summary>Zorunlu bir teklifte kullanılacak koz: kendi teklif ettiğim en uzun renk, yoksa en uzun renk.</summary>
+        private string UzunKoz(List<Card> el, List<IhaleHamlesi> gercek, IhaleDurumu d)
+        {
+            var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu && h.Koz != "NT")
+                              .Select(h => h.Koz)
+                              .OrderByDescending(r => ElDegerlendirici.RenkUzunlugu(el, r))
+                              .FirstOrDefault();
+            if (benim != null && ElDegerlendirici.RenkUzunlugu(el, benim) >= 6) return benim;
+            return EnUzunRenk(el);
+        }
+
+        // ── Teklif üretme ──
+        private static bool SonrakindenBuyukMu(IhaleDurumu d, int seviye, string koz)
+        {
+            string son = d.SonGercekTeklif;
+            if (string.IsNullOrEmpty(son)) return true;
+            int ss = KozYardimcisi.TekliftenSeviyeCikar(son);
+            string sk = KozYardimcisi.TekliftenKozCikar(son);
+            if (seviye > ss) return true;
+            if (seviye < ss) return false;
+            return RenkSira(koz) > RenkSira(sk);
+        }
+
+        /// <summary>Bu strain'de verilebilecek en düşük yasal seviye.</summary>
+        private static int Cheapest(IhaleDurumu d, string koz)
+        {
+            for (int s = 1; s <= 7; s++)
+                if (SonrakindenBuyukMu(d, s, koz)) return s;
+            return 8;
+        }
+
+        /// <summary>Hedef seviyede teklif; hedefe ulaşmak yasal değilse (ihale daha yukarıda) Pas.</summary>
+        private static string Seviye(IhaleDurumu d, string koz, int hedef)
+        {
+            int c = Cheapest(d, koz);
+            if (c > hedef || c > 7) return "Pas";
+            return KozYardimcisi.TeklifOlustur(hedef, koz);
+        }
+
+        private static string EnUcuz(IhaleDurumu d, string koz)
+        {
+            int c = Cheapest(d, koz);
+            return c > 7 ? "Pas" : KozYardimcisi.TeklifOlustur(c, koz);
+        }
+
+        private static string EnUcuzNT(IhaleDurumu d, int hp)
+        {
+            int c = Cheapest(d, "NT");
+            return c > 3 ? "Pas" : KozYardimcisi.TeklifOlustur(Math.Max(c, hp >= 18 ? 2 : 1), "NT");
+        }
+    }
+}

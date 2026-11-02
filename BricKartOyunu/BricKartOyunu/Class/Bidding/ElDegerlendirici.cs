@@ -149,20 +149,9 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// İkinci en uzun rengi döndürür.
         /// </summary>
-        public static string IkinciEnUzunRenk(List<Card> el)
-        {
-            var sayilar = RenkSayilari(el);
-            return sayilar.OrderByDescending(kv => kv.Value).Skip(1).First().Key;
-        }
-
         /// <summary>
         /// Belirli bir renkte en az X kart var mı?
         /// </summary>
-        public static bool RenkVar(List<Card> el, string renk, int minimumAdet)
-        {
-            return RenkUzunlugu(el, renk) >= minimumAdet;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // FIT (KOZ UYUMU) KONTROLÜ
         // ═══════════════════════════════════════════════════════════════════
@@ -176,15 +165,6 @@ namespace BricKartOyunu.Class.Bidding
         /// partnerKozSayisi: Partnerin deklare ettiği rengin minimum kart sayısı
         /// (örn. partner 1♥ açtıysa 5, partner 3♥ dediyse 3 gibi tahmin edilir).
         /// </summary>
-        public static bool FitVarMi(List<Card> benimEl, string koz, int partnerKozSayisi)
-        {
-            if (benimEl == null || string.IsNullOrEmpty(koz)) return false;
-            if (partnerKozSayisi <= 0) return false;
-
-            int benimKozSayim = RenkUzunlugu(benimEl, koz);
-            return (benimKozSayim + partnerKozSayisi) >= 8;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // DAĞILIM KONTROLÜ
         // ═══════════════════════════════════════════════════════════════════
@@ -234,14 +214,21 @@ namespace BricKartOyunu.Class.Bidding
             return AcilisGucuVarMi(el, 0);
         }
 
-        /// <summary>Agresiflik: -1 yalnız 12+ HP; 0 12+ HP veya 11 HP + 20 kuralı; +1 10 HP + 20 kuralı da.</summary>
+        /// <summary>Agresiflik: -2 yalnız 13+ HP; -1 yalnız 12+ HP; 0 12+ HP veya 11 HP + 20 kuralı; +1 10 HP + 20 kuralı da; +2 9 HP + 20 kuralı da.</summary>
         public static bool AcilisGucuVarMi(List<Card> el, int agresiflik)
         {
             if (el == null || el.Count != 13) return false;
             int hp = HCP(el);
+            if (agresiflik <= -2) return hp >= 13;   // çok temkinli: yalnız 13+ HP
             if (hp >= 12) return true;
             if (agresiflik < 0) return false;
-            int alt = agresiflik > 0 ? 10 : 11;
+            // 10 HP + 7+ kartlık güçlü renk (ör. AKQJ872): 20 kuralı ile açılır (3. seviye engel yerine 1 seviye)
+            if (hp == 10 && agresiflik == 0)
+            {
+                var u = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
+                if (u[0] >= 7 && hp + u[0] + u[1] >= 20) return true;
+            }
+            int alt = agresiflik >= 2 ? 9 : (agresiflik > 0 ? 10 : 11);
             if (hp < alt) return false;
             var s = RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
             return hp + s[0] + s[1] >= 20;
@@ -256,21 +243,9 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Elde 4'lü majör var mı? (Maça veya Kupa 4+)
         /// </summary>
-        public static bool DortluMajorVar(List<Card> el)
-        {
-            return RenkUzunlugu(el, "Maça") >= 4 ||
-                   RenkUzunlugu(el, "Kupa") >= 4;
-        }
-
         /// <summary>
         /// Elde 5'li minör var mı? (Karo veya Sinek 5+)
         /// </summary>
-        public static bool BesliMinorVar(List<Card> el)
-        {
-            return RenkUzunlugu(el, "Karo") >= 5 ||
-                   RenkUzunlugu(el, "Sinek") >= 5;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // STOPPER KONTROLÜ (NT için önemli)
         // ═══════════════════════════════════════════════════════════════════
@@ -311,25 +286,10 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>
         /// Elde kaç renkte stopper var? (0-4)
         /// </summary>
-        public static int StopperSayisi(List<Card> el)
-        {
-            int sayi = 0;
-            if (StopperVar(el, "Maça")) sayi++;
-            if (StopperVar(el, "Kupa")) sayi++;
-            if (StopperVar(el, "Karo")) sayi++;
-            if (StopperVar(el, "Sinek")) sayi++;
-            return sayi;
-        }
-
         /// <summary>
         /// NT (No Trump) için el uygun mu?
         /// Dengeli + 3-4 stopper
         /// </summary>
-        public static bool NTUygun(List<Card> el)
-        {
-            return DengeliEl(el) && StopperSayisi(el) >= 3;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // HIZLI EL SAYISI (QUICK TRICKS)
         // ═══════════════════════════════════════════════════════════════════
@@ -338,39 +298,6 @@ namespace BricKartOyunu.Class.Bidding
         /// Hızlı el sayısı tahmini.
         /// As = 1, Kx = 0.5, KQ = 1, QJx = 0.5
         /// </summary>
-        public static double HizliElSayisi(List<Card> el)
-        {
-            if (el == null) return 0;
-
-            double sayi = 0;
-            var renkler = new[] { "Maça", "Kupa", "Karo", "Sinek" };
-
-            foreach (var renk in renkler)
-            {
-                var renkKartlari = el.Where(c => c.Suit == renk)
-                                     .OrderByDescending(c => c.Value)
-                                     .ToList();
-
-                if (renkKartlari.Count == 0) continue;
-
-                // Standart hızlı el (quick tricks): AK=2, AQ=1.5, A=1, KQ=1, Kx=0.5
-                int v0 = renkKartlari[0].Value;
-                int v1 = renkKartlari.Count >= 2 ? renkKartlari[1].Value : 0;
-                if (v0 == 14)
-                {
-                    if (v1 == 13) sayi += 2;
-                    else if (v1 == 12) sayi += 1.5;
-                    else sayi += 1;
-                }
-                else if (v0 == 13)
-                {
-                    if (v1 == 12) sayi += 1;
-                    else if (renkKartlari.Count >= 2) sayi += 0.5;
-                }
-            }
-            return sayi;
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         // AS / PAPAZ / KİLİT KART SAYIMI (Blackwood & RKCB için)
         // ═══════════════════════════════════════════════════════════════════
@@ -521,6 +448,90 @@ namespace BricKartOyunu.Class.Bidding
                 default:
                     return false;
             }
+        }
+    }
+
+    /// <summary>
+    /// NT açılış aralıkları (ortaklık anlaşmasındaki 1NT / 2NT seçimi) ve "standartlaştırılmış HCP".
+    /// Motordaki cevaplayan/açıcı eşikleri 1NT = 15-17, 2NT = 20-21 varsayılarak yazılmıştır; HcpStd, eli
+    /// ortağın gerçek aralığına göre bu ölçeğe çevirir (cevaplayan: HCP + fark, açıcı: HCP - fark).
+    /// </summary>
+    public static class NTA
+    {
+        public static int Lo1(OrtaklikAnlasmasi a)
+        {
+            if (a == null) return 15;
+            int r = a.NT1Range; if (r < 0 || r > 6) r = 5;
+            if (a.StrongNT && r < 4) r = 5;      // bayrak asıl kaynak: eski/hazır profillerde tutarsızlık olursa bayrak kazanır
+            if (!a.StrongNT && r >= 4) r = 2;
+            return 10 + r;
+        }
+        public static int Hi1(OrtaklikAnlasmasi a) { return Lo1(a) + 2; }
+
+        public static int Lo2(OrtaklikAnlasmasi a)
+        {
+            int r = a == null ? 1 : a.NT2Range; if (r < 0 || r > 8) r = 1;
+            return r <= 4 ? 19 + r : 19 + (r - 5);
+        }
+        public static int Hi2(OrtaklikAnlasmasi a)
+        {
+            int r = a == null ? 1 : a.NT2Range; if (r < 0 || r > 8) r = 1;
+            return r <= 4 ? Lo2(a) + 1 : Lo2(a) + 2;
+        }
+
+        public static int D1(OrtaklikAnlasmasi a) { return Lo1(a) - 15; }
+        public static int D2(OrtaklikAnlasmasi a) { return Lo2(a) - 20; }
+
+        /// <summary>1NT açılış eli mi? (aralık + dağılım seçenekleri)</summary>
+        public static bool Acilis1NT(List<Card> el, OrtaklikAnlasmasi a)
+        {
+            if (el == null || el.Count != 13) return false;
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp < Lo1(a) || hp > Hi1(a)) return false;
+            var s = ElDegerlendirici.RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
+            if (s.Length < 4) return false;
+            int mac = ElDegerlendirici.RenkUzunlugu(el, "Maça"), kup = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            if (mac >= 6 || kup >= 6) return false;
+            bool besliMajor = mac >= 5 || kup >= 5;
+            bool a5422 = a == null || a.NT1Allow5422 != 0, a5M = a == null || a.NT1Allow5Major != 0, a6m = a == null || a.NT1Allow6Minor != 0;
+            if (besliMajor && !a5M) return false;
+            if (s[0] == 4 && s[1] == 3 && s[2] == 3 && s[3] == 3) return true;
+            if (s[0] == 4 && s[1] == 4 && s[2] == 3 && s[3] == 2) return true;
+            if (s[0] == 5 && s[1] == 3 && s[2] == 3 && s[3] == 2) return true;
+            if (s[0] == 5 && s[1] == 4 && s[2] == 2 && s[3] == 2) return a5422;
+            if (s[0] == 6 && s[1] == 3 && s[2] == 2 && s[3] == 2) return a6m;
+            if (a != null && a.NT1AllowSingletonHonor != 0 && s[3] == 1 && s[0] <= 5 && TekilAsPapaz(el)) return true;
+            return false;
+        }
+
+        private static bool TekilAsPapaz(List<Card> el)
+        {
+            foreach (var g in el.GroupBy(c => c.Suit))
+                if (g.Count() == 1 && (g.First().Value == 14 || g.First().Value == 13)) return true;
+            return false;
+        }
+
+        public static bool Acilis2NT(List<Card> el, OrtaklikAnlasmasi a)
+        {
+            if (el == null || el.Count != 13 || !ElDegerlendirici.DengeliEl(el)) return false;
+            int hp = ElDegerlendirici.HCP(el);
+            return hp >= Lo2(a) && hp <= Hi2(a);
+        }
+
+        /// <summary>Elin HCP'si; ortaklık NT ile açılmışsa 15-17 / 20-21 ölçeğine çevrilmiş hali.</summary>
+        public static int HcpStd(IhaleDurumu d, List<Card> el)
+        {
+            int hp = ElDegerlendirici.HCP(el);
+            if (d == null || d.Anlasma == null || d.Gecmis == null) return hp;
+            var ilk = d.Gecmis.FirstOrDefault(h => h.GercekTeklifMi);
+            if (ilk == null) return hp;
+            int fark;
+            if (ilk.Teklif == "1NT") fark = D1(d.Anlasma);
+            else if (ilk.Teklif == "2NT") fark = D2(d.Anlasma);
+            else return hp;
+            if (ilk.Oyuncu == d.Partner) return hp + fark;
+            if (ilk.Oyuncu == d.AktifOyuncu) return hp - fark;
+            return hp;
         }
     }
 }

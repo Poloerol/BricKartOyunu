@@ -1,0 +1,243 @@
+﻿using System;
+using System.Linq;
+
+namespace BricKartOyunu.Class.Bidding.Conventions
+{
+    /// <summary>
+    /// Jacoby Transfer Konvansiyonu (2 yönlü).
+    /// 
+    /// Rol 1: Partner 1NT açtı, benim 5+ majörüm var → 2♦/2♥ transfer
+    ///   - 2♦ → 5+ Kupa gösterir (partner 2♥ der)
+    ///   - 2♥ → 5+ Maça gösterir (partner 2♠ der)
+    /// 
+    /// Rol 2: Ben 1NT açtım, partner 2♦/2♥ transfer dedi → kabul ederim
+    ///   - Partner 2♦ → ben 2♥ derim
+    ///   - Partner 2♥ → ben 2♠ derim
+    /// 
+    /// Öncelik: 10 (Stayman ile aynı seviyede)
+    /// 
+    /// NOT: Stayman (4'lü majör) ve Transfer (5+ majör) çakışmaz:
+    /// - 4'lü majör → Stayman (2♣)
+    /// - 5+ majör → Transfer (2♦/2♥)
+    /// </summary>
+    public class JacobyTransfer : IKonvansiyon
+    {
+        // ═══════════════════════════════════════════════════════════════════
+        // ARAYÜZ PROPERTYLERİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public string Ad => "Jacoby Transfer";
+        public string Aciklama => "NT açılışına majör transferi";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 15;   // Stayman (10) sonra, BasitCevap (100) önce
+
+        // ═══════════════════════════════════════════════════════════════════
+        // UYGUNLUK KONTROLÜ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public bool UygunMu(IhaleDurumu durum)
+        {
+            if (durum == null) return false;
+            if (durum.AktifOyuncuEli == null) return false;
+            if (durum.AktifOyuncuEli.Count != 13) return false;
+
+            var el = durum.AktifOyuncuEli;
+
+            // ── ROL 1: Partner 1NT açtı, ben transfer sorusu soracağım ──
+            if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
+                && GercekTeklifSayisi(durum) == 0   // önceki Pas'lar sayılmaz
+                && !durum.RakipMudahaleliMi())
+            {
+                // 5+ majör var mı?
+                int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+
+                // 5+ Maça veya 5+ Kupa
+                // Ama 4'lü majörü Stayman ele alır → 5+ olmalı
+                if (macca >= 5 || kupa >= 5)
+                {
+                    // Her güçte transfer: 0-5 HP'lik 5'li majör de 2M'yi oynar (DD simülasyonu: 5 HP'de 2M +66 / 1NT 0,
+                    // 0-2 HP'de bile 2M −38 / 1NT −126). Zayıf el transferden sonra pas geçer.
+                    return true;
+                }
+            }
+
+            // ── ROL 2: Ben 1NT açtım, partner 2♦/2♥ transfer dedi ──
+            if (durum.KendiTeklifleri.LastOrDefault() == "1NT")
+            {
+                string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
+                if (partnerSon == "2♦" || partnerSon == "2♥")
+                {
+                    return true;
+                }
+            }
+
+            // ── ROL 3: Transfer yaptım, ortak tamamladı → 5'li majör + oyun gücü = 3NT ──
+            if (Rol3Teklifi(durum) != null) return true;
+
+            // ── ROL 4: Transfer yaptım, 5'li majör + davet gücü (8-9 HP) → 2NT; ROL 5: açıcının cevabı ──
+            if (Rol4Teklifi(durum) != null) return true;
+            if (Rol5Teklifi(durum) != null) return true;
+            if (Rol6Teklifi(durum) != null) return true;
+            if (Rol7Teklifi(durum) != null) return true;
+
+            return false;
+        }
+
+        private static int GercekTeklifSayisi(IhaleDurumu d)
+        {
+            return d.KendiTeklifleri.Count(t => t != "Pas");
+        }
+
+        /// <summary>
+        /// 1NT – 2♥ – 2♠ (ya da 1NT – 2♦ – 2♥) sonrası: tam 5 kartlık majör, 10-14 HP ve
+        /// tekil/void yok → 3NT (açıcı 3'lü destekle 4M'ye düzeltebilir). Aksi halde null.
+        /// </summary>
+        private static string Rol3Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
+            if (durum.RakipMudahaleliMi()) return null;
+
+            string major;
+            if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
+            else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
+            else return null;
+
+            if (ElDegerlendirici.RenkUzunlugu(el, major) != 5) return null;
+            int hp = NTA.HcpStd(durum, el);
+            if (hp < 10 || hp > 14) return null;
+            foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                if (ElDegerlendirici.RenkUzunlugu(el, r) <= 1) return null;   // tekil/void → 4M
+            return "3NT";
+        }
+
+        /// <summary>1NT – 2♦/2♥ – tamamlama sonrası: tam 5 kartlık majör ve 8-9 HP (davet) → 2NT. Açıcı 3'lü destekle 3M'ye düzeltir.</summary>
+        private static string Rol4Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
+            if (durum.RakipMudahaleliMi()) return null;
+            string major;
+            if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
+            else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
+            else return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, major) != 5) return null;
+            int hp = NTA.HcpStd(durum, el);
+            if (hp < 8 || hp > 9) return null;
+            return "2NT";
+        }
+
+        /// <summary>1NT – transfer – tamamlama sonrası: 6+ kartlı majör ve 16+ HP (toplam 31+) → 4NT (as sorusu, koz = majör).</summary>
+        private static string Rol6Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 1 || ortak.Count != 2 || ortak[0] != "1NT") return null;
+            if (durum.RakipMudahaleliMi()) return null;
+            string major;
+            if (kendi[0] == "2♥" && ortak[1] == "2♠") major = "Maça";
+            else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
+            else return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, major) < 6) return null;
+            if (NTA.HcpStd(durum, el) < 16) return null;
+            return "4NT";
+        }
+
+        /// <summary>1NT – transfer – tamamlama – 2NT (davet) sonrası açıcının kararı: 3'lü destek → 3M (maksimumda 4M); desteksiz maksimum → 3NT.</summary>
+        private static string Rol5Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 2 || ortak.Count != 2 || kendi[0] != "1NT" || ortak[1] != "2NT") return null;
+            if (durum.RakipMudahaleliMi()) return null;
+            string major;
+            if (ortak[0] == "2♦" && kendi[1] == "2♥") major = "Kupa";
+            else if (ortak[0] == "2♥" && kendi[1] == "2♠") major = "Maça";
+            else return null;
+            int hp = NTA.HcpStd(durum, el);
+            string sem = KozYardimcisi.KozSembolu(major);
+            if (ElDegerlendirici.RenkUzunlugu(el, major) >= 3) return hp >= 16 ? "4" + sem : "3" + sem;
+            return hp >= 16 ? "3NT" : null;
+        }
+
+        /// <summary>1NT – transfer – tamamlama – 3NT (5'li majör + oyun gücü) sonrası açıcının kararı: majörde 3+ kart → 4M (5-3 fit), desteksiz → null (Pas, 3NT kalır).</summary>
+        private static string Rol7Teklifi(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            var kendi = durum.KendiTeklifleri.Where(t => t != "Pas").ToList();
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (kendi.Count != 2 || ortak.Count != 2 || kendi[0] != "1NT" || ortak[1] != "3NT") return null;
+            if (durum.RakipMudahaleliMi()) return null;
+            string major;
+            if (ortak[0] == "2♦" && kendi[1] == "2♥") major = "Kupa";
+            else if (ortak[0] == "2♥" && kendi[1] == "2♠") major = "Maça";
+            else return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, major) < 3) return null;
+            return "4" + KozYardimcisi.KozSembolu(major);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // TEKLİF VERME
+        // ═══════════════════════════════════════════════════════════════════
+
+        public string TeklifVer(IhaleDurumu durum)
+        {
+            // ── ROL 1: Transfer sorusu ──
+            if (durum.PartnerTeklifleri.LastOrDefault() == "1NT"
+                && GercekTeklifSayisi(durum) == 0)
+            {
+                var el = durum.AktifOyuncuEli;
+                int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+
+                // 5+ Maça → 2♥ (Maça transferi)
+                // 5+ Kupa → 2♦ (Kupa transferi)
+                // İkisi de varsa → uzun olanı seç
+                if (macca >= 5 && kupa >= 5)
+                {
+                    if (macca >= kupa) return "2♥";   // Maça transferi
+                    return "2♦";                        // Kupa transferi
+                }
+
+                if (macca >= 5) return "2♥";
+                if (kupa >= 5) return "2♦";
+            }
+
+            // ── ROL 3: transfer tamamlandı, 5'li majör + oyun gücü ──
+            var r3 = Rol3Teklifi(durum);
+            if (r3 != null) return r3;
+            var r4 = Rol4Teklifi(durum);
+            if (r4 != null) return r4;
+            var r5 = Rol5Teklifi(durum);
+            if (r5 != null) return r5;
+            var r6 = Rol6Teklifi(durum);
+            if (r6 != null) return r6;
+            var r7 = Rol7Teklifi(durum);
+            if (r7 != null) return r7;
+
+            // ── ROL 2: Transfer kabulü ──
+            if (durum.KendiTeklifleri.LastOrDefault() == "1NT")
+            {
+                string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
+
+                if (partnerSon == "2♦") return "2♥";   // Kupa transferi kabul
+                if (partnerSon == "2♥") return "2♠";   // Maça transferi kabul
+            }
+
+            return null;
+        }
+    }
+}

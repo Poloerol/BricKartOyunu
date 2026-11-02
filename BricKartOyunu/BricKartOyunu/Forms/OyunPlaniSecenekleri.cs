@@ -82,11 +82,6 @@ namespace BricKartOyunu.Forms
         }
 
         /// <summary>Kayıtlı dosyayı siler; bir sonraki açılışta varsayılanlar kullanılır.</summary>
-        public static bool KayitliAyariSil()
-        {
-            return AyarDeposu.Sil(DepoAdi);
-        }
-
         /// <summary>Elle düzenlenmiş ya da eski dosyalardaki geçersiz değerleri onarır.</summary>
         private void Duzelt()
         {

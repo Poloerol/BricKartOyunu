@@ -1,0 +1,227 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BricKartOyunu.Class.Bidding.Conventions
+{
+    /// <summary>
+    /// Blackwood ve RKCB (Roman Key Card Blackwood) Konvansiyonu.
+    /// 
+    /// KLASİK BLACKWOOD (RKCB=false):
+    ///   4NT sorar → As sayısı
+    ///   5♣ = 0 veya 4 As
+    ///   5♦ = 1 As
+    ///   5♥ = 2 As
+    ///   5♠ = 3 As
+    /// 
+    /// RKCB (RKCB=true, RKCB1430=false):
+    ///   4NT sorar → Kilit kart sayısı (4 As + koz K)
+    ///   5♣ = 0 veya 3 kilit kart
+    ///   5♦ = 1 veya 4 kilit kart
+    ///   5♥ = 2 veya 5 kilit kart, koz K'si YOK
+    ///   5♠ = 2 veya 5 kilit kart, koz K'si VAR
+    /// 
+    /// RKCB 1430 (RKCB1430=true):
+    ///   5♣ = 1 veya 4 kilit kart
+    ///   5♦ = 0 veya 3 kilit kart
+    ///   5♥ = 2 veya 5 kilit kart, koz K'si YOK
+    ///   5♠ = 2 veya 5 kilit kart, koz K'si VAR
+    /// 
+    /// Öncelik: 15 (Stayman 10, JacobyTransfer 15 ile aynı seviye)
+    /// </summary>
+    public class Blackwood : IKonvansiyon
+    {
+        // ═══════════════════════════════════════════════════════════════════
+        // ARAYÜZ PROPERTYLERİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        public string Ad => "Blackwood";
+        public string Aciklama => "As veya kilit kart sorusu";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 15;  // Stayman (10) sonra, BasitCevap (100) önce
+
+        // ═══════════════════════════════════════════════════════════════════
+        // UYGUNLUK KONTROLÜ
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// NT sonrası 4NT (örn. 1NT–4NT, 1♥–3NT–4NT) kilit kart sorusu DEĞİL, niceliksel davettir:
+        /// "6NT'ye çıkar mısın?" Soran için: son gerçek teklif NT ise; cevap veren için: ortağın
+        /// 4NT'sinden önceki gerçek teklif NT ise true.
+        /// </summary>
+        public static bool NicelikselMi(IhaleDurumu durum)
+        {
+            var gercek = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (gercek.Count == 0) return false;
+            var son = gercek[gercek.Count - 1];
+            if (son.Teklif == "4NT")
+            {
+                if (gercek.Count < 2) return false;
+                return gercek[gercek.Count - 2].Koz == "NT";
+            }
+            return son.Koz == "NT";
+        }
+
+        public bool UygunMu(IhaleDurumu durum)
+        {
+            if (durum == null) return false;
+            if (durum.AktifOyuncuEli == null) return false;
+            if (durum.AktifOyuncuEli.Count != 13) return false;
+
+            // 1. İhale zaten bitmişse → hayır
+            if (durum.IhaleBittiMi()) return false;
+
+            // 1b. NT sonrası 4NT niceliksel: ortağın 4NT'sine kilit kart değil, 6NT/Pas cevabı verilir
+            if (NicelikselMi(durum))
+                return durum.SonGercekTeklif == "4NT" && durum.SonGercekTeklifSahibi == durum.Partner;
+
+            // 2. Bir koz anlaşması var mı?
+            string koz = durum.AnlasilanKoz();
+            if (string.IsNullOrEmpty(koz)) return false;
+            // NT sekansında (koz yok) renk Blackwood'u sorulmaz; as sorusu Gerber'in işidir.
+            if (koz == "NT" && !(durum.SonGercekTeklif == "4NT" && durum.SonGercekTeklifSahibi == durum.Partner)) return false;
+
+            // 3. Aktif oyuncu daha önce 4NT demedi mi?
+            if (durum.KendiTeklifleri.Contains("4NT")) return false;
+
+            // ═══════════════════════════════════════════════════════════════
+            // DURUM A: BEN CEVAP VERİYORUM (Partner 4NT dedi)
+            // ═══════════════════════════════════════════════════════════════
+            if (durum.SonGercekTeklif == "4NT" &&
+                durum.SonGercekTeklifSahibi == durum.Partner)
+            {
+                // Cevap verirken HP kontrolü YAPILMAZ — kilit kart sayısına göre cevap verilir
+                return true;
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // DURUM B: BEN SORUYORUM (4NT açacağım)
+            // ═══════════════════════════════════════════════════════════════
+
+            // 👇👇👇 YENİ EKLENEN KISIM — BURAYA 👇👇👇
+            // 4. Sadece 3. seviyeden sonra Blackwood sorulabilir
+            //    (2♥ transfer kabulü gibi düşük seviyeli anlaşmalarda Blackwood tetiklenmesin)
+            int seviye = durum.KacinciSeviye();
+            if (seviye < 3) return false;
+            if (seviye > 4) return false;   // 4NT zaten 4. seviye
+            // 👆👆👆 YENİ EKLENEN KISIM SONU 👆👆👆
+
+            // 5. Elimizde yeterli puan var mı? (Slam denemesi için 15+ HP)
+            int hp = ElDegerlendirici.HCP(durum.AktifOyuncuEli);
+            if (hp < 15) return false;
+
+            // 6. Partner ile aynı kozda anlaşılmış olmalı
+            //    (AnlasilanKoz zaten kontrol etti)
+
+            return true;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // TEKLİF VERME
+        // ═══════════════════════════════════════════════════════════════════
+
+        public string TeklifVer(IhaleDurumu durum)
+        {
+            var el = durum.AktifOyuncuEli;
+            string koz = durum.AnlasilanKoz();
+
+            // Niceliksel 4NT'ye cevap: üst sınırdaysam 6NT, değilse Pas
+            if (NicelikselMi(durum))
+            {
+                int hp = ElDegerlendirici.HCP(el);
+                string ntTeklif = durum.KendiTeklifleri.LastOrDefault(t => t.EndsWith("NT")) ?? "3NT";
+                int esik = ntTeklif.StartsWith("1") ? 17 : ntTeklif.StartsWith("2") ? (durum.KendiTeklifleri.Contains("2♣") ? 23 : 21) : 15;
+                return hp >= esik ? "6NT" : "Pas";
+            }
+
+            // Bu Blackwood sorusu mu, yoksa Blackwood cevabı mı?
+            // Son gerçek teklif 4NT mi?
+            if (durum.SonGercekTeklif == "4NT" &&
+                durum.SonGercekTeklifSahibi == durum.Partner)
+            {
+                // PARTNER 4NT dedi → BEN CEVAP VERİYORUM
+                return BlackwoodCevabi(durum, el, koz);
+            }
+
+            // Aksi halde → BEN 4NT SORUYORUM
+            return "4NT";
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // BLACKWOOD SORUSUNA CEVAP
+        // ═══════════════════════════════════════════════════════════════════
+
+        private string BlackwoodCevabi(IhaleDurumu durum, List<Card> el, string koz)
+        {
+            // RKCB aktif mi?
+            bool rkcbAktif = durum.Anlasma.RKCB;
+            bool rkcb1430 = durum.Anlasma.RKCB1430;
+
+            if (rkcbAktif)
+            {
+                return RkcbCevabi(el, koz, rkcb1430);
+            }
+            else
+            {
+                return KlasikBlackwoodCevabi(el);
+            }
+        }
+
+        /// <summary>
+        /// Klasik Blackwood cevabı: As sayısı.
+        /// </summary>
+        private string KlasikBlackwoodCevabi(List<Card> el)
+        {
+            int asSayisi = ElDegerlendirici.AsSayisi(el);
+            switch (asSayisi)
+            {
+                case 1: return "5♦";
+                case 2: return "5♥";
+                case 3: return "5♠";
+                default: return "5♣";   // 0 veya 4 As
+            }
+        }
+
+        /// <summary>
+        /// RKCB cevabı: Kilit kart sayısı (4 As + koz K).
+        /// </summary>
+        private string RkcbCevabi(List<Card> el, string koz, bool rkcb1430)
+        {
+            int kilitKart = ElDegerlendirici.KilitKartSayisi(el, koz);
+            bool kozPapaziVar = ElDegerlendirici.KizVar(el, koz);   // 5♥/5♠ ayrımı: koz KIZI
+
+            if (rkcb1430)
+            {
+                // 1430: 1/4 → 5♣, 0/3 → 5♦
+                switch (kilitKart)
+                {
+                    case 0: return "5♦";
+                    case 1: return "5♣";
+                    case 2:
+                        return kozPapaziVar ? "5♠" : "5♥";  // 2/5
+                    case 3: return "5♦";
+                    case 4: return "5♣";
+                    case 5:
+                        return kozPapaziVar ? "5♠" : "5♥";
+                    default: return "5♦";
+                }
+            }
+            else
+            {
+                // Standart: 0/3 → 5♣, 1/4 → 5♦
+                switch (kilitKart)
+                {
+                    case 0: return "5♣";
+                    case 1: return "5♦";
+                    case 2:
+                        return kozPapaziVar ? "5♠" : "5♥";  // 2/5
+                    case 3: return "5♣";
+                    case 4: return "5♦";
+                    case 5:
+                        return kozPapaziVar ? "5♠" : "5♥";
+                    default: return "5♣";
+                }
+            }
+        }
+    }
+}

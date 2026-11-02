@@ -65,6 +65,25 @@ namespace BricKartOyunu.Class
                     pr.SetValue(an, !(bool)pr.GetValue(an, null), null);
                     ekle(an);
                 }
+                // Başka bir konvansiyonla çakışıp tek bayrak çevrilince açılmayanlar (Flannery, Minor Stayman, Rubensohl...):
+                // varsayılan açık bayraklar kapatılarak da denenir. Yalnız henüz bulunamayan adlar eklenir.
+                foreach (var pr in props)
+                {
+                    if ((bool)pr.GetValue(OrtaklikAnlasmasi.Varsayilan(), null)) continue;
+                    var an = OrtaklikAnlasmasi.Varsayilan();
+                    foreach (var o in props)
+                        if ((bool)o.GetValue(an, null) && o.Name != "StrongNT") o.SetValue(an, false, null);
+                    pr.SetValue(an, true, null);
+                    ekle(an);
+                }
+                // Tam sayı alanlarıyla açılan konvansiyonlar (Brozel, Astro, Helvic, Puppet 1NT, vb.)
+                var intAyar = new Action<OrtaklikAnlasmasi>[]
+                {
+                    a => a.NT1DefenseX = 1, a => a.NT1DefenseX = 2, a => a.NT1RunoutX = 4, a => a.NT1RunoutX = 3,
+                    a => a.NT1Puppet = 1, a => a.NT1MinorBid = 2, a => a.NTSemiForcing = 1, a => a.CueStyle = 1,
+                    a => a.UnusualOverUnusual = 1, a => a.LeadDirectingDbl = 1
+                };
+                foreach (var ayar in intAyar) { var an = OrtaklikAnlasmasi.Varsayilan(); ayar(an); ekle(an); }
                 var hepsi = OrtaklikAnlasmasi.Varsayilan();
                 foreach (var pr in props) pr.SetValue(hepsi, true, null);
                 ekle(hepsi);
@@ -79,24 +98,27 @@ namespace BricKartOyunu.Class
             new KeyValuePair<string, string[]>("Açılışlar", new[] {
                 "1♣ Açılış Sistemi", "1♦ Açılış Sistemi", "1♣ Cevap Sistemi", "5'li Majör", "Strong NT", "2♣ Güçlü", "Benjamin Two-Bids",
                 "Zayıf İki", "Zayıf İki Cevap", "Zayıf İki Müdahale", "Multi 2♦", "Preempt", "Preempt Cevap", "Namyats",
-                "Ogust", "Gambling 3NT", "Mini-Roman 2D" }),
+                "Ogust", "Gambling 3NT", "Mini-Roman 2D", "Flannery" }),
             new KeyValuePair<string, string[]>("1NT Çevresi", new[] {
-                "Stayman", "Jacoby Transfer", "Minor Transfer", "Puppet Stayman", "Smolen", "Extended Stayman", "Lebensohl" }),
+                "Stayman", "Jacoby Transfer", "Minor Transfer", "Puppet Stayman", "Smolen", "Extended Stayman", "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Lebensohl",
+                "Puppet Stayman (1NT)", "Minor Relay (1NT-2♠)", "Stayman (2NT)" }),
             new KeyValuePair<string, string[]>("Cevaplar ve Oyun Denemeleri", new[] {
-                "Inverted Minors", "Forcing NT", "Jacoby 2NT", "Splinter", "Drury", "Bergen Raises", "Inverted Bergen Raises",
-                "Trial Bid", "Long & Short Game Tries", "İki Yönlü Checkback", "New Minor Forcing", "Wolff Signoff", "Fit Cue-Bid",
+                "Inverted Minors", "Forcing NT", "2/1 Game Force", "Jacoby 2NT", "Splinter", "Drury", "Bergen Raises", "Inverted Bergen Raises",
+                "Trial Bid", "Long & Short Game Tries", "İki Yönlü Checkback", "New Minor Forcing", "Wolff Signoff", "Fit Cue-Bid", "Semi-Forcing 1NT",
                 "XYZ (X-Y-Z)", "3. Renk Forsingi", "4. Renk Forsingi", "Reverse", "Weak Jump-Shift Resp.", "1m-2NT Invitational",
-                "German 2C Relays", "Walsh", "Preemptive Reraises", "Truscott 2NT" }),
+                "German 2C Relays", "Walsh", "Preemptive Reraises", "Truscott 2NT", "Kokish" }),
             new KeyValuePair<string, string[]>("Rekabet", new[] {
                 "Takeout Double", "Takeout Double Cevap", "Negative Double", "Support Double", "Support Double Cevap",
                 "Responsive Double", "Responsive Double Cevap", "Michaels", "Unusual 2NT", "Ghestem", "Cue Bid",
                 "Lebensohl (Reverse)", "Lebensohl (Zayıf 2)", "Weak Jump Overcalls", "Maximal Overcall Dbl.", "Artif. 2C/2D Resp. to 1M-X",
                 "Invisible Cue-Bids", "Limit-Plus Cue-Bids",
-                "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Sandwich 1NT", "Exit Transfer 1NT Runouts" }),
+                "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Yapay 2♣ Sonrası Kontra Stayman", "Sandwich 1NT", "Exit Transfer 1NT Runouts",
+                "Rubensohl", "Leaping Michaels", "Brozel", "Astro", "Helvic", "D.O.N.T. Escape",
+                "Rakip Renk Cue-Bid (Batı/Doğu)", "Unusual over Unusual", "Lead-Directing Double" }),
             new KeyValuePair<string, string[]>("Slam", new[] {
                 "Blackwood", "RKCB", "Gerber", "Kickback", "Exclusion Blackwood", "Koz Q Sorusu", "Pick-a-Slam", "Grand Slam Force",
                 "Serious 3NT", "Non-Serious 3NT", "DOPI-ROPI", "Specific King Asks", "Voluntary Five Major Bid",
-                "Mathe Asking Bids", "Control Asking Bids" })
+                "Mathe Asking Bids", "Control Asking Bids", "Lightner Double", "Last Train" })
         };
         public const string DigerKategori = "Diğer";
 

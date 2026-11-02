@@ -224,6 +224,7 @@ namespace BricKartOyunu
         private List<string> DagitimiUret()
         {
             if (PratikModu) return KonvansiyonPratigi.Deste(PratikDagitimlari[_pratikIndeks]);
+            if (_manuelDeste != null && _manuelDeste.Count == 52 && ManuelGirisModu()) return new List<string>(_manuelDeste);   // Kullanıcı girişi
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             DagitimProfili profil;
             int seed = _seed;
@@ -282,6 +283,7 @@ namespace BricKartOyunu
             _oyunAsamasi = OyunAsamasi.Baslangic;
             _currentTour = MacDurumu.SonrakiBordNo(_currentTour);   // 16'dan sonra 1
             DagiticiyiAyarla();
+            if (!ManuelGirisAl()) { Close(); return; }   // Kullanıcı girişi: eller elle girilir (İptal: oyun kapanır)
             activePlayer = _dealer;
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
@@ -491,66 +493,7 @@ namespace BricKartOyunu
         ///   - Deklaran (Güney değilse)
         ///   - Diğer defans oyuncusu
         /// </summary>
-        private void DeklaranVeDummyGoster()
-        {
-            // 🔹 KRİTİK DEĞİŞİKLİK: KartYerlesimiHazirla() ÇAĞIRMIYORUZ!
-            // Çünkü o metot tüm kartları açık şekilde yerleştiriyor.
-            // Bunun yerine sadece Güney ve Dummy'yi yerleştireceğiz.
 
-            Image backImg = GetBackImage();
-
-            // 1) TÜM KARTLARI KAPAT (Batı, Doğu, Kuzey)
-            // (Güney'i en son açacağız)
-            for (int i = 0; i < 13; i++)
-            {
-                if (kuzeyKartlar[i] != null)
-                {
-                    kuzeyKartlar[i].Image = backImg;
-                    kuzeyKartlar[i].Visible = true;
-                    if (backImg == null) kuzeyKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-                if (batiKartlar[i] != null)
-                {
-                    batiKartlar[i].Image = backImg;
-                    batiKartlar[i].Visible = true;
-                    if (backImg == null) batiKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-                if (doguKartlar[i] != null)
-                {
-                    doguKartlar[i].Image = backImg;
-                    doguKartlar[i].Visible = true;
-                    if (backImg == null) doguKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-                if (guneyKartlar[i] != null)
-                {
-                    guneyKartlar[i].Image = backImg;
-                    guneyKartlar[i].Visible = true;
-                    if (backImg == null) guneyKartlar[i].BackColor = AnaSayfa.MasaRengi;
-                }
-            }
-
-            // 2) GÜNEY'İN ELİNİ AÇ (insan oyuncu)
-            BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
-
-            // 3) DUMMY'Yİ AÇ
-            Player dummy = IhaleDurumu.PartnerBul(_kontratDeklaran);
-
-            if (dummy == Player.Kuzey)
-            {
-                BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
-            }
-            else if (dummy == Player.Bati)
-            {
-                BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY());
-            }
-            else if (dummy == Player.Dogu)
-            {
-                BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY());
-            }
-
-            // 4) Oyuncu badge'lerini güncelle
-            SetupPlayerBadges();
-        }
         private void HepsiniGoster()
         {
             KartYerlesimiHazirla();
@@ -593,30 +536,6 @@ namespace BricKartOyunu
             }
 
             BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true);
-            SetupPlayerBadges();
-        }
-
-        private void CurrentPlayerGoster()
-        {
-            Image backImg = GetBackImage();
-            if (backImg != null)
-            {
-                for (int i = 0; i < 13; i++)
-                {
-                    if (kuzeyKartlar[i] != null) kuzeyKartlar[i].Image = backImg;
-                    if (guneyKartlar[i] != null) guneyKartlar[i].Image = backImg;
-                    if (batiKartlar[i] != null) batiKartlar[i].Image = backImg;
-                    if (doguKartlar[i] != null) doguKartlar[i].Image = backImg;
-                }
-            }
-            switch (activePlayer)
-            {
-                case Player.Kuzey: BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true); break;
-                case Player.Guney: BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, 250, _guneyY, false, true); break;
-                case Player.Bati: BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, GetCenteredEWStartingY()); break;
-                // 💡 DÜZELTME: Varsayılan değer 930 yapıldı
-                case Player.Dogu: BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguKartlar[0]?.Left ?? 930, GetCenteredEWStartingY()); break;
-            }
             SetupPlayerBadges();
         }
 
@@ -768,6 +687,7 @@ namespace BricKartOyunu
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
             _currentTour = MacDurumu.SonrakiBordNo(_currentTour);   // 16'dan sonra 1
             DagiticiyiAyarla();
+            if (!ManuelGirisAl()) { Close(); return; }   // Kullanıcı girişi: eller elle girilir (İptal: oyun kapanır)
             activePlayer = _dealer;
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
@@ -932,13 +852,8 @@ namespace BricKartOyunu
         /// </summary>
         private string ZonDurumuMetni()
         {
-            int boardMod = ((_currentTour - 1) % 16) + 1;
-
-            bool nsZonda = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
-                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
-
-            bool ewZonda = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
-                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            bool nsZonda, ewZonda;
+            FizikselZon(out nsZonda, out ewZonda);
 
             if (nsZonda && ewZonda) return "Herkes";
             if (nsZonda) return "Kuzey/Güney";
@@ -1086,11 +1001,7 @@ namespace BricKartOyunu
         /// <summary>16'lı bord döngüsüne göre zon (risk) durumu.</summary>
         private void ZonDurumu(out bool ns, out bool ew)
         {
-            int boardMod = ((_currentTour - 1) % 16) + 1;
-            ns = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
-                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
-            ew = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
-                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            FizikselZon(out ns, out ew);
             // İnsan Doğu/Batı ise iç K-G çifti fiziksel D-B çiftidir
             if (KoltukHaritasi.CiftlerTers) { bool gecici = ns; ns = ew; ew = gecici; }
         }

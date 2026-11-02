@@ -1,0 +1,464 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BricKartOyunu.Class.Bidding.Conventions
+{
+    /// <summary>
+    /// 2/1 Game Force (Two Over One) — beşli majör açılışlarına (1♥/1♠) 2 seviyesinde, sıçramasız yeni renk
+    /// cevabı OYUNA KADAR zorlayıcıdır (12+ HP). Kaynak: Max Hardy "Two Over One Game Force", Bekir Dural "Two Over One".
+    ///
+    /// Cevaplayanın ilk teklifi (rakipsiz dizi):
+    ///   1♠–2♣/2♦ (4+ minör), 1♠–2♥ (5+ kupa), 1♥–2♣/2♦ (4+ minör). 12 HP'de 5+ kartlık renk gerekir.
+    ///   Majörde 4+ destek varsa 2/1 değil Jacoby 2NT / Splinter kullanılır (burada null).
+    ///   1♥ açılışında 4+ maça varsa doğal 1♠ söylenir (burada null).
+    ///   Pas geçmiş (passed hand) cevaplayan için 2/1 oyun zorlayıcı DEĞİLDİR (burada null).
+    ///
+    /// Açıcının rebid'i (önceliğe göre):
+    ///   1) Cevaplayanın majörüne (2♥) 3+ destek: minimum (≤14 HP) 4♥, fazla değerle 3♥.
+    ///   2) Cevaplayanın minörüne 4+ destek (ve altılı majör yok): 3 seviyesinde destek.
+    ///   3) Altılı majör: 2 seviyesinde majörü tekrar.
+    ///   4) 4+ kartlık ikinci renk (reverse sayılmaz, oyun zorlayıcı olduğu için).
+    ///   5) Dengeli + açılmayan renklerde durdurucu: 2NT (15+ HP: 3NT).
+    ///   6) Aksi halde beşli majörü tekrar.
+    ///
+    /// Devam turları: fit (toplam 8+ kart) bulununca majörde 4M, minörde 3NT; fit yoksa 3NT.
+    /// Cevaplayan 2. tur: açıcının majöründe 3 kartlı destek varsa 2M (min) / 3M (fazla), açıcı limit ettiyse (2M veya 2NT) 4M;
+    /// destek yoksa 6+ renk tekrarı, 5+/4+ ikinci renk, 2NT (12-14, minimum) ya da 3NT (15+).
+    /// Hiçbir şart altında oyun seviyesinin altında pas verilmez (Hepsi dizisi rakipsiz olduğu sürece).
+    ///
+    /// Sınırlar: slam araştırması (cue-bid, Blackwood) bu sınıfta yok; 20+ HP ile oyun seviyesi ihaleleri diğer
+    /// konvansiyonlara bırakılır (null). Rakip müdahale ederse tüm 2/1 mantığı devre dışıdır.
+    /// </summary>
+    internal sealed class IkiBirOyunZorlama : YeniKonvTaban
+    {
+        public override string Ad { get { return "2/1 Game Force"; } }
+        public override string Aciklama { get { return "1♥/1♠–2x (sıçramasız yeni renk) = oyuna kadar zorlayıcı, 12+ HP; açıcı betimler, oyun seviyesinden önce durulmaz"; } }
+
+        private static readonly string[] Renkler = { "Maça", "Kupa", "Karo", "Sinek" };
+
+        protected override string Karar(Dz z)
+        {
+            if (z.Hepsi.Count == 0) return null;
+
+            // Serbest artırma (Hardy): 1M–(2x) sonrası 3 seviyesinde yeni renk her zaman oyun zorlayıcıdır (5+ kart, 13+ HP)
+            if (z.Hepsi.Count == 2 && z.Hepsi[0].StartsWith("O:") && z.Hepsi[1] == "R:Dbl")
+                return KontrdanSonra(z);
+            if (z.Hepsi.Count == 2 && z.Hepsi[0].StartsWith("O:") && z.Hepsi[1].StartsWith("R:"))
+                return SerbestArtirma(z);
+
+            // Cevaplayan: 1M–(2x)–3y–pas–açıcının cevabı; GF olduğundan oyun seviyesine kadar pas yok
+            if (z.Hepsi.Count == 4 && z.Hepsi[0].StartsWith("O:") && z.Hepsi[1].StartsWith("R:") && z.Hepsi[2].StartsWith("B:") && z.Hepsi[3].StartsWith("O:"))
+                return CevapciSerbestDevam(z);
+
+            // Açıcı: 1M–(2x)–3y serbest artırması (oyun zorlayıcı); sağ rakip pas geçti → oyun seviyesinden önce pas yok
+            if (z.Hepsi.Count == 3 && z.Hepsi[0].StartsWith("B:") && z.Hepsi[1].StartsWith("L:") && z.Hepsi[2].StartsWith("O:"))
+                return AciciSerbestCevap(z);
+
+            // Yalnızca rakipsiz (rakip pas dışında konuşmamış) diziler
+            foreach (string h in z.Hepsi)
+                if (h.StartsWith("L:") || h.StartsWith("R:")) return null;
+
+            bool benAcici = z.Hepsi[0].StartsWith("B:");
+            if (!benAcici && !z.Hepsi[0].StartsWith("O:")) return null;
+
+            string m = YK2.BirRenk(z.Hepsi[0], benAcici ? "B" : "O");
+            if (m == null || !(YK.Major(m) || m == "Karo")) return null;
+
+            // Cevaplayan daha önce pas geçtiyse (passed hand) 2/1 oyun zorlayıcı değildir
+            Player cevaplayan = benAcici ? z.D.Partner : z.D.AktifOyuncu;
+            if (z.D.Gecmis.Any(h => h.PasMi && h.Oyuncu == cevaplayan)) return null;
+
+            // 1) Cevaplayanın ilk teklifi
+            if (z.Hepsi.Count == 1)
+                return benAcici ? null : IlkCevap(z, m);
+
+            // 2) Oyun zorlayıcı 2/1 cevabı gerçekten verilmiş mi?
+            if (!z.Hepsi[1].StartsWith(benAcici ? "O:" : "B:")) return null;
+            string t1 = YK.Cagri(z.Hepsi[1]);
+            if (YK.Sev(t1) != 2) return null;
+            string s = YK.KozOf(t1);
+            if (s == null || s == "NT" || s == m) return null;
+            if (!(s == "Karo" || s == "Sinek" || (m == "Maça" && s == "Kupa"))) return null;   // 1♥–2♠ sıçramalıdır
+            if (m == "Karo" && s != "Sinek") return null;                                    // minör açılışta tek 2/1: 1♦–2♣
+
+            // Sıra bende: ortağın son çağrısı olmalı
+            if (!z.Hepsi[z.Hepsi.Count - 1].StartsWith("O:")) return null;
+
+            if (benAcici && z.Hepsi.Count == 2) return AciciRebid(z, m, s);
+            return Devam(z, benAcici, m, s);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CEVAPLAYANIN İLK TEKLİFİ
+        // ═══════════════════════════════════════════════════════════════════
+
+        private static string CevapciSerbestDevam(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "O");
+            if (m == null || !YK.Major(m)) return null;
+            string ov = YK.Cagri(z.Hepsi[1]), mine = YK.Cagri(z.Hepsi[2]), son = YK.Cagri(z.Hepsi[3]);
+            string ovS = YK.KozOf(ov), y = YK.KozOf(mine), sr = YK.KozOf(son);
+            if (ovS == null || ovS == "NT" || YK.Sev(ov) != 2 || y == null || y == "NT" || YK.Sev(mine) != 3) return null;
+            if (son == "3NT" || (sr == m && YK.Sev(son) >= 4)) return z.Hp >= 18 ? null : "Pas";
+            if (sr == m && YK.Sev(son) == 3)                       // açıcı majörü tekrarladı: fit varsa 4M
+            {
+                if (z.Uz(m) >= 2) return YK.T(4, m);
+                return ElDegerlendirici.StopperVar(z.El, ovS) ? "3NT" : null;
+            }
+            if (sr == y && YK.Sev(son) == 4)                       // açıcı benim rengimi destekledi
+                return YK.Major(y) ? (z.Hp >= 18 ? null : "Pas") : (z.Hp >= 16 ? null : YK.T(5, y));
+            return null;
+        }
+
+        private static string KontrdanSonra(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "O");
+            if (m == null || !YK.Major(m)) return null;
+            if (z.D.Gecmis.Any(h => h.PasMi && h.Oyuncu == z.D.AktifOyuncu)) return null;   // pastan gelen cevapçı
+            if (z.Uz(m) >= 3 || z.Hp < 6) return null;               // fit: raise/Jordan/Truscott çağrıları öncelikli
+            if (m == "Kupa" && z.Maca >= 4) return null;             // 1♥–(X)–1♠ doğal ve zorlayıcı
+            // Majörde kısa (tekli/void) + 5 kartlık renk, zayıf/orta el: iki seviyesinde doğal, forsing olmayan renk
+            if (z.Uz(m) <= 1 && z.Hp <= 11)
+            {
+                string en = null; int enUz = 0;
+                foreach (string r in Renkler)
+                {
+                    if (r == m || z.Uz(r) < 5) continue;
+                    if (z.Uz(r) > enUz) { en = r; enUz = z.Uz(r); }
+                }
+                if (en != null) return YK.T(2, en);
+            }
+            // 10+ HP (Hardy: 9+ iyi değerler) ve uygun doğal çağrısı yok: sürkontur
+            if (z.Hp >= 10 && z.Uz(m) <= 2) return "Rdbl";
+            return null;
+        }
+
+        private static string AciciSerbestCevap(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "B");
+            if (m == null || !YK.Major(m)) return null;
+            string ov = YK.Cagri(z.Hepsi[1]), son = YK.Cagri(z.Hepsi[2]);
+            string ovS = YK.KozOf(ov), y = YK.KozOf(son);
+            if (ovS == null || ovS == "NT" || YK.Sev(ov) != 2 || y == null || y == "NT" || y == m || y == ovS || YK.Sev(son) != 3) return null;
+            if (YK.Major(y) && z.Uz(y) >= 3) return YK.T(4, y);                         // majör fiti
+            if (z.Uz(m) >= 6 && YK2.Yuksek(YK.T(3, m), son)) return YK.T(3, m);       // altılı majör
+            if (ElDegerlendirici.StopperVar(z.El, ovS)) return "3NT";                   // rakip renginde durdurucu
+            if (z.Uz(y) >= 3) return YK.T(4, y);                                        // minör fiti
+            if (z.Uz(m) >= 5 && YK2.Yuksek(YK.T(3, m), son)) return YK.T(3, m);       // beşli majörü tekrar (forsing)
+            return "3NT";
+        }
+
+        private static string SerbestArtirma(Dz z)
+        {
+            string m = YK2.BirRenk(z.Hepsi[0], "O");
+            if (m == null || !YK.Major(m)) return null;
+            if (z.D.Gecmis.Any(h => h.PasMi && h.Oyuncu == z.D.AktifOyuncu)) return null;   // pastan gelen cevapçı
+            string ov = YK.Cagri(z.Hepsi[1]);
+            string ovS = YK.KozOf(ov);
+            if (ovS == null || ovS == "NT" || YK.Sev(ov) != 2) return null;
+            if (z.Hp < 13 || z.Uz(m) >= 3) return null;      // 3+ destek: destek/limit-plus çağrıları öncelikli
+            string en = null; int enUz = 0;
+            foreach (string r in Renkler)
+            {
+                if (r == m || r == ovS || z.Uz(r) < 5) continue;
+                if (YK2.Yuksek(YK.T(2, r), ov)) continue;     // 2 seviyesinde söylenebiliyorsa normal akış
+                if (z.Uz(r) > enUz) { en = r; enUz = z.Uz(r); }
+            }
+            return en == null ? null : YK.T(3, en);
+        }
+
+        private static string IlkCevap(Dz z, string m)
+        {
+            int uzun = Math.Max(Math.Max(z.Maca, z.Kupa), Math.Max(z.Karo, z.Sinek));
+            if (m == "Karo")   // 1♦–2♣: oyun zorlayıcı, 13+ HP, 5+ sinek, 4'lü majör yok
+                return (z.Hp >= 13 && z.Sinek >= 5 && z.Maca < 4 && z.Kupa < 4) ? "2♣" : null;
+            if (z.Hp < 13) return null;   // 2/1 = 13+ HP
+            if (z.Uz(m) >= 4) return null;                 // 4+ destek: Jacoby 2NT / Splinter
+            if (m == "Kupa" && z.Maca >= 4) return null;   // 1♥–1♠ doğal ve zorlayıcıdır
+
+            string en = null;
+            int enUz = 0;
+            // Düşükten yükseğe dolaşılır; eşit uzunlukta yüksek renk kalır
+            foreach (string r in new[] { "Sinek", "Karo", "Kupa" })
+            {
+                if (r == "Kupa" && m != "Maça") continue;  // 1♥–2♥ değil; 1♠–2♥ 5+ ister
+                int min = (r == "Kupa") ? 5 : 4;
+                int u = z.Uz(r);
+                if (u < min) continue;
+                if (u >= enUz) { en = r; enUz = u; }
+            }
+            return en == null ? null : YK.T(2, en);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // AÇICININ REBID'İ (1M – 2x – ?)
+        // ═══════════════════════════════════════════════════════════════════
+
+        // 1♦–2♣ (GF) sonrası açıcı: sinek desteği 3♣, 4'lü majör doğal 2M, dengeli 12-14 2NT / 18-19 3NT, aksi halde 2♦
+        private static string AciciRebidKaro(Dz z)
+        {
+            int hp = z.Hp;
+            // Max Hardy: 5+ karo varsa önce 2♦ (majör göstermek 5+ karoyu inkâr eder); sonra 4'lü majör (reverse değil);
+            // dengeli ve uygunsa 2NT (iki majör 4'lü olsa bile), 18-20'de 3NT; sinekte 4+ destek 3♣
+            if (z.Karo >= 5) return "2♦";
+            if (z.Kupa >= 4) return "2♥";
+            if (z.Maca >= 4) return "2♠";
+            if (ElDegerlendirici.DengeliEl(z.El))
+                return hp >= 18 ? "3NT" : "2NT";
+            if (z.Sinek >= 4) return "3♣";
+            return "2♦";
+        }
+
+        private static string AciciRebid(Dz z, string m, string s)
+        {
+            if (m == "Karo") return AciciRebidKaro(z);
+            int mUz = z.Uz(m);
+            int sUz = z.Uz(s);
+            int hp = z.Hp;
+            bool sMajor = YK.Major(s);
+            string ortSon = YK.T(2, s);
+
+            if (sMajor && sUz >= 3)
+                return hp <= 14 ? YK.T(4, s) : YK.T(3, s);          // hızlı varış / fazla değerli destek
+
+            if (!sMajor && sUz >= 4 && mUz < 6)
+                return YK.T(3, s);                                  // minör desteği
+
+            if (mUz >= 6)
+                return YK.T(2, m);                                  // altılı majör
+
+            string y = null;
+            int yUz = 0, ySev = 9;
+            foreach (string r in Renkler)
+            {
+                if (r == m || r == s) continue;
+                int u = z.Uz(r);
+                if (u < 4) continue;
+                int sev = YK2.Yuksek(YK.T(2, r), ortSon) ? 2 : 3;
+                // Max Hardy: 2/1'den sonra açıcının daha pahalı renk rebid'i reverse DEĞİLDİR (oyun zaten zorlayıcı);
+                // 1♥–2x–2♠ ancak 5+ kupa ile 4'lü maçayı gösterir (4-4'te maça sonradan gösterilir).
+                if (m == "Kupa" && r == "Maça" && z.Uz("Kupa") < 5) continue;
+                if (u > yUz || (u == yUz && sev < ySev)) { y = r; yUz = u; ySev = sev; }
+            }
+            if (y != null) return YK.T(ySev, y);                    // doğal ikinci renk
+
+            // Max Hardy: 2NT = minimum, dengeli, açılmayan renklerde durdurucu; 18-20 dengeli → 3NT
+            if (ElDegerlendirici.DengeliEl(z.El) && Durdurucular(z, m, s))
+                return hp >= 18 ? "3NT" : "2NT";
+
+            return mUz >= 5 ? YK.T(2, m) : "2NT";                   // son çare: beşli majörü tekrar
+        }
+
+        private static bool Durdurucular(Dz z, string m, string s)
+        {
+            foreach (string r in Renkler)
+            {
+                if (r == m || r == s) continue;
+                if (!ElDegerlendirici.StopperVar(z.El, r)) return false;
+            }
+            return true;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // DEVAM TURLARI (iki taraf da oyuna kadar konuşur)
+        // ═══════════════════════════════════════════════════════════════════
+
+        // Serious 3NT sonrası: cue edilmiş renkler (ikinci tur dahil) örtülü sayılır. Kalan her yan renkte kontrolüm
+        // (As, Papaz, tekli ya da void) varsa 4NT (RKCB); yoksa ortağın cue'sunun üstünde en ucuz kontrol rengini cue ederim;
+        // hiçbiri yoksa 4M ile dururum.
+        private static string SeriousKontrolDevam(Dz z, string m, string son, bool baslatan)
+        {
+            var ortulu = new HashSet<string>();
+            for (int i = 5; i < z.Hepsi.Count; i++)
+            {
+                string k = YK.KozOf(YK.Cagri(z.Hepsi[i]));
+                if (k != null && k != "NT") ortulu.Add(k);
+            }
+            Func<string, bool> kont = r => z.Uz(r) <= 1 || z.El.Any(c => c.Suit == r && (c.Value == 14 || c.Value == 13));
+            var acik = Renkler.Where(r => r != m && !ortulu.Contains(r)).ToList();
+            if (acik.All(kont))
+                return (baslatan || z.Hp >= 11) ? "4NT" : YK.T(4, m);
+            foreach (string r in new[] { "Sinek", "Karo", "Kupa" })
+            {
+                if (r == m || ortulu.Contains(r)) continue;
+                string aday = YK.T(4, r);
+                if (!YK2.Yuksek(aday, son) || YK2.Yuksek(aday, YK.T(4, m))) continue;
+                if (z.Uz(r) == 0 || z.El.Any(c => c.Suit == r && (c.Value == 14 || c.Value == 13))) return aday;
+            }
+            return YK2.Yuksek(YK.T(4, m), son) ? YK.T(4, m) : null;
+        }
+
+        private static string Devam(Dz z, bool benAcici, string m, string s)
+        {
+            string son = YK.Cagri(z.Hepsi[z.Hepsi.Count - 1]);
+            // Açıcının niceliksel 4NT'si (16-17 HP) cevaplayanın doğal 3NT'sinden sonra: 17 HP'de 6NT, aksi halde pas.
+            if (!benAcici && son == "4NT" && z.Hepsi.Count == 5 && z.Hepsi[3] == "B:3NT")
+                return z.Hp >= 17 ? "6NT" : "Pas";
+
+            // Cevaplayanın doğal 3NT'si (15-17 HP, fit yok): açıcıda 16+ HP varsa toplam 31+ → 4NT (niceliksel), 18+ → 6NT.
+            if (benAcici && son == "3NT" && z.Hepsi.Count <= 4 && z.Hp >= 16 && z.Hepsi.Count(h => h.StartsWith("B:") && YK.Cagri(h) == "4NT") == 0)
+                return z.Hp >= 18 ? "6NT" : "4NT";
+
+            // Cevaplayanın splinter'ı (1M-2x-2M-4y / 1♥-2x-2♥-3♠): açıcı kısa rengindeki değerleri (K,Q,J) boşa giden sayar;
+            // kalan değeri 17+ ise 4NT (RKCB), aksi halde 4M ile durur (Hardy).
+            if (benAcici && YK.Major(m) && z.Hepsi.Count == 4 && z.Hepsi[2] == "B:" + YK.T(2, m) && z.Hepsi[3].StartsWith("O:")
+                && YK.KozOf(son) != null && YK.KozOf(son) != "NT" && YK.KozOf(son) != m && YK.KozOf(son) != s
+                && (YK.Sev(son) == 4 || (YK.Sev(son) == 3 && m == "Kupa" && YK.KozOf(son) == "Maça")))
+            {
+                string kisa = YK.KozOf(son);
+                int bos = z.El.Where(c => c.Suit == kisa).Sum(c => c.Value == 13 ? 3 : c.Value == 12 ? 2 : c.Value == 11 ? 1 : 0);
+                return (z.Hp - bos >= 17) ? "4NT" : YK.T(4, m);
+            }
+            // Serious 3NT sonrası kontrol cue-bid'leri (Hardy/Wold): 4 seviyesinde yan renk cue'su
+            if (YK.Major(m) && z.Hepsi.Count >= 6 && z.Hepsi[4].EndsWith(":3NT") && z.Hepsi[2].EndsWith(":" + YK.T(2, m))
+                && z.Hepsi[3].EndsWith(":" + YK.T(3, m)) && z.Hepsi[4][0] == z.Hepsi[0][0] && z.Hepsi[2][0] == z.Hepsi[0][0]
+                && YK.Sev(son) == 4 && YK.KozOf(son) != m && YK.KozOf(son) != "NT")
+            {
+                string sr = SeriousKontrolDevam(z, m, son, z.Hepsi[4][0] == 'B');
+                if (sr != null) return sr;
+            }
+            // Serious 3NT (Hardy/Wold): majör fiti 3 seviyesinde kurulduktan sonra 3NT doğal değil, ciddi şlem ilgisidir.
+            // Cevap (kontrol cue-bid'i ya da 4M) Serious3NT/CueBid konvansiyonlarına bırakılır.
+            if (son == "3NT" && YK.Major(m) && !benAcici && z.Hepsi.Count == 5 && z.Hepsi[3] == "B:" + YK.T(3, m) && z.Hepsi[2] == "O:" + YK.T(2, m))
+            {
+                // Cevap: en ucuz birinci tur kontrol (As ya da void) 4 seviyesinde cue-bid; yoksa 4M ile dur.
+                foreach (string r in new[] { "Sinek", "Karo", "Kupa" })
+                {
+                    if (r == m || z.Uz(r) == 0 && false) continue;
+                    if (r == "Kupa" && m != "Maça") continue;
+                    bool kontrol = z.Uz(r) == 0 || z.El.Any(c => c.Suit == r && c.Value == 14);
+                    if (kontrol) return YK.T(4, r);
+                }
+                return YK.T(4, m);
+            }
+            if (son == "3NT" || YK.Sev(son) >= 4)
+            {
+                // Ortak oyun seviyesini söyledi. Slam değeri yoksa (20+ HP) ve başka bir 4+ seviye çağrı yapılmadıysa pas:
+                // bilinçli pas (IBilincliPas), böylece Blackwood vb. gereksiz yere araya girmez.
+                bool oyunCagrisi = son == "3NT" || (YK.Sev(son) == 4 && YK.Major(YK.KozOf(son)));
+                int yuksekCagri = z.Hepsi.Count(h => YK.Sev(YK.Cagri(h)) >= 4 || YK.Cagri(h) == "3NT");
+                if (oyunCagrisi && yuksekCagri == 1 && z.Hp < 20) return "Pas";
+                return null;
+            }
+            // Slam değeri (18+ HP): çok turlu GF devamı, Serious 3NT / kontrol çağrısı / Blackwood gibi konvansiyonlara bırakılır
+            if (z.Hp >= 18) return null;
+            string sonRenk = YK.KozOf(son);
+            int hp = z.Hp;
+            int sonSev = YK.Sev(son);
+
+            Dictionary<string, int> pm = OrtakUzunluk(z, benAcici, m);
+
+            string fit = null;
+            foreach (string r in Renkler)
+                if (pm[r] > 0 && z.Uz(r) + pm[r] >= 8) { fit = r; break; }
+
+            // Max Hardy: açıcı majörünü tekrarladı (2M); cevaplayanda 3+ koz, 15-17 HP ve bir kısalık varsa
+            // kısalık renginde sıçramalı splinter (şilem araştırması). Kısalık, 2/1 renginde olamaz.
+            if (!benAcici && z.Hepsi.Count == 3 && fit == m && sonRenk == m && sonSev == 2 && hp >= 15 && z.Uz(m) >= 3)
+            {
+                string kisa = null; int kisaUz = 2;
+                foreach (string r in Renkler)
+                {
+                    if (r == m || r == s) continue;
+                    int u = z.Uz(r);
+                    if (u < kisaUz) { kisa = r; kisaUz = u; }
+                }
+                if (kisa != null) return YK.T((m == "Kupa" && kisa == "Maça") ? 3 : 4, kisa);
+            }
+
+            // Açıcı: cevaplayan majöre 3 seviyesinde destek verdi (şlem denemesi, 16-17 HP). Açıcıda fazlalık (15+ HP)
+            // varsa Serious 3NT ile cevap verilir (Serious3NT konvansiyonuna bırak); minimumda 4M.
+            if (benAcici && z.Hepsi.Count == 4 && z.Hepsi[2] == "B:" + YK.T(2, m) && YK.Major(m) && fit == m && sonRenk == m && sonSev == 3 && hp >= 15) return null;
+
+            // Açıcı: cevaplayan 2NT dedi (minimum, fit/2. renk yok). Açıcıda 5+ kartlık bildirilmemiş 2. renk varsa 3 seviyesinde doğal göster.
+            if (benAcici && z.Hepsi.Count == 4 && son == "2NT")
+            {
+                foreach (string r in Renkler)
+                    if (r != m && r != s && BenimSay(z, r) == 0 && z.Uz(r) >= 5 && YK2.Yuksek(YK.T(3, r), son)) return YK.T(3, r);
+            }
+
+            // Cevaplayanın 2. turu: açıcının majöründe fit
+            if (!benAcici && z.Hepsi.Count == 3 && fit == m && YK.Major(m))
+            {
+                if (hp >= 20) return null;
+                if (sonRenk == m && sonSev >= 3) return YK.T(4, m);
+                bool limit = (sonRenk == m) || son == "2NT";        // açıcı elini limit etti
+                if (limit) return hp <= 15 ? YK.T(4, m) : YK.T(3, m);
+                string iki = YK.T(2, m);
+                if (sonSev == 2 && YK2.Yuksek(iki, son)) return hp <= 14 ? iki : YK.T(3, m);
+                return hp <= 14 ? YK.T(4, m) : YK.T(3, m);
+            }
+
+            // Genel fit: majörde 4M, minörde 3NT
+            if (fit != null)
+            {
+                if (hp >= (YK.Major(fit) ? 20 : 17)) return null;   // slam bölgesi: diğer konvansiyonlara bırakılır (minörde 17+)
+                // Minör açılışta açıcının 2. rengi majörde fit (cevaplayan 15+ HP): 4M yerine 3M ile şlem ilgisi (4M atlamaz)
+                if (!benAcici && z.Hepsi.Count == 3 && YK.Major(fit) && !YK.Major(m) && hp >= 15 && sonSev == 2 && YK2.Yuksek(YK.T(3, fit), son))
+                    return YK.T(3, fit);
+                if (!YK.Major(fit) && z.Uz(fit) >= 5 && z.Uz(fit) + pm[fit] >= 9 && Renkler.Any(r => z.Uz(r) <= 1) && YK2.Yuksek(YK.T(4, fit), son))
+                    return YK.T(4, fit);                          // 9+ kartlık minör uyumu (kendi 5+) + kısalık/void: 3NT yerine 4m
+                return YK.Major(fit) ? YK.T(4, fit) : "3NT";
+            }
+
+            // Kendi 6+ rengimi (bir ya da iki kez söylemişsem) 3 seviyesinde tekrar
+            foreach (string r in Renkler)
+            {
+                if (z.Uz(r) < 6 || BenimSay(z, r) < 1 || BenimSay(z, r) > 2) continue;
+                string aday = YK.T(3, r);
+                if (YK2.Yuksek(aday, son)) return aday;
+            }
+
+            // Cevaplayan: 5+ renk ve 4+ ikinci renk
+            if (!benAcici && z.Hepsi.Count == 3 && z.Uz(s) >= 5)
+            {
+                foreach (string r in Renkler)
+                {
+                    if (r == m || r == s || pm[r] > 0 || z.Uz(r) < 4) continue;
+                    if (!YK.Major(m) && son == "2NT" && YK.Major(r)) continue;   // minör açılış + 2NT rebidi: açıcı 4'lü majörü yok (Hardy), majör aramak anlamsız
+                    string iki = YK.T(2, r);
+                    if (YK2.Yuksek(iki, son)) return iki;
+                    string uc = YK.T(3, r);
+                    if (YK2.Yuksek(uc, son)) return uc;
+                }
+            }
+
+            // Fit yok: minimum cevaplayan 2NT, aksi halde 3NT
+            if (!benAcici && z.Hepsi.Count == 3 && hp <= 14 && son != "2NT" && sonSev == 2)
+                return "2NT";
+            return "3NT";
+        }
+
+        /// <summary>Ortağın çağrılarından her renkte gösterdiği asgari uzunluk.</summary>
+        private static Dictionary<string, int> OrtakUzunluk(Dz z, bool benAcici, string m)
+        {
+            var pm = new Dictionary<string, int>();
+            var sayi = new Dictionary<string, int>();
+            var benim = new HashSet<string>();
+            foreach (string r in Renkler) { pm[r] = 0; sayi[r] = 0; }
+
+            foreach (string h in z.Hepsi)
+            {
+                string r = YK.KozOf(YK.Cagri(h));
+                if (r == null || r == "NT") continue;
+                if (h.StartsWith("B:")) { benim.Add(r); continue; }
+
+                sayi[r]++;
+                int min;
+                if (benim.Contains(r)) min = YK.Major(r) ? 3 : 4;                  // benim rengime destek
+                else if (sayi[r] >= 2) min = benAcici ? 6 : (r == m && YK.Sev(YK.Cagri(h)) == 3 ? 6 : 5);   // aynı rengi tekrar: cevaplayan 6+, açıcı 5+; açıcının sıçramalı 3M rebidi 6+ (Hardy)
+                else if (r == m && !benAcici) min = YK.Major(r) ? 5 : 4;                             // açıcının majörü
+                else if (r == "Kupa" && m == "Maça" && benAcici) min = 5;          // 1♠–2♥
+                else min = 4;
+                if (min > pm[r]) pm[r] = min;
+            }
+            return pm;
+        }
+
+        private static int BenimSay(Dz z, string renk)
+        {
+            return z.Hepsi.Count(h => h.StartsWith("B:") && YK.KozOf(YK.Cagri(h)) == renk);
+        }
+    }
+}
