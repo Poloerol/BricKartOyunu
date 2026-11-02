@@ -111,6 +111,9 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool ForcingNT { get; set; } = true;
 
+        /// <summary>2/1 Game Force: 1♥/1♠ açılışına sıçramasız 2 seviyesi yeni renk cevabı oyuna kadar zorlayıcıdır (5'li majör gerekir).</summary>
+        public bool IkiBirOyunZorlama { get; set; } = true;
+
         // ═══════════════════════════════════════════════════════════════════
         // 1NT/2NT CEVAP SİSTEMİ
         // ═══════════════════════════════════════════════════════════════════
@@ -180,6 +183,18 @@ namespace BricKartOyunu.Class.Bidding
         public bool Serious3NT { get; set; } = true;
         public bool NonSerious3NT { get; set; } = false;
         public bool LastTrain { get; set; } = false;
+        public bool DopiRopi { get; set; } = true;      // Blackwood/RKCB'ye rakip müdahalesinde cevap (DOPI/ROPI)
+        public bool FitCueBid { get; set; } = true;     // Rakip müdahalesinde fit gösteren cue-bid
+
+        // ── Çekirdek ek konvansiyonlar (varsayılan KAPALI) ──
+        public bool Quantitative4NT { get; set; } = false;
+        public bool TexasTransfers { get; set; } = false;
+        public bool MinorStayman { get; set; } = false;
+        public bool Flannery { get; set; } = false;
+        public bool Kokish { get; set; } = false;
+        public bool Rubensohl { get; set; } = false;
+        public bool LeapingMichaels { get; set; } = false;
+        public bool LightnerDouble { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // RAKİP MÜDAHALESİ
@@ -206,10 +221,63 @@ namespace BricKartOyunu.Class.Bidding
 
         public bool UDCA { get; set; } = false;
         public bool StandartSignal { get; set; } = true;
+        public bool OddEvenDiscards { get; set; } = false;
+        public bool Lavinthal { get; set; } = false;
+        public bool SmithEcho { get; set; } = false;
+
+        // Sinyaller formu seçimleri (tam sayı: radyo = seçenek sırası, onay kutusu = 0/1). Bayrak olmadıkları için
+        // konvansiyon listelerinde görünmezler. UDCA/Tek-Çift/Lavinthal/Smith echo yukarıdaki bayraklara da yansır.
+        public int SigAnySignal { get; set; } = 0;              // 0 evet, 1 hayır
+        public int SigFirstDiscardRelevant { get; set; } = 0;   // 0 evet, 1 hayır
+        public int SigPrimary { get; set; } = 1;                // 0 sayı, 1 tutum, 2 tek/çift
+        public int SigSmithPartner { get; set; } = 0;           // 0 yok, 1 yüksek-alçak, 2 alçak-yüksek
+        public int SigSmithLeader { get; set; } = 0;
+        public int SigCountHighLow { get; set; } = 0;           // 0 çift, 1 tek
+        public int SigCountOpp { get; set; } = 0;               // 0 evet, 1 hayır
+        public int SigFirstDiscard { get; set; } = 0;           // 0 tutum, 1 sayı, 2 tek/çift, 3 Lavinthal, 4 dönüşümlü
+        public int SigAttitudeHigh { get; set; } = 0;           // 0 teşvik, 1 caydırır
+        public int SigTrump { get; set; } = 2;                  // 0 Vinje, 1 yok, 2 3+ ile yüksek-alçak
+        public int LeadSuitStyle { get; set; } = 1;            // 0 üçüncü/beşinci, 1 dördüncü
+        public int LeadNTStyle { get; set; } = 1;              // 0 üçüncü/beşinci, 1 dördüncü, 2 en düşük
+        public int LeadSuitRusinow { get; set; } = 0;
+        public int LeadSuitJournalist { get; set; } = 0;
+        public int LeadSuitZeroTwo { get; set; } = 0;
+        public int LeadSuitMud { get; set; } = 0;
+        public int LeadNTJournalist { get; set; } = 0;
+        public int LeadNTZeroTwo { get; set; } = 0;
+        public int LeadNTMud { get; set; } = 0;
+
+        // Ortaklık sihirbazı: motorda henüz karşılığı olmayan seçenekler profilde saklanır (tam sayı alanları).
+        // StrongNT, Stayman, MinorTransfer vb. bayraklarla birlikte çözümlenir; bayrak asıl kaynaktır.
+        public int NT1Range { get; set; } = 5;                 // 0 10-12, 1 11-13, 2 12-14, 3 13-15, 4 14-16, 5 15-17, 6 16-18
+        public int NT1Allow5422 { get; set; } = 1;
+        public int NT1AllowSingletonHonor { get; set; } = 0;
+        public int NT1Allow5Major { get; set; } = 1;
+        public int NT1Allow6Minor { get; set; } = 1;
+        public int NT1Puppet { get; set; } = 0;                // 1NT-2♣ Puppet Stayman
+        public int NT1MinorBid { get; set; } = 0;              // 2 = 1NT-2♠ röle, 3 = süper kabullü minör transfer
+        public int NT1DefenseX { get; set; } = 0;              // 1 Brozel, 2 Astro
+        public int NT1RunoutX { get; set; } = 0;               // 3 D.O.N.T. kaçış, 4 Helvic
+        public int MajorRaiseLimit { get; set; } = 0;          // 1 limit majör raise'ler
+        public int GameTryShort { get; set; } = 0;             // 1 kısa renk denemesi
+        public int NTSemiForcing { get; set; } = 0;            // 1 yarı zorlayıcı 1NT
+        public int MinorShortClub { get; set; } = 0;           // 1 kısa sinek
+        public int CheckbackCrowhurst { get; set; } = 0;
+        public int FourthOneRound { get; set; } = 0;           // 1 dördüncü renk bir tur zorlayıcı
+        public int LebensohlWeakTwo { get; set; } = 1;
+        public int NT2Range { get; set; } = 1;                 // 0-4: 19-20 … 23-24; 5-8: 19-21 … 22-24
+        public int NT2Natural { get; set; } = 0;               // 1 = 2NT-3♣ doğal
+        public int GrandSlamForce { get; set; } = 1;
+        public int ForumD { get; set; } = 0;
+        public int NegDblLimit { get; set; } = 4;              // 0 1♠ … 4 2♠ … 8 3♠
+        public int UnusualOverUnusual { get; set; } = 0;
+        public int CueStyle { get; set; } = 0;                 // 1 batı, 2 doğu
+        public int LaMajeure { get; set; } = 0;
+        public int LeadDirectingDbl { get; set; } = 0;
 
         // ═══════════════════════════════════════════════════════════════════
         // AGRESİFLİK VE BECERİ (Bridge Baron tarzı profil ayarları)
-        // -1 = Temkinli, 0 = Orta (varsayılan davranış), +1 = Atak
+        // -2 = Çok temkinli, -1 = Temkinli, 0 = Orta (varsayılan davranış), +1 = Atak, +2 = Çok atak
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>Açılış: -1 yalnız 12+ HP, 0 12+ HP veya 11 HP + 20 kuralı, +1 10 HP + 20 kuralı da açar.</summary>
@@ -221,49 +289,37 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>Kart oyunu becerisi 1-20. 20 = hatasız (varsayılan); düşükse yapay zekâ ara sıra rastgele yasal kart oynar.</summary>
         public int BeceriDuzeyi { get; set; } = 20;
 
+        // Düzey ayarları (Bridge Baron "Level Settings"): karar başına en çok düşünme süresi, saniye (0-15).
+        // Kart oyunu motoru (PIMC) bu süre içinde olabildiğince çok olası dağılım çözer; 0 = o elde sezgisel kurallar.
+        // İhale ve açılış atağı kural/sezgisel tabanlıdır: bu iki ayar saklanır, karar vermeyi etkilemez.
+        public int SureIhale { get; set; } = 1;
+        public int SureAtak { get; set; } = 1;
+        public int SureEl1 { get; set; } = 1;     // 1. elde atak dışındaki kartlar
+        public int SureEl2 { get; set; } = 1;
+        public int SureEl3 { get; set; } = 1;
+        public int SureEl4 { get; set; } = 1;
+        public int SureEl5 { get; set; } = 1;
+        public int SureEl6 { get; set; } = 1;
+        public int SureEl7 { get; set; } = 1;
+        public int SureEl8 { get; set; } = 1;
+        public int SureEl9 { get; set; } = 1;
+        public int SureEl10 { get; set; } = 1;
+        public int SureEl11 { get; set; } = 1;
+        public int SureEl12 { get; set; } = 1;
+
+        /// <summary>El başına süre sınırı (ms); dizin = biten el sayısı (0 = 1. el … 11 = 12. el).</summary>
+        public int[] ElSureleriMs()
+        {
+            int[] s = { SureEl1, SureEl2, SureEl3, SureEl4, SureEl5, SureEl6, SureEl7, SureEl8, SureEl9, SureEl10, SureEl11, SureEl12 };
+            for (int i = 0; i < s.Length; i++) s[i] = Math.Max(0, Math.Min(15, s[i])) * 1000;
+            return s;
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         // FABRİKA METOTLARI
         // ═══════════════════════════════════════════════════════════════════
 
         /// <summary>Varsayılan anlaşma + adı verilen ek (Bridge Baron) konvansiyonu açık; pratik modu için.</summary>
-        public static OrtaklikAnlasmasi EkKonvansiyonIcin(string ad)
-        {
-            var a = Varsayilan();
-            switch (ad)
-            {
-                case "Benjamin Two-Bids": a.BenjaminTwoBids = true; break;
-                case "Extended Stayman": a.ExtendedStayman = true; break;
-                case "Hello over 1NT": a.HelloOver1NT = true; break;
-                case "Truscott 2NT": a.Truscott2NT = true; break;
-                case "Preemptive Reraises": a.PreemptiveReraises = true; break;
-                case "Long & Short Game Tries": a.LongShortGameTries = true; break;
-                case "New Minor Forcing": a.NewMinorForcing = true; break;
-                case "Weak Jump-Shift Resp.": a.WeakJumpShiftResp = true; break;
-                case "Ogust": a.Ogust = true; break;
-                case "Gambling 3NT": a.Gambling3NT = true; break;
-                case "Specific King Asks": a.SpecificKingAsks = true; break;
-                case "Voluntary Five Major Bid": a.VoluntaryFiveMajor = true; break;
-                case "Mathe Asking Bids": a.MatheAskingBids = true; break;
-                case "Control Asking Bids": a.ControlAskingBids = true; break;
-                case "Ghestem": a.Ghestem = true; break;
-                case "Invisible Cue-Bids": a.InvisibleCueBids = true; break;
-                case "Limit-Plus Cue-Bids": a.LimitPlusCueBids = true; break;
-                case "Weak Jump Overcalls": a.WeakJumpOvercalls = true; break;
-                case "Sandwich 1NT": a.Sandwich1NT = true; break;
-                case "Maximal Overcall Dbl.": a.MaximalOvercallDbl = true; break;
-                case "1m-2NT Invitational": a.OneMinorTwoNTInv = true; break;
-                case "German 2C Relays": a.German2CRelays = true; break;
-                case "Walsh": a.Walsh = true; break;
-                case "Mini-Roman 2D": a.MiniRoman2D = true; break;
-                case "Robinson": a.Robinson = true; break;
-                case "Inverted Bergen Raises": a.InvertedBergenRaises = true; break;
-                case "Exit Transfer 1NT Runouts": a.ExitTransfer = true; break;
-                case "Artif. 2C/2D Resp. to 1M-X": a.Artificial2C2D = true; break;
-                case "Wolff Signoff": a.WolffSignoff = true; break;
-            }
-            return a;
-        }
-
         public static OrtaklikAnlasmasi Varsayilan()
         {
             return new OrtaklikAnlasmasi
@@ -271,6 +327,7 @@ namespace BricKartOyunu.Class.Bidding
                 BesliMajor = true,
                 InvertedMinors = true,
                 ForcingNT = true,
+                IkiBirOyunZorlama = true,
                 StrongNT = true,
                 IkiliSinekGuclu = true,
                 ZayifIki = true,
@@ -337,6 +394,7 @@ namespace BricKartOyunu.Class.Bidding
                 BesliMajor = false,
                 InvertedMinors = false,
                 ForcingNT = false,
+                IkiBirOyunZorlama = false,
                 StrongNT = false,
                 IkiliSinekGuclu = false,
                 Preempt = false,
@@ -385,7 +443,7 @@ namespace BricKartOyunu.Class.Bidding
         public string Ozet()
         {
             string acilis = BesliMajor ? "5'li majör" : "4'lü majör";
-            string nt = StrongNT ? "Strong NT (15-17)" : "Weak NT (12-14)";
+            string nt = (StrongNT ? "Strong NT (" : "Weak NT (") + NTA.Lo1(this) + "-" + NTA.Hi1(this) + ")";
 
             var aktifler = new System.Collections.Generic.List<string>();
 
@@ -407,6 +465,7 @@ namespace BricKartOyunu.Class.Bidding
             if (XYZ) aktifler.Add("XYZ");
 
             if (ForcingNT) aktifler.Add("Forcing NT");
+            if (IkiBirOyunZorlama) aktifler.Add("2/1 Game Force");
             if (InvertedMinors) aktifler.Add("Inverted Minors");
             if (Jacoby2NT) aktifler.Add("Jacoby2NT");
             if (Splinter) aktifler.Add("Splinter");
@@ -418,6 +477,10 @@ namespace BricKartOyunu.Class.Bidding
             if (Drury) aktifler.Add("Drury");
             if (ReverseDrury) aktifler.Add("Reverse Drury");
             if (CueBid) aktifler.Add("Cue Bid");
+            if (FitCueBid) aktifler.Add("Fit Cue-Bid");
+            if (Serious3NT) aktifler.Add("Ciddi 3NT");
+            if (NonSerious3NT) aktifler.Add("Ciddi olmayan 3NT");
+            if (DopiRopi) aktifler.Add("DOPI/ROPI");
 
             if (Blackwood) aktifler.Add("Blackwood");
             if (RKCB) aktifler.Add("RKCB");
@@ -466,10 +529,22 @@ namespace BricKartOyunu.Class.Bidding
             if (ExitTransfer) ekler.Add("Exit Transfers");
             if (Artificial2C2D) ekler.Add("Artif. 2♣/2♦ cevapları");
             if (WolffSignoff) ekler.Add("Wolff Signoff");
+            if (Quantitative4NT) ekler.Add("Quantitative 4NT");
+            if (TexasTransfers) ekler.Add("Texas transferleri");
+            if (MinorStayman) ekler.Add("Minor Stayman");
+            if (Flannery) ekler.Add("Flannery 2♦");
+            if (Kokish) ekler.Add("Kokish");
+            if (Rubensohl) ekler.Add("Rubensohl");
+            if (LeapingMichaels) ekler.Add("Leaping Michaels");
+            if (LightnerDouble) ekler.Add("Lightner kontra");
+            if (LastTrain) ekler.Add("Last Train");
             aktifler.AddRange(ekler);
 
             if (UDCA) aktifler.Add("UDCA");
             else if (StandartSignal) aktifler.Add("Standart Signal");
+            if (OddEvenDiscards) aktifler.Add("Tek-Çift atma");
+            if (Lavinthal) aktifler.Add("Lavinthal");
+            if (SmithEcho) aktifler.Add("Smith echo");
 
             return $"Açılış: {acilis}, {nt}\nAktif: {string.Join(", ", aktifler)}";
         }

@@ -111,24 +111,12 @@ namespace BricKartOyunu.Forms
 
         private void OrtaklikProfiliAc(Taraf taraf)
         {
-            using (var f = new AnlasmaForm(taraf))
-                f.ShowDialog(this);
+            AnlasmaForm.Goster(this, taraf);
         }
 
         private void BasitAnlasmaUygula(Taraf taraf)
         {
-            string ad = taraf == Taraf.NS ? "NS" : "EW";
-            string profil = AnlasmaYonetici.AktifProfilAdi(taraf);
-            if (MessageBox.Show(this,
-                    ad + " tarafının etkin profiline (" + profil + ") basit anlaşma uygulansın mı?\n" +
-                    "Konvansiyon seçimi basit anlaşmayla değişir; agresiflik ve beceri düzeyi korunur.",
-                    ad + " basit ortaklık ayarları", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-                return;
-            bool kaydedildi = AnlasmaYonetici.BasitUygula(taraf);
-            MessageBox.Show(this,
-                kaydedildi ? ad + " için basit anlaşma uygulandı." : ad + " için basit anlaşma bu oturumda uygulandı ama dosyaya kaydedilemedi.",
-                ad + " basit ortaklık ayarları", MessageBoxButtons.OK,
-                kaydedildi ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+            BasitAnlasmaForm.Goster(this, taraf);
         }
 
         // ====================================================================
@@ -1026,6 +1014,6 @@ namespace BricKartOyunu.Forms
 
         }
 
-        
+       
     }
 }
