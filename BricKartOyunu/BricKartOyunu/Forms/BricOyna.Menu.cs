@@ -15,6 +15,83 @@ namespace BricKartOyunu
     // Menü ve düğme olayları
     public partial class BricOyna
     {
+        // ── Görünüm > Kart Yüzleri ──────────────────────────────────────────────
+        private void StandartToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiDegistir("Classic"); }
+        private void DeuToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiDegistir("DEU"); }
+        private void FraToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiDegistir("FRA"); }
+        private void SembolsToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiDegistir("Sembols"); }
+        private void KartYuzleriToolStripMenuItem_DropDownOpening(object sender, EventArgs e) { KartSetiMenuleriniGuncelle(); }
+
+        private void KartSetiMenuleriniGuncelle()
+        {
+            string s = AnaSayfa.SeciliKartSeti;
+            standartToolStripMenuItem.Checked = s == "Classic";
+            deuToolStripMenuItem.Checked = s == "DEU";
+            fraToolStripMenuItem.Checked = s == "FRA";
+            sembolsToolStripMenuItem.Checked = s == "Sembols";
+        }
+
+        /// <summary>Kartın dosya adı (ör. "AS", "10H"): Value + renk harfi.</summary>
+        private static string KartDosyaAdi(Card c)
+        {
+            string deger;
+            switch (c.Value)
+            {
+                case 14: deger = "A"; break;
+                case 13: deger = "K"; break;
+                case 12: deger = "Q"; break;
+                case 11: deger = "J"; break;
+                default: deger = c.Value.ToString(); break;
+            }
+            string renk;
+            switch (c.Suit)
+            {
+                case "Maça": renk = "S"; break;
+                case "Kupa": renk = "H"; break;
+                case "Sinek": renk = "C"; break;
+                default: renk = "D"; break;
+            }
+            return deger + renk;
+        }
+
+        /// <summary>
+        /// Kart setini değiştirir. Seçim bundan sonraki dağıtımlarda geçerlidir; ekranda açık duran
+        /// kartlar da hemen yeni setle değiştirilir (kapalı kartlar ve oynanmış kartlar olduğu gibi kalır).
+        /// </summary>
+        private void KartSetiDegistir(string klasor)
+        {
+            string dizin = Path.Combine(Application.StartupPath, "Resources", "Cards", klasor);
+            if (!Directory.Exists(dizin))
+            {
+                MessageBox.Show(this, "Kart seti klasörü bulunamadı:" + Environment.NewLine + dizin,
+                    "Briç Kart Oyunu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                KartSetiMenuleriniGuncelle();
+                return;
+            }
+            AnaSayfa.SeciliKartSeti = klasor;
+
+            var eskiResimler = new Dictionary<Card, Image>();
+            foreach (var el in new[] { kuzeyEl, guneyEl, batiEl, doguEl })
+                foreach (var kart in el)
+                {
+                    Image yeni = GetCachedImage(Path.Combine(dizin, KartDosyaAdi(kart) + ".png"));
+                    if (yeni == null) continue;          // dosya eksikse kart eski resminde kalır
+                    eskiResimler[kart] = kart.Image;
+                    kart.Image = yeni;
+                }
+
+            foreach (var dizi in new[] { kuzeyKartlar, batiKartlar, doguKartlar, guneyKartlar })
+                foreach (var pb in dizi)
+                {
+                    var kart = pb == null ? null : pb.Tag as Card;
+                    Image eski;
+                    if (kart != null && eskiResimler.TryGetValue(kart, out eski) && ReferenceEquals(pb.Image, eski))
+                        pb.Image = kart.Image;           // yalnızca açık (yüzü görünen) kartlar
+                }
+            this.Invalidate(true);
+            KartSetiMenuleriniGuncelle();
+        }
+
         private void ÇıkışToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();

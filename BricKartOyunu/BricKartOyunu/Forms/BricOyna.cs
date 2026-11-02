@@ -556,6 +556,8 @@ namespace BricKartOyunu
             btn.Image = btn.Checked ? cift.Alt : cift.Ust;
         }
 
+        
+
         /// <summary>
         /// Basılı / basılmamış resim çiftini tutar.
         /// </summary>

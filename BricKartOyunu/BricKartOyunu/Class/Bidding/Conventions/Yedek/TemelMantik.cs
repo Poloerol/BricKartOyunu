@@ -228,7 +228,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Dengeli 15-18 HP, rakibin rengini durduruyor: NT müdahalesi (1♦ – (1NT), 2♥ – (2NT) = 15-18).
             // Güçlü 2♣ açılışına karşı uygulanmaz.
-            bool ntMud = (sev == 1 || (sev == 2 && gercek.Count == 1)) && rk != "NT" && son.Teklif != "2♣" && hp >= 15 && ElDegerlendirici.DengeliEl(el);
+            // 6+ kartlık renk varsa (6-3-2-2 "dengeli" sayılsa da) NT müdahalesi/kontra yapılmaz: renk söylenir
+            bool ntMud = (sev == 1 || (sev == 2 && gercek.Count == 1)) && rk != "NT" && son.Teklif != "2♣" && hp >= 15 && ElDegerlendirici.DengeliEl(el)
+                         && !Renkler.Any(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 6);
             if (ntMud && hp <= 18 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == sev)
                 return Seviye(d, "NT", sev);
             // Dengeli 15+ HP, rakibin rengini durduramıyor ve diğer renklerde en az 3 kart: takeout kontra
@@ -851,6 +853,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Oyun gücü: 3NT (veya 6+ majörde 4)
             double oyunEsik = dar ? 26 : 27.5, davetEsik = dar ? 24 : 25.5;
+            // 1x–1y–1z (açıcı 1 seviyede yeni renk): açıcının 1 seviye rebid'i sınırsız (12-18) ve forcing olmayan bir
+            // teklif; 10+ HP ile dengeli cevaplayan Pas demez, 2NT ile davet eder (eşik 25.5 yerine 24.5).
+            if (hp >= 10 && gercek.Count == 3 && !rakipRenkleri.Any() &&
+                gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                gercek[1].Oyuncu == d.AktifOyuncu && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" &&
+                gercek[2].Oyuncu == d.Partner && gercek[2].Seviye == 1 && gercek[2].Koz != "NT" &&
+                gercek[2].Koz != gercek[0].Koz && gercek[2].Koz != gercek[1].Koz)
+                davetEsik = Math.Min(davetEsik, 24.5);
             if (est >= oyunEsik)
             {
                 string uzun = EnUzunRenk(el);

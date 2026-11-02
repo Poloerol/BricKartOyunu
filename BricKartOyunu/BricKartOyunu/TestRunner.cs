@@ -2603,7 +2603,13 @@ namespace BricKartOyunu
             t("Walsh: 4-4 majör → 1♥", "S:KJ84 H:Q983 D:73 C:962", "O:1♣", "1♥", a => a.Walsh = true);
             t("Mini-Roman: ♦ tekil, 3 dörtlü → 2♦", "S:AQ84 H:KJ92 D:5 C:Q984", "", "2♦", a => a.MiniRoman2D = true);
             t("Mini-Roman: cevap en uzun renk ♥ → 2♥", "S:K5 H:Q8643 D:J72 C:642", "O:2♦", "2♥", a => a.MiniRoman2D = true);
-            t("New Minor Forcing: 1♦–1♠–1NT–2♣", "S:KJ52 H:A84 D:Q75 C:KJ2", "O:1♦ B:1♠ O:1NT", "2♣", a => a.NewMinorForcing = true);
+            t("New Minor Forcing: 1♦–1♠–1NT–2♣ (5♠)", "S:KJ524 H:A8 D:Q75 C:KJ2", "O:1♦ B:1♠ O:1NT", "2♣", a => a.NewMinorForcing = true);
+            t("1♦–1♥–1♠: 10 HP dengeli, 3♠ → 2NT davet (Pas değil)", "S:AJ5 H:8762 D:87 C:KQT3", "O:1♦ B:1♥ O:1♠", "2NT", a => { a.XYZ = false; a.TwoWayCheckback = false; a.ThirdSuitForcing = false; });
+            t("1♦–1♥–1♠: 8 HP dengeli → Pas", "S:AJ5 H:8762 D:87 C:K953", "O:1♦ B:1♥ O:1♠", "Pas", a => { a.XYZ = false; a.TwoWayCheckback = false; a.ThirdSuitForcing = false; });
+            t("(1♥)-Pas-Pas: 18 HP, 6'lı güçlü ♠ → 1NT değil, 1♠", "S:KQJ542 H:AKJ D:A9 C:74", "L:1♥ O:Pas R:Pas", "1♠", null);
+            t("(1♥) doğrudan: 18 HP, 3-3-4-3, ♥ durdurucu → 1NT", "S:KJ5 H:AJ4 D:AQ52 C:K83", "R:1♥", "1NT", null);
+            t("New Minor Forcing: 4♠ dengeli 15 HP → 3NT (yeni minör yok)", "S:K985 H:A9 D:QJ9 C:KQT2", "O:1♦ B:1♠ O:1NT", "3NT", a => a.NewMinorForcing = true);
+            t("İki Yönlü Checkback: 4♠ dengeli 15 HP → 3NT (2♦ yok)", "S:K985 H:A9 D:QJ9 C:KQT2", "O:1♦ B:1♠ O:1NT", "3NT", a => a.TwoWayCheckback = true);
             t("New Minor Forcing: açıcı 3'lü ♠ ile 2♠", "S:Q84 H:K92 D:AJ932 C:Q5", "B:1♦ O:1♠ B:1NT O:2♣", "2♠", a => a.NewMinorForcing = true);
             t("Truscott 2NT: 1♠–(Dbl)–2NT", "S:KJ52 H:A84 D:Q75 C:J42", "O:1♠ R:Dbl", "2NT", a => a.Truscott2NT = true);
             t("Truscott 2NT: açıcı 12 HP → 3♠", "S:AQ974 H:K5 D:J64 C:Q53", "B:1♠ L:Dbl O:2NT", "3♠", a => a.Truscott2NT = true);
@@ -4139,6 +4145,9 @@ namespace BricKartOyunu
             });
             kontrol("TEST 12.45 — Orta ön ayar: 1NT–4♥ Texas transferi (6♠, 10 HP)", teklif(mk("S:AJ9843 H:82 D:K73 C:Q2"), Player.Guney, ortak1NT, orta), r => r == "4♥", "4♥");
             kontrol("TEST 12.45b — Orta ön ayar: 1NT–2♣ Stayman", teklif(mk("S:KJ96 H:Q83 D:KJ4 C:T52"), Player.Guney, ortak1NT, orta), r => r == "2♣", "2♣");
+
+            kontrol("TEST 12.46 — Orta: 1NT, 12 HP 2-3-4-4 (4-4 minör) → Minör Stayman değil, 3NT", teklif(mk("S:JT H:KT8 D:K832 C:AJ63"), Player.Guney, ortak1NT, orta), r => r == "3NT", "3NT");
+            kontrol("TEST 12.46b — Orta: 1NT, 16 HP 4-4 minör, majör yok → Minör Stayman 2♠", teklif(mk("S:K5 H:A82 D:KQ83 C:AQ63"), Player.Guney, ortak1NT, orta), r => r == "2♠", "2♠");
 
             // Beceri düzeyi: 20 hatasız, 1 sık hata
             var legal = new List<Card>();

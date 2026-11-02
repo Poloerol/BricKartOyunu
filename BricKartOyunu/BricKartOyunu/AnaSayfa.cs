@@ -83,9 +83,8 @@ namespace BricKartOyunu.Forms
         {
             InitializeComponent();
 
-            // Varsayılan olarak Classic seçili olsun
-            classicToolStripMenuItem.Checked = true;
-            sayısalToolStripMenuItem.Checked = false;
+            // Seçili kart setinin onay işareti (Görünüm > Kart Yüzleri)
+            KartSetiMenuleriniGuncelle();
 
             // Çift tamponlama — dinamik yerleşimde titremeyi azaltır
             this.SetStyle(
@@ -196,18 +195,27 @@ namespace BricKartOyunu.Forms
         // MENÜ — KART SETİ SEÇİMİ
         // ====================================================================
 
-        private void ClassicToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ClassicToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("Classic"); }
+        private void DeuToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("DEU"); }
+        private void FraToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("FRA"); }
+        private void SembolsToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("Sembols"); }
+
+        /// <summary>Menü açılırken onay işareti, geçerli kart setini (başka formdan da değişmiş olabilir) gösterir.</summary>
+        private void KartYuzleriToolStripMenuItem_DropDownOpening(object sender, EventArgs e) { KartSetiMenuleriniGuncelle(); }
+
+        private void KartSetiSec(string klasor)
         {
-            SeciliKartSeti = "Classic";
-            classicToolStripMenuItem.Checked = true;
-            sayısalToolStripMenuItem.Checked = false;
+            SeciliKartSeti = klasor;
+            KartSetiMenuleriniGuncelle();
         }
 
-        private void SayısalToolStripMenuItem_Click(object sender, EventArgs e)
+        private void KartSetiMenuleriniGuncelle()
         {
-            SeciliKartSeti = "Sembols";
-            sayısalToolStripMenuItem.Checked = true;
-            classicToolStripMenuItem.Checked = false;
+            string s = SeciliKartSeti;
+            classicToolStripMenuItem.Checked = s == "Classic";
+            deuToolStripMenuItem.Checked = s == "DEU";
+            fraToolStripMenuItem.Checked = s == "FRA";
+            sembolsToolStripMenuItem.Checked = s == "Sembols";
         }
 
         // ====================================================================
@@ -1038,6 +1046,5 @@ namespace BricKartOyunu.Forms
 
         }
 
-       
     }
 }

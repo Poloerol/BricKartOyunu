@@ -19,6 +19,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 string x = YK2.BirRenk(z.Hepsi[0], "O"), y = YK2.BirRenk(z.Hepsi[1], "B");
                 if (x == null || y == null || !YK.Major(y) || x == y || z.Hp < 11) return null;
+                // Yeni minör, cevapçının majöründe 5+ kart ister (3'lü destek aranır). 4'lü majörle dengeli el 2NT/3NT der:
+                // açıcı 3'lü desteğiyle 1M'yi zaten yükseltirdi.
+                if (z.Uz(y) < 5) return null;
                 return Yeni(x, z.D.Anlasma);
             }
             // Açıcı cevabı
