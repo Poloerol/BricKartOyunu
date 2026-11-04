@@ -50,7 +50,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (string.IsNullOrEmpty(sonRakipTeklifi)) return false;
 
             int rakipSeviye = KozYardimcisi.TekliftenSeviyeCikar(sonRakipTeklifi);
-            if (rakipSeviye != 1) return false;
+            // Anlaşmadaki sınır (1♠ … 3♠): rakip müdahalesi bu çağrıdan yüksek olmamalı
+            {
+                int lim = durum.Anlasma != null ? durum.Anlasma.NegDblLimit : 4;
+                int[] limPoz = { 3, 5, 6, 7, 8, 10, 11, 12, 13 };
+                if (lim < 0 || lim > 8) lim = 4;
+                string rk0 = KozYardimcisi.TekliftenKozCikar(sonRakipTeklifi);
+                int rkSira = rk0 == "Sinek" ? 0 : rk0 == "Karo" ? 1 : rk0 == "Kupa" ? 2 : rk0 == "Maça" ? 3 : 4;
+                if ((rakipSeviye - 1) * 5 + rkSira > limPoz[lim]) return false;
+            }
 
             // ═══════════════════════════════════════════════════════════════
             // 5. EL ANALİZİ
@@ -59,7 +67,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = ElDegerlendirici.HCP(el);
 
             // Tabloya göre 1 seviyesi için 6+ HP yeterli
-            if (hp < 6) return false;
+            if (hp < (rakipSeviye >= 3 ? 10 : rakipSeviye == 2 ? 8 : 6)) return false;
 
             // ═══════════════════════════════════════════════════════════════
             // 6. RAKİP KOZUNU ÇIKAR

@@ -100,10 +100,7 @@ namespace BricKartOyunu
             set { _currentBackImagePath = value; }
         }
         // EL BİLGİ / TEST PANELİ
-        private Panel elBilgiPanel;
         //private Label lblElBilgiNumara;
-        private Label lblNewLabel;
-        private Label lblOldLabel;
        
         private static Image GetCachedImage(string path)
         {
@@ -559,6 +556,7 @@ namespace BricKartOyunu
             btn.Image = btn.Checked ? cift.Alt : cift.Ust;
         }
 
+       
         /// <summary>
         /// Basılı / basılmamış resim çiftini tutar.
         /// </summary>

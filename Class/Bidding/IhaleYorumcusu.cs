@@ -111,6 +111,51 @@ namespace BricKartOyunu.Class.Bidding
             }
             if (an.Gambling3NT && Es(h, "O:3NT", "B:4♣")) return Yok;
 
+            // ── 1NT savunmaları / kaçışlar / yeni 1NT cevapları (ortaklık profili)
+            foreach (var on in new[] { "R:1NT", "L:1NT" })
+            {
+                if (an.NT1DefenseX == 1)   // Brozel
+                {
+                    if (Es(h, on, "B:2♣")) return new[] { C, H };
+                    if (Es(h, on, "B:2♦")) return new[] { D, H };
+                    if (Es(h, on, "B:2♥")) return new[] { H, S };
+                    if (Es(h, on, "B:2♠")) return new[] { S };
+                    if (Es(h, on, "B:2NT")) return new[] { C, D };
+                }
+                if (an.NT1DefenseX == 2)   // Astro
+                {
+                    if (Es(h, on, "B:2♣")) return new[] { H };
+                    if (Es(h, on, "B:2♦")) return new[] { S };
+                    if (Es(h, on, "B:2NT")) return new[] { C, D };
+                }
+            }
+            if (an.NT1RunoutX == 4 && !an.Robinson && !an.ExitTransfer)   // Helvic
+            {
+                if (Es(h, "O:1NT", "R:Dbl", "B:2♣")) return new[] { C, D };
+                if (Es(h, "O:1NT", "R:Dbl", "B:2♦")) return new[] { D, H };
+                if (Es(h, "O:1NT", "R:Dbl", "B:2♥")) return new[] { H, S };
+                if (Es(h, "O:1NT", "R:Dbl", "B:2♠")) return new[] { C, S };
+                if (Es(h, "O:1NT", "R:Dbl", "B:RDbl") || Es(h, "B:1NT", "L:Dbl", "B:RDbl")) return Yok;
+            }
+            if (an.NT1RunoutX == 3 && !an.Robinson && !an.ExitTransfer)   // D.O.N.T. kaçış
+            {
+                if (Es(h, "O:1NT", "R:Dbl", "B:2♥")) return new[] { H, S };
+                if (Es(h, "O:1NT", "R:Dbl", "B:2♣")) return new[] { C };
+                if (Es(h, "O:1NT", "R:Dbl", "B:2♦")) return new[] { D };
+                if (Es(h, "O:1NT", "R:Dbl", "B:RDbl")) return Yok;
+            }
+            if (an.NT1Puppet == 1 && Es(h, "O:1NT", "B:2♣")) return new[] { S, H };
+            if (an.NT1MinorBid == 2 && Es(h, "O:1NT", "B:2♠")) return new[] { C, D };
+            if (an.UnusualOverUnusual == 1)
+            {
+                if (Es(h, "O:1♥", "R:2NT", "B:3♣") || Es(h, "O:1♥", "R:2NT", "B:3♦")) return new[] { H };
+                if (Es(h, "O:1♠", "R:2NT", "B:3♣") || Es(h, "O:1♠", "R:2NT", "B:3♦")) return new[] { S };
+            }
+            if (an.CueStyle == 1 || an.CueStyle == 2)
+            {
+                if (h.Count == 3 && h[0].StartsWith("O:1") && h[1].StartsWith("R:2") && son.StartsWith("B:3") && h[1].Substring(2) == "2" + cag.Substring(1)) return Yok;
+            }
+
             // ── Açılış ve cevaplar
             if (an.BenjaminTwoBids && (Es(h, "B:2♣") || Es(h, "B:2♦") || Es(h, "O:2♣", "B:2♦") || Es(h, "O:2♦", "B:2♥"))) return Yok;
             if (an.MiniRoman2D && Es(h, "B:2♦")) return new[] { S, H, C };

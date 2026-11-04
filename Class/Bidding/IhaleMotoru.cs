@@ -83,11 +83,16 @@ namespace BricKartOyunu.Class.Bidding
                 new ExtendedStayman(),
                 new HelloOver1NT(),
                 new Truscott2NT(),
+                new GoodBad2NT(),
+                new InvertedDbl(),
+                new MixedRaise(),
+                new FSJS(),
                 new PreemptiveReraises(),
                 new LongShortGameTries(),
                 new NewMinorForcing(),
                 new WeakJumpShiftResp(),
                 new Ogust(),
+                new FeatureAsk2NT(),
                 new Gambling3NT(),
                 new SpecificKingAsks(),
                 new VoluntaryFiveMajor(),
@@ -104,6 +109,17 @@ namespace BricKartOyunu.Class.Bidding
                 new Walsh(),
                 new MiniRoman2D(),
                 new Robinson(),
+                new Brozel(),
+                new Astro(),
+                new Helvic(),
+                new DontEscape(),
+                new Puppet1NT(),
+                new MinorRelay(),
+                new SemiForcingPas(),
+                new StaymanOver2NT(),
+                new RakipCueBid(),
+                new UnusualOverUnusual(),
+                new LeadDirectingDouble(),
                 new ArtifisyelIkiSinekStayman(),
                 new InvertedBergenRaises(),
                 new ExitTransfer(),
@@ -434,7 +450,7 @@ namespace BricKartOyunu.Class.Bidding
             {
                 case "5'li Majör": return _anlasma.BesliMajor;
                 case "4'lü Majör": return !_anlasma.BesliMajor;
-                case "Strong NT": return _anlasma.StrongNT;
+                case "Strong NT": return true;   // aralık (12-14 … 16-18) NTA.Lo1/Hi1 ile belirlenir
                 case "Weak NT": return !_anlasma.StrongNT;
                 case "2♣ Güçlü": return _anlasma.IkiliSinekGuclu && !_anlasma.BenjaminTwoBids;
                 case "Zayıf İki": return _anlasma.ZayifIki && !_anlasma.Multi2D;
@@ -451,13 +467,19 @@ namespace BricKartOyunu.Class.Bidding
 
                 case "Inverted Minors": return _anlasma.InvertedMinors;
                 case "Forcing NT": return _anlasma.ForcingNT;
-                case "Stayman": return _anlasma.Stayman;
+                case "Stayman": return _anlasma.Stayman && _anlasma.NT1Puppet != 1;
+                case "Puppet Stayman (1NT)": return _anlasma.Stayman && _anlasma.NT1Puppet == 1;
+                case "Minor Relay (1NT-2♠)": return _anlasma.NT1MinorBid == 2 && !_anlasma.MinorStayman;
+                case "Brozel": return _anlasma.NT1DefenseX == 1;
+                case "Astro": return _anlasma.NT1DefenseX == 2;
+                case "Helvic": return _anlasma.NT1RunoutX == 4 && !_anlasma.Robinson && !_anlasma.ExitTransfer;
+                case "D.O.N.T. Escape": return _anlasma.NT1RunoutX == 3 && !_anlasma.Robinson && !_anlasma.ExitTransfer;
                 case "Jacoby Transfer": return _anlasma.JacobyTransfer;
                 case "Puppet Stayman": return _anlasma.PuppetStayman;
                 case "Smolen": return _anlasma.Smolen;
-                case "Minor Transfer": return _anlasma.MinorTransfer && !_anlasma.MinorStayman;
+                case "Minor Transfer": return ((_anlasma.MinorTransfer && _anlasma.NT1MinorBid != 2) || _anlasma.NT1MinorBid == 3) && !_anlasma.MinorStayman;
 
-                case "İki Yönlü Checkback": return _anlasma.TwoWayCheckback && !_anlasma.NewMinorForcing && !_anlasma.WolffSignoff;
+                case "İki Yönlü Checkback": return _anlasma.TwoWayCheckback && !_anlasma.NewMinorForcing && !_anlasma.WolffSignoff && _anlasma.CheckbackCrowhurst == 0;
                 case "XYZ (X-Y-Z)": return _anlasma.XYZ;
 
                 case "Koz Q Sorusu": return _anlasma.RKCB;
@@ -467,7 +489,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "RKCB": return _anlasma.RKCB;
                 case "Gerber": return _anlasma.Gerber;
                 case "Pick-a-Slam": return _anlasma.RKCB;
-                case "Grand Slam Force": return true;
+                case "Grand Slam Force": return _anlasma.GrandSlamForce == 1;
 
                 case "Jacoby 2NT": return _anlasma.Jacoby2NT;
                 case "Splinter": return _anlasma.Splinter;
@@ -478,10 +500,10 @@ namespace BricKartOyunu.Class.Bidding
                 case "Serious 3NT": return _anlasma.Serious3NT && !_anlasma.NonSerious3NT;
                 case "Non-Serious 3NT": return _anlasma.NonSerious3NT;
                 case "DOPI-ROPI": return _anlasma.DopiRopi;
-                case "Bergen Raises": return _anlasma.BergenRaises && !_anlasma.InvertedBergenRaises;
-                case "Trial Bid": return _anlasma.TrialBid && !_anlasma.LongShortGameTries;
+                case "Bergen Raises": return _anlasma.BergenRaises && !_anlasma.InvertedBergenRaises && _anlasma.MajorRaiseLimit == 0;
+                case "Trial Bid": return _anlasma.TrialBid && !_anlasma.LongShortGameTries && _anlasma.GameTryShort == 0;
                 case "3. Renk Forsingi": return _anlasma.ThirdSuitForcing;
-                case "4. Renk Forsingi": return _anlasma.FourthSuitForcing;
+                case "4. Renk Forsingi": return _anlasma.FourthSuitForcing || _anlasma.FourthOneRound == 1;
                 case "Reverse": return _anlasma.Reverse;
 
                 case "Negative Double": return _anlasma.NegativeDouble;
@@ -492,7 +514,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Responsive Double Cevap": return _anlasma.ResponsiveDouble;
                 case "Responsive Double": return _anlasma.ResponsiveDouble;
                 case "Lebensohl (Reverse)": return _anlasma.Lebensohl;
-                case "Lebensohl (Zayıf 2)": return _anlasma.Lebensohl;
+                case "Lebensohl (Zayıf 2)": return _anlasma.LebensohlWeakTwo == 1;
                 case "Lebensohl": return _anlasma.Lebensohl && !_anlasma.Rubensohl;
                 case "Michaels": return _anlasma.Michaels && !_anlasma.Ghestem;
                 case "Unusual 2NT": return _anlasma.Unusual2NT && !_anlasma.Ghestem;
@@ -505,11 +527,21 @@ namespace BricKartOyunu.Class.Bidding
                 case "Extended Stayman": return _anlasma.ExtendedStayman;
                 case "Hello over 1NT": return _anlasma.HelloOver1NT;
                 case "Truscott 2NT": return _anlasma.Truscott2NT;
+                case "Good-Bad 2NT": return _anlasma.GoodBad2NT;
+                case "Inverted DBL": return _anlasma.InvertedDbl;
+                case "Mixed Raise (Jump Cue-Bid)": return _anlasma.MixedRaise;
+                case "FSJS": return _anlasma.FSJS;
                 case "Preemptive Reraises": return _anlasma.PreemptiveReraises;
-                case "Long & Short Game Tries": return _anlasma.LongShortGameTries;
-                case "New Minor Forcing": return _anlasma.NewMinorForcing;
+                case "Long & Short Game Tries": return _anlasma.LongShortGameTries || _anlasma.GameTryShort == 1;
+                case "Semi-Forcing 1NT": return _anlasma.ForcingNT && _anlasma.NTSemiForcing == 1;
+                case "Stayman (2NT)": return _anlasma.NT2Natural == 0 && !_anlasma.PuppetStayman;
+                case "Rakip Renk Cue-Bid (Batı/Doğu)": return _anlasma.CueStyle == 1 || _anlasma.CueStyle == 2;
+                case "Unusual over Unusual": return _anlasma.UnusualOverUnusual == 1;
+                case "Lead-Directing Double": return _anlasma.LeadDirectingDbl == 1;
+                case "New Minor Forcing": return _anlasma.NewMinorForcing || _anlasma.CheckbackCrowhurst == 1;
                 case "Weak Jump-Shift Resp.": return _anlasma.WeakJumpShiftResp;
                 case "Ogust": return _anlasma.Ogust;
+                case "Feature Asking 2NT": return _anlasma.FeatureAsking2NT && !_anlasma.Ogust;
                 case "Gambling 3NT": return _anlasma.Gambling3NT;
                 case "Specific King Asks": return _anlasma.SpecificKingAsks;
                 case "Voluntary Five Major Bid": return _anlasma.VoluntaryFiveMajor;

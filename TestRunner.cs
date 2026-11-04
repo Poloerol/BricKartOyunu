@@ -16,6 +16,7 @@ namespace BricKartOyunu
     /// </summary>
     public static class TestRunner
     {
+        static string _sonKaynak;
         /// <summary>
         /// Test sonuçlarını yakalayan callback (form tarafından atanır).
         /// </summary>
@@ -1057,13 +1058,13 @@ namespace BricKartOyunu
 
             Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
             Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(guneyEli)}");
-            Yaz($"Beklenen: 2NT (invite)");
+            Yaz($"Beklenen: 2♠ (3'lü destek; 2NT Jacoby ile karışırdı)");
             Yaz("────────────────────────────────────────");
 
             var motor = new IhaleMotoru(durum.Anlasma);
             string teklif = motor.TeklifVer(durum);
             Yaz($"Sonuç: {teklif}");
-            Yaz(teklif == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            Yaz(teklif == "2♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♠)");
             Yaz("════════════════════════════════════════");
         }
         public static void Test_TemelMantik_RakipMudahale()
@@ -2602,11 +2603,59 @@ namespace BricKartOyunu
             t("Walsh: 4-4 majör → 1♥", "S:KJ84 H:Q983 D:73 C:962", "O:1♣", "1♥", a => a.Walsh = true);
             t("Mini-Roman: ♦ tekil, 3 dörtlü → 2♦", "S:AQ84 H:KJ92 D:5 C:Q984", "", "2♦", a => a.MiniRoman2D = true);
             t("Mini-Roman: cevap en uzun renk ♥ → 2♥", "S:K5 H:Q8643 D:J72 C:642", "O:2♦", "2♥", a => a.MiniRoman2D = true);
-            t("New Minor Forcing: 1♦–1♠–1NT–2♣", "S:KJ52 H:A84 D:Q75 C:KJ2", "O:1♦ B:1♠ O:1NT", "2♣", a => a.NewMinorForcing = true);
+            t("New Minor Forcing: 1♦–1♠–1NT–2♣ (5♠)", "S:KJ524 H:A8 D:Q75 C:KJ2", "O:1♦ B:1♠ O:1NT", "2♣", a => a.NewMinorForcing = true);
+            t("1♦–1♥–1♠: 10 HP dengeli, 3♠ → 2NT davet (Pas değil)", "S:AJ5 H:8762 D:87 C:KQT3", "O:1♦ B:1♥ O:1♠", "2NT", a => { a.XYZ = false; a.TwoWayCheckback = false; a.ThirdSuitForcing = false; });
+            t("1♦–1♥–1♠: 8 HP dengeli → Pas", "S:AJ5 H:8762 D:87 C:K953", "O:1♦ B:1♥ O:1♠", "Pas", a => { a.XYZ = false; a.TwoWayCheckback = false; a.ThirdSuitForcing = false; });
+            t("(2♦)-2♠-(Pas): 17 HP, 7'li ♣ → 3♣", "S:7 H:AKJT2 D: C:AKQ9742", "L:2♦ O:2♠ R:Pas", "3♣", null);
+            t("(1♠)-2♥-(Pas): 15 HP, 6'lı ♦ → 3♦", "S:AQJ95 H: D:AJT942 C:K9", "L:1♠ O:2♥ R:Pas", "3♦", null);
+            t("1♠ karşısında 3'lü destek, 10 HP → 2NT (Jacoby sanılır) değil 2♠", "S:K42 H:82 D:J862 C:AQ75", "O:1♠ R:Pas", "2♠", null);
+            t("(1♥)-Pas-Pas: 18 HP, 6'lı güçlü ♠ → 1NT değil, 1♠", "S:KQJ542 H:AKJ D:A9 C:74", "L:1♥ O:Pas R:Pas", "1♠", null);
+            t("(1♥) doğrudan: 18 HP, 3-3-4-3, ♥ durdurucu → 1NT", "S:KJ5 H:AJ4 D:AQ52 C:K83", "R:1♥", "1NT", null);
+            t("New Minor Forcing: 4♠ dengeli 15 HP → 3NT (yeni minör yok)", "S:K985 H:A9 D:QJ9 C:KQT2", "O:1♦ B:1♠ O:1NT", "3NT", a => a.NewMinorForcing = true);
+            t("İki Yönlü Checkback: 4♠ dengeli 15 HP → 3NT (2♦ yok)", "S:K985 H:A9 D:QJ9 C:KQT2", "O:1♦ B:1♠ O:1NT", "3NT", a => a.TwoWayCheckback = true);
             t("New Minor Forcing: açıcı 3'lü ♠ ile 2♠", "S:Q84 H:K92 D:AJ932 C:Q5", "B:1♦ O:1♠ B:1NT O:2♣", "2♠", a => a.NewMinorForcing = true);
             t("Truscott 2NT: 1♠–(Dbl)–2NT", "S:KJ52 H:A84 D:Q75 C:J42", "O:1♠ R:Dbl", "2NT", a => a.Truscott2NT = true);
             t("Truscott 2NT: açıcı 12 HP → 3♠", "S:AQ974 H:K5 D:J64 C:Q53", "B:1♠ L:Dbl O:2NT", "3♠", a => a.Truscott2NT = true);
             t("Truscott 2NT: açıcı 16 HP → 4♠", "S:AQ974 H:KQ D:AJ4 C:Q53", "B:1♠ L:Dbl O:2NT", "4♠", a => a.Truscott2NT = true);
+            // Oyun daveti kabulü: 1♣–1♥–2♥–3♥ (ortak cevapladığı majörde 3M ile davet etti)
+            t("Oyun daveti: 1♣–1♥–2♥–3♥, 13 HP 4'lü destek → 4♥", "S:KQ86 H:KT87 D:KQ9 C:T4", "B:1♣ O:1♥ B:2♥ O:3♥", "4♥", null);
+            t("Oyun daveti: 1♣–1♥–2♥–3♥, 12 HP yassı → Pas", "S:KJ86 H:KT87 D:Q94 C:KT", "B:1♣ O:1♥ B:2♥ O:3♥", "Pas", null);
+            t("Oyun daveti: 1♦–1♠–2♠–3♠, 13 HP 4'lü destek → 4♠", "S:KT87 H:KQ86 D:KQ9 C:T4", "B:1♦ O:1♠ B:2♠ O:3♠", "4♠", null);
+
+            // Sasson kitabı konvansiyonları: Good-Bad 2NT, Inverted DBL, Mixed Raise, FSJS
+            Action<OrtaklikAnlasmasi> gbA = a => a.GoodBad2NT = true;
+            t("Good-Bad 2NT: 1♦–1♠–(2♥) açan 5♦5♣ 13 HP → 2NT", "S:K H:73 D:AQ952 C:KJ854", "B:1♦ O:1♠ R:2♥", "2NT", gbA);
+            t("Good-Bad 2NT: açan 6♦ 16 HP → 2NT", "S:K4 H:73 D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥", "2NT", gbA);
+            t("Good-Bad 2NT: cevapçı 3♣ tercih", "S:KQJ854 H:73 D:J2 C:T98", "O:1♦ B:1♠ L:2♥ O:2NT", "3♣", gbA);
+            t("Good-Bad 2NT: cevapçı 6♠ 8 HP → 3♠ davet", "S:AQJ854 H:73 D:J2 C:T98", "O:1♦ B:1♠ L:2♥ O:2NT", "3♠", gbA);
+            t("Good-Bad 2NT: cevapçı cue-bid 3♥ (oyun zorlayan)", "S:AQ4 H:KJ5 D:Q42 C:AJ98", "O:1♦ B:1♠ L:2♥ O:2NT", "3♥", gbA);
+            t("Good-Bad 2NT: cevapçı min. ♦ tercihi 3♦", "S:KQ985 H:73 D:QJ95 C:T8", "O:1♦ B:1♠ L:2♥ O:2NT", "3♦", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 5♦5♣ kötü el → Pas", "S:K H:73 D:AQ952 C:KJ854", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "Pas", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 6♦ 16 HP → 3♦", "S:K4 H:73 D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3♦", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 5♦5♣ 18+ stoperli → 3♥ cue", "S:K H:AJ D:AKQ52 C:AK854", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3♥", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 5♦4♠ 18+ → 3♠", "S:KQ84 H:7 D:AKJ52 C:AQ4", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3♠", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 6♦ 18+ stoperli → 3NT", "S:K4 H:KJ D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3NT", gbA);
+            t("Good-Bad 2NT: 3♦ sonrası 6♦ 16 HP → Pas", "S:K4 H:73 D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥ B:2NT O:3♦", "Pas", gbA);
+            t("Good-Bad 2NT: 1♦–(1♠)–Dbl–(2♠) açan 4♦4♥ 19 HP → 2NT", "S:K4 H:AQ84 D:AKJ5 C:Q92", "B:1♦ L:1♠ O:Dbl R:2♠", "2NT", gbA);
+            t("Good-Bad 2NT: S2 3♣ sonrası 4♦4♥ 16+ → 3♥", "S:K4 H:AQ84 D:AKJ5 C:Q92", "B:1♦ L:1♠ O:Dbl R:2♠ B:2NT O:3♣", "3♥", gbA);
+            t("Good-Bad 2NT: S2 cevapçı 6♥ 6 HP → 3♥", "S:73 H:KQJ854 D:J2 C:T98", "O:1♦ R:1♠ B:Dbl L:2♠ O:2NT", "3♥", gbA);
+            Action<OrtaklikAnlasmasi> idA = a => a.InvertedDbl = true;
+            t("Inverted DBL: 1♥–(Dbl)–Rdbl–(2♠), ♠'de 3 kart → Dbl", "S:Q85 H:KJ9742 D:A3 C:84", "B:1♥ L:Dbl O:Rdbl R:2♠", "Dbl", idA);
+            t("Inverted DBL: ♠'de 4 kart → Pas (ceza)", "S:KJ85 H:KJ974 D:A3 C:84", "B:1♥ L:Dbl O:Rdbl R:2♠", "Pas", idA);
+            t("Inverted DBL: ♠ tekil + 17 HP → Pas", "S:5 H:AKJ974 D:AQ3 C:K84", "B:1♥ L:Dbl O:Rdbl R:2♠", "Pas", idA);
+            Action<OrtaklikAnlasmasi> mrA = a => a.MixedRaise = true;
+            t("Mixed Raise: (1♦)–1♥–(Pas)–3♦ (4♥, 12 HP)", "S:Q84 H:KT92 D:Q4 C:AJ85", "L:1♦ O:1♥", "3♦", mrA);
+            t("Mixed Raise: araya giren 15 HP → 4♥", "S:K4 H:AQJ85 D:Q4 C:K952", "R:1♦ B:1♥ O:3♦", "4♥", mrA);
+            t("Mixed Raise: araya giren 11 HP → 3♥", "S:K4 H:QJ985 D:Q4 C:K952", "R:1♦ B:1♥ O:3♦", "3♥", mrA);
+            Action<OrtaklikAnlasmasi> fsA = a => a.FSJS = true;
+            t("FSJS: (1♦)–1♥–(Pas)–2♠ (5♠ + 4♥)", "S:KQJ85 H:A972 D:4 C:J93", "L:1♦ O:1♥", "2♠", fsA);
+            t("FSJS: (1♦)–1♥–(Pas)–3♣ (5♣ + 4♥)", "S:843 H:K962 D:4 C:AKJ73", "L:1♦ O:1♥", "3♣", fsA);
+            t("FSJS: araya giren 16 HP → 4♥", "S:K4 H:AKJ85 D:Q4 C:K952", "R:1♦ B:1♥ O:2♠", "4♥", fsA);
+            t("FSJS: araya giren 11 HP → 3♥", "S:K4 H:QJ985 D:Q4 C:K952", "R:1♦ B:1♥ O:2♠", "3♥", fsA);
+            t("FSJS + Mixed Raise açık: yan renk varsa FSJS", "S:KQJ85 H:A972 D:4 C:J93", "L:1♦ O:1♥", "2♠", a => { a.FSJS = true; a.MixedRaise = true; });
+            t("FSJS + Mixed Raise açık: yan renk yoksa Mixed Raise", "S:Q84 H:KT92 D:Q4 C:AJ85", "L:1♦ O:1♥", "3♦", a => { a.FSJS = true; a.MixedRaise = true; });
+            t("Kapalıyken Good-Bad 2NT devreye girmez", "S:K H:73 D:AQ952 C:KJ854", "B:1♦ O:1♠ R:2♥", "Pas", null);
+
             t("Artif. 2♣: 3'lü destek limit → 2♣", "S:Q74 H:KJ5 D:A932 C:J84", "O:1♥ R:Dbl", "2♣", a => a.Artificial2C2D = true);
             t("Artif. 2♦: 3'lü destek oyun zorlayan → 2♦", "S:Q74 H:KJ5 D:AK32 C:J84", "O:1♥ R:Dbl", "2♦", a => a.Artificial2C2D = true);
             t("Preemptive Reraise: 6♠ 13 HP → 4♠", "S:AQ9754 H:K4 D:5 C:KJ62", "B:1♠ O:2♠ R:3♦", "4♠", a => a.PreemptiveReraises = true);
@@ -2645,7 +2694,8 @@ namespace BricKartOyunu
                 ac.LongShortGameTries || ac.NewMinorForcing || ac.WeakJumpShiftResp || ac.Ogust || ac.Gambling3NT || ac.SpecificKingAsks ||
                 ac.VoluntaryFiveMajor || ac.MatheAskingBids || ac.ControlAskingBids || ac.Ghestem || ac.InvisibleCueBids || ac.LimitPlusCueBids ||
                 ac.WeakJumpOvercalls || ac.Sandwich1NT || ac.MaximalOvercallDbl || ac.OneMinorTwoNTInv || ac.German2CRelays || ac.Walsh ||
-                ac.MiniRoman2D || ac.Robinson || ac.InvertedBergenRaises || ac.ExitTransfer || ac.Artificial2C2D || ac.WolffSignoff);
+                ac.MiniRoman2D || ac.Robinson || ac.InvertedBergenRaises || ac.ExitTransfer || ac.Artificial2C2D || ac.WolffSignoff ||
+                ac.GoodBad2NT || ac.InvertedDbl || ac.MixedRaise || ac.FSJS);
             toplam++; if (!hepsiKapali) hata++;
             Yaz("════════════════════════════════════════");
             Yaz("TEST 14." + toplam + " — yeni konvansiyonlar varsayılan anlaşmada kapalı");
@@ -2660,7 +2710,7 @@ namespace BricKartOyunu
                 foreach (var ad in new[] { "BenjaminTwoBids","ExtendedStayman","HelloOver1NT","Truscott2NT","PreemptiveReraises","LongShortGameTries","NewMinorForcing",
                     "WeakJumpShiftResp","Ogust","Gambling3NT","SpecificKingAsks","VoluntaryFiveMajor","MatheAskingBids","ControlAskingBids","Ghestem","InvisibleCueBids",
                     "LimitPlusCueBids","WeakJumpOvercalls","Sandwich1NT","MaximalOvercallDbl","OneMinorTwoNTInv","German2CRelays","Walsh","MiniRoman2D","Robinson",
-                    "InvertedBergenRaises","Artificial2C2D","WolffSignoff" })
+                    "InvertedBergenRaises","Artificial2C2D","WolffSignoff","GoodBad2NT","InvertedDbl","MixedRaise","FSJS" })
                     if (pi.Name == ad) pi.SetValue(tum, true, null);
             }
             var motorTum = new IhaleMotoru(tum);
@@ -3310,6 +3360,25 @@ namespace BricKartOyunu
             string acik = atak(on(x => x.HelloOver1NT = true)), kapali = atak(OrtaklikAnlasmasi.Varsayilan());
             Yaz("   atak: Hello açık=" + acik + ", kapalı=" + kapali);
             if (acik == "Sinek" || kapali != "Sinek") { hata++; Yaz("❌ Hello atağı: açık=" + acik + " kapalı=" + kapali); }
+            // Savunma 3. el: ortak ♠4 attı, deklaran ♠9 koydu, dummy'de (4. el) ♠J var → ♠K ile 10 "eşdeğer" değil: K oynanmalı
+            foreach (var kozDeneme in new string[] { null, "Kupa", "Maça" })
+            {
+                var sb = new OyunBaglami
+                {
+                    Ben = Player.Bati, Deklaran = Player.Guney, Koz = kozDeneme, Seviye = 3, ElNo = 1,
+                    Elim = mk("S:KT7 H:A984 D:K4 C:842"),
+                    DummyEli = mk("S:J65 H:32 D:Q2 C:AKJT6"),
+                    Gecmis = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>
+                    {
+                        (0, Player.Dogu, new Card { Suit = "Maça", Value = 14 }, true), (0, Player.Guney, new Card { Suit = "Maça", Value = 8 }, false),
+                        (0, Player.Bati, new Card { Suit = "Maça", Value = 2 }, false), (0, Player.Kuzey, new Card { Suit = "Maça", Value = 12 }, false)
+                    },
+                    Masa = new List<(Player Oyuncu, Card Kart)> { (Player.Dogu, new Card { Suit = "Maça", Value = 4 }), (Player.Guney, new Card { Suit = "Maça", Value = 9 }) }
+                };
+                string sn; var sc = OyunZekasi.KartSec(sb, out sn);
+                Yaz("   3. el, dummy'de ♠J: koz=" + (kozDeneme ?? "NT") + " → " + (sc == null ? "-" : sc.Suit + " " + sc.Value));
+                if (sc == null || sc.Suit != "Maça" || sc.Value != 13) { hata++; Yaz("❌ 3. el: dummy'nin ♠J'si 10'u yener, ♠K oynanmalıydı (koz=" + (kozDeneme ?? "NT") + ")"); }
+            }
             // Pratik listesi: her konvansiyon bir kategoride, tekrar yok
             var tumListe = KonvansiyonPratigi.Konvansiyonlar();
             var digerler = tumListe.Where(x => KonvansiyonPratigi.Kategori(x) == KonvansiyonPratigi.DigerKategori).ToList();
@@ -3965,13 +4034,13 @@ namespace BricKartOyunu
                 var an = OrtaklikAnlasmasi.Varsayilan();
                 if (ayar != null) ayar(an);
                 var d = new IhaleDurumu { AktifOyuncu = aktif, AktifOyuncuEli = el, Anlasma = an, Gecmis = gecmis };
-                return new IhaleMotoru(an).TeklifVer(d);
+                var mtr = new IhaleMotoru(an); var sn = mtr.TeklifVer(d); _sonKaynak = mtr.SonKonvansiyonAdi; return sn;
             };
             Action<string, string, Func<string, bool>, string> kontrol = (baslik, sonuc, uygun, beklenen) =>
             {
                 Yaz("════════════════════════════════════════");
                 Yaz(baslik);
-                Yaz("Motor → " + sonuc);
+                Yaz("Motor → " + sonuc + "   [" + _sonKaynak + "]");
                 Yaz(uygun(sonuc) ? "✅ DOĞRU (" + beklenen + ")" : "❌ YANLIŞ (beklenen " + beklenen + ", gelen " + sonuc + ")");
                 Yaz("════════════════════════════════════════");
             };
@@ -4024,6 +4093,123 @@ namespace BricKartOyunu
             kontrol("TEST 11.53b — 11 HP 7♠, çok atak önleyici → 3♠", teklif(el11p, Player.Guney, bos, a => a.PreemptAgresifligi = 2), r => r == "3♠", "3♠");
             kontrol("TEST 11.53c — 8 HP 7♠, temkinli önleyici → 3♠", teklif(el8p, Player.Guney, bos, a => a.PreemptAgresifligi = -1), r => r == "3♠", "3♠");
             kontrol("TEST 11.53d — 8 HP 7♠, çok temkinli önleyici → 3♠ değil", teklif(el8p, Player.Guney, bos, a => a.PreemptAgresifligi = -2), r => r != "3♠", "3♠ dışında");
+
+            // ── Ortaklık profili seçeneklerinin motora bağlanması (12.x) ──
+            var zayifNT = new Action<OrtaklikAnlasmasi>(a => { a.StrongNT = false; a.NT1Range = 2; });
+            var el14 = mk("S:KJ4 H:Q73 D:AJ52 C:K84");
+            kontrol("TEST 12.01 — 14 HP dengeli, 12-14 aralığı → 1NT", teklif(el14, Player.Guney, bos, zayifNT), r => r == "1NT", "1NT");
+            kontrol("TEST 12.02 — 14 HP dengeli, varsayılan 15-17 → 1NT değil", teklif(el14, Player.Guney, bos, null), r => r != "1NT", "1NT dışında");
+            var el17b = mk("S:AK4 H:Q73 D:AJ52 C:K84");
+            var el15b = mk("S:AK4 H:K73 D:QJ52 C:Q84");
+            kontrol("TEST 12.03 — 17 HP dengeli, 16-18 aralığı → 1NT", teklif(el17b, Player.Guney, bos, a => a.NT1Range = 6), r => r == "1NT", "1NT");
+            kontrol("TEST 12.04 — 15 HP dengeli, 16-18 aralığı → 1NT değil", teklif(el15b, Player.Guney, bos, a => a.NT1Range = 6), r => r != "1NT", "1NT dışında");
+            kontrol("TEST 12.05 — 15 HP dengeli, varsayılan → 1NT", teklif(el15b, Player.Guney, bos, null), r => r == "1NT", "1NT");
+            var el5422 = mk("S:AQ874 H:KJ52 D:K3 C:Q3");
+            kontrol("TEST 12.06 — 5-4-2-2 15 HP, varsayılan → 1NT", teklif(el5422, Player.Guney, bos, null), r => r == "1NT", "1NT");
+            kontrol("TEST 12.07 — 5-4-2-2 15 HP, 5-4-2-2 kapalı → 1♠", teklif(el5422, Player.Guney, bos, a => a.NT1Allow5422 = 0), r => r == "1♠", "1♠");
+            var el5332 = mk("S:AQ874 H:K52 D:KJ3 C:Q3");
+            kontrol("TEST 12.08 — 5'li majör 5-3-3-2 15 HP, 5'li majör ile 1NT kapalı → 1♠", teklif(el5332, Player.Guney, bos, a => a.NT1Allow5Major = 0), r => r == "1♠", "1♠");
+            var elTekil = mk("S:A H:KQ43 D:KQ64 C:J873");
+            kontrol("TEST 12.09 — tekil A, 4-4-4-1 15 HP, varsayılan → 1NT değil", teklif(elTekil, Player.Guney, bos, null), r => r != "1NT", "1NT dışında");
+            kontrol("TEST 12.10 — tekil A, 4-4-4-1 15 HP, tekil A/K ile 1NT açık → 1NT", teklif(elTekil, Player.Guney, bos, a => a.NT1AllowSingletonHonor = 1), r => r == "1NT", "1NT");
+            // Cevaplayan eşikleri ortağın aralığına göre kayar
+            var ortak1NT = new List<IhaleHamlesi> { h(Player.Kuzey, "1NT", 1), h(Player.Dogu, "Pas", 2) };
+            var el11b = mk("S:K72 H:Q83 D:AJ52 C:J94");
+            kontrol("TEST 12.11 — ortak 12-14 1NT, 11 HP dengeli → davet (2NT)", teklif(el11b, Player.Guney, ortak1NT, a => { zayifNT(a); a.MinorTransfer = false; }), r => r == "2NT", "2NT");
+            kontrol("TEST 12.12 — ortak 15-17 1NT, 11 HP dengeli → 3NT", teklif(el11b, Player.Guney, ortak1NT, a => a.MinorTransfer = false), r => r == "3NT", "3NT");
+            var el8s = mk("S:KQ72 H:Q83 D:852 C:J94");
+            kontrol("TEST 12.13 — ortak 15-17 1NT, 8 HP 4♠ → Stayman 2♣", teklif(el8s, Player.Guney, ortak1NT, null), r => r == "2♣", "2♣");
+            kontrol("TEST 12.14 — ortak 12-14 1NT, 8 HP 4♠ → Stayman değil", teklif(el8s, Player.Guney, ortak1NT, zayifNT), r => r != "2♣", "2♣ dışında");
+            // 2NT aralığı
+            var el22 = mk("S:AKQ H:AK4 D:KQ5 C:J873");
+            kontrol("TEST 12.15 — 22 HP dengeli, 22-23 aralığı → 2NT", teklif(el22, Player.Guney, bos, a => a.NT2Range = 3), r => r == "2NT", "2NT");
+            kontrol("TEST 12.16 — 22 HP dengeli, varsayılan → 2♣", teklif(el22, Player.Guney, bos, null), r => r == "2♣", "2♣");
+            var el19 = mk("S:AK4 H:AQ3 D:KQ52 C:J83");
+            kontrol("TEST 12.17 — 19 HP dengeli, 19-20 aralığı → 2NT", teklif(el19, Player.Guney, bos, a => a.NT2Range = 0), r => r == "2NT", "2NT");
+            var ortak2NT = new List<IhaleHamlesi> { h(Player.Kuzey, "2NT", 1), h(Player.Dogu, "Pas", 2) };
+            var el6s = mk("S:KJ72 H:853 D:Q42 C:T93");
+            kontrol("TEST 12.18 — ortak 2NT, 6 HP 4♠ → Stayman 3♣", teklif(el6s, Player.Guney, ortak2NT, null), r => r == "3♣", "3♣");
+            kontrol("TEST 12.18b — ortak 2NT, 6 HP 4♠, Stayman → 3♣", teklif(el6s, Player.Guney, ortak2NT, a => a.PuppetStayman = false), r => r == "3♣", "3♣");
+            kontrol("TEST 12.19 — ortak 2NT, 6 HP 4♠, 3♣ doğal → 3♣ değil", teklif(el6s, Player.Guney, ortak2NT, a => { a.NT2Natural = 1; a.PuppetStayman = false; }), r => r != "3♣", "3♣ dışında");
+            // Rakip 1NT'sine savunmalar (Dogu açtı)
+            var sagNT = new List<IhaleHamlesi> { h(Player.Dogu, "1NT", 1) };
+            var elIki = mk("S:KQJ75 H:AJ984 D:3 C:72");
+            kontrol("TEST 12.20 — Brozel: ♠♥ 5-5 → 2♥", teklif(elIki, Player.Guney, sagNT, a => { a.NT1DefenseX = 1; a.Dont = false; }), r => r == "2♥", "2♥");
+            kontrol("TEST 12.21 — Astro: ♠♥ 5-5 → 2♦ (♠ + başka)", teklif(elIki, Player.Guney, sagNT, a => { a.NT1DefenseX = 2; a.Dont = false; }), r => r == "2♦", "2♦");
+            var brozelOrtak = new List<IhaleHamlesi> { h(Player.Bati, "1NT", 1), h(Player.Kuzey, "2♥", 2) };
+            kontrol("TEST 12.22 — Brozel: ortak 2♥ (♥♠), 2 kupa 4 maça → 2♠ düzeltme", teklif(mk("S:Q932 H:84 D:KJ75 C:T92"), Player.Guney, brozelOrtak, a => { a.NT1DefenseX = 1; a.Dont = false; }), r => r == "2♠", "2♠");
+            // 1NT kontra sonrası kaçışlar
+            var kontraSonrasi = new List<IhaleHamlesi> { h(Player.Kuzey, "1NT", 1), h(Player.Dogu, "Dbl", 2) };
+            var el6tek = mk("S:J98652 H:83 D:742 C:96");
+            kontrol("TEST 12.23 — Helvic: zayıf tek renk → XX", teklif(el6tek, Player.Guney, kontraSonrasi, a => a.NT1RunoutX = 4), r => r == "RDbl", "RDbl");
+            kontrol("TEST 12.24 — D.O.N.T. kaçış: ♥♠ zayıf → 2♥", teklif(mk("S:J9865 H:Q8652 D:74 C:6"), Player.Guney, kontraSonrasi, a => a.NT1RunoutX = 3), r => r == "2♥", "2♥");
+            // 1NT cevapları
+            var el11pz = mk("S:KJ72 H:Q83 D:A52 C:J94");
+            kontrol("TEST 12.25 — Puppet Stayman (1NT): 4♠ + 11 HP → 2♣", teklif(el11pz, Player.Guney, ortak1NT, a => a.NT1Puppet = 1), r => r == "2♣", "2♣");
+            var acici2C = new List<IhaleHamlesi> { h(Player.Guney, "1NT", 1), h(Player.Bati, "Pas", 2), h(Player.Kuzey, "2♣", 3) };
+            kontrol("TEST 12.26 — Puppet: açıcı 5'li ♥ → 2♥", teklif(mk("S:K72 H:AQ983 D:KJ3 C:Q4"), Player.Guney, acici2C, a => a.NT1Puppet = 1), r => r == "2♥", "2♥");
+            kontrol("TEST 12.27 — 1NT–2♠ röle: zayıf 6'lı ♣ → 2♠", teklif(mk("S:872 H:83 D:42 C:KQ9763"), Player.Guney, ortak1NT, a => { a.NT1MinorBid = 2; a.MinorTransfer = false; }), r => r == "2♠", "2♠");
+            var acici2S = new List<IhaleHamlesi> { h(Player.Guney, "1NT", 1), h(Player.Bati, "Pas", 2), h(Player.Kuzey, "2♠", 3) };
+            kontrol("TEST 12.28 — 1NT–2♠ röle: açıcı 3♣", teklif(mk("S:AK4 H:J73 D:AJ5 C:KJ84"), Player.Guney, acici2S, a => { a.NT1MinorBid = 2; a.MinorTransfer = false; }), r => r == "3♣", "3♣");
+            kontrol("TEST 12.29 — süper kabul: 17 HP 4♣ → 3♦", teklif(mk("S:AK4 H:J73 D:AJ5 C:KJ84"), Player.Guney, acici2S, a => a.NT1MinorBid = 3), r => r == "3♦", "3♦");
+            kontrol("TEST 12.29b — süper kabul (MinorTransfer kapalı): 17 HP 4♣ → 3♦", teklif(mk("S:AK4 H:J73 D:AJ5 C:KJ84"), Player.Guney, acici2S, a => { a.MinorTransfer = false; a.NT1MinorBid = 3; }), r => r == "3♦", "3♦");
+            kontrol("TEST 12.29c — süper kabul: 12 HP 4♣ (asgari) → 3♣", teklif(mk("S:A43 H:J73 D:KJ5 C:Q984"), Player.Guney, acici2S, a => { a.MinorTransfer = false; a.NT1MinorBid = 3; }), r => r == "3♣", "3♣");
+            kontrol("TEST 12.30 — minör transfer (süperkabulsüz): 17 HP 4♣ → 3♣", teklif(mk("S:AK4 H:J73 D:AJ5 C:KJ84"), Player.Guney, acici2S, null), r => r == "3♣", "3♣");
+            // Majör/minör tarafı
+            var yarim = new List<IhaleHamlesi> { h(Player.Guney, "1♠", 1), h(Player.Bati, "Pas", 2), h(Player.Kuzey, "1NT", 3), h(Player.Dogu, "Pas", 4) };
+            var el5332b = mk("S:KQ974 H:A83 D:Q52 C:J84");
+            kontrol("TEST 12.31 — yarı zorlayıcı 1NT: 5-3-3-2 12 HP açıcı → Pas", teklif(el5332b, Player.Guney, yarim, a => a.NTSemiForcing = 1), r => r == "Pas", "Pas");
+            var elMin = mk("S:KQ43 H:K853 D:K62 C:Q3");
+            kontrol("TEST 12.33 — en iyi minör: 3♦ 2♣ → 1♦", teklif(elMin, Player.Guney, bos, a => a.MinorShortClub = 0), r => r == "1♦", "1♦");
+            kontrol("TEST 12.34 — kısa sinek: 3♦ 2♣ → 1♣", teklif(elMin, Player.Guney, bos, a => a.MinorShortClub = 1), r => r == "1♣", "1♣");
+            var negH = new List<IhaleHamlesi> { h(Player.Kuzey, "1♦", 1), h(Player.Dogu, "2♥", 2) };
+            var elNeg = mk("S:KQ72 H:83 D:J52 C:A942");
+            kontrol("TEST 12.35 — negatif kontra sınırı 2♠: 1♦–(2♥) 4♠ 10 HP → Dbl", teklif(elNeg, Player.Guney, negH, a => a.NegDblLimit = 4), r => r == "Dbl", "Dbl");
+            kontrol("TEST 12.36 — negatif kontra sınırı 1♠: 1♦–(2♥) → Dbl değil", teklif(elNeg, Player.Guney, negH, a => a.NegDblLimit = 0), r => r != "Dbl", "Dbl dışında");
+            // Rekabet
+            var cueH = new List<IhaleHamlesi> { h(Player.Kuzey, "1♥", 1), h(Player.Dogu, "2♣", 2) };
+            kontrol("TEST 12.37 — Batı cue-bid: 13 HP, ♣ durdurucusuz → 3♣", teklif(mk("S:AKJ H:83 D:KQ52 C:8742"), Player.Guney, cueH, a => a.CueStyle = 1), r => r == "3♣", "3♣");
+            var uvu = new List<IhaleHamlesi> { h(Player.Kuzey, "1♥", 1), h(Player.Dogu, "2NT", 2) };
+            kontrol("TEST 12.38 — Unusual over Unusual: 3 kupa 11 HP → 3♣ (limit raise+)", teklif(mk("S:K82 H:KJ4 D:Q542 C:Q93"), Player.Guney, uvu, a => a.UnusualOverUnusual = 1), r => r == "3♣", "3♣");
+            var stayR = new List<IhaleHamlesi> { h(Player.Bati, "1NT", 1), h(Player.Kuzey, "Pas", 2), h(Player.Dogu, "2♣", 3) };
+            var elLD = mk("S:J84 H:83 D:742 C:KQJ96");
+            kontrol("TEST 12.39 — atak yönlendiren kontra: 1NT–(2♣) KQJ96♣ → Dbl", teklif(elLD, Player.Guney, stayR, a => a.LeadDirectingDbl = 1), r => r == "Dbl", "Dbl");
+            kontrol("TEST 12.40 — atak yönlendiren kontra kapalı → Dbl değil", teklif(elLD, Player.Guney, stayR, null), r => r != "Dbl", "Dbl dışında");
+
+            // "2/1 Game Force Temel" ön ayarı (Bridge Baron Two Over One - Basic)
+            Action<OrtaklikAnlasmasi> temel = x =>
+            {
+                var tp = OrtaklikAnlasmasi.IkiBirTemel();
+                foreach (var pi in typeof(OrtaklikAnlasmasi).GetProperties())
+                    if (pi.CanWrite && (pi.PropertyType == typeof(bool) || pi.PropertyType == typeof(int)) && !pi.Name.EndsWith("Agresifligi") && pi.Name != "BeceriDuzeyi")
+                        pi.SetValue(x, pi.GetValue(tp, null), null);
+            };
+            var tpa = OrtaklikAnlasmasi.IkiBirTemel();
+            kontrol("TEST 12.41 — Temel ön ayar: seçimler", (tpa.StrongNT && tpa.BesliMajor && tpa.IkiBirOyunZorlama && tpa.ForcingNT && !tpa.Smolen && !tpa.MinorTransfer && !tpa.PuppetStayman && !tpa.BergenRaises && tpa.MajorRaiseLimit == 1 && tpa.NT1MinorBid == 2 && tpa.NegDblLimit == 4 && tpa.NT2Range == 6 && tpa.FitCueBid && tpa.FeatureAsking2NT && tpa.TrialBid && tpa.FourthSuitForcing && !tpa.OneMinorTwoNTInv && !tpa.WeakJumpShiftResp && tpa.Preempt && tpa.ZayifIki && tpa.IkiliSinekGuclu && tpa.Blackwood && tpa.CueBid) ? "ok" : "hata", r => r == "ok", "ok");
+            var tpo = OrtaklikAnlasmasi.IkiBirOrta(); var tpg = OrtaklikAnlasmasi.IkiBirGelismis();
+            kontrol("TEST 12.41b — Orta/Gelişmiş ön ayar: seçimler ve bağımlılıklar", (tpo.Smolen && tpo.Stayman && tpo.InvertedMinors && tpo.NewMinorForcing && !tpo.TwoWayCheckback && tpo.Splinter && tpo.ReverseDrury && !tpo.Drury && tpo.Truscott2NT && tpo.FitCueBid && tpo.FeatureAsking2NT && tpo.NT2Range == 6 && tpo.RKCB && !tpo.RKCB1430 && tpo.TexasTransfers && tpo.MinorStayman && tpo.Lebensohl && tpo.Cappelletti && !tpo.Dont && tpo.Gambling3NT && tpo.PuppetStayman && tpo.Sandwich1NT && tpo.LimitPlusCueBids && tpo.SupportDouble && tpo.ResponsiveDouble && tpo.VoluntaryFiveMajor && tpo.DopiRopi && tpo.GrandSlamForce == 1 && tpo.LebensohlWeakTwo == 1 && tpo.UnusualOverUnusual == 1 && tpo.NT1OvercallSystemsOn && tpo.NTDefenseBalancing && !tpo.BergenRaises && tpo.MajorRaiseLimit == 1
+                && tpg.RKCB && !tpg.BergenRaises && tpg.ReverseDrury && !tpg.Drury && tpg.NewMinorForcing && !tpg.TwoWayCheckback && tpg.Cappelletti && !tpg.Dont && tpg.Michaels && tpg.Unusual2NT && tpg.ZayifIki && tpg.IkiliSinekGuclu && !tpg.Ogust && tpg.FeatureAsking2NT) ? "ok" : "hata", r => r == "ok", "ok");
+            kontrol("TEST 12.42 — Temel ön ayar: 1NT–2♠ röle (zayıf 6'lı ♣)", teklif(mk("S:872 H:83 D:42 C:KQ9763"), Player.Guney, ortak1NT, temel), r => r == "2♠", "2♠");
+            kontrol("TEST 12.43 — Temel ön ayar: 1NT–2♣ Stayman (4♠, 10 HP)", teklif(mk("S:KJ96 H:Q83 D:KJ4 C:T52"), Player.Guney, ortak1NT, temel), r => r == "2♣", "2♣");
+
+            var o2s = new List<IhaleHamlesi> { h(Player.Kuzey, "2♠", 1), h(Player.Dogu, "Pas", 2) };
+            kontrol("TEST 12.44 — Temel: zayıf iki 2♠ + 16 HP, 3 kart maça → Feature-asking 2NT", teklif(mk("S:Q74 H:AKJ5 D:AQ4 C:K83"), Player.Guney, o2s, temel), r => r == "2NT", "2NT");
+            var o2sSor = new List<IhaleHamlesi> { h(Player.Guney, "2♠", 1), h(Player.Bati, "Pas", 2), h(Player.Kuzey, "2NT", 3), h(Player.Dogu, "Pas", 4) };
+            kontrol("TEST 12.44b — Temel: 2♠–2NT, yan renk papazı (♥K) → 3♥ (özellik)", teklif(mk("S:KJ9843 H:K52 D:73 C:82"), Player.Guney, o2sSor, temel), r => r == "3♥", "3♥");
+            kontrol("TEST 12.44c — Temel: 2♠–2NT, özelliksiz → 3♠", teklif(mk("S:QJ9843 H:82 D:73 C:T82"), Player.Guney, o2sSor, temel), r => r == "3♠", "3♠");
+
+            var orta = (Action<OrtaklikAnlasmasi>)(x =>
+            {
+                var tp = OrtaklikAnlasmasi.IkiBirOrta();
+                foreach (var pi in typeof(OrtaklikAnlasmasi).GetProperties())
+                    if (pi.CanWrite && (pi.PropertyType == typeof(bool) || pi.PropertyType == typeof(int)) && !pi.Name.EndsWith("Agresifligi") && pi.Name != "BeceriDuzeyi")
+                        pi.SetValue(x, pi.GetValue(tp, null), null);
+            });
+            kontrol("TEST 12.45 — Orta ön ayar: 1NT–4♥ Texas transferi (6♠, 10 HP)", teklif(mk("S:AJ9843 H:82 D:K73 C:Q2"), Player.Guney, ortak1NT, orta), r => r == "4♥", "4♥");
+            kontrol("TEST 12.45b — Orta ön ayar: 1NT–2♣ Stayman", teklif(mk("S:KJ96 H:Q83 D:KJ4 C:T52"), Player.Guney, ortak1NT, orta), r => r == "2♣", "2♣");
+
+            kontrol("TEST 12.46 — Orta: 1NT, 12 HP 2-3-4-4 (4-4 minör) → Minör Stayman değil, 3NT", teklif(mk("S:JT H:KT8 D:K832 C:AJ63"), Player.Guney, ortak1NT, orta), r => r == "3NT", "3NT");
+            kontrol("TEST 12.46b — Orta: 1NT, 16 HP 4-4 minör, majör yok → Minör Stayman 2♠", teklif(mk("S:K5 H:A82 D:KQ83 C:AQ63"), Player.Guney, ortak1NT, orta), r => r == "2♠", "2♠");
 
             // Beceri düzeyi: 20 hatasız, 1 sık hata
             var legal = new List<Card>();

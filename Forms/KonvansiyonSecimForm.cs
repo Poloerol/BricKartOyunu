@@ -42,7 +42,7 @@ namespace BricKartOyunu.Forms
                 new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır."),
                 new Madde("IkiBirOyunZorlama", "2/1 Oyun Zorlayıcı", "1♥/1♠ açılışına 2 seviyesinde yeni renk (12+ HP) oyuna kadar zorlar. 5'li majör açılışı gerekir."),
                 new Madde("BenjaminTwoBids", "Benjamin iki'ler", "2♣ çok güçlü, 2♦ güçlü iki (Acol); 2♥/2♠ zayıf kalır. 2♣ güçlü açılışın yerini alır."),
-                new Madde("Gambling3NT", "Gambling 3NT", "3NT açılışı: sağlam 7+ minör, dışarıda A/K yok. Ortak durdurucu yoksa 4♣ ile düzeltir."),
+                new Madde("Gambling3NT", "Gambling Three Notrump (Uzun Sağlam Minör Açılışı)", "3NT açılışı: sağlam 7+ minör, dışarıda A/K yok. Ortak durdurucu yoksa 4♣ ile düzeltir."),
                 new Madde("Flannery", "Flannery 2♦", "2♦ açılışı: 4♠ 5♥, 11-15 HP. Zayıf iki, Multi 2♦ ve Mini-Roman ile birlikte seçilmez."),
                 new Madde("MiniRoman2D", "Mini-Roman 2♦", "2♦: ♦ tekil/void, ♠♥♣ dörtlü (11-15 HP); cevap geç/düzelt.")),
             new Grup("Cevap ve gelişim",
@@ -59,6 +59,7 @@ namespace BricKartOyunu.Forms
                 new Madde("XYZ", "XYZ", "1♣/1♦–1M–1NT gibi dizilerde yapay devam teklifleri."),
                 new Madde("Kokish", "Kokish", "2♣–2♦–2♥ röle: dengeli 25-27 ya da kupa rengi (2♣ güçlü gerekir)."),
                 new Madde("WeakJumpShiftResp", "Zayıf sıçrama cevapları", "1x–2y sıçrama: 6+ renk, 0-6 HP; açıcı geçer."),
+                new Madde("FeatureAsking2NT", "Feature asking 2NT", "Zayıf iki + 2NT: yan renkte As/Papaz varsa o rengi 3'te söyler; 3x = özellik yok; 3NT = sağlam renk."),
                 new Madde("Ogust", "Ogust", "Zayıf iki + 2NT: 3♣ min/zayıf, 3♦ min/iyi, 3♥ maks/zayıf, 3♠ maks/iyi, 3NT sağlam."),
                 new Madde("InvertedBergenRaises", "Ters Bergen destekleri", "1M–3♣: limit (10-12), 3♦: kurucu (7-9). Bergen destekleri'nin yerini alır."),
                 new Madde("OneMinorTwoNTInv", "1m–2NT davet", "1♣/1♦–2NT: 11-12 HP dengeli, majör yok."),
@@ -117,7 +118,11 @@ namespace BricKartOyunu.Forms
                 new Madde("WeakJumpOvercalls", "Zayıf sıçramalı müdahale", "(1x)–2y sıçrama: 6 kart, 5-9 HP."),
                 new Madde("MaximalOvercallDbl", "Maximal müdahale kontrü", "1M–2M–(3x alt renk)–Dbl: oyun daveti."),
                 new Madde("InvisibleCueBids", "Görünmez cue-bid", "1m–(1M)–2M: minörde oyun zorlayan raise."),
-                new Madde("LimitPlusCueBids", "Limit-üstü cue-bid", "1M–(c)–cue: 3+ destekli limit raise ya da üstü."))
+                new Madde("LimitPlusCueBids", "Limit-üstü cue-bid", "1M–(c)–cue: 3+ destekli limit raise ya da üstü."),
+                new Madde("GoodBad2NT", "Good-Bad 2NT", "1♦–…–(2M) sonrası açanın 2NT'si iyi/kötü röle: ortak 3♣/3♦, açan Pas (kötü) ya da yeni teklif (iyi)."),
+                new Madde("InvertedDbl", "Inverted DBL", "1x–(Dbl)–Rdbl–(y): Dbl = y'de 2-3 kart, Pas = 4+ (ceza) ya da tekil+iyi el."),
+                new Madde("MixedRaise", "Mixed Raise", "(1x)–1M–(Pas)–3x atlamalı cue-bid: 4+ destek, 10-12 HP."),
+                new Madde("FSJS", "FSJS (Fit-Showing Jump Shift)", "(1x)–1M–(Pas)–atlamalı yeni renk: 5+ o renk, 4+ majör desteği."))
         };
 
         // Aynı anda yalnızca biri açık olabilen alan grupları

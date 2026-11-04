@@ -9,13 +9,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     {
         public static readonly string[] Adlar =
         {
-            "Benjamin Two-Bids", "Extended Stayman", "Hello over 1NT", "Truscott 2NT", "Preemptive Reraises",
-            "Long & Short Game Tries", "New Minor Forcing", "Weak Jump-Shift Resp.", "Ogust", "Gambling 3NT",
+            "Benjamin Two-Bids", "Extended Stayman", "Hello over 1NT", "Truscott 2NT", "Good-Bad 2NT", "Inverted DBL", "Mixed Raise (Jump Cue-Bid)", "FSJS", "Preemptive Reraises",
+            "Long & Short Game Tries", "New Minor Forcing", "Weak Jump-Shift Resp.", "Ogust", "Feature Asking 2NT", "Gambling 3NT",
             "Specific King Asks", "Voluntary Five Major Bid", "Mathe Asking Bids", "Control Asking Bids", "Ghestem",
             "Invisible Cue-Bids", "Limit-Plus Cue-Bids", "Weak Jump Overcalls", "Sandwich 1NT", "Maximal Overcall Dbl.",
             "1m-2NT Invitational", "German 2C Relays", "Walsh", "Mini-Roman 2D", "Robinson",
             "Inverted Bergen Raises", "Exit Transfer 1NT Runouts", "Artif. 2C/2D Resp. to 1M-X", "Wolff Signoff",
-            "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Flannery", "Kokish", "Rubensohl", "Leaping Michaels", "Lightner Double", "Last Train", "2/1 Game Force"
+            "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Flannery", "Kokish", "Rubensohl", "Leaping Michaels", "Lightner Double", "Last Train", "2/1 Game Force", "Brozel", "Astro", "Helvic", "D.O.N.T. Escape", "Puppet Stayman (1NT)", "Minor Relay (1NT-2♠)", "Semi-Forcing 1NT", "Stayman (2NT)", "Rakip Renk Cue-Bid (Batı/Doğu)", "Unusual over Unusual", "Lead-Directing Double"
         };
         public static bool Mu(string ad) { return ad != null && Array.IndexOf(Adlar, ad) >= 0; }
     }

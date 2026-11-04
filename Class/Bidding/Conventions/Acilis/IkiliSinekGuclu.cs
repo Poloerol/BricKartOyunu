@@ -40,6 +40,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 22+ HP → 2♣
             int hp = ElDegerlendirici.HCP(el);
+            if (NTA.Acilis2NT(el, durum.Anlasma)) return false;   // 2NT aralığındaki dengeli el 2NT açar
             if (hp >= 22) return true;
 
             // 19+ HP + 9 hızlı löve → 2♣

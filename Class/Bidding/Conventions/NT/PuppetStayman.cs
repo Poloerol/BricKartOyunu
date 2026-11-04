@@ -62,7 +62,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
                 // 3'lü majör + oyun gücü (2NT 20-21 + en az 5 HP = 25+): açıcıda 5'li majör
                 // olabilir; 5-3 fit 3NT'den güvenlidir. Majör yoksa 3NT'ye gidilir (aşağıya bak).
-                int hp = ElDegerlendirici.HCP(el);
+                int hp = NTA.HcpStd(durum, el);
                 return hp >= 5 && (maca == 3 || kupa == 3);
             }
 
@@ -193,7 +193,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (dortluMacaVar && dortluKupaVar)
                 {
                     // Slam ilgisi var mı? (16+ HP)
-                    int hp = ElDegerlendirici.HCP(el);
+                    int hp = NTA.HcpStd(durum, el);
                     if (hp >= 16) return "4♣";  // Slam ilgisi
                     return "4♦";  // Slam ilgisi yok
                 }
@@ -226,7 +226,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (fit >= 3)
                 {
                     // Slam ilgisi yoksa (2NT 20-21 + <12 HP) → doğrudan oyun
-                    if (ElDegerlendirici.HCP(el) < 12)
+                    if (NTA.HcpStd(durum, el) < 12)
                         return okunan == "Kupa" ? "4♥" : "4♠";
 
                     // Önce ♣ kontrolü var mı?

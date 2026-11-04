@@ -101,6 +101,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Yani 1NT'den sonra aktif oyuncu henüz konuşmadı.
             if (sonCevapciIndex != n - 2) return false;
 
+            // Oyun zorlayıcı (13+ HP) checkback, cevapçının majöründe 5+ kart ister: 4'lü majörle dengeli oyun eli
+            // doğrudan 3NT der (açıcı 3'lü desteği olsaydı 1M'yi zaten yükseltirdi; 2♦ yalnız bilgi sızdırır).
+            if (ElDegerlendirici.HCP(durum.AktifOyuncuEli) >= 13
+                && ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, cevapciTeklifi.Koz) < 5) return false;
+
             return true;
         }
 

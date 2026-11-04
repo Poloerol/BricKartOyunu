@@ -71,7 +71,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4) return false;
             if (ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4) return false;
 
-            int hp = ElDegerlendirici.HCP(el);
+            int hp = NTA.HcpStd(durum, el);
             int gerekli = son.Seviye == 1 ? 16 : 12;
             return hp >= gerekli;
         }
@@ -176,7 +176,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var nt = gercek[gercek.Count - 3];
             int benAs = ElDegerlendirici.AsSayisi(el);
             int ortakAs = son.Teklif == "4♦" ? 0 : son.Teklif == "4♥" ? 1 : son.Teklif == "4♠" ? 2 : 3;
-            int hp = ElDegerlendirici.HCP(el);
+            int hp = NTA.HcpStd(durum, el);
             int ortakOrta = nt.Seviye == 1 ? 16 : 20;   // 1NT: 15-17, 2NT: 20-21
             int toplamHp = hp + ortakOrta;
 

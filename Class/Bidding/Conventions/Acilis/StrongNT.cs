@@ -48,15 +48,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             var el = durum.AktifOyuncuEli;
 
-            // 2. El puanı 15-17 arası olmalı
-            int hp = ElDegerlendirici.HCP(el);
-            if (hp < 15 || hp > 17) return false;
-
-            // 3. Dengeli el olmalı
-            if (!ElDegerlendirici.DengeliEl(el)) return false;
-
-            // 3b. 6'lı majör varsa 1NT açılmaz; 1M açılır.
-            if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 6 || ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 6) return false;
+            // 2-3. Anlaşmadaki 1NT aralığı + dağılım seçenekleri (5-4-2-2, 5'li majör, 6'lı minör, tekil A/K);
+            //      6'lı majörle hiçbir zaman 1NT açılmaz.
+            if (!NTA.Acilis1NT(el, durum.Anlasma)) return false;
 
             // 4. 5'li majör VARSA BesliMajor daha önce denenir (öncelik 10).
             //    Ama burada güvenlik kontrolü yapalım: 5'li majör yoksa kesin geçerli.

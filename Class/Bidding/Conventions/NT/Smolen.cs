@@ -57,7 +57,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (!besliMacaDortluKupa && !besliKupaDortluMaca) return false;
 
             // 5. Smolen oyun zorlayıcıdır: 10+ HP (1NT 15-17 karşısında 25+ toplam)
-            int hp = ElDegerlendirici.HCP(el);
+            int hp = NTA.HcpStd(durum, el);
             if (hp < 10) return false;
 
             return true;
@@ -76,6 +76,22 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (kupa == 5 && maca == 4) return "3♠";
 
             return "Pas";
+        }
+    }
+    /// <summary>2NT–3♣ Stayman (Puppet Stayman ve doğal 3♣ kapalıyken): 3♦ majör yok, 3♥/3♠ 4'lü majör.</summary>
+    internal sealed class StaymanOver2NT : YeniKonvTaban
+    {
+        public override string Ad { get { return "Stayman (2NT)"; } }
+        public override string Aciklama { get { return "2NT–3♣: 4'lü majör sorusu; 3♦ yok, 3♥/3♠ majör"; } }
+        protected override string Karar(Dz z)
+        {
+            int s = z.Maca, h = z.Kupa;
+            if (z.Es("O:2NT")) return (z.Hp >= 4 && s < 5 && h < 5 && (s == 4 || h == 4)) ? "3♣" : null;
+            if (z.Es("B:2NT", "O:3♣")) return h >= 4 ? "3♥" : s >= 4 ? "3♠" : "3♦";
+            if (z.Es("O:2NT", "B:3♣", "O:3♦")) return "3NT";
+            if (z.Es("O:2NT", "B:3♣", "O:3♥")) return h >= 4 ? "4♥" : "3NT";
+            if (z.Es("O:2NT", "B:3♣", "O:3♠")) return s >= 4 ? "4♠" : "3NT";
+            return null;
         }
     }
 }

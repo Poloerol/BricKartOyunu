@@ -35,7 +35,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (hp >= 22) return false;   // 2♣ güçlü açılışa bırak
             if (hp < 5 || hp > 10) return false;
 
-            if (hp >= 15 && ElDegerlendirici.DengeliEl(durum.AktifOyuncuEli))
+            if (NTA.Acilis1NT(durum.AktifOyuncuEli, durum.Anlasma))
                 return false;              // 1NT açılışına bırak
 
             return ZayifRenkVarMi(durum.AktifOyuncuEli);

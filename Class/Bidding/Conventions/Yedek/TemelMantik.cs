@@ -55,11 +55,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             var g = d.Gecmis ?? new List<IhaleHamlesi>();
             var gercek = g.Where(h => h.GercekTeklifMi).ToList();
-            int hp = ElDegerlendirici.HCP(el);
+            int hp = NTA.HcpStd(d, el);   // ortak/ben NT açtıysa 15-17 / 20-21 ölçeğinde
             bool dengeli = ElDegerlendirici.DengeliEl(el);
 
             // 1. AÇILIŞ
-            if (gercek.Count == 0) return Acilis(el, hp, dengeli, g.Count, d.Anlasma != null ? d.Anlasma.AcilisAgresifligi : 0);
+            if (gercek.Count == 0)
+            {
+                _kisaSinek = d.Anlasma != null && d.Anlasma.MinorShortClub == 1;
+                return Acilis(d, el, hp, dengeli, g.Count, d.Anlasma != null ? d.Anlasma.AcilisAgresifligi : 0);
+            }
 
             bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
             bool benKonustum = gercek.Any(h => h.Oyuncu == d.AktifOyuncu);
@@ -94,6 +98,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (np[0].Koz != serbest && ElDegerlendirici.RenkUzunlugu(el, serbest) >= 4 && (serbest == "Maça" || hp >= 13))
                     return Seviye(d, serbest, serbest == "Maça" ? 2 : 3);
                 if (hp >= 13 && ElDegerlendirici.StopperVar(el, np[1].Koz)) return Seviye(d, "NT", 3);
+            }
+
+            // 2c. (X)-ortak araya girdi-(Pas): 14+ HP ve kendi 6+ kartlık rengim var (rakip/ortak rengi degil) -> rengimi söyle.
+            if (np.Count == 2 && d.Rakipler.Contains(np[0].Oyuncu) && np[0].GercekTeklifMi && np[0].Seviye <= 3 &&
+                np[1].Oyuncu == d.Partner && np[1].GercekTeklifMi && np[1].Seviye <= 3 && np[1].Koz != "NT" && np[0].Koz != "NT" &&
+                g.Count >= 1 && g[g.Count - 1].PasMi && d.Rakipler.Contains(g[g.Count - 1].Oyuncu) && hp >= 14)
+            {
+                string uzun = null;
+                foreach (var r in Renkler)
+                    if (r != np[0].Koz && r != np[1].Koz && ElDegerlendirici.RenkUzunlugu(el, r) >= 6 &&
+                        (uzun == null || ElDegerlendirici.RenkUzunlugu(el, r) > ElDegerlendirici.RenkUzunlugu(el, uzun))) uzun = r;
+                if (uzun != null) return EnUcuz(d, uzun);
             }
 
             // 2b''. 1X-(1M overcall = ben)-(rakip 2 seviye)-3M (ortak rekabetçi yükseltme): puan + uzunluk + kısalık >= 13 ise 4M.
@@ -169,11 +185,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═════════════════════════════════════════════════════════════════
         // 1. AÇILIŞ
         // ═════════════════════════════════════════════════════════════════
-        private string Acilis(List<Card> el, int hp, bool dengeli, int onceki, int agr)
+        private string Acilis(IhaleDurumu d, List<Card> el, int hp, bool dengeli, int onceki, int agr)
         {
+            if (NTA.Acilis2NT(el, d.Anlasma)) return "2NT";
             if (hp >= 22) return "2♣";
-            if (hp >= 20 && hp <= 21 && dengeli) return "2NT";
-            if (hp >= 15 && hp <= 17 && dengeli && ElDegerlendirici.RenkUzunlugu(el, "Maça") < 6 && ElDegerlendirici.RenkUzunlugu(el, "Kupa") < 6) return "1NT";
+            if (NTA.Acilis1NT(el, d.Anlasma)) return "1NT";
             if (ElDegerlendirici.AcilisGucuVarMi(el, agr)) return EnUzunRengiAc(el);   // 12+ HCP veya 11 HCP + 20 kuralı
             // 3. / 4. el: 11 HCP + güçlü 5'li renk (Rule of 20 benzeri)
             if (onceki >= 2 && hp == 11 && EnUzunUzunluk(el) >= 5) return EnUzunRengiAc(el);
@@ -183,6 +199,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         private static int EnUzunUzunluk(List<Card> el) =>
             Renkler.Max(r => ElDegerlendirici.RenkUzunlugu(el, r));
 
+        private bool _kisaSinek = true;
         private string EnUzunRengiAc(List<Card> el)
         {
             int ma = ElDegerlendirici.RenkUzunlugu(el, "Maça");
@@ -192,7 +209,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (ma >= 5 && ma >= ku) return "1♠";
             if (ku >= 5) return "1♥";
             if (ma >= 5) return "1♠";
-            if (ka >= 4 && ka >= si) return "1♦";
+            if (_kisaSinek) { if (ka >= 4 && ka >= si) return "1♦"; return "1♣"; }
+            if (ka > si || (ka == si && ka >= 4)) return "1♦";   // en iyi minör: uzun olan; eşitlikte 4-4 → ♦, 3-3 → ♣
             return "1♣";
         }
 
@@ -222,7 +240,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Dengeli 15-18 HP, rakibin rengini durduruyor: NT müdahalesi (1♦ – (1NT), 2♥ – (2NT) = 15-18).
             // Güçlü 2♣ açılışına karşı uygulanmaz.
-            bool ntMud = (sev == 1 || (sev == 2 && gercek.Count == 1)) && rk != "NT" && son.Teklif != "2♣" && hp >= 15 && ElDegerlendirici.DengeliEl(el);
+            // 6+ kartlık renk varsa (6-3-2-2 "dengeli" sayılsa da) NT müdahalesi/kontra yapılmaz: renk söylenir
+            bool ntMud = (sev == 1 || (sev == 2 && gercek.Count == 1)) && rk != "NT" && son.Teklif != "2♣" && hp >= 15 && ElDegerlendirici.DengeliEl(el)
+                         && !Renkler.Any(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 6);
             if (ntMud && hp <= 18 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == sev)
                 return Seviye(d, "NT", sev);
             // Dengeli 15+ HP, rakibin rengini durduramıyor ve diğer renklerde en az 3 kart: takeout kontra
@@ -279,12 +299,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool benNTAcildi = ilk.Oyuncu == d.AktifOyuncu && ilk.Koz == "NT";
 
             // Ben 1NT açtım, ortak minör transferi yaptı → transferi tamamla
-            if (benNTAcildi && ilk.Teklif == "1NT" && sonOrtak && d.Anlasma != null && d.Anlasma.MinorTransfer &&
+            if (benNTAcildi && ilk.Teklif == "1NT" && sonOrtak && d.Anlasma != null && (d.Anlasma.MinorTransfer || d.Anlasma.NT1MinorBid == 3) &&
                 gercek.Count(h => h.Oyuncu == d.AktifOyuncu) == 1 && gercek.Count(h => h.Oyuncu == d.Partner) == 1 &&
                 !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)))
             {
-                if (son.Teklif == "2♠") return Seviye(d, "Sinek", 3);
-                if (son.Teklif == "2NT") return Seviye(d, "Karo", 3);
+                bool superKabul = d.Anlasma.NT1MinorBid == 3 && hp >= 16;   // 4+ kart + maksimum (standart ölçekte 16-17)
+                if (son.Teklif == "2♠") return superKabul && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4 ? Seviye(d, "Karo", 3) : Seviye(d, "Sinek", 3);
+                if (son.Teklif == "2NT") return superKabul && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 4 ? Seviye(d, "Kupa", 3) : Seviye(d, "Karo", 3);
             }
 
             // Ben minör transferi yaptım (1NT – 2♠/2NT), ortak tamamladı → güce göre devam
@@ -304,6 +325,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     bool kaynak = (hp >= 9 && tUz >= 5 && tOnor >= 2) || (hp >= 8 && tUz >= 6 && tOnor >= 2);
                     return (hp >= 10 || kaynak) ? Seviye(d, "NT", 3) : "Pas";
                 }
+            }
+
+            // Süper kabul sonrası (2♠→3♦ = ♣ fiti + maksimum, 2NT→3♥ = ♦ fiti + maksimum): 9+ HP 3NT, daha zayıfsa minörde 4 seviye
+            {
+                var benim = gercek.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+                var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
+                if (ilk.Oyuncu == d.Partner && ilk.Teklif == "1NT" && sonOrtak && benim.Count == 1 && ortagim.Count == 2 &&
+                    !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && d.Anlasma != null && d.Anlasma.NT1MinorBid == 3 &&
+                    ((benim[0].Teklif == "2♠" && son.Teklif == "3♦") || (benim[0].Teklif == "2NT" && son.Teklif == "3♥")))
+                    return hp >= 9 ? Seviye(d, "NT", 3) : Seviye(d, benim[0].Teklif == "2♠" ? "Sinek" : "Karo", 4);
             }
 
             // Ortak 2♣ (güçlü) açtı, ben ilk kez cevap veriyorum
@@ -434,7 +465,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     {
                         // Minör transferi açıkken 1NT–2NT transferdir (karo): doğal davet Stayman (2♣) yoluyla yapılır,
                         // açıcının cevabından sonra 2NT. Kapalıyken doğrudan doğal 2NT.
-                        bool minTr = d.Anlasma != null && d.Anlasma.MinorTransfer;
+                        bool minTr = d.Anlasma != null && (d.Anlasma.MinorTransfer || d.Anlasma.NT1MinorBid == 3) && d.Anlasma.NT1MinorBid != 2;
                         if (cur == 1) return minTr ? "2♣" : Seviye(d, "NT", 2);
                         if (minTr && cur == 2 && gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "2♣") &&
                             !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)))
@@ -501,6 +532,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 int ucuz = Cheapest(d, fit);
                 if (ucuz <= 2) return Seviye(d, fit, ucuz + 1);
+            }
+
+            // Majör fitte oyun daveti: ben 2M ile destekledim (ya da fit biliniyor), ortak 3M ile davet etti (10-12 HP).
+            // Üst yarıda (13+ HP ya da 14+ toplam puan) kabul → 4M, asgari elle Pas.
+            if (fit != null && Major(fit) && sonOrtak && son.Koz == fit && son.Seviye == 3 && cur == 3 &&
+                gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == fit && h.Seviye == 2) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi) &&
+                ElDegerlendirici.RenkUzunlugu(el, fit) >= 4)
+            {
+                // Beyan edilen güce göre: asgari raise (12-14) gösterdiysem 13+ HP kabul eder; 3M sonrası 4M açıktır.
+                if (hp >= 13 || ElDegerlendirici.ToplamPuan(el, fit) >= 14) return Seviye(d, fit, 4);
+                return "Pas";
             }
 
             // ── Fit varsa: fit rengiyle hedef ──
@@ -834,6 +877,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Oyun gücü: 3NT (veya 6+ majörde 4)
             double oyunEsik = dar ? 26 : 27.5, davetEsik = dar ? 24 : 25.5;
+            // 1x–1y–1z (açıcı 1 seviyede yeni renk): açıcının 1 seviye rebid'i sınırsız (12-18) ve forcing olmayan bir
+            // teklif; 10+ HP ile dengeli cevaplayan Pas demez, 2NT ile davet eder (eşik 25.5 yerine 24.5).
+            if (hp >= 10 && gercek.Count == 3 && !rakipRenkleri.Any() &&
+                gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                gercek[1].Oyuncu == d.AktifOyuncu && gercek[1].Seviye == 1 && gercek[1].Koz != "NT" &&
+                gercek[2].Oyuncu == d.Partner && gercek[2].Seviye == 1 && gercek[2].Koz != "NT" &&
+                gercek[2].Koz != gercek[0].Koz && gercek[2].Koz != gercek[1].Koz)
+                davetEsik = Math.Min(davetEsik, 24.5);
             if (est >= oyunEsik)
             {
                 string uzun = EnUzunRenk(el);

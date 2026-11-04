@@ -21,8 +21,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (hp > 21 || !ElDegerlendirici.AcilisGucuVarMi(el, durum.Anlasma != null ? durum.Anlasma.AcilisAgresifligi : 0)) return false;   // 12+ HCP veya 11 HCP + 20 kuralı
             if (ElDegerlendirici.BesliMajorVar(el)) return false;
             bool dengeliEl = ElDegerlendirici.DengeliEl(el);
-            if (hp >= 15 && hp <= 17 && dengeliEl) return false;   // 1NT açılışı
-            if (hp >= 20 && hp <= 21 && dengeliEl) return false;   // 2NT açılışı
+            if (NTA.Acilis1NT(el, durum.Anlasma)) return false;   // 1NT açılışı (anlaşmadaki aralık)
+            if (NTA.Acilis2NT(el, durum.Anlasma)) return false;   // 2NT açılışı (anlaşmadaki aralık)
 
             return TeklifVer(el, durum) == "1♣";
         }
@@ -35,7 +35,9 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
             int hp = ElDegerlendirici.HCP(el);
 
-            if (karo >= 4 && karo >= sinek)
+            bool kisaSinek = durum != null && durum.Anlasma != null && durum.Anlasma.MinorShortClub == 1;
+            bool karoAc = kisaSinek ? (karo >= 4 && karo >= sinek) : (karo > sinek || (karo == sinek && karo >= 4));   // en iyi minör / kısa sinek
+            if (karoAc)
             {
                 Aciklama = "1♦: 4+♦, dengesiz veya dengeli";
                 return "1♦";

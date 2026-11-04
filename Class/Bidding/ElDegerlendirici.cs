@@ -450,4 +450,88 @@ namespace BricKartOyunu.Class.Bidding
             }
         }
     }
+
+    /// <summary>
+    /// NT açılış aralıkları (ortaklık anlaşmasındaki 1NT / 2NT seçimi) ve "standartlaştırılmış HCP".
+    /// Motordaki cevaplayan/açıcı eşikleri 1NT = 15-17, 2NT = 20-21 varsayılarak yazılmıştır; HcpStd, eli
+    /// ortağın gerçek aralığına göre bu ölçeğe çevirir (cevaplayan: HCP + fark, açıcı: HCP - fark).
+    /// </summary>
+    public static class NTA
+    {
+        public static int Lo1(OrtaklikAnlasmasi a)
+        {
+            if (a == null) return 15;
+            int r = a.NT1Range; if (r < 0 || r > 6) r = 5;
+            if (a.StrongNT && r < 4) r = 5;      // bayrak asıl kaynak: eski/hazır profillerde tutarsızlık olursa bayrak kazanır
+            if (!a.StrongNT && r >= 4) r = 2;
+            return 10 + r;
+        }
+        public static int Hi1(OrtaklikAnlasmasi a) { return Lo1(a) + 2; }
+
+        public static int Lo2(OrtaklikAnlasmasi a)
+        {
+            int r = a == null ? 1 : a.NT2Range; if (r < 0 || r > 8) r = 1;
+            return r <= 4 ? 19 + r : 19 + (r - 5);
+        }
+        public static int Hi2(OrtaklikAnlasmasi a)
+        {
+            int r = a == null ? 1 : a.NT2Range; if (r < 0 || r > 8) r = 1;
+            return r <= 4 ? Lo2(a) + 1 : Lo2(a) + 2;
+        }
+
+        public static int D1(OrtaklikAnlasmasi a) { return Lo1(a) - 15; }
+        public static int D2(OrtaklikAnlasmasi a) { return Lo2(a) - 20; }
+
+        /// <summary>1NT açılış eli mi? (aralık + dağılım seçenekleri)</summary>
+        public static bool Acilis1NT(List<Card> el, OrtaklikAnlasmasi a)
+        {
+            if (el == null || el.Count != 13) return false;
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp < Lo1(a) || hp > Hi1(a)) return false;
+            var s = ElDegerlendirici.RenkSayilari(el).Values.OrderByDescending(x => x).ToArray();
+            if (s.Length < 4) return false;
+            int mac = ElDegerlendirici.RenkUzunlugu(el, "Maça"), kup = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+            if (mac >= 6 || kup >= 6) return false;
+            bool besliMajor = mac >= 5 || kup >= 5;
+            bool a5422 = a == null || a.NT1Allow5422 != 0, a5M = a == null || a.NT1Allow5Major != 0, a6m = a == null || a.NT1Allow6Minor != 0;
+            if (besliMajor && !a5M) return false;
+            if (s[0] == 4 && s[1] == 3 && s[2] == 3 && s[3] == 3) return true;
+            if (s[0] == 4 && s[1] == 4 && s[2] == 3 && s[3] == 2) return true;
+            if (s[0] == 5 && s[1] == 3 && s[2] == 3 && s[3] == 2) return true;
+            if (s[0] == 5 && s[1] == 4 && s[2] == 2 && s[3] == 2) return a5422;
+            if (s[0] == 6 && s[1] == 3 && s[2] == 2 && s[3] == 2) return a6m;
+            if (a != null && a.NT1AllowSingletonHonor != 0 && s[3] == 1 && s[0] <= 5 && TekilAsPapaz(el)) return true;
+            return false;
+        }
+
+        private static bool TekilAsPapaz(List<Card> el)
+        {
+            foreach (var g in el.GroupBy(c => c.Suit))
+                if (g.Count() == 1 && (g.First().Value == 14 || g.First().Value == 13)) return true;
+            return false;
+        }
+
+        public static bool Acilis2NT(List<Card> el, OrtaklikAnlasmasi a)
+        {
+            if (el == null || el.Count != 13 || !ElDegerlendirici.DengeliEl(el)) return false;
+            int hp = ElDegerlendirici.HCP(el);
+            return hp >= Lo2(a) && hp <= Hi2(a);
+        }
+
+        /// <summary>Elin HCP'si; ortaklık NT ile açılmışsa 15-17 / 20-21 ölçeğine çevrilmiş hali.</summary>
+        public static int HcpStd(IhaleDurumu d, List<Card> el)
+        {
+            int hp = ElDegerlendirici.HCP(el);
+            if (d == null || d.Anlasma == null || d.Gecmis == null) return hp;
+            var ilk = d.Gecmis.FirstOrDefault(h => h.GercekTeklifMi);
+            if (ilk == null) return hp;
+            int fark;
+            if (ilk.Teklif == "1NT") fark = D1(d.Anlasma);
+            else if (ilk.Teklif == "2NT") fark = D2(d.Anlasma);
+            else return hp;
+            if (ilk.Oyuncu == d.Partner) return hp + fark;
+            if (ilk.Oyuncu == d.AktifOyuncu) return hp - fark;
+            return hp;
+        }
+    }
 }

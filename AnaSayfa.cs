@@ -83,9 +83,8 @@ namespace BricKartOyunu.Forms
         {
             InitializeComponent();
 
-            // Varsayılan olarak Classic seçili olsun
-            classicToolStripMenuItem.Checked = true;
-            sayısalToolStripMenuItem.Checked = false;
+            // Seçili kart setinin onay işareti (Görünüm > Kart Yüzleri)
+            KartSetiMenuleriniGuncelle();
 
             // Çift tamponlama — dinamik yerleşimde titremeyi azaltır
             this.SetStyle(
@@ -101,6 +100,7 @@ namespace BricKartOyunu.Forms
             eWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => OrtaklikProfiliAc(Taraf.EW);
             basitNSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.NS);
             basitEWOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => BasitAnlasmaUygula(Taraf.EW);
+            ayarlarıSıfırlaToolStripMenuItem.Click += (s, e) => AyarlariSifirla();
             kartDağıtıcıToolStripMenuItem.Click += (s, e) => ShowChildForm(new KartDagitici());
             briçMaçıToolStripMenuItem.Click += (s, e) => MacMenusunuAc();
         }
@@ -114,20 +114,32 @@ namespace BricKartOyunu.Forms
             AnlasmaForm.Goster(this, taraf);
         }
 
+        /// <summary>
+        /// Ayarlar > Ayarları Sıfırla: uyarı gösterilir; Tamam'a basılınca ortaklık profilleri, oyun planı,
+        /// kart seti, masa rengi ve kart arka yüzü varsayılan değerlere döner (kalıcı depoya da yazılır).
+        /// </summary>
+        private void AyarlariSifirla()
+        {
+            MessageBox.Show(this, "Seçenekleriniz varsayılan değerlere sıfırlandı!", "Briç Kart Oyunu",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+            bool kaydedildi = AnlasmaYonetici.VarsayilanaDon();
+            OyunPlani = new OyunPlaniSecenekleri();
+            kaydedildi &= OyunPlani.Kaydet();
+
+            AppState.SeciliKartSeti = "Classic";
+            MasaRengi = Color.Green;
+            BackColor = MasaRengi;
+            ArkaYuzuUygula(AppState.ArkaYuzKirmizi);
+
+            if (!kaydedildi)
+                MessageBox.Show(this, "Ayarlar bu oturum için sıfırlandı ama dosyaya kaydedilemedi:\n" + AyarDeposu.KlasorYolu,
+                    "Ayarlar kaydedilemedi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
         private void BasitAnlasmaUygula(Taraf taraf)
         {
-            string ad = taraf == Taraf.NS ? "N/S" : "E/W";
-            string profil = AnlasmaYonetici.AktifProfilAdi(taraf);
-            if (MessageBox.Show(this,
-                    ad + " tarafının etkin profiline (" + profil + ") basit anlaşma uygulansın mı?\n" +
-                    "Konvansiyon seçimi basit anlaşmayla değişir; agresiflik ve beceri düzeyi korunur.",
-                    ad + " basit ortaklık ayarları", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-                return;
-            bool kaydedildi = AnlasmaYonetici.BasitUygula(taraf);
-            MessageBox.Show(this,
-                kaydedildi ? ad + " için basit anlaşma uygulandı." : ad + " için basit anlaşma bu oturumda uygulandı ama dosyaya kaydedilemedi.",
-                ad + " basit ortaklık ayarları", MessageBoxButtons.OK,
-                kaydedildi ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+            BasitAnlasmaForm.Goster(this, taraf);
         }
 
         // ====================================================================
@@ -183,18 +195,27 @@ namespace BricKartOyunu.Forms
         // MENÜ — KART SETİ SEÇİMİ
         // ====================================================================
 
-        private void ClassicToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ClassicToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("Classic"); }
+        private void DeuToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("DEU"); }
+        private void FraToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("FRA"); }
+        private void SembolsToolStripMenuItem_Click(object sender, EventArgs e) { KartSetiSec("Sembols"); }
+
+        /// <summary>Menü açılırken onay işareti, geçerli kart setini (başka formdan da değişmiş olabilir) gösterir.</summary>
+        private void KartYuzleriToolStripMenuItem_DropDownOpening(object sender, EventArgs e) { KartSetiMenuleriniGuncelle(); }
+
+        private void KartSetiSec(string klasor)
         {
-            SeciliKartSeti = "Classic";
-            classicToolStripMenuItem.Checked = true;
-            sayısalToolStripMenuItem.Checked = false;
+            SeciliKartSeti = klasor;
+            KartSetiMenuleriniGuncelle();
         }
 
-        private void SayısalToolStripMenuItem_Click(object sender, EventArgs e)
+        private void KartSetiMenuleriniGuncelle()
         {
-            SeciliKartSeti = "Sembols";
-            sayısalToolStripMenuItem.Checked = true;
-            classicToolStripMenuItem.Checked = false;
+            string s = SeciliKartSeti;
+            classicToolStripMenuItem.Checked = s == "Classic";
+            deuToolStripMenuItem.Checked = s == "DEU";
+            fraToolStripMenuItem.Checked = s == "FRA";
+            sembolsToolStripMenuItem.Checked = s == "Sembols";
         }
 
         // ====================================================================
@@ -1025,6 +1046,5 @@ namespace BricKartOyunu.Forms
 
         }
 
-       
     }
 }

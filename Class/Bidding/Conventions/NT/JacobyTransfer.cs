@@ -109,7 +109,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             else return null;
 
             if (ElDegerlendirici.RenkUzunlugu(el, major) != 5) return null;
-            int hp = ElDegerlendirici.HCP(el);
+            int hp = NTA.HcpStd(durum, el);
             if (hp < 10 || hp > 14) return null;
             foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
                 if (ElDegerlendirici.RenkUzunlugu(el, r) <= 1) return null;   // tekil/void → 4M
@@ -130,7 +130,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
             else return null;
             if (ElDegerlendirici.RenkUzunlugu(el, major) != 5) return null;
-            int hp = ElDegerlendirici.HCP(el);
+            int hp = NTA.HcpStd(durum, el);
             if (hp < 8 || hp > 9) return null;
             return "2NT";
         }
@@ -149,7 +149,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             else if (kendi[0] == "2♦" && ortak[1] == "2♥") major = "Kupa";
             else return null;
             if (ElDegerlendirici.RenkUzunlugu(el, major) < 6) return null;
-            if (ElDegerlendirici.HCP(el) < 16) return null;
+            if (NTA.HcpStd(durum, el) < 16) return null;
             return "4NT";
         }
 
@@ -166,7 +166,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (ortak[0] == "2♦" && kendi[1] == "2♥") major = "Kupa";
             else if (ortak[0] == "2♥" && kendi[1] == "2♠") major = "Maça";
             else return null;
-            int hp = ElDegerlendirici.HCP(el);
+            int hp = NTA.HcpStd(durum, el);
             string sem = KozYardimcisi.KozSembolu(major);
             if (ElDegerlendirici.RenkUzunlugu(el, major) >= 3) return hp >= 16 ? "4" + sem : "3" + sem;
             return hp >= 16 ? "3NT" : null;

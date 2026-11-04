@@ -10,7 +10,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public override string Ad { get { return "New Minor Forcing"; } }
         public override string Aciklama { get { return "1x–1y–1NT sonrası yeni minör: oyun daveti+, y'de 3'lü destek / diğer majörde 4'lü sorusu"; } }
 
-        private static string Yeni(string acilis) { return acilis == "Sinek" ? "2♦" : "2♣"; }
+        private static string Yeni(string acilis, OrtaklikAnlasmasi an) { if (an != null && an.CheckbackCrowhurst == 1) return "2♣"; return acilis == "Sinek" ? "2♦" : "2♣"; }
 
         protected override string Karar(Dz z)
         {
@@ -19,24 +19,27 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 string x = YK2.BirRenk(z.Hepsi[0], "O"), y = YK2.BirRenk(z.Hepsi[1], "B");
                 if (x == null || y == null || !YK.Major(y) || x == y || z.Hp < 11) return null;
-                return Yeni(x);
+                // Yeni minör, cevapçının majöründe 5+ kart ister (3'lü destek aranır). 4'lü majörle dengeli el 2NT/3NT der:
+                // açıcı 3'lü desteğiyle 1M'yi zaten yükseltirdi.
+                if (z.Uz(y) < 5) return null;
+                return Yeni(x, z.D.Anlasma);
             }
             // Açıcı cevabı
             if (z.Hepsi.Count == 4 && z.Hepsi[2] == "B:1NT")
             {
                 string x = YK2.BirRenk(z.Hepsi[0], "B"), y = YK2.BirRenk(z.Hepsi[1], "O");
                 if (x == null || y == null || !YK.Major(y) || x == y) return null;
-                if (YK.Cagri(z.Hepsi[3]) != Yeni(x)) return null;
+                if (YK.Cagri(z.Hepsi[3]) != Yeni(x, z.D.Anlasma)) return null;
                 if (z.Uz(y) >= 3) return YK.T(2, y);
                 string diger = y == "Kupa" ? "Maça" : "Kupa";
-                if (z.Uz(diger) >= 4 && YK2.Yuksek(YK.T(2, diger), Yeni(x))) return YK.T(2, diger);
+                if (z.Uz(diger) >= 4 && YK2.Yuksek(YK.T(2, diger), Yeni(x, z.D.Anlasma))) return YK.T(2, diger);
                 return "2NT";
             }
             // Cevaplayanın devamı
             if (z.Hepsi.Count == 5 && z.Hepsi[2] == "O:1NT" && z.Hepsi[3].StartsWith("B:"))
             {
                 string x = YK2.BirRenk(z.Hepsi[0], "O"), y = YK2.BirRenk(z.Hepsi[1], "B");
-                if (x == null || y == null || !YK.Major(y) || YK.Cagri(z.Hepsi[3]) != Yeni(x)) return null;
+                if (x == null || y == null || !YK.Major(y) || YK.Cagri(z.Hepsi[3]) != Yeni(x, z.D.Anlasma)) return null;
                 string c = YK.Cagri(z.Hepsi[4]);
                 if (c == YK.T(2, y)) return z.Hp >= 13 ? YK.T(4, y) : YK.T(3, y);
                 string diger = y == "Kupa" ? "Maça" : "Kupa";

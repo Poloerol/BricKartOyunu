@@ -16,10 +16,23 @@ namespace BricKartOyunu.Class
     public static class PimcOyuncu
     {
         public static bool Aktif = true;
-        /// <summary>Bir karar için en çok üretilecek dünya sayısı.</summary>
+        /// <summary>Bir karar için en çok üretilecek dünya sayısı (süre sınırı 1 sn'yi aşarsa 3 katı).</summary>
         public static int DunyaSayisi = 40;
         /// <summary>Bir karar için zaman sınırı (ms). Dünyalar bu süre dolana dek üretilir.</summary>
         public static int ZamanSiniriMs = 900;
+        /// <summary>
+        /// El başına zaman sınırı (ms); dizin = biten el sayısı (0 = 1. el … 11 = 12. el). Ortaklık anlaşmasındaki
+        /// "Düzey Ayarları" sürgülerinden gelir. null = ZamanSiniriMs. 0 = o elde PIMC kapalı (sezgisel kurallar).
+        /// </summary>
+        public static int[] ElSureleriMs = null;
+        /// <summary>Kanıt yeterince netse (en iyi kart ikinciden belirgin üstünse) kalan süre beklenmeden karar verilir.</summary>
+        public static bool ErkenKarar = true;
+
+        public static int SureMs(int elNo)
+        {
+            if (ElSureleriMs == null || elNo < 0 || elNo >= ElSureleriMs.Length) return ZamanSiniriMs;
+            return ElSureleriMs[elNo];
+        }
         /// <summary>Güvenilir karar için gereken en az dünya sayısı; altında null döner.</summary>
         public static int MinDunya = 6;
         /// <summary>Elimde bundan fazla kart varsa (ilk 3 el) çözücü çok yavaştır → sezgisel kurallar.</summary>
@@ -28,6 +41,24 @@ namespace BricKartOyunu.Class
         public static int TamCozumKalanEl = 8;
         public static Random Rnd = new Random();
         public static string SonOzet = "";
+        /// <summary>İhaleden çıkan HCP aralıklarını dünya örneklemesinde yumuşak kısıt olarak kullan.</summary>
+        public static bool HcpKisiti = true;
+
+        private static int MaskHcp(ulong m)
+        {
+            int s = 0;
+            for (int k = 0; k < 64 && m != 0; k++, m >>= 1)
+                if ((m & 1UL) != 0) { int v = (k & 15) + 2; if (v > 10) s += v - 10; }
+            return s;
+        }
+
+        /// <summary>HCP aralığına uyum ağırlığı: aralıkta 1, her puan dışında hızla düşer.</summary>
+        private static double HcpUyumu(int toplam, int[] r)
+        {
+            if (r == null) return 1.0;
+            int dist = toplam < r[0] ? r[0] - toplam : (toplam > r[1] ? toplam - r[1] : 0);
+            return dist == 0 ? 1.0 : dist == 1 ? 0.5 : dist == 2 ? 0.2 : 0.05;
+        }
 
         public static int Koltuk(Player p)
         {
@@ -50,6 +81,8 @@ namespace BricKartOyunu.Class
                 default: return Player.Bati;
             }
         }
+
+        private static int KartHcpC(Card c) { return c.Value > 10 ? c.Value - 10 : 0; }
 
         private static int RenkNo(string suit) { return Array.IndexOf(OyunKurallari.Renkler, suit); }
         public static int Kod(Card c) { return RenkNo(c.Suit) * 16 + (c.Value - 2); }
@@ -83,12 +116,26 @@ namespace BricKartOyunu.Class
             }
         }
 
+        /// <summary>En iyi ile ikinci kartın toplam puan farkı 3 standart sapmayı (≈ 3·√n; dünya başına fark ≤ 1) aşıyorsa karar nettir.</summary>
+        private static bool KanitYeterli(Dictionary<int, double> toplam, int n)
+        {
+            double en = double.MinValue, ikinci = double.MinValue;
+            foreach (var v in toplam.Values)
+            {
+                if (v > en) { ikinci = en; en = v; }
+                else if (v > ikinci) ikinci = v;
+            }
+            return ikinci > double.MinValue && en - ikinci > 3.0 * Math.Sqrt(n);
+        }
+
         private static Card SecIc(OyunBaglami b, List<Card> legal, Card sezgisel, out string neden)
         {
             neden = "";
             if (!Aktif || b == null || b.Elim == null || legal == null || legal.Count < 2) return null;
             int kalan = b.Elim.Count;                       // kalan el sayısı (mevcut el dahil)
             if (kalan > EnFazlaKalanEl || kalan < 2) return null;
+            int zaman = SureMs(b.ElNo);
+            if (zaman <= 0) return null;
             if (b.Masa == null) b.Masa = new List<(Player Oyuncu, Card Kart)>();
             if (b.Gecmis == null) b.Gecmis = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>();
 
@@ -155,6 +202,13 @@ namespace BricKartOyunu.Class
             if (!hedefVar && kalan > TamCozumKalanEl) return null;
             int hedefNS = hedefVar ? (benNS ? gerek : kalan - gerek + 1) : -1;
 
+            // Oynanmış kartların HCP'si + ihaleden çıkan aralıklar (gizli iki oyuncu için)
+            int oynA = 0, oynB = 0;
+            foreach (var g in b.Gecmis) { int h = KartHcpC(g.Kart); if (g.Oyuncu == A) oynA += h; else if (g.Oyuncu == B) oynB += h; }
+            foreach (var m in b.Masa) { int h = KartHcpC(m.Kart); if (m.Oyuncu == A) oynA += h; else if (m.Oyuncu == B) oynB += h; }
+            int[] rA = null, rB = null;
+            if (HcpKisiti && b.HcpAraligi != null) { b.HcpAraligi.TryGetValue(A, out rA); b.HcpAraligi.TryGetValue(B, out rB); }
+
             // Dünyaları üret ve çöz
             var toplam = new Dictionary<int, double>();
             int dunya = 0;
@@ -163,11 +217,22 @@ namespace BricKartOyunu.Class
             foreach (var kv in bilinen) { ulong m = 0; foreach (var c in kv.Value) m |= 1UL << Kod(c); sabit[Koltuk(kv.Key)] = m; }
             int[] unseenArr = unseen.ToArray();
 
-            while (dunya < DunyaSayisi && (dunya < MinDunya || sw.ElapsedMilliseconds < ZamanSiniriMs))
+            int tavan = zaman > 1000 ? DunyaSayisi * 3 : DunyaSayisi;
+            bool erken = ErkenKarar && zaman > 1000;
+            while (dunya < tavan && (dunya < MinDunya || sw.ElapsedMilliseconds < zaman))
             {
-                if (dunya >= 1 && sw.ElapsedMilliseconds > ZamanSiniriMs) break;
+                if (dunya >= 1 && sw.ElapsedMilliseconds > zaman) break;
                 ulong ea, eb;
                 if (!DunyaOrnekleyici.Uret(Rnd, unseenArr, adetA, adetB, bosA, bosB, out ea, out eb)) return null;
+                if (rA != null || rB != null)
+                {
+                    for (int deneme = 0; deneme < 25; deneme++)
+                    {
+                        double w = HcpUyumu(oynA + MaskHcp(ea), rA) * HcpUyumu(oynB + MaskHcp(eb), rB);
+                        if (Rnd.NextDouble() < w) break;
+                        if (!DunyaOrnekleyici.Uret(Rnd, unseenArr, adetA, adetB, bosA, bosB, out ea, out eb)) return null;
+                    }
+                }
                 var eller = (ulong[])sabit.Clone();
                 eller[Koltuk(A)] = ea; eller[Koltuk(B)] = eb;
 
@@ -184,7 +249,8 @@ namespace BricKartOyunu.Class
                     toplam[kartlar[i]] = eski + puan;
                 }
                 dunya++;
-                if (sw.ElapsedMilliseconds > ZamanSiniriMs * 3) break;   // tek dünya çok yavaşsa kes
+                if (sw.ElapsedMilliseconds > zaman * 3L) break;   // tek dünya çok yavaşsa kes
+                if (erken && dunya >= 16 && (dunya & 3) == 0 && KanitYeterli(toplam, dunya)) break;
             }
             if (dunya < MinDunya) return null;
 
@@ -211,6 +277,32 @@ namespace BricKartOyunu.Class
             SonOzet = "PIMC: " + dunya + " dünya, " + olcu + " (" + sw.ElapsedMilliseconds + " ms)";
             neden = SonOzet;
             return secim;
+        }
+    }
+    /// <summary>Bitmiş ihaleden her koltuk için [min,max] HCP aralığı çıkarır (IhaleKoruma.PartnerAraligi ile).</summary>
+    public static class IhaleAraliklari
+    {
+        public static Dictionary<Player, int[]> Hesapla(List<string> ihale, string baslangic, Func<Player, BricKartOyunu.Class.Bidding.OrtaklikAnlasmasi> anlasmaOf)
+        {
+            try
+            {
+                if (ihale == null || ihale.Count == 0 || string.IsNullOrEmpty(baslangic)) return null;
+                Player bas = (Player)Enum.Parse(typeof(Player), baslangic);
+                var sonuc = new Dictionary<Player, int[]>();
+                foreach (Player x in new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati })
+                {
+                    var an = anlasmaOf != null ? anlasmaOf(x) : null;
+                    if (an == null) an = BricKartOyunu.Class.Bidding.OrtaklikAnlasmasi.Varsayilan();
+                    var d = new BricKartOyunu.Class.Bidding.IhaleDurumu { AktifOyuncu = bas, Anlasma = an };
+                    foreach (var t in ihale) d.HamleEkle(t);
+                    var d2 = new BricKartOyunu.Class.Bidding.IhaleDurumu { AktifOyuncu = BricKartOyunu.Class.Bidding.IhaleDurumu.PartnerBul(x), Anlasma = an };
+                    d2.Gecmis.AddRange(d.Gecmis);
+                    var ar = BricKartOyunu.Class.Bidding.IhaleKoruma.PartnerAraligi(d2);
+                    if (ar.Min > 0 || ar.Max < 40) sonuc[x] = new[] { ar.Min, Math.Min(ar.Max, 37) };
+                }
+                return sonuc;
+            }
+            catch (Exception) { return null; }
         }
     }
 }

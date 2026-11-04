@@ -77,7 +77,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 bool dengeli = ElDegerlendirici.DengeliEl(durum.AktifOyuncuEli);
 
                 // 5+ - 12 HP aralığı
-                if (hp < 5 || hp > 12) return false;
+                bool yarimZorl = durum.Anlasma != null && durum.Anlasma.NTSemiForcing == 1;
+                if (hp < (yarimZorl ? 6 : 5) || hp > (yarimZorl ? 10 : 12)) return false;
 
                 // ★ KRİTİK 4: 10-12 HP dengeli el → 2NT davet (Forcing NT değil)
                 // (ama 2'li majör ve dengeli ve 10-12 HP ise 2NT)

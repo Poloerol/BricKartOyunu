@@ -26,8 +26,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond
             if (ElDegerlendirici.BesliMajorVar(el)) return false;
 
             bool dengeliEl = ElDegerlendirici.DengeliEl(el);
-            if (hp >= 15 && hp <= 17 && dengeliEl) return false;   // 1NT açılışı
-            if (hp >= 20 && hp <= 21 && dengeliEl) return false;   // 2NT açılışı
+            if (NTA.Acilis1NT(el, durum.Anlasma)) return false;   // 1NT açılışı (anlaşmadaki aralık)
+            if (NTA.Acilis2NT(el, durum.Anlasma)) return false;   // 2NT açılışı (anlaşmadaki aralık)
 
             return TeklifVer(el, durum) == "1♦";
         }
@@ -41,7 +41,9 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond
             int hp = ElDegerlendirici.HCP(el);
             bool dengeli = ElDegerlendirici.DengeliEl(el);
 
-            if (karo >= 4 && karo >= sinek)
+            bool kisaSinek = durum != null && durum.Anlasma != null && durum.Anlasma.MinorShortClub == 1;
+            bool karoAc = kisaSinek ? (karo >= 4 && karo >= sinek) : (karo > sinek || (karo == sinek && karo >= 4));   // en iyi minör / kısa sinek
+            if (karoAc)
             {
                 if (hp >= 12 && hp <= 14 && dengeli)
                     Aciklama = $"1♦: Dengeli 12-14 HCP, 4+♦";

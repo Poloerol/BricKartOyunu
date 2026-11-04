@@ -18,7 +18,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         public static Dz Al(IhaleDurumu d)
         {
             var z = new Dz { D = d, El = d.AktifOyuncuEli };
-            z.Hp = ElDegerlendirici.HCP(z.El);
+            z.Hp = NTA.HcpStd(d, z.El);   // ortak/ben NT açtıysa 15-17 / 20-21 ölçeğine çevrilmiş
             int ben = Array.IndexOf(Cw, d.AktifOyuncu);
             foreach (var h in d.Gecmis)
             {

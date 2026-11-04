@@ -47,7 +47,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool dengeli = ElDegerlendirici.DengeliEl(el);
 
             // Dengeli ve 20-21 veya 15-17 puan aralığındaysa majör açışını engelle (NT önceliklidir)
-            if (dengeli && ((hp >= 15 && hp <= 17) || (hp >= 20 && hp <= 21)))
+            if (NTA.Acilis1NT(el, durum.Anlasma) || NTA.Acilis2NT(el, durum.Anlasma))
             {
                 return false;
             }

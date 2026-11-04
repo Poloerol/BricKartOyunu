@@ -673,6 +673,29 @@ namespace BricKartOyunu
         /// Açılış atağında sıralı onör / marka kuralları (As, Rua, Dam atağı) uygulanır,
         /// diğer durumlarda renk takip + rastgele.
         /// </summary>
+        /// <summary>
+        /// Kart seçimini arka planda çalıştırır; düşünürken form kilitlenir ama yeniden çizilir (uzun süreli
+        /// "Düzey Ayarları" sürelerinde pencere donmaz). Süre kısaysa doğrudan çağrıya düşer.
+        /// </summary>
+        private Card DusunerekKartSec(OyunBaglami baglam, out string neden)
+        {
+            string n = "";
+            Card sonuc = null;
+            var gorev = System.Threading.Tasks.Task.Run(() => { string nn; sonuc = OyunZekasi.KartSec(baglam, out nn); n = nn; });
+            bool kilitli = false; var eskiImlec = Cursor;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (!gorev.IsCompleted)
+            {
+                if (!kilitli && sw.ElapsedMilliseconds > 300) { kilitli = true; Enabled = false; Cursor = Cursors.WaitCursor; }
+                Application.DoEvents();
+                System.Threading.Thread.Sleep(10);
+            }
+            if (kilitli) { Enabled = true; Cursor = eskiImlec; }
+            if (gorev.IsFaulted) { neden = ""; return null; }
+            neden = n;
+            return sonuc;
+        }
+
         private void AIOyna(Player oyuncu)
         {
             System.Diagnostics.Debug.WriteLine(
@@ -729,7 +752,9 @@ namespace BricKartOyunu
             //  - yalnızca yasal kartlar (renk takibi zorunluluğu) döner
             var baglam = OyunBaglamiOlustur(oyuncu);
             string neden;
-            Card secilen = OyunZekasi.KartSec(baglam, out neden);
+            var kartTarafi = AnlasmaYonetici.TarafOf(oyuncu);
+            PimcOyuncu.ElSureleriMs = AnlasmaYonetici.Mevcut(kartTarafi).ElSureleriMs();
+            Card secilen = DusunerekKartSec(baglam, out neden);
 
             // Beceri düzeyi (ortaklık profilinden): düşükse arada rastgele yasal kart
             OyunZekasi.BeceriDuzeyi = AnlasmaYonetici.Mevcut(AnlasmaYonetici.TarafOf(oyuncu)).BeceriDuzeyi;

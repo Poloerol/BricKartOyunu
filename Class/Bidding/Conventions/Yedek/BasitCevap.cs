@@ -26,6 +26,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
             int partnerSeviye = KozYardimcisi.TekliftenSeviyeCikar(partnerSon ?? "");
             if (partnerSeviye != 1) return false;
+            if (partnerSon == "1NT") return false;   // NT açılışına cevap TemelMantik/NT konvansiyonlarında (ortağın aralığına göre)
 
             return true;
         }
@@ -146,6 +147,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     return "2♦";
                 if (partnerKozu != "Sinek" && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5)
                     return "2♣";
+
+                // Majör açılışına 3'lü destekle 2NT söylenmez: açıcı bunu Jacoby 2NT (4+ destek, GF) sanar.
+                if (durum.Anlasma != null && durum.Anlasma.Jacoby2NT && partnerSeviye == 1 && (partnerKozu == "Maça" || partnerKozu == "Kupa")
+                    && ElDegerlendirici.RenkUzunlugu(el, partnerKozu) == 3 && hp <= 12)
+                    return "2" + KozYardimcisi.KozSembolu(partnerKozu);
 
                 if (ElDegerlendirici.DengeliEl(el) && hp <= 12)
                     return "2NT";

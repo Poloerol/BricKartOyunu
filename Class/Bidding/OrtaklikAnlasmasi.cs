@@ -38,6 +38,14 @@ namespace BricKartOyunu.Class.Bidding
         public bool HelloOver1NT { get; set; } = false;
         /// <summary>Truscott 2NT: 1M-(Dbl)-2NT limit raise</summary>
         public bool Truscott2NT { get; set; } = false;
+        /// <summary>Good-Bad 2NT: 1♦–(…)–(2M) sonrası açanın 2NT'si iyi/kötü röle (Sasson kitabı)</summary>
+        public bool GoodBad2NT { get; set; } = false;
+        /// <summary>Inverted DBL: 1x–(Dbl)–Rdbl–(y) sonrası açanın Dbl = y'de 2-3 kart, Pas = 4+ ya da tekil+iyi el</summary>
+        public bool InvertedDbl { get; set; } = false;
+        /// <summary>Mixed Raise: (1x)–1M–(Pas)–3x atlamalı cue-bid = 4+ destek, 10-12 HP</summary>
+        public bool MixedRaise { get; set; } = false;
+        /// <summary>FSJS: (1x)–1M–(Pas)–atlamalı yeni renk = 5+ renk, 4+ majör desteği</summary>
+        public bool FSJS { get; set; } = false;
         /// <summary>Preemptive Reraises</summary>
         public bool PreemptiveReraises { get; set; } = false;
         /// <summary>Long & Short Game Tries (TrialBid ile birlikte kullanılmaz)</summary>
@@ -48,6 +56,8 @@ namespace BricKartOyunu.Class.Bidding
         public bool WeakJumpShiftResp { get; set; } = false;
         /// <summary>Ogust: zayıf iki + 2NT</summary>
         public bool Ogust { get; set; } = false;
+        /// <summary>Feature-asking 2NT: zayıf iki + 2NT = yan renk özelliği sorusu (Ogust ile birlikte kullanılmaz)</summary>
+        public bool FeatureAsking2NT { get; set; } = false;
         /// <summary>Gambling 3NT açılışı</summary>
         public bool Gambling3NT { get; set; } = false;
         /// <summary>Specific King Asks</summary>
@@ -68,6 +78,10 @@ namespace BricKartOyunu.Class.Bidding
         public bool WeakJumpOvercalls { get; set; } = false;
         /// <summary>Sandwich 1NT</summary>
         public bool Sandwich1NT { get; set; } = false;
+        /// <summary>Ortağın 1NT müdahalesinden sonra sistemler açık (Stayman/transfer) — yalnızca profilde saklanır</summary>
+        public bool NT1OvercallSystemsOn { get; set; } = false;
+        /// <summary>Rakip 1NT'sine karşı savunma geri (balancing) koltukta da geçerli — yalnızca profilde saklanır</summary>
+        public bool NTDefenseBalancing { get; set; } = false;
         /// <summary>Maximal Overcall Double</summary>
         public bool MaximalOvercallDbl { get; set; } = false;
         /// <summary>1m-2NT Invitational</summary>
@@ -247,6 +261,34 @@ namespace BricKartOyunu.Class.Bidding
         public int LeadNTZeroTwo { get; set; } = 0;
         public int LeadNTMud { get; set; } = 0;
 
+        // Ortaklık sihirbazı: motorda henüz karşılığı olmayan seçenekler profilde saklanır (tam sayı alanları).
+        // StrongNT, Stayman, MinorTransfer vb. bayraklarla birlikte çözümlenir; bayrak asıl kaynaktır.
+        public int NT1Range { get; set; } = 5;                 // 0 10-12, 1 11-13, 2 12-14, 3 13-15, 4 14-16, 5 15-17, 6 16-18
+        public int NT1Allow5422 { get; set; } = 1;
+        public int NT1AllowSingletonHonor { get; set; } = 0;
+        public int NT1Allow5Major { get; set; } = 1;
+        public int NT1Allow6Minor { get; set; } = 1;
+        public int NT1Puppet { get; set; } = 0;                // 1NT-2♣ Puppet Stayman
+        public int NT1MinorBid { get; set; } = 0;              // 2 = 1NT-2♠ röle, 3 = süper kabullü minör transfer
+        public int NT1DefenseX { get; set; } = 0;              // 1 Brozel, 2 Astro
+        public int NT1RunoutX { get; set; } = 0;               // 3 D.O.N.T. kaçış, 4 Helvic
+        public int MajorRaiseLimit { get; set; } = 0;          // 1 limit majör raise'ler
+        public int GameTryShort { get; set; } = 0;             // 1 kısa renk denemesi
+        public int NTSemiForcing { get; set; } = 0;            // 1 yarı zorlayıcı 1NT
+        public int MinorShortClub { get; set; } = 0;           // 1 kısa sinek
+        public int CheckbackCrowhurst { get; set; } = 0;
+        public int FourthOneRound { get; set; } = 0;           // 1 dördüncü renk bir tur zorlayıcı
+        public int LebensohlWeakTwo { get; set; } = 1;
+        public int NT2Range { get; set; } = 1;                 // 0-4: 19-20 … 23-24; 5-8: 19-21 … 22-24
+        public int NT2Natural { get; set; } = 0;               // 1 = 2NT-3♣ doğal
+        public int GrandSlamForce { get; set; } = 1;
+        public int ForumD { get; set; } = 0;
+        public int NegDblLimit { get; set; } = 4;              // 0 1♠ … 4 2♠ … 8 3♠
+        public int UnusualOverUnusual { get; set; } = 0;
+        public int CueStyle { get; set; } = 0;                 // 1 batı, 2 doğu
+        public int LaMajeure { get; set; } = 0;
+        public int LeadDirectingDbl { get; set; } = 0;
+
         // ═══════════════════════════════════════════════════════════════════
         // AGRESİFLİK VE BECERİ (Bridge Baron tarzı profil ayarları)
         // -2 = Çok temkinli, -1 = Temkinli, 0 = Orta (varsayılan davranış), +1 = Atak, +2 = Çok atak
@@ -260,6 +302,32 @@ namespace BricKartOyunu.Class.Bidding
         public int PreemptAgresifligi { get; set; } = 0;
         /// <summary>Kart oyunu becerisi 1-20. 20 = hatasız (varsayılan); düşükse yapay zekâ ara sıra rastgele yasal kart oynar.</summary>
         public int BeceriDuzeyi { get; set; } = 20;
+
+        // Düzey ayarları (Bridge Baron "Level Settings"): karar başına en çok düşünme süresi, saniye (0-15).
+        // Kart oyunu motoru (PIMC) bu süre içinde olabildiğince çok olası dağılım çözer; 0 = o elde sezgisel kurallar.
+        // İhale ve açılış atağı kural/sezgisel tabanlıdır: bu iki ayar saklanır, karar vermeyi etkilemez.
+        public int SureIhale { get; set; } = 1;
+        public int SureAtak { get; set; } = 1;
+        public int SureEl1 { get; set; } = 1;     // 1. elde atak dışındaki kartlar
+        public int SureEl2 { get; set; } = 1;
+        public int SureEl3 { get; set; } = 1;
+        public int SureEl4 { get; set; } = 1;
+        public int SureEl5 { get; set; } = 1;
+        public int SureEl6 { get; set; } = 1;
+        public int SureEl7 { get; set; } = 1;
+        public int SureEl8 { get; set; } = 1;
+        public int SureEl9 { get; set; } = 1;
+        public int SureEl10 { get; set; } = 1;
+        public int SureEl11 { get; set; } = 1;
+        public int SureEl12 { get; set; } = 1;
+
+        /// <summary>El başına süre sınırı (ms); dizin = biten el sayısı (0 = 1. el … 11 = 12. el).</summary>
+        public int[] ElSureleriMs()
+        {
+            int[] s = { SureEl1, SureEl2, SureEl3, SureEl4, SureEl5, SureEl6, SureEl7, SureEl8, SureEl9, SureEl10, SureEl11, SureEl12 };
+            for (int i = 0; i < s.Length; i++) s[i] = Math.Max(0, Math.Min(15, s[i])) * 1000;
+            return s;
+        }
 
         // ═══════════════════════════════════════════════════════════════════
         // FABRİKA METOTLARI
@@ -333,6 +401,67 @@ namespace BricKartOyunu.Class.Bidding
             return (OrtaklikAnlasmasi)MemberwiseClone();
         }
 
+        /// <summary>
+        /// "2/1 Game Force - Temel" (Bridge Baron "Two Over One - Basic"): 5'li majör, güçlü NT (15-17) + Stayman + Jacoby transfer
+        /// + 1NT-2♠ röle (3♣ ile minör bırakma) + 5'li majörlü 1NT; limit majör raise'ler, zorlayıcı 1NT, uzun renk oyun denemeleri,
+        /// Jacoby 2NT; 4. renk oyuna zorlar; zayıf iki, 2♣ güçlü (2♦ bekleme); Blackwood + kontrol gösteren cue-bid;
+        /// Unusual 2NT, Michaels, 2♠'ya kadar negatif kontra, zayıf sıçramalı müdahale; 2NT 20-21 + Stayman.
+        /// Resimde listelenmeyen konvansiyonlar kapalıdır; Konvansiyon listesinden eklenebilir.
+        /// </summary>
+        public static OrtaklikAnlasmasi IkiBirTemel()
+        {
+            var a = Varsayilan();
+            // açık
+            a.BesliMajor = true; a.ForcingNT = true; a.IkiBirOyunZorlama = true; a.StrongNT = true;
+            a.IkiliSinekGuclu = true; a.ZayifIki = true; a.Preempt = true;
+            a.Stayman = true; a.JacobyTransfer = true; a.TrialBid = true; a.FourthSuitForcing = true;
+            a.Blackwood = true; a.Jacoby2NT = true; a.CueBid = true; a.Reverse = true;
+            a.NegativeDouble = true; a.TakeoutDouble = true; a.Michaels = true; a.Unusual2NT = true; a.WeakJumpOvercalls = true;
+            // kapalı (resimde yok)
+            a.InvertedMinors = false; a.BergenRaises = false; a.Smolen = false; a.MinorTransfer = false; a.PuppetStayman = false;
+            a.TwoWayCheckback = false; a.XYZ = false; a.ThirdSuitForcing = false; a.Dont = false; a.Serious3NT = false;
+            a.RKCB = false; a.RKCB1430 = false; a.Gerber = false; a.Splinter = false; a.Drury = false;
+            a.SupportDouble = false; a.ResponsiveDouble = false; a.Lebensohl = false;
+            // seçenekler
+            a.NT1Range = 5; a.NT1Allow5Major = 1; a.NT1MinorBid = 2; a.NT1Puppet = 0;
+            a.MajorRaiseLimit = 1; a.GameTryShort = 0; a.NegDblLimit = 4; a.NT2Range = 6; a.LebensohlWeakTwo = 0;
+            a.GrandSlamForce = 0;
+            a.FeatureAsking2NT = true; a.Ogust = false;
+            a.FitCueBid = true; a.OneMinorTwoNTInv = false; a.WeakJumpShiftResp = false; a.FourthOneRound = 0; a.Gambling3NT = false;   // resim: Feature asking 2NT (zayıf ikilere)
+            return a;
+        }
+
+        /// <summary>
+        /// "2/1 Game Force - Orta" (kullanıcı listesi): Temel'e ek olarak Inverted Minors, New Minor Forcing, Truscott 2NT,
+        /// Splinter, Reverse Drury (Drury kapalı); Smolen, Texas, Minor Stayman, Lebensohl, Cappelletti; Puppet Stayman (2NT),
+        /// Gambling 3NT; Unusual over Unusual, Sandwich NT, Responsive/Support DBL, Limit-Plus Cue-Bids, negatif DBL 3♠'ya kadar;
+        /// RKCB, DOPI, Grand Slam Force, Voluntary 5 Major; zayıf ikilere karşı Lebensohl.
+        /// </summary>
+        public static OrtaklikAnlasmasi IkiBirOrta()
+        {
+            var a = IkiBirTemel();
+            a.InvertedMinors = true; a.NewMinorForcing = true; a.Splinter = true;
+            a.ReverseDrury = true; a.Drury = false; a.Truscott2NT = true;
+            a.Smolen = true; a.TexasTransfers = true; a.MinorStayman = true; a.NT1MinorBid = 0; a.MinorTransfer = false;
+            a.Lebensohl = true; a.Cappelletti = true; a.Dont = false;
+            a.NT1OvercallSystemsOn = true; a.NTDefenseBalancing = true;
+            a.PuppetStayman = true; a.Gambling3NT = true;
+            a.UnusualOverUnusual = 1; a.Sandwich1NT = true; a.ResponsiveDouble = true; a.SupportDouble = true;
+            a.LimitPlusCueBids = true; a.NegDblLimit = 8;
+            a.RKCB = true; a.RKCB1430 = false; a.SpecificKingAsks = false; a.Gerber = false;
+            a.DopiRopi = true; a.GrandSlamForce = 1; a.VoluntaryFiveMajor = true; a.LebensohlWeakTwo = 1;
+            return a;
+        }
+
+        /// <summary>
+        /// "2/1 Game Force - Gelişmiş" (kullanıcı listesi): içerik Orta ile aynıdır (Limit Major Raises, Reverse Drury,
+        /// Truscott 2NT, Splinter, Texas, Minor Stayman, Lebensohl, Cappelletti, Puppet Stayman, Gambling 3NT, RKCB, DOPI, GSF, Feature Asking 2NT ...).
+        /// </summary>
+        public static OrtaklikAnlasmasi IkiBirGelismis()
+        {
+            return IkiBirOrta();
+        }
+
         public static OrtaklikAnlasmasi Basit()
         {
             return new OrtaklikAnlasmasi
@@ -389,7 +518,7 @@ namespace BricKartOyunu.Class.Bidding
         public string Ozet()
         {
             string acilis = BesliMajor ? "5'li majör" : "4'lü majör";
-            string nt = StrongNT ? "Strong NT (15-17)" : "Weak NT (12-14)";
+            string nt = (StrongNT ? "Strong NT (" : "Weak NT (") + NTA.Lo1(this) + "-" + NTA.Hi1(this) + ")";
 
             var aktifler = new System.Collections.Generic.List<string>();
 
@@ -450,11 +579,16 @@ namespace BricKartOyunu.Class.Bidding
             if (ExtendedStayman) ekler.Add("Extended Stayman");
             if (HelloOver1NT) ekler.Add("Hello");
             if (Truscott2NT) ekler.Add("Truscott 2NT");
+            if (GoodBad2NT) ekler.Add("Good-Bad 2NT");
+            if (InvertedDbl) ekler.Add("Inverted DBL");
+            if (MixedRaise) ekler.Add("Mixed Raise");
+            if (FSJS) ekler.Add("FSJS");
             if (PreemptiveReraises) ekler.Add("Preemptive Reraises");
             if (LongShortGameTries) ekler.Add("Long & Short Game Tries");
             if (NewMinorForcing) ekler.Add("New Minor Forcing");
             if (WeakJumpShiftResp) ekler.Add("Weak Jump-Shift cevapları");
             if (Ogust) ekler.Add("Ogust");
+            if (FeatureAsking2NT) ekler.Add("Feature Asking 2NT");
             if (Gambling3NT) ekler.Add("Gambling 3NT açılışı");
             if (SpecificKingAsks) ekler.Add("Specific King Asks");
             if (VoluntaryFiveMajor) ekler.Add("Voluntary Five Major Bid");

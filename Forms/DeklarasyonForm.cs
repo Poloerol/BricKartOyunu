@@ -31,7 +31,27 @@ namespace BricKartOyunu.Forms
         /// <summary>Sırası gelen oyuncunun tarafının ortaklık anlaşması (NS ve EW ayrı profil kullanır).</summary>
         private OrtaklikAnlasmasi _anlasma
         {
-            get { return AnlasmaYonetici.TarafOf(OyuncuyaCevir(_aktifOyuncu)) == Taraf.NS ? _anlasmaNS : _anlasmaEW; }
+            get
+            {
+                ProfilleriTazele();
+                return AnlasmaYonetici.TarafOf(OyuncuyaCevir(_aktifOyuncu)) == Taraf.NS ? _anlasmaNS : _anlasmaEW;
+            }
+        }
+
+        private int _anlasmaSurum = -1;
+
+        /// <summary>
+        /// Ortaklık profili form açıkken değiştirildiyse (Ayarlar menüsü) iki tarafın anlaşmasını yeniden okur ve
+        /// eski ihale motorlarını atar; yeni konvansiyonlar bir sonraki tekliften itibaren geçerli olur.
+        /// </summary>
+        private void ProfilleriTazele()
+        {
+            if (_anlasmaSurum == AnlasmaYonetici.Surum) return;
+            _anlasmaSurum = AnlasmaYonetici.Surum;
+            _anlasmaNS = AnlasmaYonetici.Mevcut(Taraf.NS);
+            _anlasmaEW = AnlasmaYonetici.Mevcut(Taraf.EW);
+            _motorNS = null;
+            _motorEW = null;
         }
 
         /// <summary>
@@ -48,6 +68,7 @@ namespace BricKartOyunu.Forms
         {
             get
             {
+                ProfilleriTazele();
                 if (AnlasmaYonetici.TarafOf(OyuncuyaCevir(_aktifOyuncu)) == Taraf.NS)
                     return _motorNS ?? (_motorNS = new IhaleMotoru(_anlasmaNS));
                 return _motorEW ?? (_motorEW = new IhaleMotoru(_anlasmaEW));
@@ -157,6 +178,7 @@ namespace BricKartOyunu.Forms
             // 🔹 Yeni ihale oturumunu hazırla
             _anlasmaNS = AnlasmaYonetici.Mevcut(Taraf.NS);
             _anlasmaEW = AnlasmaYonetici.Mevcut(Taraf.EW);
+            _anlasmaSurum = AnlasmaYonetici.Surum;
             _humanVsAiSession = null;
             _biddingPresenter = null;
 

@@ -117,7 +117,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (besliMaca || besliKupa) return false;
 
                 // 4'lü majör + 8+ HP → Stayman
-                if ((dortluMaca || dortluKupa) && ElDegerlendirici.HCP(el) >= 8)
+                if ((dortluMaca || dortluKupa) && NTA.HcpStd(durum, el) >= 8)
                 {
                     return true;
                 }
@@ -169,7 +169,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (Rol5Duzelt(durum)) return "4♠";
             if (Rol4Davet(durum, out string davet))
             {
-                int hp4 = ElDegerlendirici.HCP(el);
+                int hp4 = NTA.HcpStd(durum, el);
                 if (davet == "2NT") return hp4 >= 16 ? "3NT" : "Pas";
 
                 // Majör raise daveti (3♥ / 3♠)
@@ -208,7 +208,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 Gercek(durum, durum.AktifOyuncu).Count == 1)
             {
                 string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
-                int hp = ElDegerlendirici.HCP(el);
+                int hp = NTA.HcpStd(durum, el);
 
                 // ─── Açıcı 2♦ dedi (majör yok) ───────────────────────────
                 if (partnerSon == "2♦")

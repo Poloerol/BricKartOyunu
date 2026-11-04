@@ -27,4 +27,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return null;
         }
     }
+    /// <summary>Yarı zorlayıcı 1NT: 1M–1NT sonrası açıcı 5'li majörle dengeli asgari (12-14) elde Pas der.</summary>
+    internal sealed class SemiForcingPas : YeniKonvTaban
+    {
+        public override string Ad { get { return "Semi-Forcing 1NT"; } }
+        public override string Aciklama { get { return "1M–1NT (6-10 HP): açıcı 5-3-3-2 asgari (12-14) elde Pas der"; } }
+        protected override string Karar(Dz z)
+        {
+            if (!(z.Es("B:1♠", "O:1NT") || z.Es("B:1♥", "O:1NT"))) return null;
+            string m = z.Hepsi[0] == "B:1♠" ? "Maça" : "Kupa";
+            if (z.Uz(m) != 5 || z.Hp > 14 || !ElDegerlendirici.DengeliEl(z.El)) return null;
+            return "Pas";
+        }
+    }
 }
