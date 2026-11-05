@@ -41,8 +41,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond
             int hp = ElDegerlendirici.HCP(el);
             bool dengeli = ElDegerlendirici.DengeliEl(el);
 
-            bool kisaSinek = durum != null && durum.Anlasma != null && durum.Anlasma.MinorShortClub == 1;
-            bool karoAc = kisaSinek ? (karo >= 4 && karo >= sinek) : (karo > sinek || (karo == sinek && karo >= 4));   // en iyi minör / kısa sinek
+            bool karoAc = OneClub.OneClub_Opening.KaroAcar(el, durum);
             if (karoAc)
             {
                 if (hp >= 12 && hp <= 14 && dengeli)
