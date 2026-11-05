@@ -1,0 +1,10 @@
+﻿1♦ açılışı için SAS cevap ve gelişimleri eklendi
+
+- OneDiamond_Answer: 1♦ cevap sistemi (anlaşma bayrağı, varsayılan kapalı)
+- OneDiamond klasörü: 1♥, 1♠, 1NT, 2♣, 2♦, 2♥, 2♠, 2NT gelişimleri (Sasson s.24-34)
+- OneClub_Gelisim: Acilis ve AciciRebidTanimli genellemesi
+- 6+♣ zayıf el artık 1NT yerine 3♣ önleyici veriyor
+- TestForm: "1♦ Testleri" butonu, 72 yeni test
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TAC2LX3Lt8kkvNk2bwNGj6

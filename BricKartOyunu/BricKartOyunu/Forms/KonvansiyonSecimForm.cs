@@ -38,6 +38,7 @@ namespace BricKartOyunu.Forms
                 new Madde("Preempt", "Önleyici açılışlar", "3. ve 4. seviyede 7+ kartlık zayıf eller."),
                 new Madde("Namyats", "Namyats", "4♣/4♦ açılışları güçlü 4♥/4♠ önleyicilerini gösterir."),
                 new Madde("OneClub_AnswerSistemi", "1♣ cevap sistemi (Polish hibrit)", "1♣ açılışına özel cevap tablosu."),
+                new Madde("OneDiamond_AnswerSistemi", "1♦ cevap sistemi (SAS)", "1♦ açılışına özel cevap ve gelişim tabloları."),
                 new Madde("Reverse", "Reverse gelişimi", "Açıcının ikinci rengi daha yüksekse güçlü el (16+) gösterir."),
                 new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır."),
                 new Madde("IkiBirOyunZorlama", "2/1 Oyun Zorlayıcı", "1♥/1♠ açılışına 2 seviyesinde yeni renk (12+ HP) oyuna kadar zorlar. 5'li majör açılışı gerekir."),

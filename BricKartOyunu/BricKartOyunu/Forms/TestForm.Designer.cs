@@ -31,6 +31,7 @@
             this.BtnExit = new System.Windows.Forms.Button();
             this.BtnTestleriCalistir = new System.Windows.Forms.Button();
             this.BtnOneClubTestleri = new System.Windows.Forms.Button();
+            this.BtnOneDiamondTestleri = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnExit
@@ -63,11 +64,22 @@
             this.BtnOneClubTestleri.UseVisualStyleBackColor = true;
             this.BtnOneClubTestleri.Click += new System.EventHandler(this.BtnOneClubTestleri_Click);
             // 
+            // BtnOneDiamondTestleri
+            // 
+            this.BtnOneDiamondTestleri.Location = new System.Drawing.Point(12, 104);
+            this.BtnOneDiamondTestleri.Name = "BtnOneDiamondTestleri";
+            this.BtnOneDiamondTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnOneDiamondTestleri.TabIndex = 90;
+            this.BtnOneDiamondTestleri.Text = "1♦ Testleri";
+            this.BtnOneDiamondTestleri.UseVisualStyleBackColor = true;
+            this.BtnOneDiamondTestleri.Click += new System.EventHandler(this.BtnOneDiamondTestleri_Click);
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1354, 671);
+            this.Controls.Add(this.BtnOneDiamondTestleri);
             this.Controls.Add(this.BtnOneClubTestleri);
             this.Controls.Add(this.BtnTestleriCalistir);
             this.Controls.Add(this.BtnExit);
@@ -83,5 +95,6 @@
         private System.Windows.Forms.Button BtnExit;
         private System.Windows.Forms.Button BtnTestleriCalistir;
         private System.Windows.Forms.Button BtnOneClubTestleri;
+        private System.Windows.Forms.Button BtnOneDiamondTestleri;
     }
 }

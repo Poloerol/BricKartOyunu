@@ -26,7 +26,8 @@ namespace BricKartOyunu.Class.Bidding
             string ad = g.GetType().Name;
             if (ad == "OneClub_Opening") return "1♣ Açılış Sistemi";
             if (ad.StartsWith("OneClub_", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
-            if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Açılış Sistemi";
+            if (ad == "OneDiamond_Opening") return "1♦ Açılış Sistemi";
+            if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Cevap Sistemi";
             return ad;
         }
 
@@ -196,6 +197,7 @@ namespace BricKartOyunu.Class.Bidding
                 
                 // ─── 1♣ CEVAP SİSTEMİ ──────────────────────────────────────
                 new OneClub_Answer(),
+                new OneDiamond_Answer(),
 
                 // ─── FALLBACK (EN SON ÇARE) ──────────────────────────────────
                 new BasitCevap(),
@@ -214,6 +216,14 @@ namespace BricKartOyunu.Class.Bidding
                 new OneClub_TwoDiamond(),
                 new OneClub_TwoHeart(),
                 new OneClub_TwoSpade(),
+                new OneDiamond_OneHeart(),
+                new OneDiamond_OneSpade(),
+                new OneDiamond_OneNT(),
+                new OneDiamond_TwoClub(),
+                new OneDiamond_TwoDiamond(),
+                new OneDiamond_TwoHeart(),
+                new OneDiamond_TwoSpade(),
+                new OneDiamond_TwoNT(),
             };
 
             AnlasmayiUygula();
@@ -351,6 +361,8 @@ namespace BricKartOyunu.Class.Bidding
             string ad = gelisim.GetType().Name;
             if (ad.StartsWith("OneClub_", StringComparison.Ordinal) && ad != "OneClub_Opening")
                 return _anlasma.OneClub_AnswerSistemi;
+            if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal) && ad != "OneDiamond_Opening")
+                return _anlasma.OneDiamond_AnswerSistemi;
             return true;
         }
 
@@ -468,6 +480,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Namyats": return _anlasma.Namyats;
 
                 case "1♣ Cevap Sistemi": return _anlasma.OneClub_AnswerSistemi;
+                case "1♦ Cevap Sistemi": return _anlasma.OneDiamond_AnswerSistemi;
                 case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;

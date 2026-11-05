@@ -1074,6 +1074,7 @@ namespace BricKartOyunu.Forms
             Rb(g, "İnverted Minör Yükseltmeleri", 0, 24, 180, () => Al("InvertedMinors"), () => Koy("InvertedMinors", true));
             Cb(p, "Walsh", "Walsh", 240, 82, 170);
             Cb(p, "OneClub_AnswerSistemi", "1♣ Cevap Sistemi", 240, 106, 170);
+            Cb(p, "OneDiamond_AnswerSistemi", "1♦ Cevap Sistemi", 240, 130, 170);
 
             Et(p, "2NT'ye Sıçrama:", 22, 136);
             var j = Gr(p, 40, 156, 190, 48);
@@ -1298,6 +1299,7 @@ namespace BricKartOyunu.Forms
             { "Artificial2C2D", "Yapay 2♣/2♦" },
             { "WolffSignoff", "Wolff Sign Off" },
             { "OneClub_AnswerSistemi", "1♣ Cevap Sistemi" },
+            { "OneDiamond_AnswerSistemi", "1♦ Cevap Sistemi" },
             { "Reverse", "Reverse" },
             { "ForcingNT", "Forcing 1NT" },
             { "IkiBirOyunZorlama", "2/1 Zon Forcing" },

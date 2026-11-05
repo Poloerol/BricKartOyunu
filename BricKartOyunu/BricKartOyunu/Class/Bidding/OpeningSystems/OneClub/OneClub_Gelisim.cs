@@ -56,6 +56,10 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
     public abstract class OneClub_GelisimTabani : IAcilisGelisimi
     {
         protected abstract string Cevap { get; }                       // ör. "1♥"
+        /// <summary>Açılış teklifi (1♣ gelişimleri için "1♣", 1♦ gelişimleri için "1♦").</summary>
+        protected virtual string Acilis { get { return "1♣"; } }
+        /// <summary>Açanın yeniden teklifi kitapta bu elde tanımlı mı (değilse sınıf devreye girmez, genel motor sürdürür).</summary>
+        internal virtual bool AciciRebidTanimli(OcEl e) { return true; }
         internal abstract string AciciRebid(OcEl e);
         internal abstract string CevapciDevam(OcEl e, string rebid);
         internal virtual string AciciRoleCevap(OcEl e, string rebid, string devam) { return null; }
@@ -104,11 +108,11 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             var g = Gercek(durum);
             if (g.Count < 2 || g.Count > 6) return 0;
             if (g.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return 0;
-            if (g[0].Teklif != "1♣" || g[1].Teklif != Cevap) return 0;
+            if (g[0].Teklif != Acilis || g[1].Teklif != Cevap) return 0;
             if (IhaleDurumu.PartnerBul(g[0].Oyuncu) != g[1].Oyuncu) return 0;
 
             Player acici = g[0].Oyuncu, cevapci = g[1].Oyuncu;
-            if (g.Count == 2 && durum.AktifOyuncu == acici) return 1;
+            if (g.Count == 2 && durum.AktifOyuncu == acici) return AciciRebidTanimli(new OcEl(el)) ? 1 : 0;
             if (g.Count == 3 && g[2].Oyuncu == acici && durum.AktifOyuncu == cevapci) return DevamTanimli(g[2].Teklif) ? 2 : 0;
             if (g.Count == 4 && g[3].Oyuncu == cevapci && durum.AktifOyuncu == acici)
             {
