@@ -2,6 +2,9 @@
 using BricKartOyunu.Class.Bidding.Interfaces;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneClub;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneNT;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +27,13 @@ namespace BricKartOyunu.Class.Bidding
         private static string AcilisGelisimAdi(IAcilisGelisimi g)
         {
             string ad = g.GetType().Name;
-            if (ad.StartsWith("OneClub_OneDiamond", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
-            if (ad.StartsWith("OneClub_", StringComparison.Ordinal)) return "1♣ Açılış Sistemi";
-            if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Açılış Sistemi";
+            if (ad == "OneClub_Opening") return "1♣ Açılış Sistemi";
+            if (ad.StartsWith("OneClub_", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
+            if (ad == "OneDiamond_Opening") return "1♦ Açılış Sistemi";
+            if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Cevap Sistemi";
+            if (ad.StartsWith("OneHeart_", StringComparison.Ordinal)) return "1♥ Cevap Sistemi";
+            if (ad.StartsWith("OneSpade_", StringComparison.Ordinal)) return "1♠ Cevap Sistemi";
+            if (ad.StartsWith("OneNT_", StringComparison.Ordinal)) return "1NT Cevap Sistemi";
             return ad;
         }
 
@@ -196,6 +203,10 @@ namespace BricKartOyunu.Class.Bidding
                 
                 // ─── 1♣ CEVAP SİSTEMİ ──────────────────────────────────────
                 new OneClub_Answer(),
+                new OneDiamond_Answer(),
+                new OneHeart_Answer(),
+                new OneSpade_Answer(),
+                new OneNT_Answer(),
 
                 // ─── FALLBACK (EN SON ÇARE) ──────────────────────────────────
                 new BasitCevap(),
@@ -207,7 +218,45 @@ namespace BricKartOyunu.Class.Bidding
                 new OneClub_Opening(),
                 new OneDiamond_Opening(),
                 new OneClub_OneDiamond(),
-                new OneClub_OneDiamond_OneHeart(),
+                new OneClub_OneHeart(),
+                new OneClub_OneSpade(),
+                new OneClub_OneNT(),
+                new OneClub_TwoClub(),
+                new OneClub_TwoDiamond(),
+                new OneClub_TwoHeart(),
+                new OneClub_TwoSpade(),
+                new OneDiamond_OneHeart(),
+                new OneDiamond_OneSpade(),
+                new OneDiamond_OneNT(),
+                new OneDiamond_TwoClub(),
+                new OneDiamond_TwoDiamond(),
+                new OneDiamond_TwoHeart(),
+                new OneDiamond_TwoSpade(),
+                new OneDiamond_TwoNT(),
+                new OneHeart_OneSpade(),
+                new OneHeart_OneNT(),
+                new OneHeart_TwoClub(),
+                new OneHeart_TwoDiamond(),
+                new OneHeart_TwoHeart(),
+                new OneHeart_TwoSpade(),
+                new OneHeart_TwoNT(),
+                new OneSpade_OneNT(),
+                new OneSpade_TwoClub(),
+                new OneSpade_TwoDiamond(),
+                new OneSpade_TwoHeart(),
+                new OneSpade_TwoSpade(),
+                new OneSpade_TwoNT(),
+                new OneNT_TwoClub(),
+                new OneNT_TwoDiamond(),
+                new OneNT_TwoHeart(),
+                new OneNT_TwoSpade(),
+                new OneNT_TwoNT(),
+                new OneNT_ThreeClub(),
+                new OneNT_ThreeDiamond(),
+                new OneNT_ThreeHeart(),
+                new OneNT_ThreeSpade(),
+                new OneNT_FourDiamond(),
+                new OneNT_FourHeart(),
             };
 
             AnlasmayiUygula();
@@ -343,8 +392,16 @@ namespace BricKartOyunu.Class.Bidding
         private bool AcilisGelisimiAktifMi(IAcilisGelisimi gelisim)
         {
             string ad = gelisim.GetType().Name;
-            if (ad.StartsWith("OneClub_OneDiamond", StringComparison.Ordinal))
+            if (ad.StartsWith("OneClub_", StringComparison.Ordinal) && ad != "OneClub_Opening")
                 return _anlasma.OneClub_AnswerSistemi;
+            if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal) && ad != "OneDiamond_Opening")
+                return _anlasma.OneDiamond_AnswerSistemi;
+            if (ad.StartsWith("OneHeart_", StringComparison.Ordinal))
+                return _anlasma.OneHeart_AnswerSistemi;
+            if (ad.StartsWith("OneSpade_", StringComparison.Ordinal))
+                return _anlasma.OneSpade_AnswerSistemi;
+            if (ad.StartsWith("OneNT_", StringComparison.Ordinal))
+                return _anlasma.OneNT_AnswerSistemi;
             return true;
         }
 
@@ -434,6 +491,16 @@ namespace BricKartOyunu.Class.Bidding
                 var zm = k as ZayifIkiMudahale; if (zm != null) zm.Multi2DAcik = _anlasma.Multi2D;
             }
 
+            // 1NT Cevap Sistemi açıksa, 1NT yapısını kendi ele alır: eski 1NT cevap konvansiyonları kapatılır
+            if (_anlasma.OneNT_AnswerSistemi)
+            {
+                var kapat = new[] { "Stayman", "Puppet Stayman (1NT)", "Minor Relay (1NT-2♠)", "Jacoby Transfer",
+                    "Puppet Stayman", "Minor Stayman", "Minor Transfer", "Texas Transfers", "Quantitative 4NT",
+                    "Smolen", "Extended Stayman", "Exit Transfer 1NT Runouts" };
+                foreach (var k in _konvansiyonlar)
+                    if (Array.IndexOf(kapat, k.Ad) >= 0) k.AktifMi = false;
+            }
+
             var cappelletti = _konvansiyonlar.FirstOrDefault(k => k.Ad == "Cappelletti");
             var dont = _konvansiyonlar.FirstOrDefault(k => k.Ad == "DONT");
             if (cappelletti != null && dont != null && cappelletti.AktifMi && dont.AktifMi)
@@ -462,8 +529,13 @@ namespace BricKartOyunu.Class.Bidding
                 case "Namyats": return _anlasma.Namyats;
 
                 case "1♣ Cevap Sistemi": return _anlasma.OneClub_AnswerSistemi;
+                case "1♦ Cevap Sistemi": return _anlasma.OneDiamond_AnswerSistemi;
+                case "1♥ Cevap Sistemi": return _anlasma.OneHeart_AnswerSistemi;
+                case "1♠ Cevap Sistemi": return _anlasma.OneSpade_AnswerSistemi;
+                case "1NT Cevap Sistemi": return _anlasma.OneNT_AnswerSistemi;
                 case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
+                case "1♣-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
 
                 case "Inverted Minors": return _anlasma.InvertedMinors;
                 case "Forcing NT": return _anlasma.ForcingNT;

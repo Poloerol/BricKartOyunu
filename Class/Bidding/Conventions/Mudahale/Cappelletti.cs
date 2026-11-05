@@ -204,6 +204,21 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             var partnerTeklif = durum.PartnerTeklifleri.Last();
 
+            // ─── Ben 2♣ (tek renkli) dedim, partner 2♦ röle dedi → uzun rengimi söylerim ───
+            var benimGercekler = durum.KendiTeklifleri.Where(t => !string.IsNullOrEmpty(t) && t != "Pas" && t != "Dbl" && t != "RDbl").ToList();
+            if (partnerTeklif == "2♦" && benimGercekler.Count > 0 && benimGercekler.Last() == "2♣")
+            {
+                int m = ElDegerlendirici.RenkUzunlugu(el, "Maça");
+                int k = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                int d = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+                int c = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+                int en = Math.Max(Math.Max(m, k), Math.Max(d, c));
+                if (m == en) return "2♠";
+                if (k == en) return "2♥";
+                if (c == en) return "3♣";
+                return "3♦";
+            }
+
             // ─── Partner 2♣ dedi (tek renkli) → 2♦ röle ───
             if (partnerTeklif == "2♣")
             {

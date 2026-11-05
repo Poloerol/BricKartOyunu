@@ -2,228 +2,209 @@
 using System.Linq;
 using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding.Interfaces;
+using static BricKartOyunu.Class.Bidding.OpeningSystems.OneClub.OcTablo;
 
 namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
 {
     /// <summary>
-    /// 1♣ ⇒ 1♦ GELİŞİMİ (Tablo 1, Tablo 2 ve Röle Cevapları)
-    /// Kitaptaki SAS sistemine birebir uyumludur.
+    /// 1♣ ⇒ 1♦ GELİŞİMİ (SAS kitabı s.11-14): açanın yeniden teklifi, cevapçının devamı ve röle cevapları.
+    /// 1♥ yeniden teklifinin ayrıntıları (1♠ / 2♣ röle devamları) OneClub_OneDiamond_OneHeart içindedir.
+    /// Cevapçı gücü: zayıf 4-8, davet 9-11, oyun 12+ HCP (kitapta açık olmayan yerler "SEÇİM").
     /// </summary>
-    public class OneClub_OneDiamond : IAcilisGelisimi
+    public class OneClub_OneDiamond : OneClub_GelisimTabani
     {
-        public string Aciklama => "1♣-1♦ gelişimi (Tablo 1 ve Tablo 2)";
-        public int Oncelik => 40;
+        protected override string Cevap { get { return "1♦"; } }
+        public override string Aciklama { get { return "1♣-1♦ gelişimi (kitap s.11-14)"; } }
+        public override int Oncelik { get { return 40; } }
 
-        public bool UygunMu(List<Card> el, IhaleDurumu durum)
+        /// <summary>Kesin dengeli dağılım: 4-3-3-3, 4-4-3-2, 5-3-3-2.</summary>
+        internal static bool Duz(OcEl e)
         {
-            if (durum == null || el == null) return false;
-            if (el.Count != 13) return false;
-
-            var gecmis = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
-            if (gecmis.Count < 2) return false;
-
-            // 1) İlk iki teklif: 1♣ - 1♦
-            if (gecmis[0].Teklif != "1♣" || gecmis[1].Teklif != "1♦") return false;
-
-            // 2) Bu ikisi partner olmalı
-            Player acici = gecmis[0].Oyuncu;
-            Player cevapci = gecmis[1].Oyuncu;
-            if (IhaleDurumu.PartnerBul(acici) != cevapci) return false;
-
-            // 3) Aktif oyuncu bu ikisinden biri olmalı
-            bool aktifAcici = (durum.AktifOyuncu == acici);
-            bool aktifCevapci = (durum.AktifOyuncu == cevapci);
-            if (!aktifAcici && !aktifCevapci) return false;
-
-            // 4) Rakip araya girmemiş (sadece Pas olabilir)
-            bool rakipArayaGirdi = gecmis
-                .Where(h => h.Oyuncu != acici && h.Oyuncu != cevapci)
-                .Any(h => h.Teklif != "Pas");
-            if (rakipArayaGirdi) return false;
-
-            // 5) Rolü belirle
-            if (aktifAcici && gecmis.Count == 2) return true;   // Tablo 1
-            if (aktifCevapci && gecmis.Count == 3 && gecmis[2].Oyuncu == acici) return true;  // Tablo 2
-            if (aktifAcici && gecmis.Count == 4 && gecmis[3].Oyuncu == cevapci) return true;  // Tablo 2 röle cevabı
-
-            return false;
+            var l = new[] { e.S, e.H, e.D, e.C }.OrderByDescending(x => x).ToArray();
+            return (l[0] == 4 && l[1] == 3 && l[2] == 3) || (l[0] == 4 && l[1] == 4 && l[2] == 3) || (l[0] == 5 && l[1] == 3 && l[2] == 3 && l[3] == 2);
         }
 
-        public string TeklifVer(List<Card> el, IhaleDurumu durum)
+        // ───────── AÇANIN YENİDEN TEKLİFİ ─────────
+        internal override string AciciRebid(OcEl e)
         {
-            if (el == null) return "Pas";
-
-            var gecmis = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
-            if (gecmis.Count < 2) return "Pas";
-
-            Player acici = gecmis[0].Oyuncu;
-            Player cevapci = gecmis[1].Oyuncu;
-
-            // Rol 1: Açan rebid (Tablo 1)
-            if (durum.AktifOyuncu == acici && gecmis.Count == 2)
-                return Tablo1Teklif(el);
-
-            // Rol 2: Cevapçı devam (Tablo 2)
-            if (durum.AktifOyuncu == cevapci && gecmis.Count == 3 && gecmis[2].Oyuncu == acici)
-                return Tablo2IlkDevam(el, gecmis[2].Teklif);
-
-            // Rol 3: Açan röle cevabı (Tablo 2)
-            if (durum.AktifOyuncu == acici && gecmis.Count == 4 && gecmis[3].Oyuncu == cevapci)
-                return Tablo2RoleCevabi(el, gecmis[2].Teklif, gecmis[3].Teklif);
-
-            return "Pas";
-        }
-
-        // =========================================================================
-        // TABLO 1 METODU
-        // =========================================================================
-        private string Tablo1Teklif(List<Card> el)
-        {
-            int hcp = ElDegerlendirici.HCP(el);
-            int c = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-            int d = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-            int h = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-            int s = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-            bool dengeli = ElDegerlendirici.DengeliEl(el);
-            bool besliMajorVar = (s >= 5 || h >= 5);
-
-            // 1. 18-21 HP özel dağılımlar (4-4-4-1)
-            if (hcp >= 18 && hcp <= 21 && c >= 4)
-            {
-                if (d >= 4 && s >= 4 && h == 1) return "3♥";
-                if (d >= 4 && h >= 4 && s == 1) return "3♠";
-                if (h >= 4 && s >= 4 && d == 1) return "3NT";
-            }
-
-            // 2. 18+ HP, 5+♣ iki renkli
-            if (hcp >= 18 && c >= 5)
-            {
-                if (h >= 4 && s < 4) return "2♥";
-                if (s >= 4 && h < 4) return "2♠";
-                if (c >= 6 || d >= 4) return "2NT";
-            }
-
-            // 3. 15-17 HP, 6+♣ veya 5♣4♦
-            if (hcp >= 15 && hcp <= 17)
-            {
-                if (c >= 6) return "3♣";
-                if (c >= 5 && d >= 4) return "3♦";
-            }
-
-            // 4. 1♥ (4+♣ 4+♥, 11-17 HP)
-            if (hcp >= 11 && hcp <= 17 && c >= 4 && h >= 4)
-                return "1♥";
-
-            // 5. 1♠ (4+♣ 4+♠, 11-17 HP)
-            if (hcp >= 11 && hcp <= 17 && c >= 4 && s >= 4)
-                return "1♠";
-
-            // 6. 2♣ (5+♣, 11-14 HP) — 6'lı ♣ varsa, dengeli olsa bile 2♣
-            if (hcp >= 11 && hcp <= 14 && c >= 6)
-                return "2♣";
-
-            // 6b. 2♣ (5+♣, 11-14 HP, dengesiz)
-            if (hcp >= 11 && hcp <= 14 && c >= 5 && !dengeli)
-                return "2♣";
-
-            // 7. 1NT (11-14 HP dengeli, 5'li majör yok)
-            if (hcp >= 11 && hcp <= 14 && dengeli && !besliMajorVar)
-                return "1NT";
-
-            // 8. 2♦ (5-9 HP, 6+♦ — zayıf, dağılımsal)
-            if (hcp >= 5 && hcp <= 9 && d >= 6)
-                return "2♦";
-
-            // 9. FALLBACK
+            int hcp = e.Hcp, s = e.S, h = e.H, d = e.D, c = e.C;
+            // 18-21 HCP 4-4-4-1: tekli rengi gösterir (3♥: ♥ tek, 3♠: ♠ tek, 3NT: ♦ tek)
+            if (hcp >= 18 && c == 4 && d == 4 && s == 4 && h == 1) return "3♥";
+            if (hcp >= 18 && c == 4 && d == 4 && h == 4 && s == 1) return "3♠";
+            if (hcp >= 18 && c == 4 && h == 4 && s == 4 && d == 1) return "3NT";
+            // 18+ HCP: 5+♣ 4♥ → 2♥, 5+♣ 4♠ → 2♠, 6+♣ veya 5♣4♦ → 2NT
+            if (hcp >= 18 && c >= 5 && h >= 4) return "2♥";
+            if (hcp >= 18 && c >= 5 && s >= 4) return "2♠";
+            if (hcp >= 18 && (c >= 6 || (c >= 5 && d >= 4))) return "2NT";
+            // 11-14 dengeli (4'lü majör olabilir): 1NT
+            if (Duz(e) && hcp <= 14) return "1NT";
+            // 4+♣ ve 4'lü majör: 1♥ / 1♠ (11-17)
+            if (c >= 4 && h >= 4) return "1♥";
+            if (c >= 4 && s >= 4) return "1♠";
+            // 15-17 HCP: 6+♣ → 3♣, 5+♣4♦ → 3♦
+            if (hcp >= 15 && c >= 6) return "3♣";
+            if (hcp >= 15 && c >= 5 && d >= 4) return "3♦";
+            // 11-14: 4+♣4♦ → 2♦ (SEÇİM: 15-17 HCP 4♣4♦ de 2♦), 6+♣ → 2♣
+            if (c >= 4 && d >= 4) return "2♦";
+            if (c >= 6) return "2♣";
+            if (hcp >= 18) return "2NT";     // SEÇİM: kitapta tanımsız güçlü dengeli el
             return "1NT";
         }
 
-        // =========================================================================
-        // TABLO 2 İLK DEVAM METODU (Cevapçının İlk Cevabı)
-        // =========================================================================
-        private string Tablo2IlkDevam(List<Card> el, string aciciRebid)
+        // ───────── CEVAPÇININ DEVAMI ─────────
+        internal override bool DevamTanimli(string rebid) { return !(rebid == "3♣" || rebid == "3♦" || rebid == "3♥" || rebid == "3♠"); }
+
+        internal override string CevapciDevam(OcEl e, string rebid)
         {
-            int hcp = ElDegerlendirici.HCP(el);
-            int c = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-            int d = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-            int h = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-            int s = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-
-            switch (aciciRebid)
+            int hcp = e.Hcp;
+            bool zayif = hcp <= 8, davet = hcp >= 9 && hcp <= 11, oyun = hcp >= 12;
+            switch (rebid)
             {
-                case "1♥":
-                    if (hcp >= 9 && hcp <= 11 && d >= 6) return "2♦"; // 6♦ 9-11
-                    if (hcp >= 8 && ElDegerlendirici.DengeliEl(el)) return "2NT"; // Limit
-                    if (hcp >= 12) return "2♣"; // Röle SI (Gelişmeler Natürel)
-                    break;
-
-                case "2♣":
-                    if (hcp >= 10 && hcp <= 11 && d >= 6 && s >= 4) return "2♦";
-                    if (hcp >= 10 && hcp <= 11 && d >= 5 && s >= 4 && h >= 3 && c == 1) return "2♥";
-                    return "2♠"; // Röle
-
-                case "2♦":
-                    return "2♠"; // Röle
-
-                case "2♥":
-                    return "2♠"; // Röle
-
-                case "2♠":
-                    // 4♣ 4♥ 4♠ 1♦ (11-14) - pas veya 4♠ oynama arzusu
+                case "1♥":   // 4+♣ 4♥ 11-17 (s.11)
+                    return Sec(new[] {
+                        K("3NT", x => hcp >= 12 && hcp <= 14 && x.D == 4 && x.S == 3 && x.H == 3 && x.C == 3),   // 4♦-3-3-3
+                        K("4♣", x => oyun && x.D >= 4 && x.H >= 4 && x.C <= 1),        // 4♥ SNG ♣ hafif SI
+                        K("3♠", x => oyun && x.D >= 4 && x.H >= 4 && x.S <= 1),        // 4♥ SNG ♠ hafif SI
+                        K("2♠", x => oyun && x.D >= 5 && x.C >= 4),                    // 4. renk 5+♦ 4+♣ SI (SAS)
+                        K("3♥", x => davet && x.D >= 4 && x.H >= 4 && x.Singleton),    // davet w SNG
+                        K("2♥", x => davet && x.D >= 4 && x.H >= 4),                   // davet w/o SNG
+                        K("1♠", x => hcp >= 9 && x.D >= 4 && x.S >= 4),                // doğal F1R
+                        K("3♦", x => hcp >= 10 && hcp <= 11 && x.D >= 6),              // 6+♦ davet
+                        K("2♦", x => hcp >= 5 && hcp <= 9 && x.D >= 6),                // 6+♦ 5-9
+                        K("3♣", x => davet && x.D >= 5 && x.C >= 4 && x.C <= 5),       // 5+♦ 4/5♣ davet
+                        K("2♣", x => oyun),                                            // röle
+                        K("2NT", x => zayif && x.C >= 6),                              // 2NTt (3♣ transfer)
+                    }, e, "Pas");
+                case "1♠":   // 4+♣ 4♠ 11-17 (s.12)
+                    return Sec(new[] {
+                        K("3NT", x => hcp >= 12 && hcp <= 14 && x.D == 4 && x.S == 3 && x.H == 3 && x.C == 3),
+                        K("4♣", x => oyun && x.D >= 4 && x.S >= 4 && x.C <= 1),        // 4♠ SNG ♣ hafif SI
+                        K("3♥", x => oyun && x.D >= 5 && x.C >= 4 && x.H <= 1),        // 5+♦ 4+♣ SNG ♥ hafif SI
+                        K("2♥", x => oyun && x.D >= 5 && x.C >= 4),                    // 4. renk 5+♦ 4+♣ SI (SAS)
+                        K("3♠", x => davet && x.D >= 4 && x.S >= 4 && x.Singleton),    // davet w SNG
+                        K("2♠", x => davet && x.D >= 4 && x.S >= 4),                   // davet w/o SNG
+                        K("3♦", x => hcp >= 10 && hcp <= 11 && x.D >= 6),
+                        K("2♦", x => hcp >= 5 && hcp <= 9 && x.D >= 6),
+                        K("3♣", x => davet && x.D >= 5 && x.C >= 4 && x.C <= 5),
+                        K("2♣", x => oyun),
+                        K("2NT", x => zayif && x.C >= 6),
+                    }, e, "Pas");
+                case "1NT":  // 11-14 dengeli, 4'lü majör olabilir (s.12-13)
+                    return Sec(new[] {
+                        K("3♥", x => oyun && x.D >= 5 && x.S >= 4 && x.H <= 1),        // 5♦ 4♠ SNG ♥
+                        K("3♠", x => oyun && x.D >= 5 && x.H >= 4 && x.S <= 1),        // 5♦ 4♥ SNG ♠
+                        K("3♦", x => oyun && x.D >= 6),                                // 6+♦ FG
+                        K("3NT", x => oyun && x.Dengeli),                              // doğal
+                        K("2♦", x => oyun),                                            // FG röle
+                        K("2♥", x => davet && x.D >= 4 && x.H >= 4),                   // 4♦ 4♥ davet
+                        K("2♠", x => davet && x.D >= 4 && x.S >= 4),                   // 4♦ 4♠ davet
+                        K("3♣", x => davet && x.D >= 4 && x.C >= 5),                   // 4♦ 5+♣ davet
+                        K("2NT", x => zayif && x.C >= 6),                              // 2NTt
+                        K("2♣", x => zayif && x.D >= 5),                               // 2♦'e puppet
+                    }, e, "Pas");
+                case "2♣":   // 6+♣ 11-16 (s.13)
+                    return Sec(new[] {
+                        K("4♣", x => hcp >= 17 && x.C >= 3),                           // RKCB ♣ (SEÇİM: 17+)
+                        K("3♥", x => oyun && x.C >= 3 && x.H <= 1),                    // 3+♣ SNG ♥ FG
+                        K("3♠", x => oyun && x.C >= 3 && x.S <= 1),                    // 3+♣ SNG ♠ FG
+                        K("2♠", x => oyun && x.D >= 5 && x.S >= 4),                    // 5+♦ 4♠ FG (açan 2NT = SAS)
+                        K("3NT", x => oyun && x.Dengeli),                              // doğal
+                        K("3♦", x => davet && x.D >= 6),                               // 6+♦ davet
+                        K("3♣", x => davet && x.C >= 3),                               // davet
+                        K("2♥", x => oyun),                                            // röle
+                        K("2♦", x => zayif && x.D >= 6),                               // S.O
+                    }, e, "Pas");
+                case "2♦":   // 4+♣ 4♦ 11-14 (s.13)
+                    return Sec(new[] {
+                        K("3♥", x => oyun && x.D >= 4 && x.H <= 1),                    // 4+♦ SNG ♥ FG
+                        K("3♠", x => oyun && x.D >= 4 && x.S <= 1),                    // 4+♦ SNG ♠ FG
+                        K("2♠", x => oyun && x.D >= 5 && x.S >= 4),                    // 5+♦ 4♠ FG (açan 2NT = SAS)
+                        K("3NT", x => oyun && x.Dengeli && x.D <= 3),                  // doğal
+                        K("3♣", x => davet && x.D >= 5 && x.C >= 4),                   // 5♦ 4♣ 9-11
+                        K("3♦", x => zayif && x.D >= 7),                               // bomba (blokaj)
+                        K("2♥", x => hcp >= 9 && x.D >= 4),                            // röle (SEÇİM: 9+)
+                        K("2NT", x => zayif && x.C >= 6),                              // 2NTt
+                    }, e, "Pas");
+                case "2♥":   // 5+♣ 4♥ 18+ FG (s.13)
+                    return Sec(new[] {
+                        K("2NT", x => hcp <= 7),                                       // Lebensohl (3♣ transfer)
+                        K("4♣", x => x.D >= 4 && x.H >= 4 && x.C <= 1),                // 4♥ SNG ♣
+                        K("3♠", x => x.D >= 4 && x.H >= 4 && x.S <= 1),                // 4♥ SNG ♠
+                        K("3♥", x => x.D >= 4 && x.H >= 4),                            // 4♥ FG w/o SNG
+                        K("3NT", x => hcp <= 10 && x.D >= 4 && x.Stopper("Maça")),     // 8-10 HCP ♠ stoper
+                        K("3♦", x => x.D >= 6),                                        // 6+♦ FG
+                        K("2♠", x => x.S >= 4),                                        // 4. renk FG
+                    }, e, "3♣");                                                       // 3♣ tutuş FG
+                case "2♠":   // 5+♣ 4♠ 18+ FG (s.13)
+                    return Sec(new[] {
+                        K("2NT", x => hcp <= 7),
+                        K("4♥", x => x.D >= 4 && x.S >= 4 && x.H <= 1),                // 4♠ SNG ♥
+                        K("4♣", x => x.D >= 4 && x.S >= 4 && x.C <= 1),                // 4♠ SNG ♣
+                        K("3♠", x => x.D >= 4 && x.S >= 4),                            // 4♠ FG w/o SNG
+                        K("3NT", x => hcp <= 10 && x.D >= 4 && x.Stopper("Kupa")),     // 8-10 HCP ♥ stoper
+                        K("3♦", x => x.D >= 6),
+                        K("3♥", x => x.H >= 4),                                        // 4. renk
+                    }, e, "3♣");
+                case "2NT":  // 18+ 6+♣ veya 5♣4♦ (s.14)
+                    return Sec(new[] {
+                        K("3♥", x => hcp >= 8 && x.C >= 3 && x.H <= 1),                // 3+♣ SNG ♥
+                        K("3♠", x => hcp >= 8 && x.C >= 3 && x.S <= 1),                // 3+♣ SNG ♠
+                        K("3♦", x => hcp >= 8 && x.D >= 6),                            // 6+♦ FG
+                        K("3NT", x => hcp <= 9 && x.Dengeli),                          // MIN dengeli
+                    }, e, "3♣");                                                       // MIN
+                case "3NT":  // 4♣ 4♥ 4♠ 1♦ 18-21
+                    return Sec(new[] {
+                        K("4♥", x => hcp >= 8 && x.D >= 4 && x.H >= 4),                // SI
+                        K("4♠", x => hcp >= 8 && x.D >= 4 && x.S >= 4),
+                        K("4NT", x => hcp >= 8 && x.D >= 4 && x.C >= 4),
+                        K("4♣", x => x.H >= 5),                                        // 4♥ transfer
+                        K("4♦", x => x.S >= 5),                                        // 4♠ transfer
+                    }, e, "Pas");
+                default:
                     return "Pas";
-
-                case "2NT":
-                    return "3♣"; // Röle
-
-                case "3♣":
-                case "3♦":
-                case "3♠":
-                    return "Pas"; // Oynama arzusu
             }
-
-            return "Pas";
         }
 
-        // =========================================================================
-        // TABLO 2 RÖLE CEVAPLARI METODU (Açıcının Röleye Cevabı)
-        // =========================================================================
-        private string Tablo2RoleCevabi(List<Card> el, string aciciRebid, string cevapciRole)
+        // ───────── AÇANIN RÖLE / İKİNCİ YENİDEN TEKLİFİ ─────────
+        internal override string AciciRoleCevap(OcEl e, string rebid, string devam)
         {
-            int hcp = ElDegerlendirici.HCP(el);
-            int c = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
-            int d = ElDegerlendirici.RenkUzunlugu(el, "Karo");
-            int h = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-            int s = ElDegerlendirici.RenkUzunlugu(el, "Maça");
-
-            // Eğer Cevapçı Röle dediyse, Açıcı'nın (bizim) vereceği cevaplar:
-            if (cevapciRole == "2♠")
+            if (rebid == "1♥") return OneClub_OneDiamond_OneHeart.AciciCevap(e, devam);
+            if (rebid == "3NT") { if (devam == "4♣") return "4♥"; if (devam == "4♦") return "4♠"; return null; }
+            if (devam == "2NT" && rebid != "2NT" && rebid != "2♥" && rebid != "2♠") return "3♣";   // 2NTt → 3♣
+            if ((rebid == "2♥" || rebid == "2♠") && devam == "2NT") return "3♣";                    // Lebensohl → 3♣
+            if (rebid == "1NT" && devam == "2♣") return "2♦";                                       // puppet → 2♦
+            bool min;
+            if (rebid == "2♣" && devam == "2♥")   // röle: 2♠ min w 3♦ / 2NT max / 3♣ min / 3♦ max w 3♦
             {
-                if (aciciRebid == "2♣") // Açıcının 2♣ Rölesine cevap
-                {
-                    if (ElDegerlendirici.RenkUzunlugu(el, "Karo") == 1) return "2NT"; // SNG ♦
-                    if (ElDegerlendirici.RenkUzunlugu(el, "Maça") == 1) return "3♣"; // SNG ♠
-                }
-                else if (aciciRebid == "2♦") // 5♣4♥3♦1♠ veya 4♣4♥4♦1♠
-                {
-                    if (c == 5 && h == 4 && d == 3 && s == 1 && hcp >= 14) return "2NT"; // 5431 14-16
-                    if (c == 5 && h == 4 && d == 3 && s == 1 && hcp >= 13) return "3♣"; // 5431 13-14
-                    if ((c == 5 && h == 4 && d == 3 && s == 1) || (c == 4 && h == 4 && d == 4 && s == 1)) return "3♦"; // 5431 veya 4441 min
-                }
-                else if (aciciRebid == "2♥") // 6+♣ 4♥ 14-17
-                {
-                    if (ElDegerlendirici.RenkUzunlugu(el, "Karo") == 1) return "2NT"; // SNG ♦
-                    if (ElDegerlendirici.RenkUzunlugu(el, "Maça") == 1) return "3♣"; // SNG ♠
-                }
+                min = e.Hcp <= 13;
+                if (e.D >= 3) return min ? "2♠" : "3♦";
+                return min ? "3♣" : "2NT";
             }
-            else if (cevapciRole == "3♣" && aciciRebid == "2NT") // 5♣ 4♥ 15-17 Röle cevabı
+            if (rebid == "2♦" && devam == "2♥")   // röle: 2♠ 5♣4♦ min / 2NT 4♣4♦ dengeli / 3♣ 5♣4♦ max
             {
-                if (c == 5 && h == 4 && d == 2 && s == 2) return "3♦"; // 5422
-                // Kontrol sayısı metodunuz projede farklı isimdeyse burayı güncelleyin (Örn: ElDegerlendirici.KontrolSayisi)
-                if (ElDegerlendirici.KontrolSayisi(el) >= 2) return "3♥"; // KK (Küçük Kontrol)
-                return "3♠"; // BK (Büyük Kontrol)
+                if (e.C >= 5) return e.Hcp <= 12 ? "2♠" : "3♣";
+                return "2NT";
             }
+            return null;
+        }
 
-            return "Pas";
+        internal override string CevapciKarar(OcEl e, string rebid, string devam, string roleCevap)
+        {
+            if (rebid == "1♥") return OneClub_OneDiamond_OneHeart.CevapciKarar(e, devam, roleCevap);
+            if (devam == "2NT" && roleCevap == "3♣" && rebid != "2NT") return "Pas";                // transfer tamam: ♣ oynanır
+            if (rebid == "2♦" && devam == "2♥")
+            {
+                if (roleCevap == "2♠") return e.Hcp >= 12 ? "2NT" : "3♦";                           // SAS / 4+♦ 9-11 S.O
+                if (roleCevap == "2NT") return "3♦";                                                // 4+♦ davet
+                if (roleCevap == "3♣") return "3♦";                                                 // SAS
+            }
+            return null;
+        }
+
+        internal override string AciciSon(OcEl e, string rebid, string devam, string roleCevap, string karar)
+        {
+            if (rebid == "1♥") return OneClub_OneDiamond_OneHeart.AciciSon(e, devam, roleCevap, karar);
+            return null;
         }
     }
 }

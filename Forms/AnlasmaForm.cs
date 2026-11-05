@@ -30,6 +30,7 @@ namespace BricKartOyunu.Forms
             new OnAyar("2/1 Game Force - Temel", () => OrtaklikAnlasmasi.IkiBirTemel()),
             new OnAyar("2/1 Game Force - Orta", () => OrtaklikAnlasmasi.IkiBirOrta()),
             new OnAyar("2/1 Game Force - Gelişmiş", () => OrtaklikAnlasmasi.IkiBirGelismis()),
+            new OnAyar("Sasson (SAS - Kısa Sinek)", () => OrtaklikAnlasmasi.Sasson()),
             new OnAyar("Başlangıç (Basit)", () => OrtaklikAnlasmasi.Basit()),
             new OnAyar("Zayıf NT (12–14)", () => { var a = OrtaklikAnlasmasi.Varsayilan(); a.StrongNT = false; return a; })
         };
@@ -1029,6 +1030,9 @@ namespace BricKartOyunu.Forms
             Rb(g, "Limit Majör Yükseltmeleri", 190, 0, 190, () => raiseYok() && Gi("MajorRaiseLimit") == 1, () => raiseDiger(1));
             Rb(g, "Ters Bergen Yükseltmeleri", 190, 26, 190, () => Al("InvertedBergenRaises"), () => { Koy("InvertedBergenRaises", true); Si("MajorRaiseLimit", 0); });
 
+            Cb(p, "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi", 450, 40, 200);
+            Cb(p, "OneSpade_AnswerSistemi", "1♠ Cevap Sistemi", 450, 64, 200);
+            Cb(p, "OneNT_AnswerSistemi", "1NT Cevap Sistemi", 450, 88, 200);
             Cb(p, "Jacoby2NT", "Jacoby 2NT", 40, 112, 170);
             Cb(p, "Truscott2NT", "DBL Sonrası Truscott 2NT", 210, 112, 220);
             Cb(p, "Splinter", "Splinter'lar", 40, 136, 170);
@@ -1073,6 +1077,7 @@ namespace BricKartOyunu.Forms
             Rb(g, "İnverted Minör Yükseltmeleri", 0, 24, 180, () => Al("InvertedMinors"), () => Koy("InvertedMinors", true));
             Cb(p, "Walsh", "Walsh", 240, 82, 170);
             Cb(p, "OneClub_AnswerSistemi", "1♣ Cevap Sistemi", 240, 106, 170);
+            Cb(p, "OneDiamond_AnswerSistemi", "1♦ Cevap Sistemi", 240, 130, 170);
 
             Et(p, "2NT'ye Sıçrama:", 22, 136);
             var j = Gr(p, 40, 156, 190, 48);
@@ -1297,6 +1302,10 @@ namespace BricKartOyunu.Forms
             { "Artificial2C2D", "Yapay 2♣/2♦" },
             { "WolffSignoff", "Wolff Sign Off" },
             { "OneClub_AnswerSistemi", "1♣ Cevap Sistemi" },
+            { "OneDiamond_AnswerSistemi", "1♦ Cevap Sistemi" },
+            { "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi" },
+            { "OneSpade_AnswerSistemi", "1♠ Cevap Sistemi" },
+            { "OneNT_AnswerSistemi", "1NT Cevap Sistemi" },
             { "Reverse", "Reverse" },
             { "ForcingNT", "Forcing 1NT" },
             { "IkiBirOyunZorlama", "2/1 Zon Forcing" },

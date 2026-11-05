@@ -450,6 +450,9 @@ namespace BricKartOyunu
                 f.Guncelle(liste, baslik);
         }
 
+        /// <summary>Kuzey elinin üst kenarının ekran Y koordinatı (Öğrenme Notları hizalaması için).</summary>
+        public int KuzeyEkranY { get { return PointToScreen(new Point(0, _kuzeyY)).Y; } }
+
         /// <summary>
         /// Belirtilen oyuncunun elini döndürür.
         /// (Ihale motoru için.)

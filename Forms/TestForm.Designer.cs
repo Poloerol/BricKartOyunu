@@ -31,6 +31,10 @@
             this.BtnExit = new System.Windows.Forms.Button();
             this.BtnTestleriCalistir = new System.Windows.Forms.Button();
             this.BtnOneClubTestleri = new System.Windows.Forms.Button();
+            this.BtnOneDiamondTestleri = new System.Windows.Forms.Button();
+            this.BtnOneHeartTestleri = new System.Windows.Forms.Button();
+            this.BtnOneSpadeTestleri = new System.Windows.Forms.Button();
+            this.BtnOneNTTestleri = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnExit
@@ -63,11 +67,54 @@
             this.BtnOneClubTestleri.UseVisualStyleBackColor = true;
             this.BtnOneClubTestleri.Click += new System.EventHandler(this.BtnOneClubTestleri_Click);
             // 
+            // BtnOneDiamondTestleri
+            // 
+            this.BtnOneDiamondTestleri.Location = new System.Drawing.Point(12, 104);
+            this.BtnOneDiamondTestleri.Name = "BtnOneDiamondTestleri";
+            this.BtnOneDiamondTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnOneDiamondTestleri.TabIndex = 90;
+            this.BtnOneDiamondTestleri.Text = "1♦ Testleri";
+            this.BtnOneDiamondTestleri.UseVisualStyleBackColor = true;
+            this.BtnOneDiamondTestleri.Click += new System.EventHandler(this.BtnOneDiamondTestleri_Click);
+            // 
+            // BtnOneHeartTestleri
+            // 
+            this.BtnOneHeartTestleri.Location = new System.Drawing.Point(12, 150);
+            this.BtnOneHeartTestleri.Name = "BtnOneHeartTestleri";
+            this.BtnOneHeartTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnOneHeartTestleri.TabIndex = 91;
+            this.BtnOneHeartTestleri.Text = "1♥ Testleri";
+            this.BtnOneHeartTestleri.UseVisualStyleBackColor = true;
+            this.BtnOneHeartTestleri.Click += new System.EventHandler(this.BtnOneHeartTestleri_Click);
+            // 
+            // BtnOneSpadeTestleri
+            // 
+            this.BtnOneSpadeTestleri.Location = new System.Drawing.Point(12, 196);
+            this.BtnOneSpadeTestleri.Name = "BtnOneSpadeTestleri";
+            this.BtnOneSpadeTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnOneSpadeTestleri.TabIndex = 92;
+            this.BtnOneSpadeTestleri.Text = "1♠ Testleri";
+            this.BtnOneSpadeTestleri.UseVisualStyleBackColor = true;
+            this.BtnOneSpadeTestleri.Click += new System.EventHandler(this.BtnOneSpadeTestleri_Click);
+            // BtnOneNTTestleri
+            // 
+            this.BtnOneNTTestleri.Location = new System.Drawing.Point(12, 242);
+            this.BtnOneNTTestleri.Name = "BtnOneNTTestleri";
+            this.BtnOneNTTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnOneNTTestleri.TabIndex = 93;
+            this.BtnOneNTTestleri.Text = "1NT Testleri";
+            this.BtnOneNTTestleri.UseVisualStyleBackColor = true;
+            this.BtnOneNTTestleri.Click += new System.EventHandler(this.BtnOneNTTestleri_Click);
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1354, 671);
+            this.Controls.Add(this.BtnOneSpadeTestleri);
+            this.Controls.Add(this.BtnOneNTTestleri);
+            this.Controls.Add(this.BtnOneHeartTestleri);
+            this.Controls.Add(this.BtnOneDiamondTestleri);
             this.Controls.Add(this.BtnOneClubTestleri);
             this.Controls.Add(this.BtnTestleriCalistir);
             this.Controls.Add(this.BtnExit);
@@ -83,5 +130,9 @@
         private System.Windows.Forms.Button BtnExit;
         private System.Windows.Forms.Button BtnTestleriCalistir;
         private System.Windows.Forms.Button BtnOneClubTestleri;
+        private System.Windows.Forms.Button BtnOneDiamondTestleri;
+        private System.Windows.Forms.Button BtnOneHeartTestleri;
+        private System.Windows.Forms.Button BtnOneSpadeTestleri;
+        private System.Windows.Forms.Button BtnOneNTTestleri;
     }
 }

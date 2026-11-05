@@ -226,7 +226,111 @@ namespace BricKartOyunu.Forms
                 SonucEkle("");
                 TestRunner_OneClub_OneDiamond.TumTestleriCalistir(_txtSonuclar, SonucEkle);
 
+                // ─── 3) 1♣ ⇒ 1♥ Gelişim Testleri ───
+                SonucEkle("");
+                TestRunner_OneClub_OneHeart.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 4) 1♣ Diğer Gelişimler (1♠, 1NT, 2♣, 2♦, 2♥, 2♠) ───
+                SonucEkle("");
+                TestRunner_OneClub_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
                 // ─── Ortak özet ───
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnOneDiamondTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                // ─── 1♦ açışına cevaplar ───
+                TestRunner_OneDiamond.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 1♦ gelişimleri (1♥, 1♠, 1NT, 2♣, 2♦, 2♥, 2♠, 2NT) ───
+                SonucEkle("");
+                TestRunner_OneDiamond_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnOneHeartTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                // ─── 1♥ açışına cevaplar ───
+                TestRunner_OneHeart.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 1♥ gelişimleri (1♠, 1NT, 2♣, 2♦, 2♥, 2♠, 2NT) ───
+                SonucEkle("");
+                TestRunner_OneHeart_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnOneSpadeTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                // ─── 1♠ açışına cevaplar ───
+                TestRunner_OneSpade.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 1♠ gelişimleri (1NT, 2♣, 2♦, 2♥, 2♠, 2NT) ───
+                SonucEkle("");
+                TestRunner_OneSpade_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnOneNTTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                // ─── 1NT açışına cevaplar ───
+                TestRunner_OneNT.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 1NT gelişimleri (Stayman, transferler, 2♠, 2NT, 3m, Texas) ───
+                SonucEkle("");
+                TestRunner_OneNT_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
                 OzetiGuncelle();
             }
             catch (Exception ex)

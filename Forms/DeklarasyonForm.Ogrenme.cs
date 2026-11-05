@@ -42,8 +42,13 @@ namespace BricKartOyunu.Forms
                 _ogrenmeNotlari = new OgrenmeNotlariForm();
                 _ogrenmeNotlari.Owner = this;
                 var ekran = Screen.FromControl(this).WorkingArea;
-                int x = Math.Min(Right + 4, ekran.Right - _ogrenmeNotlari.Width);
-                _ogrenmeNotlari.Location = new Point(Math.Max(ekran.Left, x), Math.Max(ekran.Top, Top));
+                // Sağ üstte, "Oyun Bilgisi" panelinin solunda açılır (ekran oranına göre)
+                int w = Math.Max(380, (int)(ekran.Width * 0.25));
+                int h = Math.Max(460, (int)(ekran.Height * 0.58));
+                _ogrenmeNotlari.Size = new Size(w, h);
+                int x = ekran.Left + (int)(ekran.Width * 0.616);
+                x = Math.Min(x, ekran.Right - w);
+                _ogrenmeNotlari.Location = new Point(Math.Max(ekran.Left, x), _bricOyna != null ? _bricOyna.KuzeyEkranY : ekran.Top + (int)(ekran.Height * 0.04));
             }
             if (!_ogrenmeNotlari.Visible) _ogrenmeNotlari.Show(this);
             return _ogrenmeNotlari;

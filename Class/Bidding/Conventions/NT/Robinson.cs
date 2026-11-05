@@ -41,7 +41,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (an == null || !(an.Cappelletti || an.MultiLandy)) return null;
             if (z.Es("O:1NT", "R:2♣"))
                 return (z.Hp >= 8 && (z.Maca >= 4 || z.Kupa >= 4)) ? "Dbl" : null;
-            if (z.Es("B:1NT", "L:2♣", "O:Dbl"))
+            // Rakip araya Cappelletti rölesi (2♦) soktuysa Stayman cevabı aynen sürer
+            if (z.Es("B:1NT", "L:2♣", "O:Dbl") || z.Es("B:1NT", "L:2♣", "O:Dbl", "R:2♦"))
                 return z.Kupa >= 4 ? "2♥" : z.Maca >= 4 ? "2♠" : "2♦";
             return null;
         }

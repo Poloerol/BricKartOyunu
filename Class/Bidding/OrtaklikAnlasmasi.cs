@@ -113,6 +113,12 @@ namespace BricKartOyunu.Class.Bidding
         /// </summary>
         public bool OneClub_AnswerSistemi { get; set; } = true;   // ← DEĞİŞTİ
 
+        /// <summary>1♦ açışına özel cevap/gelişim sistemi (SAS kitabı s.24-34). Varsayılan kapalı.</summary>
+        public bool OneDiamond_AnswerSistemi { get; set; } = false;
+        public bool OneHeart_AnswerSistemi { get; set; } = false;
+        public bool OneSpade_AnswerSistemi { get; set; } = false;
+        public bool OneNT_AnswerSistemi { get; set; } = false;
+
         // ═══════════════════════════════════════════════════════════════════
         // SİSTEM — REVERSE
         // ═══════════════════════════════════════════════════════════════════
@@ -454,6 +460,19 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         /// <summary>
+        /// "Sasson (SAS - Kısa Sinek)": Orta profilin üzerine kısa ♣ açılışı (1♣ = 2+ kart) ve Sasson rekabet ekleri
+        /// (Good-Bad 2NT, Inverted DBL, Mixed Raise, FSJS) açık gelir. Kitaptaki diğer röle/checkback sistemleri
+        /// henüz motorda yoktur; bu profil mevcut konvansiyonlarla Sasson'a en yakın ayarı verir.
+        /// </summary>
+        public static OrtaklikAnlasmasi Sasson()
+        {
+            var a = IkiBirOrta();
+            a.MinorShortClub = 1;
+            a.GoodBad2NT = true; a.InvertedDbl = true; a.MixedRaise = true; a.FSJS = true;
+            return a;
+        }
+
+        /// <summary>
         /// "2/1 Game Force - Gelişmiş" (kullanıcı listesi): içerik Orta ile aynıdır (Limit Major Raises, Reverse Drury,
         /// Truscott 2NT, Splinter, Texas, Minor Stayman, Lebensohl, Cappelletti, Puppet Stayman, Gambling 3NT, RKCB, DOPI, GSF, Feature Asking 2NT ...).
         /// </summary>
@@ -530,6 +549,10 @@ namespace BricKartOyunu.Class.Bidding
 
             // 1♣ cevapları
             if (OneClub_AnswerSistemi) aktifler.Add("1♣ Cevap Sistemi");   // ← DEĞİŞTİ
+            if (OneDiamond_AnswerSistemi) aktifler.Add("1♦ Cevap Sistemi");
+            if (OneHeart_AnswerSistemi) aktifler.Add("1♥ Cevap Sistemi");
+            if (OneSpade_AnswerSistemi) aktifler.Add("1♠ Cevap Sistemi");
+            if (OneNT_AnswerSistemi) aktifler.Add("1NT Cevap Sistemi");
 
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");

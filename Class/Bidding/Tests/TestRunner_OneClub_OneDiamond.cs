@@ -19,62 +19,149 @@ namespace BricKartOyunu.Tests
 
             int gecen = 0, kalan = 0;
 
-            // ════════════════════════════════════════════════════════════════
-            // TABLO 1: AÇICI İLK REBİD
-            // ════════════════════════════════════════════════════════════════
-            sonucEkle("── TABLO 1: Açıcı İlk Rebid ──");
-
-            Test("T1.1a — 4♣ 4♥ 11-14 HCP → 1♥ (Güney açtı)",
-                TestHelpers.ElOlustur("QJ", "QJ32", "Q32", "KJ32"),
-                new[] { "1♣", "Pas", "1♦", "Pas" }, Player.Guney, "1♥",
+            sonucEkle("── AÇANIN YENİDEN TEKLİFİ ──");
+            Test("1♥ — 4♣ 4♥ 12 HCP (Güney açtı)",
+                TestHelpers.ElOlustur("Q", "QJ32", "Q432", "KJ32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "1♥",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("T1.1b — Aynı el, Batı açtı → 1♥ (Perspektif testi)",
-                TestHelpers.ElOlustur("QJ", "QJ32", "Q32", "KJ32"),
-                new[] { "1♣", "Pas", "1♦", "Pas" }, Player.Bati, "1♥",
+            Test("1♥ — aynı el, Batı açtı (perspektif)",
+                TestHelpers.ElOlustur("Q", "QJ32", "Q432", "KJ32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Bati, "1♥",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("T1.2a — 4♣ 4♥ 15-17 HCP → 1♥ (Güney açtı)",
-                TestHelpers.ElOlustur("QJ", "KQ32", "Q32", "AK32"),
-                new[] { "1♣", "Pas", "1♦", "Pas" }, Player.Guney, "1♥",
+            Test("1♥ — 4♣ 4♥ 17 HCP",
+                TestHelpers.ElOlustur("Q", "KQ32", "Q432", "AK32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Dogu, "1♥",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("T1.2b — Aynı el, Doğu açtı → 1♥ (Perspektif testi)",
-                TestHelpers.ElOlustur("QJ", "KQ32", "Q32", "AK32"),
-                new[] { "1♣", "Pas", "1♦", "Pas" }, Player.Dogu, "1♥",
+            Test("1♠ — 4♣ 4♠ 12 HCP",
+                TestHelpers.ElOlustur("KQ32", "2", "Q32", "AJ432"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "1♠",
                 sonucEkle, ref gecen, ref kalan);
 
-            // ════════════════════════════════════════════════════════════════
-            // TABLO 2: CEVAPÇI İLK DEVAM
-            // ════════════════════════════════════════════════════════════════
+            Test("2♦ — 4♣ 4♦ 11-14",
+                TestHelpers.ElOlustur("K32", "Q2", "KJ32", "AQ32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "2♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♣ — 6♣ 11-16",
+                TestHelpers.ElOlustur("32", "K2", "Q32", "AKJ843"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "2♣",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♥ — 5♣ 4♥ 18+",
+                TestHelpers.ElOlustur("A2", "KQJ3", "A2", "AKJ32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "2♥",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2NT — 18+ 6♣",
+                TestHelpers.ElOlustur("AK", "K2", "432", "AKQ432"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "2NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("3♣ — 6♣ 15-17",
+                TestHelpers.ElOlustur("K2", "32", "K32", "AKQJ32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "3♣",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("3♦ — 5♣ 4♦ 15-17",
+                TestHelpers.ElOlustur("K2", "32", "AQ32", "AKJ32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "3♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("3♥ — 4♣ 4♦ 4♠ 1♥ 18-21",
+                TestHelpers.ElOlustur("AK32", "2", "AQ32", "AK32"),
+                new[] { "1♣","Pas","1♦","Pas" }, Player.Guney, "3♥",
+                sonucEkle, ref gecen, ref kalan);
+
             sonucEkle("");
-            sonucEkle("── TABLO 2: Cevapçı İlk Devam ──");
-
-            Test("T2.1a — Açıcı 1♥ → Cevapçı 2♦ (6♦ 9-11) (Güney açtı, Kuzey cevapçı)",
+            sonucEkle("── CEVAPÇININ DEVAMI ──");
+            Test("1♥ sonrası 2♦ — 6♦ 9 HCP",
                 TestHelpers.ElOlustur("32", "K32", "KQJ432", "32"),
-                new[] { "1♣", "Pas", "1♦", "Pas", "1♥", "Pas" }, Player.Kuzey, "2♦",
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas" }, Player.Kuzey, "2♦",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("T2.1b — Aynı el, Batı açtı, Doğu cevapçı → 2♦ (Perspektif testi)",
+            Test("1♥ sonrası 2♦ — aynı el, Batı açtı (perspektif)",
                 TestHelpers.ElOlustur("32", "K32", "KQJ432", "32"),
-                new[] { "1♣", "Pas", "1♦", "Pas", "1♥", "Pas" }, Player.Dogu, "2♦",
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas" }, Player.Dogu, "2♦",
                 sonucEkle, ref gecen, ref kalan);
 
-            // ════════════════════════════════════════════════════════════════
-            // TABLO 2: RÖLE CEVAPLARI
-            // ════════════════════════════════════════════════════════════════
+            Test("1♥ sonrası 2♠ — 5♦ 4♣ 12 HCP (4. renk SI)",
+                TestHelpers.ElOlustur("32", "32", "KQ432", "AQJ4"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas" }, Player.Kuzey, "2♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("1♥ sonrası 2♥ — 4♦ 4♥ 10 HCP davet",
+                TestHelpers.ElOlustur("32", "KJ32", "KJ32", "Q32"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas" }, Player.Kuzey, "2♥",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("1♥ sonrası 1♠ — 4♦ 4♠ 9 HCP F1R",
+                TestHelpers.ElOlustur("KQ32", "32", "KJ32", "432"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas" }, Player.Kuzey, "1♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("1♥ sonrası Pas — zayıf el",
+                TestHelpers.ElOlustur("32", "432", "J432", "Q432"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas" }, Player.Kuzey, "Pas",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♣ sonrası 3♥ — 3+♣ ♥ tek FG",
+                TestHelpers.ElOlustur("KQ32", "5", "Q32", "AJ932"),
+                new[] { "1♣","Pas","1♦","Pas","2♣","Pas" }, Player.Kuzey, "3♥",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♥ sonrası 2NT — Lebensohl (zayıf)",
+                TestHelpers.ElOlustur("5432", "432", "32", "Q432"),
+                new[] { "1♣","Pas","1♦","Pas","2♥","Pas" }, Player.Kuzey, "2NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("3NT sonrası 4♣ — ♥ transfer",
+                TestHelpers.ElOlustur("432", "KJ432", "32", "Q32"),
+                new[] { "1♣","Pas","1♦","Pas","3NT","Pas" }, Player.Kuzey, "4♣",
+                sonucEkle, ref gecen, ref kalan);
+
             sonucEkle("");
-            sonucEkle("── TABLO 2: Röle Cevapları ──");
+            sonucEkle("── AÇAN RÖLE CEVAPLARI / 1♥-1♠ DEVAMI ──");
+            Test("1♥-1♠ → 2♦ — 5♣4♥3♦1♠ min",
+                TestHelpers.ElOlustur("2", "KQ32", "Q43", "KQJ32"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas","1♠","Pas" }, Player.Guney, "2♦",
+                sonucEkle, ref gecen, ref kalan);
 
-            Test("T3.1a — Açıcı 2♦ röle sonrası 5431 14-16 → 2NT (Güney açtı)",
-                TestHelpers.ElOlustur("2", "KQ32", "KQ3", "KQJ32"),
-                new[] { "1♣", "Pas", "1♦", "Pas", "2♦", "Pas", "2♠", "Pas" },
-                Player.Guney, "2NT", sonucEkle, ref gecen, ref kalan);
+            Test("1♥-1♠ → 2NT — 5♣4♥ 17 HCP",
+                TestHelpers.ElOlustur("Q2", "KQ32", "K2", "AQJ32"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas","1♠","Pas" }, Player.Guney, "2NT",
+                sonucEkle, ref gecen, ref kalan);
 
-            Test("T3.1b — Aynı el, Batı açtı → 2NT (Perspektif testi)",
-                TestHelpers.ElOlustur("2", "KQ32", "KQ3", "KQJ32"),
-                new[] { "1♣", "Pas", "1♦", "Pas", "2♦", "Pas", "2♠", "Pas" },
-                Player.Bati, "2NT", sonucEkle, ref gecen, ref kalan);
+            Test("1♥-2♣ → 2♦ — 3♦ min",
+                TestHelpers.ElOlustur("2", "KJ32", "Q32", "AKJ32"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas","2♣","Pas" }, Player.Guney, "2♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("1♥-2♣-2♦-2♥ → 2♠ — dengeli 12 HCP",
+                TestHelpers.ElOlustur("J2", "KQ32", "Q32", "KJ32"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas","2♣","Pas","2♦","Pas","2♥","Pas" }, Player.Guney, "2♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("1♥-1♠-2NT-3♣ → 3♦ — 5422",
+                TestHelpers.ElOlustur("Q2", "KQ32", "K2", "AQJ32"),
+                new[] { "1♣","Pas","1♦","Pas","1♥","Pas","1♠","Pas","2NT","Pas","3♣","Pas" }, Player.Guney, "3♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♦-2♥ röle → 2♠ — 5♣4♦ min",
+                TestHelpers.ElOlustur("K2", "32", "KQ32", "QJ432"),
+                new[] { "1♣","Pas","1♦","Pas","2♦","Pas","2♥","Pas" }, Player.Guney, "2♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            // Kitapta "gelişim natürel" olan 3♣ yeniden teklifinde sınıf devreye girmemeli
+            {
+                var el = TestHelpers.ElOlustur("32", "432", "J432", "Q432");
+                var d = TestHelpers.DurumOlustur(el, Player.Kuzey, "1♣", "Pas", "1♦", "Pas", "3♣", "Pas");
+                sonucEkle("▶ 3♣ yeniden teklifi: sınıf devreye girmez");
+                if (!new OneClub_OneDiamond().UygunMu(el, d)) { sonucEkle("✅ DOĞRU: UygunMu false"); gecen++; }
+                else { sonucEkle("❌ HATA: UygunMu true döndü"); kalan++; }
+            }
 
             // ════════════════════════════════════════════════════════════════
             // SENARYO TESTİ: 1♣ - 1♥ - ? (16 HP + Fit → 3♥ Davet)

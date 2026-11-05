@@ -128,7 +128,7 @@ namespace BricKartOyunu.Class.Bidding
                     if (davetTekrar) { a.Min = Math.Max(a.Min, 10); a.Max = Math.Max(a.Min, Math.Min(a.Max, 12)); }
                     else if (a.Min < 6 || a.Max >= 40 || !ortakBirsekacildi) { a.Min = Math.Max(a.Min, lo); a.Max = hi; }
                     else if (s >= 4 && ayniRenk && majAcilis && a.Max <= 12) a.Min = Math.Max(a.Min, Math.Min(a.Max, 8));   // sınırlı raise sonrası oyun kabulü (1M–2M–3x–4M): yeni güç değil, üst yarı
-                    else if (s >= 4 && renk != "NT") a.Min = Math.Max(a.Min, Math.Min(lo, 12));   // sonraki teklifler yeni güç göstermez
+                    else if (s >= 4 && renk != "NT") a.Min = Math.Max(a.Min, Math.Min(Math.Min(lo, 12), a.Max));   // sonraki teklifler yeni güç göstermez; önceki sınırlı aralığın (ör. 1NT cevabı 6-10) üstüne çıkmaz
                     ortakBirsekacildi = true;
                 }
                 else if (ortakAcilis)
@@ -601,6 +601,7 @@ namespace BricKartOyunu.Class.Bidding
 
             // Ortağın yapay sorusuna CEVAP veriyorsam güç eşiği uygulanmaz
             // (yalnızca slam seviyesindeki cevaplar için asgari toplam güç aranır)
+            if (sev >= 7 && (SoruKonv.Contains(ad) || CevapVeriyorMu(d, ad))) return est >= 34;   // 7. seviye: soru/cevap konvansiyonu bile olsa en az 34 toplam HP tahmini
             if (CevapVeriyorMu(d, ad)) return sev < 6 || est >= CevapSlamEsigi;
 
             // Soru bidleri (slam arayışı) ancak güçlü toplam ile
