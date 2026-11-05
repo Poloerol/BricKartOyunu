@@ -47,6 +47,8 @@ namespace BricKartOyunu.Forms
                 new Madde("TwoHeart_AnswerSistemi", "2♥ cevap sistemi (SAS)", "Zayıf 2♥ açılışına özel cevap ve gelişim tabloları."),
                 new Madde("TwoSpade_AnswerSistemi", "2♠ cevap sistemi (SAS)", "Zayıf 2♠ açılışına özel cevap ve gelişim tabloları."),
                 new Madde("TwoNT_AnswerSistemi", "2NT cevap sistemi (SAS)", "2NT açılışına (20-22) özel cevap ve gelişim tabloları."),
+                new Madde("Role2C_AnswerSistemi", "2♣ röle / 2NT röle (SAS)", "1x-1y-1z sonrası cevapçının 2♣ rölesi ve 2NT (3♣ transfer) rölesi."),
+                new Madde("Araya_AnswerSistemi", "Araya girişe cevaplar (SAS)", "Ortağın 1♣ açılışına araya girişine transferli cevaplar."),
                 new Madde("Reverse", "Reverse gelişimi", "Açıcının ikinci rengi daha yüksekse güçlü el (16+) gösterir."),
                 new Madde("ForcingNT", "Zorlayıcı 1NT", "1M açılışına 1NT cevabı bir tur zorlayıcıdır."),
                 new Madde("IkiBirOyunZorlama", "2/1 Oyun Zorlayıcı", "1♥/1♠ açılışına 2 seviyesinde yeni renk (12+ HP) oyuna kadar zorlar. 5'li majör açılışı gerekir."),

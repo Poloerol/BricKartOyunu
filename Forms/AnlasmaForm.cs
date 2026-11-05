@@ -694,7 +694,8 @@ namespace BricKartOyunu.Forms
         private static readonly string[] Basliklar =
         {
             "Ortaklık Profili", "1NT Açılışları", "Majör Açılışlar", "Minör Açılışlar",
-            "Yüksek Seviye Açılışlar", "Yüksek NT Açılışları", "Slam Teklifleri", "Rekabetli İhale"
+            "Yüksek Seviye Açılışlar", "Yüksek NT Açılışları", "Slam Teklifleri", "Rekabetli İhale",
+            "SAS Cevap Sistemleri"
         };
 
         // Aynı anda yalnızca biri açık olabilen alanlar (KonvansiyonSecimForm ile aynı kurallar)
@@ -753,7 +754,7 @@ namespace BricKartOyunu.Forms
             Font = new Font("Segoe UI", 9F);
 
             _sayfalar.Add(Sayfa1()); _sayfalar.Add(Sayfa2()); _sayfalar.Add(Sayfa3()); _sayfalar.Add(Sayfa4());
-            _sayfalar.Add(Sayfa5()); _sayfalar.Add(Sayfa6()); _sayfalar.Add(Sayfa7()); _sayfalar.Add(Sayfa8());
+            _sayfalar.Add(Sayfa5()); _sayfalar.Add(Sayfa6()); _sayfalar.Add(Sayfa7()); _sayfalar.Add(Sayfa8()); _sayfalar.Add(Sayfa9());
             foreach (var p in _sayfalar) { p.Visible = false; Controls.Add(p); }
 
             var cizgi = new Label { BorderStyle = BorderStyle.Fixed3D, Bounds = new Rectangle(12, SayfaY + 2, 416, 2) };
@@ -1030,14 +1031,6 @@ namespace BricKartOyunu.Forms
             Rb(g, "Limit Majör Yükseltmeleri", 190, 0, 190, () => raiseYok() && Gi("MajorRaiseLimit") == 1, () => raiseDiger(1));
             Rb(g, "Ters Bergen Yükseltmeleri", 190, 26, 190, () => Al("InvertedBergenRaises"), () => { Koy("InvertedBergenRaises", true); Si("MajorRaiseLimit", 0); });
 
-            Cb(p, "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi", 450, 40, 200);
-            Cb(p, "OneSpade_AnswerSistemi", "1♠ Cevap Sistemi", 450, 64, 200);
-            Cb(p, "OneNT_AnswerSistemi", "1NT Cevap Sistemi", 450, 88, 200);
-            Cb(p, "TwoClub_AnswerSistemi", "2♣ Cevap Sistemi", 450, 112, 200);
-            Cb(p, "TwoDiamond_AnswerSistemi", "2♦ Açılış Sistemi", 450, 136, 200);
-            Cb(p, "TwoHeart_AnswerSistemi", "2♥ Cevap Sistemi", 450, 160, 200);
-            Cb(p, "TwoSpade_AnswerSistemi", "2♠ Cevap Sistemi", 450, 184, 200);
-            Cb(p, "TwoNT_AnswerSistemi", "2NT Cevap Sistemi", 450, 208, 200);
             Cb(p, "Jacoby2NT", "Jacoby 2NT", 40, 112, 170);
             Cb(p, "Truscott2NT", "DBL Sonrası Truscott 2NT", 210, 112, 220);
             Cb(p, "Splinter", "Splinter'lar", 40, 136, 170);
@@ -1204,6 +1197,24 @@ namespace BricKartOyunu.Forms
 
         // ───────────── Sayfa 8: Rekabet ─────────────
 
+        private Panel Sayfa9()
+        {
+            var p = YeniSayfa();
+            Et(p, "SAS (Sasson) cevap ve gelişim sistemleri:", 22, 14);
+            Cb(p, "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi", 40, 40, 300);
+            Cb(p, "OneSpade_AnswerSistemi", "1♠ Cevap Sistemi", 40, 66, 300);
+            Cb(p, "OneNT_AnswerSistemi", "1NT Cevap Sistemi", 40, 92, 300);
+            Cb(p, "TwoClub_AnswerSistemi", "2♣ Cevap Sistemi", 40, 118, 300);
+            Cb(p, "TwoDiamond_AnswerSistemi", "2♦ Açılış Sistemi", 40, 144, 300);
+            Cb(p, "TwoHeart_AnswerSistemi", "2♥ Cevap Sistemi", 40, 170, 300);
+            Cb(p, "TwoSpade_AnswerSistemi", "2♠ Cevap Sistemi", 40, 196, 300);
+            Cb(p, "TwoNT_AnswerSistemi", "2NT Cevap Sistemi", 40, 222, 300);
+            Cb(p, "Role2C_AnswerSistemi", "2♣ Röle Sistemi", 40, 248, 300);
+            Cb(p, "Araya_AnswerSistemi", "Araya Giriş Cevapları (1♣)", 40, 274, 300);
+            Et(p, "1♣ ve 1♦ cevap sistemleri 'Minör Açılışlar' sayfasındadır.", 22, 312, 400);
+            return p;
+        }
+
         private Panel Sayfa8()
         {
             var p = YeniSayfa();
@@ -1316,6 +1327,8 @@ namespace BricKartOyunu.Forms
             { "TwoHeart_AnswerSistemi", "2♥ Cevap Sistemi" },
             { "TwoSpade_AnswerSistemi", "2♠ Cevap Sistemi" },
             { "TwoNT_AnswerSistemi", "2NT Cevap Sistemi" },
+            { "Role2C_AnswerSistemi", "2♣ Röle Sistemi" },
+            { "Araya_AnswerSistemi", "Araya Giriş Cevapları" },
             { "Reverse", "Reverse" },
             { "ForcingNT", "Forcing 1NT" },
             { "IkiBirOyunZorlama", "2/1 Zon Forcing" },

@@ -50,6 +50,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Son teklif rakip tarafından 1NT mi?
             var sonTeklif = gercekTeklifler.Last();
             if (sonTeklif.Teklif == "1NT"
+                && gercekTeklifler.Count == 1
                 && durum.Rakipler.Contains(sonTeklif.Oyuncu))
             {
                 // Müdahale edebilmek için yeterli HP mi? (8+)
@@ -76,6 +77,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 {
                     // Bu tekliften önce rakip 1NT açmış mı?
                     var oncekiRakipTeklif = gercekTeklifler
+                        .Take(1)   // 1NT açılış olmalı (1♣-1♠-1NT gibi rebid değil)
                         .Where(h => durum.Rakipler.Contains(h.Oyuncu)
                                  && h.Teklif == "1NT")
                         .FirstOrDefault();
@@ -124,6 +126,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Rakip 1NT açtı, biz müdahale ediyoruz
             if (sonTeklif.Teklif == "1NT"
+                && gercekTeklifler.Count == 1
                 && durum.Rakipler.Contains(sonTeklif.Oyuncu))
             {
                 return MudahaleTeklifi(durum, el);

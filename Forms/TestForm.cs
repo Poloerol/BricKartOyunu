@@ -387,6 +387,42 @@ namespace BricKartOyunu.Forms
             }
         }
 
+        private void BtnRole2CTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                TestRunner_Role2C.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnArayaTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                TestRunner_Araya.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
         private void BtnTwoClubTestleri_Click(object sender, EventArgs e)
         {
             SonucFormunuHazirla();

@@ -10,6 +10,8 @@ using BricKartOyunu.Class.Bidding.OpeningSystems.TwoDiamond;
 using BricKartOyunu.Class.Bidding.OpeningSystems.TwoHeart;
 using BricKartOyunu.Class.Bidding.OpeningSystems.TwoSpade;
 using BricKartOyunu.Class.Bidding.OpeningSystems.TwoNT;
+using BricKartOyunu.Class.Bidding.OpeningSystems.Role2C;
+using BricKartOyunu.Class.Bidding.OpeningSystems.Araya;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,6 +46,8 @@ namespace BricKartOyunu.Class.Bidding
             if (ad.StartsWith("TwoHeart_", StringComparison.Ordinal)) return "2♥ Cevap Sistemi";
             if (ad.StartsWith("TwoSpade_", StringComparison.Ordinal)) return "2♠ Cevap Sistemi";
             if (ad.StartsWith("TwoNT_", StringComparison.Ordinal)) return "2NT Cevap Sistemi";
+            if (ad.StartsWith("Role2C_", StringComparison.Ordinal)) return "2♣ Röle Sistemi";
+            if (ad.StartsWith("Araya_", StringComparison.Ordinal)) return "Araya Giriş Cevapları";
             return ad;
         }
 
@@ -296,6 +300,8 @@ namespace BricKartOyunu.Class.Bidding
                 new TwoNT_ThreeDiamond(),
                 new TwoNT_ThreeHeart(),
                 new TwoNT_ThreeSpade(),
+                new Role2C_Sistem(),
+                new Araya_Cevap(),
             };
 
             AnlasmayiUygula();
@@ -451,6 +457,10 @@ namespace BricKartOyunu.Class.Bidding
                 return _anlasma.TwoSpade_AnswerSistemi;
             if (ad.StartsWith("TwoNT_", StringComparison.Ordinal))
                 return _anlasma.TwoNT_AnswerSistemi;
+            if (ad.StartsWith("Role2C_", StringComparison.Ordinal))
+                return _anlasma.Role2C_AnswerSistemi;
+            if (ad.StartsWith("Araya_", StringComparison.Ordinal))
+                return _anlasma.Araya_AnswerSistemi;
             return true;
         }
 
@@ -600,6 +610,8 @@ namespace BricKartOyunu.Class.Bidding
                 case "2♥ Cevap Sistemi": return _anlasma.TwoHeart_AnswerSistemi;
                 case "2♠ Cevap Sistemi": return _anlasma.TwoSpade_AnswerSistemi;
                 case "2NT Cevap Sistemi": return _anlasma.TwoNT_AnswerSistemi;
+                case "2♣ Röle Sistemi": return _anlasma.Role2C_AnswerSistemi;
+                case "Araya Giriş Cevapları": return _anlasma.Araya_AnswerSistemi;
                 case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;

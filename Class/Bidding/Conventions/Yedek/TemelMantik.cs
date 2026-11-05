@@ -360,6 +360,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Rakip son sözü söylemiş → rekabet
             if (!sonBizim)
             {
+            {
+                string nr = CevapciNTRebidRekabet(d, el, hp, gercek, rakipRenkleri);
+                if (nr != null) return nr;
+            }
+
                 // Rakip, ortağımın 1 seviye renk açılışına 2NT (Unusual: en düşük iki renk) dedi,
                 // ben henüz konuşmadım: güçlü elle 3NT (iki rakip rengi de tutulmuşsa) ya da doğal renk
                 if (son.Teklif == "2NT" && ilk.Oyuncu == d.Partner && ilk.Seviye == 1 && ilk.Koz != "NT" &&
@@ -1252,6 +1257,26 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// yeniden teklif etti ve rakipler pas geçti: 15+ HP (oyun gücü) ile pas geçme.
         /// 6+ kartlı majör → 4M; kendi 4+ kartlık diğer majörüm → en ucuz; yoksa null.
         /// </summary>
+        /// <summary>
+        /// 1x – 1y – 1NT (ortak NT rebid: 11-14) – (rakip 2 seviyede doğal renk): ben cevapçıyım.
+        /// 13+ HP ve rakip rengini tutuyorsam 3NT; 11-12 HP ve tutuk varsa 2NT davet. Aksi halde null.
+        /// </summary>
+        private string CevapciNTRebidRekabet(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> gercek,
+                                             List<string> rakipRenkleri)
+        {
+            int n = gercek.Count;
+            if (hp < 11 || n < 4 || rakipRenkleri.Count == 0) return null;
+            var son = gercek[n - 1]; var nt = gercek[n - 2]; var ben = gercek[n - 3]; var acilis = gercek[n - 4];
+            if (!d.Rakipler.Contains(son.Oyuncu) || son.Seviye != 2 || son.Koz == "NT") return null;
+            if (nt.Oyuncu != d.Partner || nt.Teklif != "1NT") return null;
+            if (ben.Oyuncu != d.AktifOyuncu || ben.Seviye != 1 || ben.Koz == "NT") return null;
+            if (acilis.Oyuncu != d.Partner || acilis.Seviye != 1 || acilis.Koz == "NT") return null;
+            if (!Tutuk(el, son.Koz)) return null;
+            if (hp >= 13 && Cheapest(d, "NT") <= 3) return Seviye(d, "NT", 3);
+            if (hp >= 11 && Cheapest(d, "NT") <= 2) return Seviye(d, "NT", 2);
+            return null;
+        }
+
         private string CevapciRekabetDevam(IhaleDurumu d, List<Card> el, int hp, List<IhaleHamlesi> gercek,
                                            List<string> rakipRenkleri)
         {

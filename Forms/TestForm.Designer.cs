@@ -37,6 +37,8 @@
             this.BtnOneNTTestleri = new System.Windows.Forms.Button();
             this.BtnTwoClubTestleri = new System.Windows.Forms.Button();
             this.BtnTwoNTTestleri = new System.Windows.Forms.Button();
+            this.BtnRole2CTestleri = new System.Windows.Forms.Button();
+            this.BtnArayaTestleri = new System.Windows.Forms.Button();
             this.BtnTwoSpadeTestleri = new System.Windows.Forms.Button();
             this.BtnTwoHeartTestleri = new System.Windows.Forms.Button();
             this.BtnTwoDiamondTestleri = new System.Windows.Forms.Button();
@@ -44,7 +46,7 @@
             // 
             // BtnExit
             // 
-            this.BtnExit.Location = new System.Drawing.Point(12, 620);
+            this.BtnExit.Location = new System.Drawing.Point(218, 13);
             this.BtnExit.Name = "BtnExit";
             this.BtnExit.Size = new System.Drawing.Size(116, 39);
             this.BtnExit.TabIndex = 87;
@@ -132,6 +134,26 @@
             this.BtnTwoNTTestleri.UseVisualStyleBackColor = true;
             this.BtnTwoNTTestleri.Click += new System.EventHandler(this.BtnTwoNTTestleri_Click);
             // 
+            // BtnRole2CTestleri
+            // 
+            this.BtnRole2CTestleri.Location = new System.Drawing.Point(12, 518);
+            this.BtnRole2CTestleri.Name = "BtnRole2CTestleri";
+            this.BtnRole2CTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnRole2CTestleri.TabIndex = 99;
+            this.BtnRole2CTestleri.Text = "2♣ Röle Testleri";
+            this.BtnRole2CTestleri.UseVisualStyleBackColor = true;
+            this.BtnRole2CTestleri.Click += new System.EventHandler(this.BtnRole2CTestleri_Click);
+            // 
+            // BtnArayaTestleri
+            // 
+            this.BtnArayaTestleri.Location = new System.Drawing.Point(12, 564);
+            this.BtnArayaTestleri.Name = "BtnArayaTestleri";
+            this.BtnArayaTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnArayaTestleri.TabIndex = 100;
+            this.BtnArayaTestleri.Text = "Araya Giriş Testleri";
+            this.BtnArayaTestleri.UseVisualStyleBackColor = true;
+            this.BtnArayaTestleri.Click += new System.EventHandler(this.BtnArayaTestleri_Click);
+            // 
             // BtnTwoSpadeTestleri
             // 
             this.BtnTwoSpadeTestleri.Location = new System.Drawing.Point(12, 426);
@@ -171,6 +193,8 @@
             this.Controls.Add(this.BtnOneNTTestleri);
             this.Controls.Add(this.BtnTwoClubTestleri);
             this.Controls.Add(this.BtnTwoNTTestleri);
+            this.Controls.Add(this.BtnRole2CTestleri);
+            this.Controls.Add(this.BtnArayaTestleri);
             this.Controls.Add(this.BtnTwoSpadeTestleri);
             this.Controls.Add(this.BtnTwoHeartTestleri);
             this.Controls.Add(this.BtnTwoDiamondTestleri);
@@ -197,6 +221,8 @@
         private System.Windows.Forms.Button BtnOneNTTestleri;
         private System.Windows.Forms.Button BtnTwoClubTestleri;
         private System.Windows.Forms.Button BtnTwoNTTestleri;
+        private System.Windows.Forms.Button BtnRole2CTestleri;
+        private System.Windows.Forms.Button BtnArayaTestleri;
         private System.Windows.Forms.Button BtnTwoSpadeTestleri;
         private System.Windows.Forms.Button BtnTwoHeartTestleri;
         private System.Windows.Forms.Button BtnTwoDiamondTestleri;
