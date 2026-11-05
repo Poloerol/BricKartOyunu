@@ -383,6 +383,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\Role2C\Role2C_Sistem.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Role2C.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Cevap.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Rubensohl.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Araya.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_OneHeart.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_Gelisimler.cs" />
