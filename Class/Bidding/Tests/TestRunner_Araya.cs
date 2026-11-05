@@ -204,6 +204,28 @@ namespace BricKartOyunu.Tests
             sonucEkle("── 1NT araya giriş: araya girenin üçüncü hamlesi ──");
             TK("2NT daveti, 17 HCP → 3NT", nt, TestHelpers.ElOlustur("K32", "AQ2", "AJ32", "QJ2"), new[] { "1♦", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
             TK("2NT daveti, 16 HCP → Pas", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "QJ2"), new[] { "1♦", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── T/O kontraya transferli cevaplar ──");
+            var to = new Araya_TOCevap();
+            T("1♣: zayıf 4♠ → 1♠", to, TestHelpers.ElOlustur("Q432", "432", "432", "432"), new[] { "1♣", "Dbl", "Pas" }, "1♠", sonucEkle, ref gecen, ref kalan);
+            T("1♣: 4♥ 9 HCP → 2♦ transfer", to, TestHelpers.ElOlustur("K2", "AQ32", "432", "5432"), new[] { "1♣", "Dbl", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            T("1♣: 5♦ 10 HCP → 2♣ transfer", to, TestHelpers.ElOlustur("K432", "32", "AQJ32", "43"), new[] { "1♣", "Dbl", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            T("1♣: dengeli 10 HCP → 1NT", to, TestHelpers.ElOlustur("Q32", "K32", "Q432", "K32"), new[] { "1♣", "Dbl", "Pas" }, "1NT", sonucEkle, ref gecen, ref kalan);
+            T("1♣: dengeli 12 HCP → 2NT", to, TestHelpers.ElOlustur("Q32", "Q32", "K32", "AJ32"), new[] { "1♣", "Dbl", "Pas" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("1♣: dengeli 13 HCP → 2♠ transfer cuebid", to, TestHelpers.ElOlustur("AK2", "K32", "Q32", "J432"), new[] { "1♣", "Dbl", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("1♣: 5♦ 4♥ FG → 3♣", to, TestHelpers.ElOlustur("32", "KJ32", "AKQ32", "43"), new[] { "1♣", "Dbl", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("1♦: 4♠ 8 HCP → 2♥ transfer", to, TestHelpers.ElOlustur("KQ32", "32", "432", "K432"), new[] { "1♦", "Dbl", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("1♥: 5♣ 8 HCP → 2♠ transfer", to, TestHelpers.ElOlustur("432", "32", "432", "AKJ32"), new[] { "1♥", "Dbl", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("1♠: 5♦ 8 HCP → 3♣ transfer", to, TestHelpers.ElOlustur("432", "32", "AKJ32", "432"), new[] { "1♠", "Dbl", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("1♠: zayıf 4♥ → 2♥", to, TestHelpers.ElOlustur("432", "Q432", "432", "432"), new[] { "1♠", "Dbl", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("Kontra yoksa devreye girmez", to, TestHelpers.ElOlustur("432", "Q432", "432", "432"), new[] { "1♠", "Pas", "Pas" }, null, sonucEkle, ref gecen, ref kalan);
+            TK("1♣: 2♦ → 2♥", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TK("1♣: 2♣ → 2♦", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♣", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TK("1♣: 2♠ (transfer cuebid) → 3♣", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♠", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            TK("1♠: 3♣ → 3♦", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♠", "Dbl", "Pas", "3♣", "Pas" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            TK("1♥: 2♠ → 3♣", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♥", "Dbl", "Pas", "2♠", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("transfer sonrası 15 HCP → 4♥", to, TestHelpers.ElOlustur("AK2", "AJ32", "K32", "432"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas", "2♥", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            T("transfer sonrası 11 HCP → 3♥", to, TestHelpers.ElOlustur("AK2", "KJ32", "432", "432"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas", "2♥", "Pas" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            T("transfer sonrası 8 HCP → Pas", to, TestHelpers.ElOlustur("K32", "KQ32", "432", "432"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas", "2♥", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }

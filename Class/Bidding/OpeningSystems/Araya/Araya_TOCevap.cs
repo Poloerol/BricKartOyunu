@@ -1,0 +1,156 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BricKartOyunu.Class;
+using BricKartOyunu.Class.Bidding.Interfaces;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneClub;
+
+namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
+{
+    /// <summary>
+    /// T/O KONTRAYA TRANSFERLİ CEVAPLAR (SAS kitabı s.107-108): rakip 1x açtı, ortak kontra yaptı, sağdaki rakip Pas.
+    ///   - Basit renk (cuebid'in altında kalan en ucuz teklif) = doğal 4+ kart, 0-8 HCP.
+    ///   - Transferler: x'in cuebid'i → x'ten sonraki ilk renk, her renk bir sonrakine, son renk → x'in cuebid'i
+    ///     (dengeli, oyun zorlayıcı "transfer cuebid"). 8+ HCP; majörde 4+, minörde 5+ kart.
+    ///   - 1NT doğal (x'te stoper) 7-10; 2NT doğal (stoper) 11-12; 3 seviyesinde iki renkli oyun zorlayıcı eller.
+    /// Kontra yapan transferi en ucuz seviyeden tamamlar. Cevapçı tamamlamadan sonra 11-12 ile davet, 13+ ile oyun söyler.
+    /// Basitleştirmeler: davet/süper kabul, atlamalı transfer, 4. pozisyon (balancing) ve açanın ortağı konuştuktan
+    /// sonraki cevap tabloları yok.
+    /// </summary>
+    public class Araya_TOCevap : IAcilisGelisimi
+    {
+        public int Oncelik { get { return 25; } }
+        public string Aciklama { get { return "T/O kontraya transferli cevaplar (SAS)"; } }
+
+        private const string Sira = "♣♦♥♠";
+        private static List<IhaleHamlesi> Gercek(IhaleDurumu d) { return d.Gecmis.Where(h => h.GercekTeklifMi).ToList(); }
+        private static int Ri(char c) { return Sira.IndexOf(c); }
+        private static char Sonraki(char c) { return Sira[(Ri(c) + 1) % 4]; }
+        private static int Uz(OcEl e, char c) { return c == '♠' ? e.S : c == '♥' ? e.H : c == '♦' ? e.D : e.C; }
+        private static string Ad(char c) { return c == '♠' ? "Maça" : c == '♥' ? "Kupa" : c == '♦' ? "Karo" : "Sinek"; }
+        private static bool Major(char c) { return c == '♥' || c == '♠'; }
+
+        /// <summary>x'in 1 seviyesinden sonra z renginin en ucuz transfer-kaynağı çağrısı (2 seviyesi ya da 3).</summary>
+        private static string Kaynak(char x, char z) { return (Ri(z) > Ri(x) || z == x ? 2 : 3).ToString() + z; }
+
+        /// <summary>Transfer sırası: kaynak çağrı → hedef (renk ya da x'in cuebid'i için x).</summary>
+        private static List<KeyValuePair<string, char>> Transferler(char x)
+        {
+            var r = new List<KeyValuePair<string, char>>();
+            char kaynak = x;
+            for (int i = 0; i < 4; i++)
+            {
+                char hedef = i < 3 ? Sonraki(kaynak) : x;
+                r.Add(new KeyValuePair<string, char>(Kaynak(x, kaynak), hedef));
+                kaynak = Sonraki(kaynak);
+            }
+            return r;
+        }
+
+        private static string Ucuz(int lv, char son, char z) { return (Ri(z) > Ri(son) ? lv : lv + 1).ToString() + z; }
+
+        public bool UygunMu(List<Card> el, IhaleDurumu d) { return Bul(el, d) != null; }
+        public string TeklifVer(List<Card> el, IhaleDurumu d) { return Bul(el, d) ?? "Pas"; }
+
+        private string Bul(List<Card> el, IhaleDurumu d)
+        {
+            if (d == null || el == null || el.Count != 13) return null;
+            var g = Gercek(d);
+            if (g.Count < 1 || g.Count > 3) return null;
+            if (!d.Rakipler.Contains(g[0].Oyuncu)) return null;
+            string a = g[0].Teklif;
+            if (a == null || a.Length != 2 || a[0] != '1' || !Sira.Contains(a[1])) return null;
+            char x = a[1];
+            int ix = d.Gecmis.IndexOf(g[0]);
+            if (ix < 0 || ix + 2 >= d.Gecmis.Count) return null;
+            if (d.Gecmis[ix + 1].Teklif != "Dbl" || d.Gecmis[ix + 2].Teklif != "Pas") return null;
+            Player ortak = IhaleDurumu.PartnerBul(d.AktifOyuncu);
+            var e = new OcEl(el);
+
+            // Cevapçı: x - Dbl(ortak) - Pas - (ben)
+            if (g.Count == 1)
+            {
+                if (d.Gecmis[ix + 1].Oyuncu != ortak || d.Gecmis.Count != ix + 3) return null;
+                return Cevap(e, x);
+            }
+
+            // Kontra yapan: x - Dbl(ben) - Pas - transfer - Pas - (ben)
+            if (g.Count == 2)
+            {
+                if (d.Gecmis[ix + 1].Oyuncu != d.AktifOyuncu || g[1].Oyuncu != ortak) return null;
+                if (d.Gecmis.Count != ix + 5 || !ReferenceEquals(d.Gecmis[ix + 3], g[1]) || d.Gecmis[ix + 4].Teklif != "Pas") return null;
+                var tr = Transferler(x).Where(t => t.Key == g[1].Teklif).ToList();
+                if (tr.Count == 0) return null;
+                char hedef = tr[0].Value;
+                char kaynakRenk = g[1].Teklif[1];
+                return hedef == x ? Ucuz(g[1].Teklif[0] - '0', kaynakRenk, x) : Ucuz(g[1].Teklif[0] - '0', kaynakRenk, hedef);
+            }
+
+            // Cevapçı ikinci hamle: x - Dbl - Pas - transfer(ben) - Pas - tamamlama - Pas - (ben)
+            if (d.Gecmis[ix + 1].Oyuncu != ortak || g[1].Oyuncu != d.AktifOyuncu || g[2].Oyuncu != ortak) return null;
+            if (d.Gecmis.Count != ix + 7 || !ReferenceEquals(d.Gecmis[ix + 3], g[1]) || d.Gecmis[ix + 4].Teklif != "Pas"
+                || !ReferenceEquals(d.Gecmis[ix + 5], g[2]) || d.Gecmis[ix + 6].Teklif != "Pas") return null;
+            var tr2 = Transferler(x).Where(t => t.Key == g[1].Teklif).ToList();
+            if (tr2.Count == 0) return null;
+            return IkinciHamle(e, x, tr2[0].Value, g[2].Teklif);
+        }
+
+        private static readonly Dictionary<char, Dictionary<string, char[]>> FG = new Dictionary<char, Dictionary<string, char[]>>
+        {
+            { '♣', new Dictionary<string, char[]> { { "3♣", new[] { '♦', '♥' } }, { "3♦", new[] { '♦', '♠' } }, { "3♥", new[] { '♠', '♥' } }, { "3♠", new[] { '♥', '♠' } } } },
+            { '♦', new Dictionary<string, char[]> { { "3♦", new[] { '♣', '♥' } }, { "3♥", new[] { '♠', '♥' } }, { "3♠", new[] { '♥', '♠' } } } },
+            { '♥', new Dictionary<string, char[]> { { "3♥", new[] { '♣', '♠' } }, { "3♠", new[] { '♦', '♠' } } } },
+            { '♠', new Dictionary<string, char[]> { { "3♠", new[] { '♣', '♥' } }, { "3NT", new[] { '♦', '♥' } } } },
+        };
+
+        private static string Cevap(OcEl e, char x)
+        {
+            int hp = e.Hcp;
+            var tr = Transferler(x);
+
+            // 12+ HCP: iki renkli oyun zorlayıcı el (ilk renk 5, ikincisi 4 kart)
+            if (hp >= 12)
+                foreach (var kv in FG[x])
+                    if (Uz(e, kv.Value[0]) >= 5 && Uz(e, kv.Value[1]) >= 4) return kv.Key;
+
+            // 11-12 dengeli, x'te stoper: 2NT
+            if (hp >= 11 && hp <= 12 && e.Dengeli && e.Stopper(Ad(x)) && !AdayRenk(e, x).Any()) return "2NT";
+            // 13+ dengeli: transfer cuebid
+            if (hp >= 13 && e.Dengeli && !AdayRenk(e, x).Any()) return tr.First(t => t.Value == x).Key;
+
+            // 8+ HCP: uzun renge transfer
+            if (hp >= 8)
+            {
+                var ad = AdayRenk(e, x).ToList();
+                if (ad.Count > 0)
+                {
+                    char en = ad.OrderByDescending(c => Uz(e, c)).ThenByDescending(c => Ri(c)).First();
+                    return tr.First(t => t.Value == en).Key;
+                }
+            }
+            // 7-10 dengeli stoperli: 1NT
+            if (hp >= 7 && hp <= 10 && e.Dengeli && e.Stopper(Ad(x))) return "1NT";
+
+            // Zayıf: doğal 4+ kartlı renk (majör öncelikli, uzun), yoksa en uzun renk
+            var rn = Sira.Where(c => c != x).OrderByDescending(c => Uz(e, c)).ThenByDescending(c => Major(c) ? 1 : 0).ThenByDescending(c => Ri(c)).ToList();
+            char s = rn[0];
+            return Ucuz(1, x, s);
+        }
+
+        /// <summary>Transfer ile gösterilebilecek renkler: majörde 4+, minörde 5+ (x hariç).</summary>
+        private static IEnumerable<char> AdayRenk(OcEl e, char x)
+        {
+            return Sira.Where(c => c != x && Uz(e, c) >= (Major(c) ? 4 : 5));
+        }
+
+        private static string IkinciHamle(OcEl e, char x, char hedef, string tamamlama)
+        {
+            int hp = e.Hcp;
+            if (hedef == x)                                   // transfer cuebid (dengeli oyun zorlayıcı)
+                return hp >= 13 ? "3NT" : null;
+            if (hp >= 13) return Major(hedef) ? "4" + hedef : (e.Stopper(Ad(x)) ? "3NT" : "5" + hedef);
+            if (hp >= 11 && Major(hedef)) return (tamamlama[0] - '0' + 1).ToString() + hedef;   // davet: bir seviye yukarı
+            return "Pas";
+        }
+    }
+}
