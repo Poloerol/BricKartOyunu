@@ -15463,8 +15463,8 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_BirClubBirKaroBirKupa_Cevapci_1NT()
         {
             var el = ElMetinden("Q32", "J32", "K32", "J432");
-            TestBirKupaGelisim("TEST 46.2 — 1♣-1♦-1♥-?: 6 HCP dengeli → 1NT",
-                "1♣ - 1♦ - 1♥ - ?", "1NT", el);
+            TestBirKupaGelisim("TEST 46.2 — 1♣-1♦-1♥-?: 6 HCP dengeli → Pas (kitap s.11: 1NT yok)",
+                "1♣ - 1♦ - 1♥ - ?", "Pas", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_2Club()
@@ -15477,35 +15477,35 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_BirClubBirKaroBirKupa_Cevapci_2Diamond()
         {
             var el = ElMetinden("KQ85", "32", "AJ5432", "5");  // 10 HCP, 6♦4♠
-            TestBirKupaGelisim("TEST 46.4 — 1♣-1♦-1♥-?: 6♦4♠ 10 HCP → 2♦",
-                "1♣ - 1♦ - 1♥ - ?", "2♦", el);
+            TestBirKupaGelisim("TEST 46.4 — 1♣-1♦-1♥-?: 6♦4♠ 10 HCP → 1♠ (F1R, ayrıntı 1♠ sonrası)",
+                "1♣ - 1♦ - 1♥ - ?", "1♠", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_2NT()
         {
-            var el = ElMetinden("A52", "J32", "KQ32", "J52");
-            TestBirKupaGelisim("TEST 46.5 — 1♣-1♦-1♥-?: 12 HCP dengeli → 2NT",
-                "1♣ - 1♦ - 1♥ - ?", "2NT", el);
+            var el = ElMetinden("A52", "J32", "KQ32", "Q52");
+            TestBirKupaGelisim("TEST 46.5 — 1♣-1♦-1♥-?: 12 HCP 4♦-3-3-3 → 3NT",
+                "1♣ - 1♦ - 1♥ - ?", "3NT", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_3Club()
         {
             var el = ElMetinden("KQ85", "3", "AJ943", "852");  // 10 HCP, 5♦4♠3♣1♥
-            TestBirKupaGelisim("TEST 46.6 — 1♣-1♦-1♥-?: 5♦4♠3♣1♥ 10 HCP → 3♣",
-                "1♣ - 1♦ - 1♥ - ?", "3♣", el);
+            TestBirKupaGelisim("TEST 46.6 — 1♣-1♦-1♥-?: 5♦4♠3♣1♥ 10 HCP → 1♠ (3♣ ayrıntısı 1♠ sonrası)",
+                "1♣ - 1♦ - 1♥ - ?", "1♠", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_3Diamond()
         {
             var el = ElMetinden("KQ85", "32", "AKQ432", "5");
-            TestBirKupaGelisim("TEST 46.7 — 1♣-1♦-1♥-?: 6♦4♠ FG → 3♦",
-                "1♣ - 1♦ - 1♥ - ?", "3♦", el);
+            TestBirKupaGelisim("TEST 46.7 — 1♣-1♦-1♥-?: 6♦4♠ FG → 1♠ (3♦ ayrıntısı 1♠ sonrası)",
+                "1♣ - 1♦ - 1♥ - ?", "1♠", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_3NT()
         {
-            var el = ElMetinden("A52", "J32", "KQ32", "AJ2");
-            TestBirKupaGelisim("TEST 46.8 — 1♣-1♦-1♥-?: 14 HCP dengeli durdurucu → 3NT",
+            var el = ElMetinden("A52", "J32", "KQ32", "QJ2");
+            TestBirKupaGelisim("TEST 46.8 — 1♣-1♦-1♥-?: 13 HCP 4♦-3-3-3 → 3NT",
                 "1♣ - 1♦ - 1♥ - ?", "3NT", el);
         }
 
@@ -15519,43 +15519,43 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_BirClubBirKaroBirKupa_Acici_2Heart_MAX()
         {
             var el = ElMetinden("A5", "KQ32", "Q52", "AK52");
-            TestBirKupaGelisim("TEST 47.2 — 1♣-1♦-1♥-2♣-?: 3♦ MAX → 2♥",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♥", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.2 — 1♣-1♦-1♥-2♣-?: 3♦ MAX → 2♦ (3♦ min ya da max)",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_2Spade()
         {
             var el = ElMetinden("KQ85", "AQ32", "52", "K52");
-            TestBirKupaGelisim("TEST 47.3 — 1♣-1♦-1♥-2♣-?: 4♠ → 2♠",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♠", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.3 — 1♣-1♦-1♥-2♣-?: 3♦ yok, min → 2♥",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♥", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_2NT()
         {
             var el = ElMetinden("52", "KQ32", "QJ52", "K52");
-            TestBirKupaGelisim("TEST 47.4 — 1♣-1♦-1♥-2♣-?: 4♦ 12 HCP → 2NT",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2NT", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.4 — 1♣-1♦-1♥-2♣-?: 4♦ 12 HCP → 2♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_3Club()
         {
             var el = ElMetinden("52", "KQ32", "52", "AQ852");
-            TestBirKupaGelisim("TEST 47.5 — 1♣-1♦-1♥-2♣-?: 4♥4♣ 11 HCP → 3♣",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♣", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.5 — 1♣-1♦-1♥-2♣-?: 3♦ yok, 11 HCP min → 2♥",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♥", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_3Diamond()
         {
             var el = ElMetinden("A5", "Q32", "KJ852", "532");  // 10 HCP, 13 kart
-            TestBirKupaGelisim("TEST 47.6 — 1♣-1♦-1♥-2♣-?: 5♦ 10 HCP → 3♦",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♦", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.6 — 1♣-1♦-1♥-2♣-?: 5♦ 10 HCP → 2♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_3Heart()
         {
             var el = ElMetinden("A5", "AQ32", "KQ52", "852");  // 16 HCP, 4♦4♥
-            TestBirKupaGelisim("TEST 47.7 — 1♣-1♦-1♥-2♣-?: 4♦4♥ SI → 3♥",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♥", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.7 — 1♣-1♦-1♥-2♣-?: 4♦4♥ 15 HCP → 2♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void TumTestleriCalistir()
