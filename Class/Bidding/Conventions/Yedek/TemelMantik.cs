@@ -245,6 +245,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                          && !Renkler.Any(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 6);
             if (ntMud && hp <= 18 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == sev)
                 return Seviye(d, "NT", sev);
+            // Dengeli 19-21 HP, rakibin rengini durduruyor, 1 seviye açılış: doğal 2NT (15-18 aralığı 1NT'dir)
+            if (ntMud && hp >= 19 && hp <= 21 && sev == 1 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == 1)
+                return Seviye(d, "NT", 2);
             // Dengeli 15+ HP, rakibin rengini durduramıyor ve diğer renklerde en az 3 kart: takeout kontra
             if (ntMud && !ElDegerlendirici.StopperVar(el, rk) &&
                 Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
