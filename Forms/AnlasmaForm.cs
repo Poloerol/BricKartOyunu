@@ -1210,8 +1210,10 @@ namespace BricKartOyunu.Forms
             Cb(p, "TwoSpade_AnswerSistemi", "2♠ Cevap Sistemi", 40, 196, 300);
             Cb(p, "TwoNT_AnswerSistemi", "2NT Cevap Sistemi", 40, 222, 300);
             Cb(p, "Role2C_AnswerSistemi", "2♣ Röle Sistemi", 40, 248, 300);
-            Cb(p, "Araya_AnswerSistemi", "Araya Giriş Cevapları (1♣)", 40, 274, 300);
-            Et(p, "1♣ ve 1♦ cevap sistemleri 'Minör Açılışlar' sayfasındadır.", 22, 312, 400);
+            Cb(p, "Araya_AnswerSistemi", "Araya Giriş Cevapları", 40, 274, 300);
+            Cb(p, "IkiRenk_AnswerSistemi", "İki Renkli Araya Girişler", 40, 300, 300);
+            Et(p, "1♣ ve 1♦ cevap sistemleri 'Minör Açılışlar' sayfasındadır.", 22, 338, 400);
+
             return p;
         }
 
@@ -1329,6 +1331,7 @@ namespace BricKartOyunu.Forms
             { "TwoNT_AnswerSistemi", "2NT Cevap Sistemi" },
             { "Role2C_AnswerSistemi", "2♣ Röle Sistemi" },
             { "Araya_AnswerSistemi", "Araya Giriş Cevapları" },
+            { "IkiRenk_AnswerSistemi", "İki Renkli Araya Girişler" },
             { "Reverse", "Reverse" },
             { "ForcingNT", "Forcing 1NT" },
             { "IkiBirOyunZorlama", "2/1 Zon Forcing" },

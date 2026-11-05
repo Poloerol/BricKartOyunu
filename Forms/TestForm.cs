@@ -415,6 +415,7 @@ namespace BricKartOyunu.Forms
             try
             {
                 TestRunner_Araya.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                TestRunner_IkiRenk.TumTestleriCalistir(_txtSonuclar, SonucEkle);
                 OzetiGuncelle();
             }
             catch (Exception ex)

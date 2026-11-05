@@ -125,6 +125,7 @@ namespace BricKartOyunu.Class.Bidding
         public bool TwoNT_AnswerSistemi { get; set; } = false;
         public bool Role2C_AnswerSistemi { get; set; } = false;
         public bool Araya_AnswerSistemi { get; set; } = false;
+        public bool IkiRenk_AnswerSistemi { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // SİSTEM — REVERSE
@@ -567,6 +568,7 @@ namespace BricKartOyunu.Class.Bidding
             if (TwoNT_AnswerSistemi) aktifler.Add("2NT Cevap Sistemi");
             if (Role2C_AnswerSistemi) aktifler.Add("2♣ Röle Sistemi");
             if (Araya_AnswerSistemi) aktifler.Add("Araya Giriş Cevapları");
+            if (IkiRenk_AnswerSistemi) aktifler.Add("İki Renkli Araya Girişler");
 
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");

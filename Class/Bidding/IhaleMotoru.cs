@@ -12,6 +12,7 @@ using BricKartOyunu.Class.Bidding.OpeningSystems.TwoSpade;
 using BricKartOyunu.Class.Bidding.OpeningSystems.TwoNT;
 using BricKartOyunu.Class.Bidding.OpeningSystems.Role2C;
 using BricKartOyunu.Class.Bidding.OpeningSystems.Araya;
+using BricKartOyunu.Class.Bidding.OpeningSystems.IkiRenk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,7 @@ namespace BricKartOyunu.Class.Bidding
             if (ad.StartsWith("TwoNT_", StringComparison.Ordinal)) return "2NT Cevap Sistemi";
             if (ad.StartsWith("Role2C_", StringComparison.Ordinal)) return "2♣ Röle Sistemi";
             if (ad.StartsWith("Araya_", StringComparison.Ordinal)) return "Araya Giriş Cevapları";
+            if (ad.StartsWith("IkiRenk_", StringComparison.Ordinal)) return "İki Renkli Araya Girişler";
             return ad;
         }
 
@@ -303,6 +305,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Role2C_Sistem(),
                 new Araya_Cevap(),
                 new Araya_Rubensohl(),
+                new IkiRenk_Araya(),
             };
 
             AnlasmayiUygula();
@@ -462,6 +465,8 @@ namespace BricKartOyunu.Class.Bidding
                 return _anlasma.Role2C_AnswerSistemi;
             if (ad.StartsWith("Araya_", StringComparison.Ordinal))
                 return _anlasma.Araya_AnswerSistemi;
+            if (ad.StartsWith("IkiRenk_", StringComparison.Ordinal))
+                return _anlasma.IkiRenk_AnswerSistemi;
             return true;
         }
 
@@ -613,6 +618,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "2NT Cevap Sistemi": return _anlasma.TwoNT_AnswerSistemi;
                 case "2♣ Röle Sistemi": return _anlasma.Role2C_AnswerSistemi;
                 case "Araya Giriş Cevapları": return _anlasma.Araya_AnswerSistemi;
+                case "İki Renkli Araya Girişler": return _anlasma.IkiRenk_AnswerSistemi;
                 case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;

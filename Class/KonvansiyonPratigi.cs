@@ -96,7 +96,7 @@ namespace BricKartOyunu.Class
         public static readonly KeyValuePair<string, string[]>[] Kategoriler =
         {
             new KeyValuePair<string, string[]>("Açılışlar", new[] {
-                "1♣ Açılış Sistemi", "1♦ Açılış Sistemi", "1♣ Cevap Sistemi", "1♦ Cevap Sistemi", "1♥ Cevap Sistemi", "1♠ Cevap Sistemi", "1NT Cevap Sistemi", "2♣ Cevap Sistemi", "2♦ Açılış Sistemi", "2♥ Cevap Sistemi", "2♠ Cevap Sistemi", "2NT Cevap Sistemi", "2♣ Röle Sistemi", "Araya Giriş Cevapları", "5'li Majör", "Strong NT", "2♣ Güçlü", "Benjamin Two-Bids",
+                "1♣ Açılış Sistemi", "1♦ Açılış Sistemi", "1♣ Cevap Sistemi", "1♦ Cevap Sistemi", "1♥ Cevap Sistemi", "1♠ Cevap Sistemi", "1NT Cevap Sistemi", "2♣ Cevap Sistemi", "2♦ Açılış Sistemi", "2♥ Cevap Sistemi", "2♠ Cevap Sistemi", "2NT Cevap Sistemi", "2♣ Röle Sistemi", "Araya Giriş Cevapları", "İki Renkli Araya Girişler", "5'li Majör", "Strong NT", "2♣ Güçlü", "Benjamin Two-Bids",
                 "Zayıf İki", "Zayıf İki Cevap", "Zayıf İki Müdahale", "Multi 2♦", "Preempt", "Preempt Cevap", "Namyats",
                 "Ogust", "Feature Asking 2NT", "Gambling 3NT", "Mini-Roman 2D", "Flannery" }),
             new KeyValuePair<string, string[]>("1NT Çevresi", new[] {
