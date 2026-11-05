@@ -1030,6 +1030,7 @@ namespace BricKartOyunu.Forms
             Rb(g, "Limit Majör Yükseltmeleri", 190, 0, 190, () => raiseYok() && Gi("MajorRaiseLimit") == 1, () => raiseDiger(1));
             Rb(g, "Ters Bergen Yükseltmeleri", 190, 26, 190, () => Al("InvertedBergenRaises"), () => { Koy("InvertedBergenRaises", true); Si("MajorRaiseLimit", 0); });
 
+            Cb(p, "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi", 450, 40, 200);
             Cb(p, "Jacoby2NT", "Jacoby 2NT", 40, 112, 170);
             Cb(p, "Truscott2NT", "DBL Sonrası Truscott 2NT", 210, 112, 220);
             Cb(p, "Splinter", "Splinter'lar", 40, 136, 170);
@@ -1300,6 +1301,7 @@ namespace BricKartOyunu.Forms
             { "WolffSignoff", "Wolff Sign Off" },
             { "OneClub_AnswerSistemi", "1♣ Cevap Sistemi" },
             { "OneDiamond_AnswerSistemi", "1♦ Cevap Sistemi" },
+            { "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi" },
             { "Reverse", "Reverse" },
             { "ForcingNT", "Forcing 1NT" },
             { "IkiBirOyunZorlama", "2/1 Zon Forcing" },

@@ -32,6 +32,7 @@
             this.BtnTestleriCalistir = new System.Windows.Forms.Button();
             this.BtnOneClubTestleri = new System.Windows.Forms.Button();
             this.BtnOneDiamondTestleri = new System.Windows.Forms.Button();
+            this.BtnOneHeartTestleri = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnExit
@@ -74,11 +75,22 @@
             this.BtnOneDiamondTestleri.UseVisualStyleBackColor = true;
             this.BtnOneDiamondTestleri.Click += new System.EventHandler(this.BtnOneDiamondTestleri_Click);
             // 
+            // BtnOneHeartTestleri
+            // 
+            this.BtnOneHeartTestleri.Location = new System.Drawing.Point(12, 150);
+            this.BtnOneHeartTestleri.Name = "BtnOneHeartTestleri";
+            this.BtnOneHeartTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnOneHeartTestleri.TabIndex = 91;
+            this.BtnOneHeartTestleri.Text = "1♥ Testleri";
+            this.BtnOneHeartTestleri.UseVisualStyleBackColor = true;
+            this.BtnOneHeartTestleri.Click += new System.EventHandler(this.BtnOneHeartTestleri_Click);
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1354, 671);
+            this.Controls.Add(this.BtnOneHeartTestleri);
             this.Controls.Add(this.BtnOneDiamondTestleri);
             this.Controls.Add(this.BtnOneClubTestleri);
             this.Controls.Add(this.BtnTestleriCalistir);
@@ -96,5 +108,6 @@
         private System.Windows.Forms.Button BtnTestleriCalistir;
         private System.Windows.Forms.Button BtnOneClubTestleri;
         private System.Windows.Forms.Button BtnOneDiamondTestleri;
+        private System.Windows.Forms.Button BtnOneHeartTestleri;
     }
 }
