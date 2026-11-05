@@ -116,6 +116,7 @@ namespace BricKartOyunu.Class.Bidding
         /// <summary>1♦ açışına özel cevap/gelişim sistemi (SAS kitabı s.24-34). Varsayılan kapalı.</summary>
         public bool OneDiamond_AnswerSistemi { get; set; } = false;
         public bool OneHeart_AnswerSistemi { get; set; } = false;
+        public bool OneSpade_AnswerSistemi { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // SİSTEM — REVERSE
@@ -549,6 +550,7 @@ namespace BricKartOyunu.Class.Bidding
             if (OneClub_AnswerSistemi) aktifler.Add("1♣ Cevap Sistemi");   // ← DEĞİŞTİ
             if (OneDiamond_AnswerSistemi) aktifler.Add("1♦ Cevap Sistemi");
             if (OneHeart_AnswerSistemi) aktifler.Add("1♥ Cevap Sistemi");
+            if (OneSpade_AnswerSistemi) aktifler.Add("1♠ Cevap Sistemi");
 
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");

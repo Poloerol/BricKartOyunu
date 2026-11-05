@@ -313,6 +313,13 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneHeart\OneHeart_TwoDiamond.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneHeart\OneHeart_TwoHeart.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneHeart\OneHeart_TwoSpade.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpade_Answer.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpade_OneNT.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpade_TwoClub.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpade_TwoDiamond.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpade_TwoHeart.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpade_TwoSpade.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpade_TwoNT.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneHeart\OneHeart_TwoNT.cs" />
     <Compile Include="Class\Bidding\OrtaklikAnlasmasi.cs" />
     <Compile Include="Class\Bidding\Tests\TestHelpers.cs" />
@@ -322,6 +329,8 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_OneDiamond_Gelisimler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneHeart.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneHeart_Gelisimler.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_OneSpade.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_OneSpade_Gelisimler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_OneHeart.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_Gelisimler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_IkiBirOyunZorlama.cs" />

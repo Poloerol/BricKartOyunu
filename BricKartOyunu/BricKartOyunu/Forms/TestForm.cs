@@ -290,5 +290,29 @@ namespace BricKartOyunu.Forms
                 SonucEkle($"❌ HATA: {ex.Message}");
             }
         }
+
+        private void BtnOneSpadeTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                // ─── 1♠ açışına cevaplar ───
+                TestRunner_OneSpade.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 1♠ gelişimleri (1NT, 2♣, 2♦, 2♥, 2♠, 2NT) ───
+                SonucEkle("");
+                TestRunner_OneSpade_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
     }
 }

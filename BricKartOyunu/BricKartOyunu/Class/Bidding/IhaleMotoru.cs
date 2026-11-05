@@ -3,6 +3,7 @@ using BricKartOyunu.Class.Bidding.Interfaces;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneClub;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart;
+using BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,7 @@ namespace BricKartOyunu.Class.Bidding
             if (ad == "OneDiamond_Opening") return "1♦ Açılış Sistemi";
             if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Cevap Sistemi";
             if (ad.StartsWith("OneHeart_", StringComparison.Ordinal)) return "1♥ Cevap Sistemi";
+            if (ad.StartsWith("OneSpade_", StringComparison.Ordinal)) return "1♠ Cevap Sistemi";
             return ad;
         }
 
@@ -201,6 +203,7 @@ namespace BricKartOyunu.Class.Bidding
                 new OneClub_Answer(),
                 new OneDiamond_Answer(),
                 new OneHeart_Answer(),
+                new OneSpade_Answer(),
 
                 // ─── FALLBACK (EN SON ÇARE) ──────────────────────────────────
                 new BasitCevap(),
@@ -234,6 +237,12 @@ namespace BricKartOyunu.Class.Bidding
                 new OneHeart_TwoHeart(),
                 new OneHeart_TwoSpade(),
                 new OneHeart_TwoNT(),
+                new OneSpade_OneNT(),
+                new OneSpade_TwoClub(),
+                new OneSpade_TwoDiamond(),
+                new OneSpade_TwoHeart(),
+                new OneSpade_TwoSpade(),
+                new OneSpade_TwoNT(),
             };
 
             AnlasmayiUygula();
@@ -375,6 +384,8 @@ namespace BricKartOyunu.Class.Bidding
                 return _anlasma.OneDiamond_AnswerSistemi;
             if (ad.StartsWith("OneHeart_", StringComparison.Ordinal))
                 return _anlasma.OneHeart_AnswerSistemi;
+            if (ad.StartsWith("OneSpade_", StringComparison.Ordinal))
+                return _anlasma.OneSpade_AnswerSistemi;
             return true;
         }
 
@@ -494,6 +505,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "1♣ Cevap Sistemi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♦ Cevap Sistemi": return _anlasma.OneDiamond_AnswerSistemi;
                 case "1♥ Cevap Sistemi": return _anlasma.OneHeart_AnswerSistemi;
+                case "1♠ Cevap Sistemi": return _anlasma.OneSpade_AnswerSistemi;
                 case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
