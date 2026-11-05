@@ -14,7 +14,7 @@ namespace BricKartOyunu.Tests
         public static void TumTestleriCalistir(RichTextBox txtSonuclar, Action<string> sonucEkle)
         {
             sonucEkle("════════════════════════════════════════");
-            sonucEkle("  ARAYA GİRİŞE CEVAPLAR (1♣/1♦/1♥/1♠ açılışları)");
+            sonucEkle("  ARAYA GİRİŞE CEVAPLAR (1♣/1♦/1♥/1♠ açılışları, Rubensohl, 1NT girişi)");
             sonucEkle("════════════════════════════════════════");
             sonucEkle("");
             int gecen = 0, kalan = 0;
@@ -166,6 +166,44 @@ namespace BricKartOyunu.Tests
             T("mixed raise sonrası 3♥", rb, TestHelpers.ElOlustur("K32", "KJ32", "432", "432"), new[] { "1♣", "1♥", "1♠", "2NT", "Pas", "3♣", "Pas" }, "3♥", sonucEkle, ref gecen, ref kalan);
             T("6♥ transferi sonrası kuvvetliyse 4♥", rb, TestHelpers.ElOlustur("A2", "AKQ932", "432", "43"), new[] { "1♦", "1♠", "2♣", "3♦", "Pas", "3♥", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
             T("pahalı cue sonrası 4♠", rb, TestHelpers.ElOlustur("AJ32", "KQ2", "32", "Q432"), new[] { "1♦", "1♠", "2♣", "2NT", "Pas", "3♣", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
+
+            sonucEkle("── 1NT araya giriş (15-18): cevaplar ──");
+            var nt = new Araya_NTCevap();
+            T("1♣: Stayman 4♠ 8 HCP", nt, TestHelpers.ElOlustur("AJ32", "432", "K32", "432"), new[] { "1♣", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            T("1♣: zayıf 5♥ → 2♦ transfer", nt, TestHelpers.ElOlustur("32", "KQ932", "432", "432"), new[] { "1♣", "1NT", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            T("1♣: zayıf 5♠ → 2♥ transfer", nt, TestHelpers.ElOlustur("KQ932", "32", "432", "432"), new[] { "1♣", "1NT", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("1♣: zayıf 6♦ → 2♠ transfer", nt, TestHelpers.ElOlustur("32", "32", "KJ9432", "432"), new[] { "1♣", "1NT", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("1♣: Texas 6♥ 11 HCP", nt, TestHelpers.ElOlustur("K2", "AKJ932", "432", "43"), new[] { "1♣", "1NT", "Pas" }, "4♦", sonucEkle, ref gecen, ref kalan);
+            T("1♣: 3NT dengeli 13 HCP stoperli", nt, TestHelpers.ElOlustur("K32", "K32", "Q32", "KQ32"), new[] { "1♣", "1NT", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
+            T("1♣: 2NT dengeli 9 HCP", nt, TestHelpers.ElOlustur("Q32", "K32", "J32", "K432"), new[] { "1♣", "1NT", "Pas" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("1♥: 2♦ = 4♠ davet+", nt, TestHelpers.ElOlustur("AJ32", "32", "K32", "5432"), new[] { "1♥", "1NT", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            T("1♥: zayıf 6♦ → 2♣ transfer", nt, TestHelpers.ElOlustur("32", "32", "KQ9432", "432"), new[] { "1♥", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            T("1♥: zayıf 5♠ → 2♥ transfer", nt, TestHelpers.ElOlustur("KQ932", "32", "432", "432"), new[] { "1♥", "1NT", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("1♠: 2♠ = 4♥ davet+", nt, TestHelpers.ElOlustur("32", "AJ32", "K32", "5432"), new[] { "1♠", "1NT", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("1♠: zayıf 6♣ → 2♥ transfer", nt, TestHelpers.ElOlustur("32", "32", "432", "KJ9432"), new[] { "1♠", "1NT", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("1♠: zayıf 5♥ → 2♦ transfer", nt, TestHelpers.ElOlustur("32", "KQ932", "432", "432"), new[] { "1♠", "1NT", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            T("1♦: zayıf 6♣ → 2♠ transfer", nt, TestHelpers.ElOlustur("32", "32", "432", "KJ9432"), new[] { "1♦", "1NT", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("1♦: Stayman 2♣", nt, TestHelpers.ElOlustur("AJ32", "432", "K32", "432"), new[] { "1♦", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 1NT araya giriş: araya girenin cevabı ──");
+            TK("1♣: 2♦ → 2♥", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "Q32"), new[] { "1♣", "1NT", "Pas", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TK("1♣: 2♥ → 2♠", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "Q32"), new[] { "1♣", "1NT", "Pas", "2♥", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TK("1♣: 2♠ → 3♦", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "Q32"), new[] { "1♣", "1NT", "Pas", "2♠", "Pas" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            TK("1♣: Stayman, 4♥ → 2♥", nt, TestHelpers.ElOlustur("K32", "AQ32", "KJ2", "QJ2"), new[] { "1♣", "1NT", "Pas", "2♣", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TK("1♣: Stayman, majör yok → 2♦", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "QJ2"), new[] { "1♣", "1NT", "Pas", "2♣", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TK("1♥: 2♣ → 2♦", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "QJ2"), new[] { "1♥", "1NT", "Pas", "2♣", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TK("1♠: 2♥ → 3♣", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "QJ2"), new[] { "1♠", "1NT", "Pas", "2♥", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            TK("Texas 4♦ → 4♥", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "QJ2"), new[] { "1♣", "1NT", "Pas", "4♦", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            TK("1♠: 2♠ cue, 4♥ + 18 HCP → 4♥", nt, TestHelpers.ElOlustur("K2", "AQ32", "KJ2", "KQ32"), new[] { "1♠", "1NT", "Pas", "2♠", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            TK("1♠: 2♠ cue, 4♥ + 15 HCP → 3♥", nt, TestHelpers.ElOlustur("K2", "AQ32", "K32", "Q432"), new[] { "1♠", "1NT", "Pas", "2♠", "Pas" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 1NT araya giriş: cevapçının ikinci hamlesi ──");
+            T("transfer sonrası 5♥ 10 HCP → 4♥", nt, TestHelpers.ElOlustur("32", "AQJ32", "K32", "432"), new[] { "1♣", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            T("transfer sonrası zayıf → Pas", nt, TestHelpers.ElOlustur("32", "KQ932", "432", "432"), new[] { "1♣", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            T("Stayman 2♠ sonrası 4♠ 8 HCP → 3♠", nt, TestHelpers.ElOlustur("AJ32", "432", "K32", "432"), new[] { "1♣", "1NT", "Pas", "2♣", "Pas", "2♠", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            T("Stayman 2♠ sonrası 4♠ 12 HCP → 4♠", nt, TestHelpers.ElOlustur("AKQ2", "432", "K32", "432"), new[] { "1♣", "1NT", "Pas", "2♣", "Pas", "2♠", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
+            T("Stayman 2♦ sonrası 8 HCP → 2NT", nt, TestHelpers.ElOlustur("AJ32", "432", "K32", "432"), new[] { "1♣", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 1NT araya giriş: araya girenin üçüncü hamlesi ──");
+            TK("2NT daveti, 17 HCP → 3NT", nt, TestHelpers.ElOlustur("K32", "AQ2", "AJ32", "QJ2"), new[] { "1♦", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
+            TK("2NT daveti, 16 HCP → Pas", nt, TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "QJ2"), new[] { "1♦", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }

@@ -384,6 +384,7 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_Role2C.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Cevap.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Rubensohl.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_NTCevap.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\IkiRenk\IkiRenk_Araya.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_IkiRenk.cs" />

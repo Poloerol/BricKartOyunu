@@ -305,6 +305,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Role2C_Sistem(),
                 new Araya_Cevap(),
                 new Araya_Rubensohl(),
+                new Araya_NTCevap(),
                 new IkiRenk_Araya(),
             };
 
