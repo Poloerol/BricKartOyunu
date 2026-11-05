@@ -38,6 +38,14 @@ namespace BricKartOyunu.Class.Bidding
         public bool HelloOver1NT { get; set; } = false;
         /// <summary>Truscott 2NT: 1M-(Dbl)-2NT limit raise</summary>
         public bool Truscott2NT { get; set; } = false;
+        /// <summary>Good-Bad 2NT: 1♦–(…)–(2M) sonrası açanın 2NT'si iyi/kötü röle (Sasson kitabı)</summary>
+        public bool GoodBad2NT { get; set; } = false;
+        /// <summary>Inverted DBL: 1x–(Dbl)–Rdbl–(y) sonrası açanın Dbl = y'de 2-3 kart, Pas = 4+ ya da tekil+iyi el</summary>
+        public bool InvertedDbl { get; set; } = false;
+        /// <summary>Mixed Raise: (1x)–1M–(Pas)–3x atlamalı cue-bid = 4+ destek, 10-12 HP</summary>
+        public bool MixedRaise { get; set; } = false;
+        /// <summary>FSJS: (1x)–1M–(Pas)–atlamalı yeni renk = 5+ renk, 4+ majör desteği</summary>
+        public bool FSJS { get; set; } = false;
         /// <summary>Preemptive Reraises</summary>
         public bool PreemptiveReraises { get; set; } = false;
         /// <summary>Long & Short Game Tries (TrialBid ile birlikte kullanılmaz)</summary>
@@ -446,6 +454,19 @@ namespace BricKartOyunu.Class.Bidding
         }
 
         /// <summary>
+        /// "Sasson (SAS - Kısa Sinek)": Orta profilin üzerine kısa ♣ açılışı (1♣ = 2+ kart) ve Sasson rekabet ekleri
+        /// (Good-Bad 2NT, Inverted DBL, Mixed Raise, FSJS) açık gelir. Kitaptaki diğer röle/checkback sistemleri
+        /// henüz motorda yoktur; bu profil mevcut konvansiyonlarla Sasson'a en yakın ayarı verir.
+        /// </summary>
+        public static OrtaklikAnlasmasi Sasson()
+        {
+            var a = IkiBirOrta();
+            a.MinorShortClub = 1;
+            a.GoodBad2NT = true; a.InvertedDbl = true; a.MixedRaise = true; a.FSJS = true;
+            return a;
+        }
+
+        /// <summary>
         /// "2/1 Game Force - Gelişmiş" (kullanıcı listesi): içerik Orta ile aynıdır (Limit Major Raises, Reverse Drury,
         /// Truscott 2NT, Splinter, Texas, Minor Stayman, Lebensohl, Cappelletti, Puppet Stayman, Gambling 3NT, RKCB, DOPI, GSF, Feature Asking 2NT ...).
         /// </summary>
@@ -571,6 +592,10 @@ namespace BricKartOyunu.Class.Bidding
             if (ExtendedStayman) ekler.Add("Extended Stayman");
             if (HelloOver1NT) ekler.Add("Hello");
             if (Truscott2NT) ekler.Add("Truscott 2NT");
+            if (GoodBad2NT) ekler.Add("Good-Bad 2NT");
+            if (InvertedDbl) ekler.Add("Inverted DBL");
+            if (MixedRaise) ekler.Add("Mixed Raise");
+            if (FSJS) ekler.Add("FSJS");
             if (PreemptiveReraises) ekler.Add("Preemptive Reraises");
             if (LongShortGameTries) ekler.Add("Long & Short Game Tries");
             if (NewMinorForcing) ekler.Add("New Minor Forcing");

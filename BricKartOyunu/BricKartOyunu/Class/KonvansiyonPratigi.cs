@@ -111,7 +111,7 @@ namespace BricKartOyunu.Class
                 "Takeout Double", "Takeout Double Cevap", "Negative Double", "Support Double", "Support Double Cevap",
                 "Responsive Double", "Responsive Double Cevap", "Michaels", "Unusual 2NT", "Ghestem", "Cue Bid",
                 "Lebensohl (Reverse)", "Lebensohl (Zayıf 2)", "Weak Jump Overcalls", "Maximal Overcall Dbl.", "Artif. 2C/2D Resp. to 1M-X",
-                "Invisible Cue-Bids", "Limit-Plus Cue-Bids",
+                "Invisible Cue-Bids", "Limit-Plus Cue-Bids", "Good-Bad 2NT", "Inverted DBL", "Mixed Raise (Jump Cue-Bid)", "FSJS",
                 "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Yapay 2♣ Sonrası Kontra Stayman", "Sandwich 1NT", "Exit Transfer 1NT Runouts",
                 "Rubensohl", "Leaping Michaels", "Brozel", "Astro", "Helvic", "D.O.N.T. Escape",
                 "Rakip Renk Cue-Bid (Batı/Doğu)", "Unusual over Unusual", "Lead-Directing Double" }),

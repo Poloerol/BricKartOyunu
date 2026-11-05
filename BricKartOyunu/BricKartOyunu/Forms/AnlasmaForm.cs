@@ -30,6 +30,7 @@ namespace BricKartOyunu.Forms
             new OnAyar("2/1 Game Force - Temel", () => OrtaklikAnlasmasi.IkiBirTemel()),
             new OnAyar("2/1 Game Force - Orta", () => OrtaklikAnlasmasi.IkiBirOrta()),
             new OnAyar("2/1 Game Force - Gelişmiş", () => OrtaklikAnlasmasi.IkiBirGelismis()),
+            new OnAyar("Sasson (SAS - Kısa Sinek)", () => OrtaklikAnlasmasi.Sasson()),
             new OnAyar("Başlangıç (Basit)", () => OrtaklikAnlasmasi.Basit()),
             new OnAyar("Zayıf NT (12–14)", () => { var a = OrtaklikAnlasmasi.Varsayilan(); a.StrongNT = false; return a; })
         };
@@ -117,6 +118,7 @@ namespace BricKartOyunu.Forms
                 "ResponsiveDouble=Responsive DBL", "Michaels=Michaels", "Unusual2NT=Unusual 2NT",
                 "Sandwich1NT=Sandwich 1NT", "Ghestem=Ghestem", "WeakJumpOvercalls=Zayıf Sıçramalı Müdahale", "MaximalOvercallDbl=Maximal DBL",
                 "InvisibleCueBids=Görünmez Cue-bid", "LimitPlusCueBids=Limit-üstü Cue-bid",
+                "GoodBad2NT=Good-Bad 2NT", "InvertedDbl=Inverted DBL", "MixedRaise=Mixed Raise", "FSJS=FSJS",
                 "LeapingMichaels=Leaping Michaels", "LightnerDouble=Lightner DBL"));
             Ekle("Precision / Güçlü Kulüp", a => Liste(a, "OneClub_AnswerSistemi=1♣ Cevap Sistemi"));
         }
@@ -1279,6 +1281,10 @@ namespace BricKartOyunu.Forms
             { "Ghestem", "Ghestem" },
             { "InvisibleCueBids", "Görünmez cue-bid" },
             { "LimitPlusCueBids", "Limit-üstü Cue-Bid" },
+            { "GoodBad2NT", "Good-Bad 2NT" },
+            { "InvertedDbl", "Inverted DBL" },
+            { "MixedRaise", "Mixed Raise" },
+            { "FSJS", "FSJS" },
             { "WeakJumpOvercalls", "Zayıf Sıçramalı Araya Giriş" },
             { "Sandwich1NT", "Sandwich 1NT" },
             { "MaximalOvercallDbl", "Maximal DBL" },

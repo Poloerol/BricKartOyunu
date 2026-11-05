@@ -1,0 +1,7 @@
+$kaynak = "C:\Users\egokm\source\repos\Poloerol\BricKartOyunu"
+$gecici = "$env:TEMP\BricKartOyunu-yedek"
+$zip    = Join-Path ([Environment]::GetFolderPath('Desktop')) "BricKartOyunu-yedek-2026-11-05.zip"
+robocopy $kaynak $gecici /E /XD bin obj packages .vs Kurulum /NFL /NDL /NJH /NJS
+Compress-Archive -Path "$gecici\*" -DestinationPath $zip -Force
+Remove-Item $gecici -Recurse -Force
+Write-Host "Yedek: $zip"

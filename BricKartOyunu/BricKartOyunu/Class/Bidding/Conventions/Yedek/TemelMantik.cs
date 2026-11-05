@@ -100,6 +100,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (hp >= 13 && ElDegerlendirici.StopperVar(el, np[1].Koz)) return Seviye(d, "NT", 3);
             }
 
+            // 2c. (X)-ortak araya girdi-(Pas): 14+ HP ve kendi 6+ kartlık rengim var (rakip/ortak rengi degil) -> rengimi söyle.
+            if (np.Count == 2 && d.Rakipler.Contains(np[0].Oyuncu) && np[0].GercekTeklifMi && np[0].Seviye <= 3 &&
+                np[1].Oyuncu == d.Partner && np[1].GercekTeklifMi && np[1].Seviye <= 3 && np[1].Koz != "NT" && np[0].Koz != "NT" &&
+                g.Count >= 1 && g[g.Count - 1].PasMi && d.Rakipler.Contains(g[g.Count - 1].Oyuncu) && hp >= 14)
+            {
+                string uzun = null;
+                foreach (var r in Renkler)
+                    if (r != np[0].Koz && r != np[1].Koz && ElDegerlendirici.RenkUzunlugu(el, r) >= 6 &&
+                        (uzun == null || ElDegerlendirici.RenkUzunlugu(el, r) > ElDegerlendirici.RenkUzunlugu(el, uzun))) uzun = r;
+                if (uzun != null) return EnUcuz(d, uzun);
+            }
+
             // 2b''. 1X-(1M overcall = ben)-(rakip 2 seviye)-3M (ortak rekabetçi yükseltme): puan + uzunluk + kısalık >= 13 ise 4M.
             if (np.Count == 4 && np[1].Oyuncu == d.AktifOyuncu && np[1].GercekTeklifMi && np[1].Seviye == 1 &&
                 (np[1].Koz == "Kupa" || np[1].Koz == "Maça") && d.Rakipler.Contains(np[0].Oyuncu) && d.Rakipler.Contains(np[2].Oyuncu) &&
@@ -520,6 +532,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 int ucuz = Cheapest(d, fit);
                 if (ucuz <= 2) return Seviye(d, fit, ucuz + 1);
+            }
+
+            // Majör fitte oyun daveti: ben 2M ile destekledim (ya da fit biliniyor), ortak 3M ile davet etti (10-12 HP).
+            // Üst yarıda (13+ HP ya da 14+ toplam puan) kabul → 4M, asgari elle Pas.
+            if (fit != null && Major(fit) && sonOrtak && son.Koz == fit && son.Seviye == 3 && cur == 3 &&
+                gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == fit && h.Seviye == 2) &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi) &&
+                ElDegerlendirici.RenkUzunlugu(el, fit) >= 4)
+            {
+                // Beyan edilen güce göre: asgari raise (12-14) gösterdiysem 13+ HP kabul eder; 3M sonrası 4M açıktır.
+                if (hp >= 13 || ElDegerlendirici.ToplamPuan(el, fit) >= 14) return Seviye(d, fit, 4);
+                return "Pas";
             }
 
             // ── Fit varsa: fit rengiyle hedef ──

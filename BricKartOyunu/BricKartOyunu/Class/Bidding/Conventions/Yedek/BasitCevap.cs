@@ -148,6 +148,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (partnerKozu != "Sinek" && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5)
                     return "2♣";
 
+                // Majör açılışına 3'lü destekle 2NT söylenmez: açıcı bunu Jacoby 2NT (4+ destek, GF) sanar.
+                if (durum.Anlasma != null && durum.Anlasma.Jacoby2NT && partnerSeviye == 1 && (partnerKozu == "Maça" || partnerKozu == "Kupa")
+                    && ElDegerlendirici.RenkUzunlugu(el, partnerKozu) == 3 && hp <= 12)
+                    return "2" + KozYardimcisi.KozSembolu(partnerKozu);
+
                 if (ElDegerlendirici.DengeliEl(el) && hp <= 12)
                     return "2NT";
 

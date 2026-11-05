@@ -24,8 +24,8 @@ namespace BricKartOyunu.Class.Bidding
         private static string AcilisGelisimAdi(IAcilisGelisimi g)
         {
             string ad = g.GetType().Name;
-            if (ad.StartsWith("OneClub_OneDiamond", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
-            if (ad.StartsWith("OneClub_", StringComparison.Ordinal)) return "1♣ Açılış Sistemi";
+            if (ad == "OneClub_Opening") return "1♣ Açılış Sistemi";
+            if (ad.StartsWith("OneClub_", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
             if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Açılış Sistemi";
             return ad;
         }
@@ -83,6 +83,10 @@ namespace BricKartOyunu.Class.Bidding
                 new ExtendedStayman(),
                 new HelloOver1NT(),
                 new Truscott2NT(),
+                new GoodBad2NT(),
+                new InvertedDbl(),
+                new MixedRaise(),
+                new FSJS(),
                 new PreemptiveReraises(),
                 new LongShortGameTries(),
                 new NewMinorForcing(),
@@ -203,7 +207,13 @@ namespace BricKartOyunu.Class.Bidding
                 new OneClub_Opening(),
                 new OneDiamond_Opening(),
                 new OneClub_OneDiamond(),
-                new OneClub_OneDiamond_OneHeart(),
+                new OneClub_OneHeart(),
+                new OneClub_OneSpade(),
+                new OneClub_OneNT(),
+                new OneClub_TwoClub(),
+                new OneClub_TwoDiamond(),
+                new OneClub_TwoHeart(),
+                new OneClub_TwoSpade(),
             };
 
             AnlasmayiUygula();
@@ -339,7 +349,7 @@ namespace BricKartOyunu.Class.Bidding
         private bool AcilisGelisimiAktifMi(IAcilisGelisimi gelisim)
         {
             string ad = gelisim.GetType().Name;
-            if (ad.StartsWith("OneClub_OneDiamond", StringComparison.Ordinal))
+            if (ad.StartsWith("OneClub_", StringComparison.Ordinal) && ad != "OneClub_Opening")
                 return _anlasma.OneClub_AnswerSistemi;
             return true;
         }
@@ -460,6 +470,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "1♣ Cevap Sistemi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
+                case "1♣-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
 
                 case "Inverted Minors": return _anlasma.InvertedMinors;
                 case "Forcing NT": return _anlasma.ForcingNT;
@@ -523,6 +534,10 @@ namespace BricKartOyunu.Class.Bidding
                 case "Extended Stayman": return _anlasma.ExtendedStayman;
                 case "Hello over 1NT": return _anlasma.HelloOver1NT;
                 case "Truscott 2NT": return _anlasma.Truscott2NT;
+                case "Good-Bad 2NT": return _anlasma.GoodBad2NT;
+                case "Inverted DBL": return _anlasma.InvertedDbl;
+                case "Mixed Raise (Jump Cue-Bid)": return _anlasma.MixedRaise;
+                case "FSJS": return _anlasma.FSJS;
                 case "Preemptive Reraises": return _anlasma.PreemptiveReraises;
                 case "Long & Short Game Tries": return _anlasma.LongShortGameTries || _anlasma.GameTryShort == 1;
                 case "Semi-Forcing 1NT": return _anlasma.ForcingNT && _anlasma.NTSemiForcing == 1;

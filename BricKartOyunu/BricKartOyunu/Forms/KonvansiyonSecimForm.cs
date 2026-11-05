@@ -118,7 +118,11 @@ namespace BricKartOyunu.Forms
                 new Madde("WeakJumpOvercalls", "Zayıf sıçramalı müdahale", "(1x)–2y sıçrama: 6 kart, 5-9 HP."),
                 new Madde("MaximalOvercallDbl", "Maximal müdahale kontrü", "1M–2M–(3x alt renk)–Dbl: oyun daveti."),
                 new Madde("InvisibleCueBids", "Görünmez cue-bid", "1m–(1M)–2M: minörde oyun zorlayan raise."),
-                new Madde("LimitPlusCueBids", "Limit-üstü cue-bid", "1M–(c)–cue: 3+ destekli limit raise ya da üstü."))
+                new Madde("LimitPlusCueBids", "Limit-üstü cue-bid", "1M–(c)–cue: 3+ destekli limit raise ya da üstü."),
+                new Madde("GoodBad2NT", "Good-Bad 2NT", "1♦–…–(2M) sonrası açanın 2NT'si iyi/kötü röle: ortak 3♣/3♦, açan Pas (kötü) ya da yeni teklif (iyi)."),
+                new Madde("InvertedDbl", "Inverted DBL", "1x–(Dbl)–Rdbl–(y): Dbl = y'de 2-3 kart, Pas = 4+ (ceza) ya da tekil+iyi el."),
+                new Madde("MixedRaise", "Mixed Raise", "(1x)–1M–(Pas)–3x atlamalı cue-bid: 4+ destek, 10-12 HP."),
+                new Madde("FSJS", "FSJS (Fit-Showing Jump Shift)", "(1x)–1M–(Pas)–atlamalı yeni renk: 5+ o renk, 4+ majör desteği."))
         };
 
         // Aynı anda yalnızca biri açık olabilen alan grupları

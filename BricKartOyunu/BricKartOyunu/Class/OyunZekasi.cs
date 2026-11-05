@@ -282,11 +282,22 @@ namespace BricKartOyunu.Class
                 return n;
             }
 
-            /// <summary>Kartın üstünde görünmeyen (rakip elinde olabilecek) kart var mı?</summary>
+            /// <summary>
+            /// Kart "dışarıda" mı: görünmeyen (rakip elinde olabilir) ya da — savunmadaysam — açık dummy'nin elinde.
+            /// Dummy'nin kartları görünür olduğu için "görünmeyen" kümesinde yoktur, ama rakip kartıdır ve
+            /// löveyi alabilir; üst/ara kart hesabında hesaba katılmazsa K ile 10 yanlışlıkla "eşdeğer" sayılır.
+            /// </summary>
+            private bool Disarida(string suit, int v)
+            {
+                if (Gorunmeyen.Contains(suit + "|" + v)) return true;
+                return !DeklaranTarafi && B.DummyEli != null && B.DummyEli.Any(k => k.Suit == suit && k.Value == v);
+            }
+
+            /// <summary>Kartın üstünde görünmeyen (rakip elinde olabilecek) ya da açık dummy'de duran kart var mı?</summary>
             public bool Boss(Card c)
             {
                 for (int v = c.Value + 1; v <= 14; v++)
-                    if (Gorunmeyen.Contains(c.Suit + "|" + v)) return false;
+                    if (Disarida(c.Suit, v)) return false;
                 return true;
             }
 
@@ -294,14 +305,14 @@ namespace BricKartOyunu.Class
             {
                 int n = 0;
                 for (int v = c.Value + 1; v <= 14; v++)
-                    if (Gorunmeyen.Contains(c.Suit + "|" + v)) n++;
+                    if (Disarida(c.Suit, v)) n++;
                 return n;
             }
 
             public bool AradaGorunmeyenVar(string suit, int alt, int ust)
             {
                 for (int v = alt + 1; v < ust; v++)
-                    if (Gorunmeyen.Contains(suit + "|" + v)) return true;
+                    if (Disarida(suit, v)) return true;
                 return false;
             }
 

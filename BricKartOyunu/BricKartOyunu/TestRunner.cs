@@ -1058,13 +1058,13 @@ namespace BricKartOyunu
 
             Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
             Yaz($"Dengeli: {ElDegerlendirici.DengeliEl(guneyEli)}");
-            Yaz($"Beklenen: 2NT (invite)");
+            Yaz($"Beklenen: 2♠ (3'lü destek; 2NT Jacoby ile karışırdı)");
             Yaz("────────────────────────────────────────");
 
             var motor = new IhaleMotoru(durum.Anlasma);
             string teklif = motor.TeklifVer(durum);
             Yaz($"Sonuç: {teklif}");
-            Yaz(teklif == "2NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2NT)");
+            Yaz(teklif == "2♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 2♠)");
             Yaz("════════════════════════════════════════");
         }
         public static void Test_TemelMantik_RakipMudahale()
@@ -2606,6 +2606,9 @@ namespace BricKartOyunu
             t("New Minor Forcing: 1♦–1♠–1NT–2♣ (5♠)", "S:KJ524 H:A8 D:Q75 C:KJ2", "O:1♦ B:1♠ O:1NT", "2♣", a => a.NewMinorForcing = true);
             t("1♦–1♥–1♠: 10 HP dengeli, 3♠ → 2NT davet (Pas değil)", "S:AJ5 H:8762 D:87 C:KQT3", "O:1♦ B:1♥ O:1♠", "2NT", a => { a.XYZ = false; a.TwoWayCheckback = false; a.ThirdSuitForcing = false; });
             t("1♦–1♥–1♠: 8 HP dengeli → Pas", "S:AJ5 H:8762 D:87 C:K953", "O:1♦ B:1♥ O:1♠", "Pas", a => { a.XYZ = false; a.TwoWayCheckback = false; a.ThirdSuitForcing = false; });
+            t("(2♦)-2♠-(Pas): 17 HP, 7'li ♣ → 3♣", "S:7 H:AKJT2 D: C:AKQ9742", "L:2♦ O:2♠ R:Pas", "3♣", null);
+            t("(1♠)-2♥-(Pas): 15 HP, 6'lı ♦ → 3♦", "S:AQJ95 H: D:AJT942 C:K9", "L:1♠ O:2♥ R:Pas", "3♦", null);
+            t("1♠ karşısında 3'lü destek, 10 HP → 2NT (Jacoby sanılır) değil 2♠", "S:K42 H:82 D:J862 C:AQ75", "O:1♠ R:Pas", "2♠", null);
             t("(1♥)-Pas-Pas: 18 HP, 6'lı güçlü ♠ → 1NT değil, 1♠", "S:KQJ542 H:AKJ D:A9 C:74", "L:1♥ O:Pas R:Pas", "1♠", null);
             t("(1♥) doğrudan: 18 HP, 3-3-4-3, ♥ durdurucu → 1NT", "S:KJ5 H:AJ4 D:AQ52 C:K83", "R:1♥", "1NT", null);
             t("New Minor Forcing: 4♠ dengeli 15 HP → 3NT (yeni minör yok)", "S:K985 H:A9 D:QJ9 C:KQT2", "O:1♦ B:1♠ O:1NT", "3NT", a => a.NewMinorForcing = true);
@@ -2614,6 +2617,45 @@ namespace BricKartOyunu
             t("Truscott 2NT: 1♠–(Dbl)–2NT", "S:KJ52 H:A84 D:Q75 C:J42", "O:1♠ R:Dbl", "2NT", a => a.Truscott2NT = true);
             t("Truscott 2NT: açıcı 12 HP → 3♠", "S:AQ974 H:K5 D:J64 C:Q53", "B:1♠ L:Dbl O:2NT", "3♠", a => a.Truscott2NT = true);
             t("Truscott 2NT: açıcı 16 HP → 4♠", "S:AQ974 H:KQ D:AJ4 C:Q53", "B:1♠ L:Dbl O:2NT", "4♠", a => a.Truscott2NT = true);
+            // Oyun daveti kabulü: 1♣–1♥–2♥–3♥ (ortak cevapladığı majörde 3M ile davet etti)
+            t("Oyun daveti: 1♣–1♥–2♥–3♥, 13 HP 4'lü destek → 4♥", "S:KQ86 H:KT87 D:KQ9 C:T4", "B:1♣ O:1♥ B:2♥ O:3♥", "4♥", null);
+            t("Oyun daveti: 1♣–1♥–2♥–3♥, 12 HP yassı → Pas", "S:KJ86 H:KT87 D:Q94 C:KT", "B:1♣ O:1♥ B:2♥ O:3♥", "Pas", null);
+            t("Oyun daveti: 1♦–1♠–2♠–3♠, 13 HP 4'lü destek → 4♠", "S:KT87 H:KQ86 D:KQ9 C:T4", "B:1♦ O:1♠ B:2♠ O:3♠", "4♠", null);
+
+            // Sasson kitabı konvansiyonları: Good-Bad 2NT, Inverted DBL, Mixed Raise, FSJS
+            Action<OrtaklikAnlasmasi> gbA = a => a.GoodBad2NT = true;
+            t("Good-Bad 2NT: 1♦–1♠–(2♥) açan 5♦5♣ 13 HP → 2NT", "S:K H:73 D:AQ952 C:KJ854", "B:1♦ O:1♠ R:2♥", "2NT", gbA);
+            t("Good-Bad 2NT: açan 6♦ 16 HP → 2NT", "S:K4 H:73 D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥", "2NT", gbA);
+            t("Good-Bad 2NT: cevapçı 3♣ tercih", "S:KQJ854 H:73 D:J2 C:T98", "O:1♦ B:1♠ L:2♥ O:2NT", "3♣", gbA);
+            t("Good-Bad 2NT: cevapçı 6♠ 8 HP → 3♠ davet", "S:AQJ854 H:73 D:J2 C:T98", "O:1♦ B:1♠ L:2♥ O:2NT", "3♠", gbA);
+            t("Good-Bad 2NT: cevapçı cue-bid 3♥ (oyun zorlayan)", "S:AQ4 H:KJ5 D:Q42 C:AJ98", "O:1♦ B:1♠ L:2♥ O:2NT", "3♥", gbA);
+            t("Good-Bad 2NT: cevapçı min. ♦ tercihi 3♦", "S:KQ985 H:73 D:QJ95 C:T8", "O:1♦ B:1♠ L:2♥ O:2NT", "3♦", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 5♦5♣ kötü el → Pas", "S:K H:73 D:AQ952 C:KJ854", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "Pas", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 6♦ 16 HP → 3♦", "S:K4 H:73 D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3♦", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 5♦5♣ 18+ stoperli → 3♥ cue", "S:K H:AJ D:AKQ52 C:AK854", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3♥", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 5♦4♠ 18+ → 3♠", "S:KQ84 H:7 D:AKJ52 C:AQ4", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3♠", gbA);
+            t("Good-Bad 2NT: 3♣ sonrası 6♦ 18+ stoperli → 3NT", "S:K4 H:KJ D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥ B:2NT O:3♣", "3NT", gbA);
+            t("Good-Bad 2NT: 3♦ sonrası 6♦ 16 HP → Pas", "S:K4 H:73 D:AKQ952 C:A54", "B:1♦ O:1♠ R:2♥ B:2NT O:3♦", "Pas", gbA);
+            t("Good-Bad 2NT: 1♦–(1♠)–Dbl–(2♠) açan 4♦4♥ 19 HP → 2NT", "S:K4 H:AQ84 D:AKJ5 C:Q92", "B:1♦ L:1♠ O:Dbl R:2♠", "2NT", gbA);
+            t("Good-Bad 2NT: S2 3♣ sonrası 4♦4♥ 16+ → 3♥", "S:K4 H:AQ84 D:AKJ5 C:Q92", "B:1♦ L:1♠ O:Dbl R:2♠ B:2NT O:3♣", "3♥", gbA);
+            t("Good-Bad 2NT: S2 cevapçı 6♥ 6 HP → 3♥", "S:73 H:KQJ854 D:J2 C:T98", "O:1♦ R:1♠ B:Dbl L:2♠ O:2NT", "3♥", gbA);
+            Action<OrtaklikAnlasmasi> idA = a => a.InvertedDbl = true;
+            t("Inverted DBL: 1♥–(Dbl)–Rdbl–(2♠), ♠'de 3 kart → Dbl", "S:Q85 H:KJ9742 D:A3 C:84", "B:1♥ L:Dbl O:Rdbl R:2♠", "Dbl", idA);
+            t("Inverted DBL: ♠'de 4 kart → Pas (ceza)", "S:KJ85 H:KJ974 D:A3 C:84", "B:1♥ L:Dbl O:Rdbl R:2♠", "Pas", idA);
+            t("Inverted DBL: ♠ tekil + 17 HP → Pas", "S:5 H:AKJ974 D:AQ3 C:K84", "B:1♥ L:Dbl O:Rdbl R:2♠", "Pas", idA);
+            Action<OrtaklikAnlasmasi> mrA = a => a.MixedRaise = true;
+            t("Mixed Raise: (1♦)–1♥–(Pas)–3♦ (4♥, 12 HP)", "S:Q84 H:KT92 D:Q4 C:AJ85", "L:1♦ O:1♥", "3♦", mrA);
+            t("Mixed Raise: araya giren 15 HP → 4♥", "S:K4 H:AQJ85 D:Q4 C:K952", "R:1♦ B:1♥ O:3♦", "4♥", mrA);
+            t("Mixed Raise: araya giren 11 HP → 3♥", "S:K4 H:QJ985 D:Q4 C:K952", "R:1♦ B:1♥ O:3♦", "3♥", mrA);
+            Action<OrtaklikAnlasmasi> fsA = a => a.FSJS = true;
+            t("FSJS: (1♦)–1♥–(Pas)–2♠ (5♠ + 4♥)", "S:KQJ85 H:A972 D:4 C:J93", "L:1♦ O:1♥", "2♠", fsA);
+            t("FSJS: (1♦)–1♥–(Pas)–3♣ (5♣ + 4♥)", "S:843 H:K962 D:4 C:AKJ73", "L:1♦ O:1♥", "3♣", fsA);
+            t("FSJS: araya giren 16 HP → 4♥", "S:K4 H:AKJ85 D:Q4 C:K952", "R:1♦ B:1♥ O:2♠", "4♥", fsA);
+            t("FSJS: araya giren 11 HP → 3♥", "S:K4 H:QJ985 D:Q4 C:K952", "R:1♦ B:1♥ O:2♠", "3♥", fsA);
+            t("FSJS + Mixed Raise açık: yan renk varsa FSJS", "S:KQJ85 H:A972 D:4 C:J93", "L:1♦ O:1♥", "2♠", a => { a.FSJS = true; a.MixedRaise = true; });
+            t("FSJS + Mixed Raise açık: yan renk yoksa Mixed Raise", "S:Q84 H:KT92 D:Q4 C:AJ85", "L:1♦ O:1♥", "3♦", a => { a.FSJS = true; a.MixedRaise = true; });
+            t("Kapalıyken Good-Bad 2NT devreye girmez", "S:K H:73 D:AQ952 C:KJ854", "B:1♦ O:1♠ R:2♥", "Pas", null);
+
             t("Artif. 2♣: 3'lü destek limit → 2♣", "S:Q74 H:KJ5 D:A932 C:J84", "O:1♥ R:Dbl", "2♣", a => a.Artificial2C2D = true);
             t("Artif. 2♦: 3'lü destek oyun zorlayan → 2♦", "S:Q74 H:KJ5 D:AK32 C:J84", "O:1♥ R:Dbl", "2♦", a => a.Artificial2C2D = true);
             t("Preemptive Reraise: 6♠ 13 HP → 4♠", "S:AQ9754 H:K4 D:5 C:KJ62", "B:1♠ O:2♠ R:3♦", "4♠", a => a.PreemptiveReraises = true);
@@ -2652,7 +2694,8 @@ namespace BricKartOyunu
                 ac.LongShortGameTries || ac.NewMinorForcing || ac.WeakJumpShiftResp || ac.Ogust || ac.Gambling3NT || ac.SpecificKingAsks ||
                 ac.VoluntaryFiveMajor || ac.MatheAskingBids || ac.ControlAskingBids || ac.Ghestem || ac.InvisibleCueBids || ac.LimitPlusCueBids ||
                 ac.WeakJumpOvercalls || ac.Sandwich1NT || ac.MaximalOvercallDbl || ac.OneMinorTwoNTInv || ac.German2CRelays || ac.Walsh ||
-                ac.MiniRoman2D || ac.Robinson || ac.InvertedBergenRaises || ac.ExitTransfer || ac.Artificial2C2D || ac.WolffSignoff);
+                ac.MiniRoman2D || ac.Robinson || ac.InvertedBergenRaises || ac.ExitTransfer || ac.Artificial2C2D || ac.WolffSignoff ||
+                ac.GoodBad2NT || ac.InvertedDbl || ac.MixedRaise || ac.FSJS);
             toplam++; if (!hepsiKapali) hata++;
             Yaz("════════════════════════════════════════");
             Yaz("TEST 14." + toplam + " — yeni konvansiyonlar varsayılan anlaşmada kapalı");
@@ -2667,7 +2710,7 @@ namespace BricKartOyunu
                 foreach (var ad in new[] { "BenjaminTwoBids","ExtendedStayman","HelloOver1NT","Truscott2NT","PreemptiveReraises","LongShortGameTries","NewMinorForcing",
                     "WeakJumpShiftResp","Ogust","Gambling3NT","SpecificKingAsks","VoluntaryFiveMajor","MatheAskingBids","ControlAskingBids","Ghestem","InvisibleCueBids",
                     "LimitPlusCueBids","WeakJumpOvercalls","Sandwich1NT","MaximalOvercallDbl","OneMinorTwoNTInv","German2CRelays","Walsh","MiniRoman2D","Robinson",
-                    "InvertedBergenRaises","Artificial2C2D","WolffSignoff" })
+                    "InvertedBergenRaises","Artificial2C2D","WolffSignoff","GoodBad2NT","InvertedDbl","MixedRaise","FSJS" })
                     if (pi.Name == ad) pi.SetValue(tum, true, null);
             }
             var motorTum = new IhaleMotoru(tum);
@@ -3317,6 +3360,25 @@ namespace BricKartOyunu
             string acik = atak(on(x => x.HelloOver1NT = true)), kapali = atak(OrtaklikAnlasmasi.Varsayilan());
             Yaz("   atak: Hello açık=" + acik + ", kapalı=" + kapali);
             if (acik == "Sinek" || kapali != "Sinek") { hata++; Yaz("❌ Hello atağı: açık=" + acik + " kapalı=" + kapali); }
+            // Savunma 3. el: ortak ♠4 attı, deklaran ♠9 koydu, dummy'de (4. el) ♠J var → ♠K ile 10 "eşdeğer" değil: K oynanmalı
+            foreach (var kozDeneme in new string[] { null, "Kupa", "Maça" })
+            {
+                var sb = new OyunBaglami
+                {
+                    Ben = Player.Bati, Deklaran = Player.Guney, Koz = kozDeneme, Seviye = 3, ElNo = 1,
+                    Elim = mk("S:KT7 H:A984 D:K4 C:842"),
+                    DummyEli = mk("S:J65 H:32 D:Q2 C:AKJT6"),
+                    Gecmis = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>
+                    {
+                        (0, Player.Dogu, new Card { Suit = "Maça", Value = 14 }, true), (0, Player.Guney, new Card { Suit = "Maça", Value = 8 }, false),
+                        (0, Player.Bati, new Card { Suit = "Maça", Value = 2 }, false), (0, Player.Kuzey, new Card { Suit = "Maça", Value = 12 }, false)
+                    },
+                    Masa = new List<(Player Oyuncu, Card Kart)> { (Player.Dogu, new Card { Suit = "Maça", Value = 4 }), (Player.Guney, new Card { Suit = "Maça", Value = 9 }) }
+                };
+                string sn; var sc = OyunZekasi.KartSec(sb, out sn);
+                Yaz("   3. el, dummy'de ♠J: koz=" + (kozDeneme ?? "NT") + " → " + (sc == null ? "-" : sc.Suit + " " + sc.Value));
+                if (sc == null || sc.Suit != "Maça" || sc.Value != 13) { hata++; Yaz("❌ 3. el: dummy'nin ♠J'si 10'u yener, ♠K oynanmalıydı (koz=" + (kozDeneme ?? "NT") + ")"); }
+            }
             // Pratik listesi: her konvansiyon bir kategoride, tekrar yok
             var tumListe = KonvansiyonPratigi.Konvansiyonlar();
             var digerler = tumListe.Where(x => KonvansiyonPratigi.Kategori(x) == KonvansiyonPratigi.DigerKategori).ToList();
@@ -15401,8 +15463,8 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_BirClubBirKaroBirKupa_Cevapci_1NT()
         {
             var el = ElMetinden("Q32", "J32", "K32", "J432");
-            TestBirKupaGelisim("TEST 46.2 — 1♣-1♦-1♥-?: 6 HCP dengeli → 1NT",
-                "1♣ - 1♦ - 1♥ - ?", "1NT", el);
+            TestBirKupaGelisim("TEST 46.2 — 1♣-1♦-1♥-?: 6 HCP dengeli → Pas (kitap s.11: 1NT yok)",
+                "1♣ - 1♦ - 1♥ - ?", "Pas", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_2Club()
@@ -15415,35 +15477,35 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_BirClubBirKaroBirKupa_Cevapci_2Diamond()
         {
             var el = ElMetinden("KQ85", "32", "AJ5432", "5");  // 10 HCP, 6♦4♠
-            TestBirKupaGelisim("TEST 46.4 — 1♣-1♦-1♥-?: 6♦4♠ 10 HCP → 2♦",
-                "1♣ - 1♦ - 1♥ - ?", "2♦", el);
+            TestBirKupaGelisim("TEST 46.4 — 1♣-1♦-1♥-?: 6♦4♠ 10 HCP → 1♠ (F1R, ayrıntı 1♠ sonrası)",
+                "1♣ - 1♦ - 1♥ - ?", "1♠", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_2NT()
         {
-            var el = ElMetinden("A52", "J32", "KQ32", "J52");
-            TestBirKupaGelisim("TEST 46.5 — 1♣-1♦-1♥-?: 12 HCP dengeli → 2NT",
-                "1♣ - 1♦ - 1♥ - ?", "2NT", el);
+            var el = ElMetinden("A52", "J32", "KQ32", "Q52");
+            TestBirKupaGelisim("TEST 46.5 — 1♣-1♦-1♥-?: 12 HCP 4♦-3-3-3 → 3NT",
+                "1♣ - 1♦ - 1♥ - ?", "3NT", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_3Club()
         {
             var el = ElMetinden("KQ85", "3", "AJ943", "852");  // 10 HCP, 5♦4♠3♣1♥
-            TestBirKupaGelisim("TEST 46.6 — 1♣-1♦-1♥-?: 5♦4♠3♣1♥ 10 HCP → 3♣",
-                "1♣ - 1♦ - 1♥ - ?", "3♣", el);
+            TestBirKupaGelisim("TEST 46.6 — 1♣-1♦-1♥-?: 5♦4♠3♣1♥ 10 HCP → 1♠ (3♣ ayrıntısı 1♠ sonrası)",
+                "1♣ - 1♦ - 1♥ - ?", "1♠", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_3Diamond()
         {
             var el = ElMetinden("KQ85", "32", "AKQ432", "5");
-            TestBirKupaGelisim("TEST 46.7 — 1♣-1♦-1♥-?: 6♦4♠ FG → 3♦",
-                "1♣ - 1♦ - 1♥ - ?", "3♦", el);
+            TestBirKupaGelisim("TEST 46.7 — 1♣-1♦-1♥-?: 6♦4♠ FG → 1♠ (3♦ ayrıntısı 1♠ sonrası)",
+                "1♣ - 1♦ - 1♥ - ?", "1♠", el);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Cevapci_3NT()
         {
-            var el = ElMetinden("A52", "J32", "KQ32", "AJ2");
-            TestBirKupaGelisim("TEST 46.8 — 1♣-1♦-1♥-?: 14 HCP dengeli durdurucu → 3NT",
+            var el = ElMetinden("A52", "J32", "KQ32", "QJ2");
+            TestBirKupaGelisim("TEST 46.8 — 1♣-1♦-1♥-?: 13 HCP 4♦-3-3-3 → 3NT",
                 "1♣ - 1♦ - 1♥ - ?", "3NT", el);
         }
 
@@ -15457,43 +15519,43 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         public static void Test_BirClubBirKaroBirKupa_Acici_2Heart_MAX()
         {
             var el = ElMetinden("A5", "KQ32", "Q52", "AK52");
-            TestBirKupaGelisim("TEST 47.2 — 1♣-1♦-1♥-2♣-?: 3♦ MAX → 2♥",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♥", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.2 — 1♣-1♦-1♥-2♣-?: 3♦ MAX → 2♦ (3♦ min ya da max)",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_2Spade()
         {
             var el = ElMetinden("KQ85", "AQ32", "52", "K52");
-            TestBirKupaGelisim("TEST 47.3 — 1♣-1♦-1♥-2♣-?: 4♠ → 2♠",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♠", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.3 — 1♣-1♦-1♥-2♣-?: 3♦ yok, min → 2♥",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♥", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_2NT()
         {
             var el = ElMetinden("52", "KQ32", "QJ52", "K52");
-            TestBirKupaGelisim("TEST 47.4 — 1♣-1♦-1♥-2♣-?: 4♦ 12 HCP → 2NT",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2NT", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.4 — 1♣-1♦-1♥-2♣-?: 4♦ 12 HCP → 2♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_3Club()
         {
             var el = ElMetinden("52", "KQ32", "52", "AQ852");
-            TestBirKupaGelisim("TEST 47.5 — 1♣-1♦-1♥-2♣-?: 4♥4♣ 11 HCP → 3♣",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♣", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.5 — 1♣-1♦-1♥-2♣-?: 3♦ yok, 11 HCP min → 2♥",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♥", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_3Diamond()
         {
             var el = ElMetinden("A5", "Q32", "KJ852", "532");  // 10 HCP, 13 kart
-            TestBirKupaGelisim("TEST 47.6 — 1♣-1♦-1♥-2♣-?: 5♦ 10 HCP → 3♦",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♦", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.6 — 1♣-1♦-1♥-2♣-?: 5♦ 10 HCP → 2♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void Test_BirClubBirKaroBirKupa_Acici_3Heart()
         {
             var el = ElMetinden("A5", "AQ32", "KQ52", "852");  // 16 HCP, 4♦4♥
-            TestBirKupaGelisim("TEST 47.7 — 1♣-1♦-1♥-2♣-?: 4♦4♥ SI → 3♥",
-                "1♣ - 1♦ - 1♥ - 2♣ - ?", "3♥", el, asamaB: true);
+            TestBirKupaGelisim("TEST 47.7 — 1♣-1♦-1♥-2♣-?: 4♦4♥ 15 HCP → 2♦",
+                "1♣ - 1♦ - 1♥ - 2♣ - ?", "2♦", el, asamaB: true);
         }
 
         public static void TumTestleriCalistir()

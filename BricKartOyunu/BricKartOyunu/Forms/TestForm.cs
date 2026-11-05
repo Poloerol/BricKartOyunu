@@ -226,6 +226,14 @@ namespace BricKartOyunu.Forms
                 SonucEkle("");
                 TestRunner_OneClub_OneDiamond.TumTestleriCalistir(_txtSonuclar, SonucEkle);
 
+                // ─── 3) 1♣ ⇒ 1♥ Gelişim Testleri ───
+                SonucEkle("");
+                TestRunner_OneClub_OneHeart.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 4) 1♣ Diğer Gelişimler (1♠, 1NT, 2♣, 2♦, 2♥, 2♠) ───
+                SonucEkle("");
+                TestRunner_OneClub_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
                 // ─── Ortak özet ───
                 OzetiGuncelle();
             }

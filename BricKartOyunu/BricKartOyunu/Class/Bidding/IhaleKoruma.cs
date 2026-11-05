@@ -121,7 +121,12 @@ namespace BricKartOyunu.Class.Bidding
                     else if (s == 3) { lo = (renk == "NT") ? 13 : 10; hi = ayniRenk ? 12 : 17; }
                     else if (s == 4) { lo = (renk == "NT") ? 15 : 12; hi = ayniRenk ? 17 : 21; }
                     else { lo = 15; hi = 40; }
-                    if (a.Min < 6 || a.Max >= 40 || !ortakBirsekacildi) { a.Min = Math.Max(a.Min, lo); a.Max = hi; }
+                    // Cevaplayan, daha önce söylediği rengi 3 seviyesinde tekrarlıyor (1♣–1♥–2♥–3♥ / 1♣–1♥–1NT–3♥): oyun daveti, 10-12 HP
+                    bool davetTekrar = ortakBirsekacildi && s == 3 && renk != "NT" && !ayniRenk &&
+                        g.Take(i).Any(x => x.Oyuncu == ort && Gercek(x.Teklif) && KozYardimcisi.TekliftenKozCikar(x.Teklif) == renk) &&
+                        !g.Any(x => x.Oyuncu != ben && x.Oyuncu != ort && Gercek(x.Teklif));
+                    if (davetTekrar) { a.Min = Math.Max(a.Min, 10); a.Max = Math.Max(a.Min, Math.Min(a.Max, 12)); }
+                    else if (a.Min < 6 || a.Max >= 40 || !ortakBirsekacildi) { a.Min = Math.Max(a.Min, lo); a.Max = hi; }
                     else if (s >= 4 && ayniRenk && majAcilis && a.Max <= 12) a.Min = Math.Max(a.Min, Math.Min(a.Max, 8));   // sınırlı raise sonrası oyun kabulü (1M–2M–3x–4M): yeni güç değil, üst yarı
                     else if (s >= 4 && renk != "NT") a.Min = Math.Max(a.Min, Math.Min(lo, 12));   // sonraki teklifler yeni güç göstermez
                     ortakBirsekacildi = true;
@@ -521,6 +526,17 @@ namespace BricKartOyunu.Class.Bidding
                 var gy = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
                 if (gy.Count == 4 && gy[0].Oyuncu == d.AktifOyuncu && gy[0].Seviye == 1 && gy[1].Oyuncu == d.Partner && gy[1].Seviye == 1 &&
                     gy[2].Oyuncu == d.AktifOyuncu && gy[2].Teklif == "1NT" && gy[3].Oyuncu == d.Partner && gy[3].Seviye == 3) return true;
+            }
+
+            // 1X-1M-2M-3M (ortak cevapladığı majörü ben 2M ile destekledim, o da 3M ile davet etti) sonrası açıcının kabulü (4M).
+            if (ad.StartsWith("Temel Mant") && teklif.Length == 2 && teklif[0] == '4')
+            {
+                var gz = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gz.Count == 4 && gz[0].Oyuncu == d.AktifOyuncu && gz[0].Seviye == 1 && gz[1].Oyuncu == d.Partner && gz[1].Seviye == 1 &&
+                    (gz[1].Koz == "Kupa" || gz[1].Koz == "Maça") &&
+                    gz[2].Oyuncu == d.AktifOyuncu && gz[2].Seviye == 2 && gz[2].Koz == gz[1].Koz &&
+                    gz[3].Oyuncu == d.Partner && gz[3].Seviye == 3 && gz[3].Koz == gz[1].Koz &&
+                    teklif.EndsWith(KozYardimcisi.KozSembolu(gz[1].Koz))) return true;
             }
 
             if (ad == "Jacoby 2NT") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M) HCP tahminiyle veto edilmez
