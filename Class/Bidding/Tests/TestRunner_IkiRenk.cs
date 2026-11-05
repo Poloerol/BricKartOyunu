@@ -43,6 +43,26 @@ namespace BricKartOyunu.Tests
             TK("maksimum → 4♠", m, TestHelpers.ElOlustur("AKQ32", "KJ932", "4", "43"), new[] { "1♦", "2♦", "Pas", "2NT", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
             TK("minimum → 3♠", m, TestHelpers.ElOlustur("K9532", "J9532", "4", "43"), new[] { "1♦", "2♦", "Pas", "2NT", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
 
+            sonucEkle("── Rakibin 1NT açılışına araya girişler ──");
+            var nt = new IkiRenk_NTAraya();
+            T("güçlü NT: Dbl ceza 19 HCP", nt, TestHelpers.ElOlustur("AK3", "KQ2", "AJ32", "Q32"), new[] { "1NT" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            T("güçlü NT: 2♣ majörler 5-4", nt, TestHelpers.ElOlustur("AQJ32", "K432", "43", "43"), new[] { "1NT" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            T("güçlü NT: 2♦ Multi", nt, TestHelpers.ElOlustur("AQJ932", "43", "K32", "43"), new[] { "1NT" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            T("güçlü NT: 2♥ 5♥ + 4 minör", nt, TestHelpers.ElOlustur("43", "AQJ32", "K432", "43"), new[] { "1NT" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("güçlü NT: 2♠ 5♠ + 4 minör", nt, TestHelpers.ElOlustur("AQJ32", "43", "43", "K432"), new[] { "1NT" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("güçlü NT: 2NT minörler", nt, TestHelpers.ElOlustur("4", "43", "AKJ32", "QJ932"), new[] { "1NT" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("güçlü NT: 3♣ doğal", nt, TestHelpers.ElOlustur("543", "43", "43", "AKQJ32"), new[] { "1NT" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("güçlü NT: 4♥ + 5♦ girmez (zayıf NT sistemi)", nt, TestHelpers.ElOlustur("43", "KQJ2", "AQ932", "43"), new[] { "1NT" }, null, sonucEkle, ref gecen, ref kalan);
+            TW("zayıf NT: 2♥ 4♥ + 5 minör", nt, TestHelpers.ElOlustur("43", "KQJ2", "AQ932", "43"), new[] { "1NT" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("4. durum: 2♣ majörler 4-4", nt, TestHelpers.ElOlustur("KJ32", "AQ32", "43", "432"), new[] { "1NT", "Pas", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            T("4. durum: Dbl = ♣", nt, TestHelpers.ElOlustur("543", "43", "K32", "AQJ32"), new[] { "1NT", "Pas", "Pas" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            T("4. durum: 2♠ doğal", nt, TestHelpers.ElOlustur("AQJ32", "432", "K32", "43"), new[] { "1NT", "Pas", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("cevap: 2♣ → daha uzun majör 2♠", nt, TestHelpers.ElOlustur("Q432", "J32", "432", "432"), new[] { "1NT", "2♣", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("cevap: 2♣ → eşitse 2♥", nt, TestHelpers.ElOlustur("432", "432", "K432", "432"), new[] { "1NT", "2♣", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("cevap: Multi → 2♥", nt, TestHelpers.ElOlustur("432", "432", "K432", "432"), new[] { "1NT", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("cevap: 2NT → uzun minör 3♦", nt, TestHelpers.ElOlustur("Q432", "32", "5432", "432"), new[] { "1NT", "2NT", "Pas" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            TK("Multi: 6♠ → 2♠ düzelt", nt, TestHelpers.ElOlustur("AQJ932", "43", "K32", "43"), new[] { "1NT", "2♦", "Pas", "2♥", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TK("Multi: 6♥ → Pas", nt, TestHelpers.ElOlustur("43", "AQJ932", "K32", "43"), new[] { "1NT", "2♦", "Pas", "2♥", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
@@ -56,6 +76,19 @@ namespace BricKartOyunu.Tests
         private static void TK(string ad, IAcilisGelisimi motor, List<Card> el, string[] gecmis, string beklenen,
             Action<string> sonucEkle, ref int gecen, ref int kalan)
         { Calistir(ad, motor, el, Player.Kuzey, gecmis, beklenen, sonucEkle, ref gecen, ref kalan); }
+
+        // Zayıf NT (12-14) anlaşması: aktif Güney
+        private static void TW(string ad, IAcilisGelisimi motor, List<Card> el, string[] gecmis, string beklenen,
+            Action<string> sonucEkle, ref int gecen, ref int kalan)
+        {
+            sonucEkle($"▶ {ad}");
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, gecmis);
+            durum.Anlasma.StrongNT = false;
+            bool uygun = motor.UygunMu(el, durum);
+            string sonuc = uygun ? motor.TeklifVer(el, durum) : null;
+            if (sonuc == beklenen) { sonucEkle($"✅ DOĞRU: {sonuc ?? "(devreye girmedi)"}"); gecen++; }
+            else { sonucEkle($"❌ HATA: Beklenen {beklenen ?? "(devreye girmez)"}, gelen {sonuc ?? "(devreye girmedi)"}"); kalan++; }
+        }
 
         private static void Calistir(string ad, IAcilisGelisimi motor, List<Card> el, Player aktif, string[] gecmis, string beklenen,
             Action<string> sonucEkle, ref int gecen, ref int kalan)

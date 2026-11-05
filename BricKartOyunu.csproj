@@ -387,6 +387,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_NTCevap.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\IkiRenk\IkiRenk_Araya.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\IkiRenk\IkiRenk_NTAraya.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_IkiRenk.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_OneHeart.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_Gelisimler.cs" />

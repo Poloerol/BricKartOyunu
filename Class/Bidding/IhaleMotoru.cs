@@ -307,6 +307,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Araya_Rubensohl(),
                 new Araya_NTCevap(),
                 new IkiRenk_Araya(),
+                new IkiRenk_NTAraya(),
             };
 
             AnlasmayiUygula();
