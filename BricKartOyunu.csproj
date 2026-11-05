@@ -290,6 +290,8 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_OneHeart.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_Gelisim.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_OneNT.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClubZ_OneDiamond.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClubZ_OneHeart.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_OneSpade.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_TwoClub.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_TwoDiamond.cs" />

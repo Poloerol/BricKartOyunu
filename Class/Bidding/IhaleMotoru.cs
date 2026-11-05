@@ -36,7 +36,7 @@ namespace BricKartOyunu.Class.Bidding
         {
             string ad = g.GetType().Name;
             if (ad == "OneClub_Opening") return "1♣ Açılış Sistemi";
-            if (ad.StartsWith("OneClub_", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
+            if (ad.StartsWith("OneClub_", StringComparison.Ordinal) || ad.StartsWith("OneClubZ_", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
             if (ad == "OneDiamond_Opening") return "1♦ Açılış Sistemi";
             if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal)) return "1♦ Cevap Sistemi";
             if (ad.StartsWith("OneHeart_", StringComparison.Ordinal)) return "1♥ Cevap Sistemi";
@@ -242,6 +242,8 @@ namespace BricKartOyunu.Class.Bidding
                 new OneClub_OneHeart(),
                 new OneClub_OneSpade(),
                 new OneClub_OneNT(),
+                new OneClubZ_OneDiamond(),
+                new OneClubZ_OneHeart(),
                 new OneClub_TwoClub(),
                 new OneClub_TwoDiamond(),
                 new OneClub_TwoHeart(),
@@ -446,6 +448,11 @@ namespace BricKartOyunu.Class.Bidding
         private bool AcilisGelisimiAktifMi(IAcilisGelisimi gelisim)
         {
             string ad = gelisim.GetType().Name;
+            // Zayıf NT versiyonu (SAS s.76+): 1 seviyesi cevaplar transferli; güçlü NT tabloları yerine OneClubZ_ sınıfları çalışır.
+            if (ad.StartsWith("OneClubZ_", StringComparison.Ordinal))
+                return _anlasma.OneClub_AnswerSistemi && !_anlasma.StrongNT;
+            if (!_anlasma.StrongNT && (ad == "OneClub_OneDiamond" || ad == "OneClub_OneHeart" || ad == "OneClub_OneSpade" || ad == "OneClub_OneNT"))
+                return false;
             if (ad.StartsWith("OneClub_", StringComparison.Ordinal) && ad != "OneClub_Opening")
                 return _anlasma.OneClub_AnswerSistemi;
             if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal) && ad != "OneDiamond_Opening")

@@ -75,17 +75,37 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (hcp >= 11 && hcp <= 12 && dengeli && s < 4 && h < 4)
                 return "2NT";
 
-            // ─── 7) 1NT: 7-11 HCP, 4'lü majör yok ───
-            if (hcp >= 7 && hcp <= 11 && s < 4 && h < 4)
-                return "1NT";
+            // ─── ZAYIF NT VERSİYONU (SAS s.76): 1 seviyesi cevaplar transferli ───
+            // 1♦ = 4+♥, 1♥ = 4+♠, 1♠ = 4+♦ (4+ HCP; en uzun renk, eşitse ♥-♠-♦), 1NT = 4+♣ 8-10 HCP
+            if (durum.Anlasma != null && !durum.Anlasma.StrongNT)
+            {
+                if (hcp >= 4)
+                {
+                    int en = System.Math.Max(h, System.Math.Max(s, d));
+                    if (en >= 4)
+                    {
+                        if (h == en) return "1♦";
+                        if (s == en) return "1♥";
+                        return "1♠";
+                    }
+                    if (c >= 4 && hcp >= 8 && hcp <= 10) return "1NT";
+                }
+            }
+            else
+            {
+                // ─── 7) 1NT: 7-11 HCP, 4'lü majör yok ───
+                if (hcp >= 7 && hcp <= 11 && s < 4 && h < 4)
+                    return "1NT";
 
-            // ─── 8) Majörler (4+ HCP, 4+ kart) ───
-            if (hcp >= 4 && s >= 4 && s >= h) return "1♠";
-            if (hcp >= 4 && h >= 4) return "1♥";
+                // ─── 8) Majörler (4+ HCP, 4+ kart) ───
+                if (hcp >= 4 && s >= 4 && s >= h) return "1♠";
+                if (hcp >= 4 && h >= 4) return "1♥";
 
-            // ─── 9) 1♦: İki anlamlı ───
-            if (hcp >= 10 && d >= 4) return "1♦";                        // (a) doğal 10+ HCP
-            if (hcp >= 5 && hcp <= 9 && d >= 5 && !dengeli) return "1♦"; // (b) dengesiz 5+♦ 5-9 HCP
+                // ─── 9) 1♦: İki anlamlı ───
+                if (hcp >= 10 && d >= 4) return "1♦";                        // (a) doğal 10+ HCP
+                if (hcp >= 5 && hcp <= 9 && d >= 5 && !dengeli) return "1♦"; // (b) dengesiz 5+♦ 5-9 HCP
+
+            }
 
             // ─── 10) Preemptler (Tabloya tam uyumlu) ───
             if (tehlikeli) // ZONLU (V)
