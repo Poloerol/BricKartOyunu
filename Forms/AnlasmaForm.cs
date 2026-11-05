@@ -1033,6 +1033,11 @@ namespace BricKartOyunu.Forms
             Cb(p, "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi", 450, 40, 200);
             Cb(p, "OneSpade_AnswerSistemi", "1♠ Cevap Sistemi", 450, 64, 200);
             Cb(p, "OneNT_AnswerSistemi", "1NT Cevap Sistemi", 450, 88, 200);
+            Cb(p, "TwoClub_AnswerSistemi", "2♣ Cevap Sistemi", 450, 112, 200);
+            Cb(p, "TwoDiamond_AnswerSistemi", "2♦ Açılış Sistemi", 450, 136, 200);
+            Cb(p, "TwoHeart_AnswerSistemi", "2♥ Cevap Sistemi", 450, 160, 200);
+            Cb(p, "TwoSpade_AnswerSistemi", "2♠ Cevap Sistemi", 450, 184, 200);
+            Cb(p, "TwoNT_AnswerSistemi", "2NT Cevap Sistemi", 450, 208, 200);
             Cb(p, "Jacoby2NT", "Jacoby 2NT", 40, 112, 170);
             Cb(p, "Truscott2NT", "DBL Sonrası Truscott 2NT", 210, 112, 220);
             Cb(p, "Splinter", "Splinter'lar", 40, 136, 170);
@@ -1306,6 +1311,11 @@ namespace BricKartOyunu.Forms
             { "OneHeart_AnswerSistemi", "1♥ Cevap Sistemi" },
             { "OneSpade_AnswerSistemi", "1♠ Cevap Sistemi" },
             { "OneNT_AnswerSistemi", "1NT Cevap Sistemi" },
+            { "TwoClub_AnswerSistemi", "2♣ Cevap Sistemi" },
+            { "TwoDiamond_AnswerSistemi", "2♦ Açılış Sistemi" },
+            { "TwoHeart_AnswerSistemi", "2♥ Cevap Sistemi" },
+            { "TwoSpade_AnswerSistemi", "2♠ Cevap Sistemi" },
+            { "TwoNT_AnswerSistemi", "2NT Cevap Sistemi" },
             { "Reverse", "Reverse" },
             { "ForcingNT", "Forcing 1NT" },
             { "IkiBirOyunZorlama", "2/1 Zon Forcing" },

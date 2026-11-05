@@ -5,6 +5,11 @@ using BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade;
 using BricKartOyunu.Class.Bidding.OpeningSystems.OneNT;
+using BricKartOyunu.Class.Bidding.OpeningSystems.TwoClub;
+using BricKartOyunu.Class.Bidding.OpeningSystems.TwoDiamond;
+using BricKartOyunu.Class.Bidding.OpeningSystems.TwoHeart;
+using BricKartOyunu.Class.Bidding.OpeningSystems.TwoSpade;
+using BricKartOyunu.Class.Bidding.OpeningSystems.TwoNT;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +39,11 @@ namespace BricKartOyunu.Class.Bidding
             if (ad.StartsWith("OneHeart_", StringComparison.Ordinal)) return "1♥ Cevap Sistemi";
             if (ad.StartsWith("OneSpade_", StringComparison.Ordinal)) return "1♠ Cevap Sistemi";
             if (ad.StartsWith("OneNT_", StringComparison.Ordinal)) return "1NT Cevap Sistemi";
+            if (ad.StartsWith("TwoClub_", StringComparison.Ordinal)) return "2♣ Cevap Sistemi";
+            if (ad.StartsWith("TwoDiamond_", StringComparison.Ordinal)) return "2♦ Açılış Sistemi";
+            if (ad.StartsWith("TwoHeart_", StringComparison.Ordinal)) return "2♥ Cevap Sistemi";
+            if (ad.StartsWith("TwoSpade_", StringComparison.Ordinal)) return "2♠ Cevap Sistemi";
+            if (ad.StartsWith("TwoNT_", StringComparison.Ordinal)) return "2NT Cevap Sistemi";
             return ad;
         }
 
@@ -207,6 +217,11 @@ namespace BricKartOyunu.Class.Bidding
                 new OneHeart_Answer(),
                 new OneSpade_Answer(),
                 new OneNT_Answer(),
+                new TwoClub_Answer(),
+                new TwoDiamond_Answer(),
+                new TwoHeart_Answer(),
+                new TwoSpade_Answer(),
+                new TwoNT_Answer(),
 
                 // ─── FALLBACK (EN SON ÇARE) ──────────────────────────────────
                 new BasitCevap(),
@@ -257,6 +272,30 @@ namespace BricKartOyunu.Class.Bidding
                 new OneNT_ThreeSpade(),
                 new OneNT_FourDiamond(),
                 new OneNT_FourHeart(),
+                new TwoClub_TwoDiamond(),
+                new TwoClub_TwoHeart(),
+                new TwoClub_TwoSpade(),
+                new TwoClub_TwoNT(),
+                new TwoClub_ThreeClub(),
+                new TwoClub_ThreeDiamond(),
+                new TwoClub_ThreeHeart(),
+                new TwoClub_ThreeSpade(),
+                new TwoDiamond_Opening(),
+                new TwoDiamond_ThreeClub(),
+                new TwoDiamond_ThreeDiamond(),
+                new TwoDiamond_ThreeHeart(),
+                new TwoDiamond_ThreeNT(),
+                new TwoDiamond_ThreeSpade(),
+                new TwoDiamond_TwoHeart(),
+                new TwoDiamond_TwoNT(),
+                new TwoDiamond_TwoSpade(),
+                new TwoHeart_TwoSpade(),
+                new TwoSpade_TwoNT(),
+                new TwoNT_FourClub(),
+                new TwoNT_ThreeClub(),
+                new TwoNT_ThreeDiamond(),
+                new TwoNT_ThreeHeart(),
+                new TwoNT_ThreeSpade(),
             };
 
             AnlasmayiUygula();
@@ -402,6 +441,16 @@ namespace BricKartOyunu.Class.Bidding
                 return _anlasma.OneSpade_AnswerSistemi;
             if (ad.StartsWith("OneNT_", StringComparison.Ordinal))
                 return _anlasma.OneNT_AnswerSistemi;
+            if (ad.StartsWith("TwoClub_", StringComparison.Ordinal))
+                return _anlasma.TwoClub_AnswerSistemi;
+            if (ad.StartsWith("TwoDiamond_", StringComparison.Ordinal))
+                return _anlasma.TwoDiamond_AnswerSistemi;
+            if (ad.StartsWith("TwoHeart_", StringComparison.Ordinal))
+                return _anlasma.TwoHeart_AnswerSistemi;
+            if (ad.StartsWith("TwoSpade_", StringComparison.Ordinal))
+                return _anlasma.TwoSpade_AnswerSistemi;
+            if (ad.StartsWith("TwoNT_", StringComparison.Ordinal))
+                return _anlasma.TwoNT_AnswerSistemi;
             return true;
         }
 
@@ -501,6 +550,19 @@ namespace BricKartOyunu.Class.Bidding
                     if (Array.IndexOf(kapat, k.Ad) >= 0) k.AktifMi = false;
             }
 
+            // 2♥/2♠ Cevap Sistemi: eski Ogust / Feature Asking kapatılır (kendi cevaplarını yönetir)
+            if (_anlasma.TwoHeart_AnswerSistemi || _anlasma.TwoSpade_AnswerSistemi || _anlasma.TwoDiamond_AnswerSistemi)
+            {
+                foreach (var k in _konvansiyonlar)
+                    if (k.Ad == "Ogust" || k.Ad == "Feature Asking 2NT") k.AktifMi = false;
+            }
+            // 2NT Cevap Sistemi: eski 2NT yapısı kapatılır
+            if (_anlasma.TwoNT_AnswerSistemi)
+            {
+                foreach (var k in _konvansiyonlar)
+                    if (k.Ad == "Stayman (2NT)" || k.Ad == "Puppet Stayman" || k.Ad == "Puppet Stayman (2NT)") k.AktifMi = false;
+            }
+
             var cappelletti = _konvansiyonlar.FirstOrDefault(k => k.Ad == "Cappelletti");
             var dont = _konvansiyonlar.FirstOrDefault(k => k.Ad == "DONT");
             if (cappelletti != null && dont != null && cappelletti.AktifMi && dont.AktifMi)
@@ -533,6 +595,11 @@ namespace BricKartOyunu.Class.Bidding
                 case "1♥ Cevap Sistemi": return _anlasma.OneHeart_AnswerSistemi;
                 case "1♠ Cevap Sistemi": return _anlasma.OneSpade_AnswerSistemi;
                 case "1NT Cevap Sistemi": return _anlasma.OneNT_AnswerSistemi;
+                case "2♣ Cevap Sistemi": return _anlasma.TwoClub_AnswerSistemi;
+                case "2♦ Açılış Sistemi": return _anlasma.TwoDiamond_AnswerSistemi;
+                case "2♥ Cevap Sistemi": return _anlasma.TwoHeart_AnswerSistemi;
+                case "2♠ Cevap Sistemi": return _anlasma.TwoSpade_AnswerSistemi;
+                case "2NT Cevap Sistemi": return _anlasma.TwoNT_AnswerSistemi;
                 case "1♣-1♦ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♦-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;
                 case "1♣-1♥ Gelişimi": return _anlasma.OneClub_AnswerSistemi;

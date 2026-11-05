@@ -35,11 +35,16 @@
             this.BtnOneHeartTestleri = new System.Windows.Forms.Button();
             this.BtnOneSpadeTestleri = new System.Windows.Forms.Button();
             this.BtnOneNTTestleri = new System.Windows.Forms.Button();
+            this.BtnTwoClubTestleri = new System.Windows.Forms.Button();
+            this.BtnTwoNTTestleri = new System.Windows.Forms.Button();
+            this.BtnTwoSpadeTestleri = new System.Windows.Forms.Button();
+            this.BtnTwoHeartTestleri = new System.Windows.Forms.Button();
+            this.BtnTwoDiamondTestleri = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnExit
             // 
-            this.BtnExit.Location = new System.Drawing.Point(30, 500);
+            this.BtnExit.Location = new System.Drawing.Point(12, 620);
             this.BtnExit.Name = "BtnExit";
             this.BtnExit.Size = new System.Drawing.Size(116, 39);
             this.BtnExit.TabIndex = 87;
@@ -96,6 +101,7 @@
             this.BtnOneSpadeTestleri.Text = "1♠ Testleri";
             this.BtnOneSpadeTestleri.UseVisualStyleBackColor = true;
             this.BtnOneSpadeTestleri.Click += new System.EventHandler(this.BtnOneSpadeTestleri_Click);
+            // 
             // BtnOneNTTestleri
             // 
             this.BtnOneNTTestleri.Location = new System.Drawing.Point(12, 242);
@@ -106,6 +112,56 @@
             this.BtnOneNTTestleri.UseVisualStyleBackColor = true;
             this.BtnOneNTTestleri.Click += new System.EventHandler(this.BtnOneNTTestleri_Click);
             // 
+            // BtnTwoClubTestleri
+            // 
+            this.BtnTwoClubTestleri.Location = new System.Drawing.Point(12, 288);
+            this.BtnTwoClubTestleri.Name = "BtnTwoClubTestleri";
+            this.BtnTwoClubTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnTwoClubTestleri.TabIndex = 94;
+            this.BtnTwoClubTestleri.Text = "2♣ Testleri";
+            this.BtnTwoClubTestleri.UseVisualStyleBackColor = true;
+            this.BtnTwoClubTestleri.Click += new System.EventHandler(this.BtnTwoClubTestleri_Click);
+            // 
+            // BtnTwoNTTestleri
+            // 
+            this.BtnTwoNTTestleri.Location = new System.Drawing.Point(12, 472);
+            this.BtnTwoNTTestleri.Name = "BtnTwoNTTestleri";
+            this.BtnTwoNTTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnTwoNTTestleri.TabIndex = 98;
+            this.BtnTwoNTTestleri.Text = "2NT Testleri";
+            this.BtnTwoNTTestleri.UseVisualStyleBackColor = true;
+            this.BtnTwoNTTestleri.Click += new System.EventHandler(this.BtnTwoNTTestleri_Click);
+            // 
+            // BtnTwoSpadeTestleri
+            // 
+            this.BtnTwoSpadeTestleri.Location = new System.Drawing.Point(12, 426);
+            this.BtnTwoSpadeTestleri.Name = "BtnTwoSpadeTestleri";
+            this.BtnTwoSpadeTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnTwoSpadeTestleri.TabIndex = 97;
+            this.BtnTwoSpadeTestleri.Text = "2♠ Testleri";
+            this.BtnTwoSpadeTestleri.UseVisualStyleBackColor = true;
+            this.BtnTwoSpadeTestleri.Click += new System.EventHandler(this.BtnTwoSpadeTestleri_Click);
+            // 
+            // BtnTwoHeartTestleri
+            // 
+            this.BtnTwoHeartTestleri.Location = new System.Drawing.Point(12, 380);
+            this.BtnTwoHeartTestleri.Name = "BtnTwoHeartTestleri";
+            this.BtnTwoHeartTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnTwoHeartTestleri.TabIndex = 96;
+            this.BtnTwoHeartTestleri.Text = "2♥ Testleri";
+            this.BtnTwoHeartTestleri.UseVisualStyleBackColor = true;
+            this.BtnTwoHeartTestleri.Click += new System.EventHandler(this.BtnTwoHeartTestleri_Click);
+            // 
+            // BtnTwoDiamondTestleri
+            // 
+            this.BtnTwoDiamondTestleri.Location = new System.Drawing.Point(12, 334);
+            this.BtnTwoDiamondTestleri.Name = "BtnTwoDiamondTestleri";
+            this.BtnTwoDiamondTestleri.Size = new System.Drawing.Size(200, 40);
+            this.BtnTwoDiamondTestleri.TabIndex = 95;
+            this.BtnTwoDiamondTestleri.Text = "2♦ Testleri";
+            this.BtnTwoDiamondTestleri.UseVisualStyleBackColor = true;
+            this.BtnTwoDiamondTestleri.Click += new System.EventHandler(this.BtnTwoDiamondTestleri_Click);
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -113,6 +169,11 @@
             this.ClientSize = new System.Drawing.Size(1354, 671);
             this.Controls.Add(this.BtnOneSpadeTestleri);
             this.Controls.Add(this.BtnOneNTTestleri);
+            this.Controls.Add(this.BtnTwoClubTestleri);
+            this.Controls.Add(this.BtnTwoNTTestleri);
+            this.Controls.Add(this.BtnTwoSpadeTestleri);
+            this.Controls.Add(this.BtnTwoHeartTestleri);
+            this.Controls.Add(this.BtnTwoDiamondTestleri);
             this.Controls.Add(this.BtnOneHeartTestleri);
             this.Controls.Add(this.BtnOneDiamondTestleri);
             this.Controls.Add(this.BtnOneClubTestleri);
@@ -134,5 +195,10 @@
         private System.Windows.Forms.Button BtnOneHeartTestleri;
         private System.Windows.Forms.Button BtnOneSpadeTestleri;
         private System.Windows.Forms.Button BtnOneNTTestleri;
+        private System.Windows.Forms.Button BtnTwoClubTestleri;
+        private System.Windows.Forms.Button BtnTwoNTTestleri;
+        private System.Windows.Forms.Button BtnTwoSpadeTestleri;
+        private System.Windows.Forms.Button BtnTwoHeartTestleri;
+        private System.Windows.Forms.Button BtnTwoDiamondTestleri;
     }
 }

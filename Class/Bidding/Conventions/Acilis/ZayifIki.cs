@@ -38,6 +38,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (NTA.Acilis1NT(durum.AktifOyuncuEli, durum.Anlasma))
                 return false;              // 1NT açılışına bırak
 
+            if (durum.Anlasma != null && durum.Anlasma.TwoDiamond_AnswerSistemi)
+            {
+                var e = durum.AktifOyuncuEli;
+                return ElDegerlendirici.RenkUzunlugu(e, "Maça") == 6 || ElDegerlendirici.RenkUzunlugu(e, "Kupa") == 6;
+            }
             return ZayifRenkVarMi(durum.AktifOyuncuEli);
         }
 
@@ -50,7 +55,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return KozYardimcisi.TeklifOlustur(2, "Maça");
             if (ElDegerlendirici.RenkUzunlugu(el, "Kupa") == 6)
                 return KozYardimcisi.TeklifOlustur(2, "Kupa");
-            if (ElDegerlendirici.RenkUzunlugu(el, "Karo") == 6)
+            if (ElDegerlendirici.RenkUzunlugu(el, "Karo") == 6 && !(durum.Anlasma != null && durum.Anlasma.TwoDiamond_AnswerSistemi))
                 return KozYardimcisi.TeklifOlustur(2, "Karo");
 
             return "Pas";

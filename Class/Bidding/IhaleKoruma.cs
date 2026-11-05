@@ -56,12 +56,13 @@ namespace BricKartOyunu.Class.Bidding
                             a = AcilisAraligi(t);
                             if (t == "1NT") { a.Min = NTA.Lo1(d.Anlasma); a.Max = NTA.Hi1(d.Anlasma); }
                             else if (t == "2NT") { a.Min = NTA.Lo2(d.Anlasma); a.Max = NTA.Hi2(d.Anlasma); }
+                            else if (t == "2♦" && d.Anlasma != null && d.Anlasma.TwoDiamond_AnswerSistemi) { a.Min = 18; a.Max = 20; }
                             acilisBir = Sev(t) == 1 && KozYardimcisi.TekliftenKozCikar(t) != "NT";
                         }
                         else if (h.Oyuncu == ben)
                         {
                             benAcilis = true;
-                            if (t == "1NT" || t == "2NT" || t == "2♣") acilisYapisi = t;
+                            if (t == "1NT" || t == "2NT" || t == "2♣" || (t == "2♦" && d.Anlasma != null && d.Anlasma.TwoDiamond_AnswerSistemi)) acilisYapisi = t;
                         }
                     }
                     else if (h.Oyuncu == ort) { a = new Aralik { Min = 0, Max = 11 }; }
@@ -257,6 +258,7 @@ namespace BricKartOyunu.Class.Bidding
                 if (s >= 4) return new Aralik { Min = 11, Max = 17 };
                 return new Aralik { Min = 0, Max = 12 };        // 3♣ Puppet / transfer
             }
+            if (acilis == "2♦") return s >= 3 ? new Aralik { Min = 7, Max = 17 } : new Aralik { Min = 0, Max = 17 };   // 2♦ (18-20 dengeli)
             // 2♣ güçlü
             if (cevap == "2♦") return new Aralik { Min = 0, Max = 7 };
             return new Aralik { Min = 8, Max = 17 };

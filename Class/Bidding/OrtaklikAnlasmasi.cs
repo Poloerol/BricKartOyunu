@@ -118,6 +118,11 @@ namespace BricKartOyunu.Class.Bidding
         public bool OneHeart_AnswerSistemi { get; set; } = false;
         public bool OneSpade_AnswerSistemi { get; set; } = false;
         public bool OneNT_AnswerSistemi { get; set; } = false;
+        public bool TwoClub_AnswerSistemi { get; set; } = false;
+        public bool TwoDiamond_AnswerSistemi { get; set; } = false;
+        public bool TwoHeart_AnswerSistemi { get; set; } = false;
+        public bool TwoSpade_AnswerSistemi { get; set; } = false;
+        public bool TwoNT_AnswerSistemi { get; set; } = false;
 
         // ═══════════════════════════════════════════════════════════════════
         // SİSTEM — REVERSE
@@ -553,6 +558,11 @@ namespace BricKartOyunu.Class.Bidding
             if (OneHeart_AnswerSistemi) aktifler.Add("1♥ Cevap Sistemi");
             if (OneSpade_AnswerSistemi) aktifler.Add("1♠ Cevap Sistemi");
             if (OneNT_AnswerSistemi) aktifler.Add("1NT Cevap Sistemi");
+            if (TwoClub_AnswerSistemi) aktifler.Add("2♣ Cevap Sistemi");
+            if (TwoDiamond_AnswerSistemi) aktifler.Add("2♦ Açılış Sistemi");
+            if (TwoHeart_AnswerSistemi) aktifler.Add("2♥ Cevap Sistemi");
+            if (TwoSpade_AnswerSistemi) aktifler.Add("2♠ Cevap Sistemi");
+            if (TwoNT_AnswerSistemi) aktifler.Add("2NT Cevap Sistemi");
 
             if (Stayman) aktifler.Add("Stayman");
             if (JacobyTransfer) aktifler.Add("Transfer");

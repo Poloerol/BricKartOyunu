@@ -315,6 +315,102 @@ namespace BricKartOyunu.Forms
             }
         }
 
+        private void BtnTwoDiamondTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                TestRunner_TwoDiamond.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnTwoHeartTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                TestRunner_TwoHeart.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnTwoSpadeTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                TestRunner_TwoSpade.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnTwoNTTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                TestRunner_TwoNT.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
+        private void BtnTwoClubTestleri_Click(object sender, EventArgs e)
+        {
+            SonucFormunuHazirla();
+            _sonuclar = new List<TestSonucu>();
+            _gecenSayisi = 0;
+            _kalanSayisi = 0;
+
+            try
+            {
+                // ─── 2♣ açışına cevaplar ───
+                TestRunner_TwoClub.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                // ─── 2♣ gelişimleri ───
+                SonucEkle("");
+                TestRunner_TwoClub_Gelisimler.TumTestleriCalistir(_txtSonuclar, SonucEkle);
+
+                OzetiGuncelle();
+            }
+            catch (Exception ex)
+            {
+                SonucEkle($"❌ HATA: {ex.Message}");
+            }
+        }
+
         private void BtnOneNTTestleri_Click(object sender, EventArgs e)
         {
             SonucFormunuHazirla();

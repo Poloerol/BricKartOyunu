@@ -735,8 +735,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (hp >= 8)
             {
                 foreach (var r in new[] { "Maça", "Kupa", "Karo" })
-                    if (!rakipRenkleri.Contains(r) && ElDegerlendirici.RenkUzunlugu(el, r) >= 5 &&
-                        ElDegerlendirici.IyiRenk(el, r) && Cheapest(d, r) <= 2)
+                    if (!rakipRenkleri.Contains(r) && (ElDegerlendirici.RenkUzunlugu(el, r) >= 6 ||
+                        (ElDegerlendirici.RenkUzunlugu(el, r) >= 5 && ElDegerlendirici.IyiRenk(el, r))) && Cheapest(d, r) <= 2)
                         return Seviye(d, r, Cheapest(d, r));
                 if (dengeli && NTOlur(el, rakipRenkleri) && hp >= 10) return Seviye(d, "NT", 2);
             }
