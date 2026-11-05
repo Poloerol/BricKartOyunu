@@ -14,8 +14,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
     ///     (dengeli, oyun zorlayıcı "transfer cuebid"). 8+ HCP; majörde 4+, minörde 5+ kart.
     ///   - 1NT doğal (x'te stoper) 7-10; 2NT doğal (stoper) 11-12; 3 seviyesinde iki renkli oyun zorlayıcı eller.
     /// Kontra yapan transferi en ucuz seviyeden tamamlar. Cevapçı tamamlamadan sonra 11-12 ile davet, 13+ ile oyun söyler.
-    /// Basitleştirmeler: davet/süper kabul, atlamalı transfer, 4. pozisyon (balancing) ve açanın ortağı konuştuktan
-    /// sonraki cevap tabloları yok.
+    /// Balancing kontraya (1x-Pas-Pas-Dbl-Pas) cevaplar aynıdır, yalnızca 2 HCP eklenir (kitap s.109).
+    /// Basitleştirmeler: davet/süper kabul ve atlamalı transfer yok (açanın ortağı konuşunca: Araya_TORubensohl).
     /// </summary>
     public class Araya_TOCevap : IAcilisGelisimi
     {
@@ -63,36 +63,41 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
             char x = a[1];
             int ix = d.Gecmis.IndexOf(g[0]);
             if (ix < 0 || ix + 2 >= d.Gecmis.Count) return null;
-            if (d.Gecmis[ix + 1].Teklif != "Dbl" || d.Gecmis[ix + 2].Teklif != "Pas") return null;
+            // Normal T/O kontra: x - Dbl - Pas ...   Balancing kontra: x - Pas - Pas - Dbl - Pas ... (cevaplar +2 HCP ile)
+            int dbl; int dusur;
+            if (d.Gecmis[ix + 1].Teklif == "Dbl") { dbl = ix + 1; dusur = 0; }
+            else if (ix + 3 < d.Gecmis.Count && d.Gecmis[ix + 1].Teklif == "Pas" && d.Gecmis[ix + 2].Teklif == "Pas" && d.Gecmis[ix + 3].Teklif == "Dbl") { dbl = ix + 3; dusur = 2; }
+            else return null;
+            if (dbl + 1 >= d.Gecmis.Count || d.Gecmis[dbl + 1].Teklif != "Pas") return null;
             Player ortak = IhaleDurumu.PartnerBul(d.AktifOyuncu);
             var e = new OcEl(el);
 
-            // Cevapçı: x - Dbl(ortak) - Pas - (ben)
+            // Cevapçı: ... Dbl(ortak) - Pas - (ben)
             if (g.Count == 1)
             {
-                if (d.Gecmis[ix + 1].Oyuncu != ortak || d.Gecmis.Count != ix + 3) return null;
-                return Cevap(e, x);
+                if (d.Gecmis[dbl].Oyuncu != ortak || d.Gecmis.Count != dbl + 2) return null;
+                return Cevap(e, x, dusur);
             }
 
-            // Kontra yapan: x - Dbl(ben) - Pas - transfer - Pas - (ben)
+            // Kontra yapan: ... Dbl(ben) - Pas - transfer - Pas - (ben)
             if (g.Count == 2)
             {
-                if (d.Gecmis[ix + 1].Oyuncu != d.AktifOyuncu || g[1].Oyuncu != ortak) return null;
-                if (d.Gecmis.Count != ix + 5 || !ReferenceEquals(d.Gecmis[ix + 3], g[1]) || d.Gecmis[ix + 4].Teklif != "Pas") return null;
+                if (d.Gecmis[dbl].Oyuncu != d.AktifOyuncu || g[1].Oyuncu != ortak) return null;
+                if (d.Gecmis.Count != dbl + 4 || !ReferenceEquals(d.Gecmis[dbl + 2], g[1]) || d.Gecmis[dbl + 3].Teklif != "Pas") return null;
                 var tr = Transferler(x).Where(t => t.Key == g[1].Teklif).ToList();
                 if (tr.Count == 0) return null;
                 char hedef = tr[0].Value;
                 char kaynakRenk = g[1].Teklif[1];
-                return hedef == x ? Ucuz(g[1].Teklif[0] - '0', kaynakRenk, x) : Ucuz(g[1].Teklif[0] - '0', kaynakRenk, hedef);
+                return Ucuz(g[1].Teklif[0] - '0', kaynakRenk, hedef);
             }
 
-            // Cevapçı ikinci hamle: x - Dbl - Pas - transfer(ben) - Pas - tamamlama - Pas - (ben)
-            if (d.Gecmis[ix + 1].Oyuncu != ortak || g[1].Oyuncu != d.AktifOyuncu || g[2].Oyuncu != ortak) return null;
-            if (d.Gecmis.Count != ix + 7 || !ReferenceEquals(d.Gecmis[ix + 3], g[1]) || d.Gecmis[ix + 4].Teklif != "Pas"
-                || !ReferenceEquals(d.Gecmis[ix + 5], g[2]) || d.Gecmis[ix + 6].Teklif != "Pas") return null;
+            // Cevapçı ikinci hamle: ... Dbl - Pas - transfer(ben) - Pas - tamamlama - Pas - (ben)
+            if (d.Gecmis[dbl].Oyuncu != ortak || g[1].Oyuncu != d.AktifOyuncu || g[2].Oyuncu != ortak) return null;
+            if (d.Gecmis.Count != dbl + 6 || !ReferenceEquals(d.Gecmis[dbl + 2], g[1]) || d.Gecmis[dbl + 3].Teklif != "Pas"
+                || !ReferenceEquals(d.Gecmis[dbl + 4], g[2]) || d.Gecmis[dbl + 5].Teklif != "Pas") return null;
             var tr2 = Transferler(x).Where(t => t.Key == g[1].Teklif).ToList();
             if (tr2.Count == 0) return null;
-            return IkinciHamle(e, x, tr2[0].Value, g[2].Teklif);
+            return IkinciHamle(e, x, tr2[0].Value, g[2].Teklif, dusur);
         }
 
         private static readonly Dictionary<char, Dictionary<string, char[]>> FG = new Dictionary<char, Dictionary<string, char[]>>
@@ -103,9 +108,9 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
             { '♠', new Dictionary<string, char[]> { { "3♠", new[] { '♣', '♥' } }, { "3NT", new[] { '♦', '♥' } } } },
         };
 
-        private static string Cevap(OcEl e, char x)
+        private static string Cevap(OcEl e, char x, int dusur)
         {
-            int hp = e.Hcp;
+            int hp = e.Hcp - dusur;
             var tr = Transferler(x);
 
             // 12+ HCP: iki renkli oyun zorlayıcı el (ilk renk 5, ikincisi 4 kart)
@@ -143,9 +148,9 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
             return Sira.Where(c => c != x && Uz(e, c) >= (Major(c) ? 4 : 5));
         }
 
-        private static string IkinciHamle(OcEl e, char x, char hedef, string tamamlama)
+        private static string IkinciHamle(OcEl e, char x, char hedef, string tamamlama, int dusur)
         {
-            int hp = e.Hcp;
+            int hp = e.Hcp - dusur;
             if (hedef == x)                                   // transfer cuebid (dengeli oyun zorlayıcı)
                 return hp >= 13 ? "3NT" : null;
             if (hp >= 13) return Major(hedef) ? "4" + hedef : (e.Stopper(Ad(x)) ? "3NT" : "5" + hedef);

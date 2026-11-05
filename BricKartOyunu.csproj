@@ -386,6 +386,8 @@
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Rubensohl.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_NTCevap.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_TOCevap.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_TORubensohl.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Balans.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\IkiRenk\IkiRenk_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\IkiRenk\IkiRenk_NTAraya.cs" />
