@@ -359,6 +359,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Bergen Raises":
                 case "Forcing NT":
                 case "Splinter":
+                case "Splinter Cevap":
                 case "Jacoby 2NT":
                 case "Drury":
                 case "Trial Bid":
@@ -541,7 +542,7 @@ namespace BricKartOyunu.Class.Bidding
                     teklif.EndsWith(KozYardimcisi.KozSembolu(gz[1].Koz))) return true;
             }
 
-            if (ad == "Jacoby 2NT") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M) HCP tahminiyle veto edilmez
+            if (ad == "Jacoby 2NT" || ad == "Splinter Cevap") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M) HCP tahminiyle veto edilmez
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale" || BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad))
                 return true;
 

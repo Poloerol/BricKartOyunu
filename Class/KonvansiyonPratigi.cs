@@ -103,7 +103,7 @@ namespace BricKartOyunu.Class
                 "Stayman", "Jacoby Transfer", "Minor Transfer", "Puppet Stayman", "Smolen", "Extended Stayman", "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Lebensohl",
                 "Puppet Stayman (1NT)", "Minor Relay (1NT-2♠)", "Stayman (2NT)" }),
             new KeyValuePair<string, string[]>("Cevaplar ve Oyun Denemeleri", new[] {
-                "Inverted Minors", "Forcing NT", "2/1 Game Force", "Jacoby 2NT", "Splinter", "Drury", "Bergen Raises", "Inverted Bergen Raises",
+                "Inverted Minors", "Forcing NT", "2/1 Game Force", "Jacoby 2NT", "Splinter", "Splinter Cevap", "Drury", "Bergen Raises", "Inverted Bergen Raises",
                 "Trial Bid", "Long & Short Game Tries", "İki Yönlü Checkback", "New Minor Forcing", "Wolff Signoff", "Fit Cue-Bid", "Semi-Forcing 1NT",
                 "XYZ (X-Y-Z)", "3. Renk Forsingi", "4. Renk Forsingi", "Reverse", "Weak Jump-Shift Resp.", "1m-2NT Invitational",
                 "German 2C Relays", "Walsh", "Preemptive Reraises", "Truscott 2NT", "Kokish" }),

@@ -192,6 +192,7 @@ namespace BricKartOyunu.Class.Bidding
                 new DopiRopi(),
                 new JacobyTransfer(),
                 new Splinter(),
+                new SplinterCevap(),
                 new Jacoby2NT(),
                 new SupportDouble(),
                 new SupportDoubleCevap(),
@@ -696,6 +697,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 case "Jacoby 2NT": return _anlasma.Jacoby2NT;
                 case "Splinter": return _anlasma.Splinter;
+                case "Splinter Cevap": return _anlasma.Splinter;
                 case "Drury": return _anlasma.Drury;
                 case "Reverse Drury": return _anlasma.ReverseDrury;
                 case "Cue Bid": return _anlasma.CueBid;

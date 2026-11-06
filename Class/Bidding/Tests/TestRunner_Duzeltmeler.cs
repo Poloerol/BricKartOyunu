@@ -41,6 +41,10 @@ namespace BricKartOyunu.Tests
             T("SL2 1S-2H-2S, 20hcp 8 kupa → 3H (4H ile kapatma yok)", TestHelpers.ElOlustur("10", "AKQJ1043", "AK6", "K8"), "3♥", "1♠", "Pas", "2♥", "Pas", "2♠", "Pas");
             T("SL3 1S-2H-2S-3H-3S, 20hcp 8 kupa ♦A → 4D kontrol", TestHelpers.ElOlustur("10", "AKQJ1043", "AK6", "K8"), "4♦", "1♠", "Pas", "2♥", "Pas", "2♠", "Pas", "3♥", "Pas", "3♠", "Pas");
             T("SL4 1C-1H-2C-4H, 21hcp 7 sinek, kupa void → 5C (Pas yok)", TestHelpers.ElOlustur("KQ2", "", "AK4", "AKQ10743"), "5♣", "1♣", "Pas", "1♥", "Pas", "2♣", "Pas", "4♥", "Pas");
+            // Splinter cevabı (açıcı)
+            T("SP1 1S-4D splinter, 12hcp ♦J1082 → 4S (Pas yok)", TestHelpers.ElOlustur("AKQ32", "Q97", "J1082", "3"), "4♠", "1♠", "Pas", "4♦", "Pas");
+            T("SP2 1S-4C splinter, 19hcp ♦A → 4D cue", TestHelpers.ElOlustur("AKQ32", "KJ7", "AQ8", "32"), "4♦", "1♠", "Pas", "4♣", "Pas");
+            T("SP3 1H-3S splinter, 12hcp → 4H", TestHelpers.ElOlustur("32", "AQ1074", "KJ8", "Q92"), "4♥", "1♥", "Pas", "3♠", "Pas");
             T("C1 1C-1S-1NT-2NT, 3 maca 13hcp -> Pas (4-3 fit riskli)", TestHelpers.ElOlustur("A52", "J973", "A82", "AT3"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
             T("C2 1C-1S-1NT-2NT, 3 maca 14hcp -> 3NT", TestHelpers.ElOlustur("A52", "KJ73", "A82", "AT3"), "3NT", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
             T("C3 1C-1S-1NT-2NT, 2 maca asgari -> Pas", TestHelpers.ElOlustur("K5", "K842", "K954", "A42"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");

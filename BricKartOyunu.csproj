@@ -184,6 +184,7 @@
     <Compile Include="Class\Bidding\Conventions\Cevap\PreemptCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\PreemptiveReraises.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\Splinter.cs" />
+    <Compile Include="Class\Bidding\Conventions\Cevap\SplinterCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\Walsh.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\WeakJumpShiftResp.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\ZayifIkiCevap.cs" />
