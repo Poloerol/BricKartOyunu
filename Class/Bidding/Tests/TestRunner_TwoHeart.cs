@@ -76,6 +76,57 @@ namespace BricKartOyunu.Tests
                 new[] { "2♥", "Pas", "2♠", "Pas", "2NT", "Pas", "3♣", "Pas" }, Player.Guney, "3♦",
                 sonucEkle, ref gecen, ref kalan);
 
+            sonucEkle("── 2♥ ⇒ 2NT (s.70) ──");
+            TestG("2NT açan 3NT — kapalı 6♥", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("32", "AKQ943", "432", "32"),
+                new[] { "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "3NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT açan 3♠ — 4♠ azami", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("AK43", "Q98432", "Q2", "2"),
+                new[] { "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "3♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT açan 4♦ — 6♥ 4♦ 1♠", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("2", "KJ9832", "Q432", "54"),
+                new[] { "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "4♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT açan 3♥ — 2♣ 2♦ 3♠", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("Q32", "KJ9832", "43", "43"),
+                new[] { "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "3♥",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT açan 3♣ — tercih", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("Q2", "KJ9832", "32", "432"),
+                new[] { "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "3♣",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT açan 3♦ — tercih", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("Q2", "KJ9832", "432", "32"),
+                new[] { "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "3♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT cevapçı: 3♣ sonrası 6♠ → 3♠", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("AKQJ93", "2", "432", "432"),
+                new[] { "2♥", "Pas", "2NT", "Pas", "3♣", "Pas" }, Player.Kuzey, "3♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT cevapçı: 3♥ sonrası 5♠ → 3♠", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("AKJ93", "2", "K32", "5432"),
+                new[] { "2♥", "Pas", "2NT", "Pas", "3♥", "Pas" }, Player.Kuzey, "3♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT cevapçı: 4♦ sonrası 5♠ → 4♠", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("AKJ93", "2", "K32", "5432"),
+                new[] { "2♥", "Pas", "2NT", "Pas", "4♦", "Pas" }, Player.Kuzey, "4♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("2NT cevapçı: 4♦ sonrası minör → 4NT", new TwoHeart_TwoNT(),
+                TestHelpers.ElOlustur("AKJ", "2", "K9432", "J432"),
+                new[] { "2♥", "Pas", "2NT", "Pas", "4♦", "Pas" }, Player.Kuzey, "4NT",
+                sonucEkle, ref gecen, ref kalan);
+
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }

@@ -143,6 +143,62 @@ namespace BricKartOyunu.Tests
                 new[] { "2NT", "Pas", "4♣", "Pas" }, Player.Guney, "4NT",
                 sonucEkle, ref gecen, ref kalan);
 
+            sonucEkle("── 2NT ⇒ 4♦ / 4♥ / 4♠ (s.74) ──");
+            TestG("açan 4♠ tercih (♠ ≥ ♥)", new TwoNT_FourDiamond(),
+                TestHelpers.ElOlustur("KQ32", "AJ2", "KJ2", "Q32"),
+                new[] { "2NT", "Pas", "4♦", "Pas" }, Player.Guney, "4♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("açan 4♥ tercih (♥ > ♠)", new TwoNT_FourDiamond(),
+                TestHelpers.ElOlustur("K32", "AQ32", "KJ2", "K32"),
+                new[] { "2NT", "Pas", "4♦", "Pas" }, Player.Guney, "4♥",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("cevapçı: 4♥ sonrası 6♠ → 4♠", new TwoNT_FourDiamond(),
+                TestHelpers.ElOlustur("AQJ932", "K2", "432", "32"),
+                new[] { "2NT", "Pas", "4♦", "Pas", "4♥", "Pas" }, Player.Kuzey, "4♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("cevapçı: 4♥ sonrası 5-5 → 4NT RKCB", new TwoNT_FourDiamond(),
+                TestHelpers.ElOlustur("AKJ32", "KQJ32", "2", "32"),
+                new[] { "2NT", "Pas", "4♦", "Pas", "4♥", "Pas" }, Player.Kuzey, "4NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("cevapçı: 4♠ sonrası → 4NT RKCB", new TwoNT_FourDiamond(),
+                TestHelpers.ElOlustur("AKJ32", "KQJ32", "2", "32"),
+                new[] { "2NT", "Pas", "4♦", "Pas", "4♠", "Pas" }, Player.Kuzey, "4NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("4♥ sonrası açan asgari → 4NT", new TwoNT_FourHeart(),
+                TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "KJ2"),
+                new[] { "2NT", "Pas", "4♥", "Pas" }, Player.Guney, "4NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("4♥ sonrası açan azami, ♦ uzun → 5♦ RKCB", new TwoNT_FourHeart(),
+                TestHelpers.ElOlustur("AK2", "AKQ", "KJ32", "KJ2"),
+                new[] { "2NT", "Pas", "4♥", "Pas" }, Player.Guney, "5♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("4♥ sonrası açan azami, ♣ uzun → 5♣ RKCB", new TwoNT_FourHeart(),
+                TestHelpers.ElOlustur("AK2", "AKQ", "KJ2", "KJ32"),
+                new[] { "2NT", "Pas", "4♥", "Pas" }, Player.Guney, "5♣",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("4♥-4NT sonrası cevapçı Pas", new TwoNT_FourHeart(),
+                TestHelpers.ElOlustur("2", "AK3", "KJ432", "Q432"),
+                new[] { "2NT", "Pas", "4♥", "Pas", "4NT", "Pas" }, Player.Kuzey, "Pas",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("4♠ sonrası açan asgari → 4NT", new TwoNT_FourSpade(),
+                TestHelpers.ElOlustur("K32", "AQ2", "KJ32", "KJ2"),
+                new[] { "2NT", "Pas", "4♠", "Pas" }, Player.Guney, "4NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            TestG("4♠ sonrası açan azami, ♦ uzun → 5♦ RKCB", new TwoNT_FourSpade(),
+                TestHelpers.ElOlustur("AK2", "AKQ", "KJ32", "KJ2"),
+                new[] { "2NT", "Pas", "4♠", "Pas" }, Player.Guney, "5♦",
+                sonucEkle, ref gecen, ref kalan);
+
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }

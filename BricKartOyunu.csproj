@@ -383,6 +383,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\TwoHeart\TwoHeart_Answer.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoHeart\TwoHeart_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoHeart\TwoHeart_TwoSpade.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\TwoHeart\TwoHeart_TwoNT.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_TwoHeart.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoSpade\TwoSpade_Answer.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoSpade\TwoSpade_Araya.cs" />
@@ -390,6 +391,7 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_TwoSpade.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoNT\TwoNT_Answer.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoNT\TwoNT_FourClub.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\TwoNT\TwoNT_FourDiamond.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoNT\TwoNT_ThreeClub.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoNT\TwoNT_ThreeDiamond.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoNT\TwoNT_ThreeHeart.cs" />

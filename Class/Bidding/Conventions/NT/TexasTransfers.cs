@@ -8,7 +8,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// Texas transferleri: 1NT (ya da 2NT) – 4♦ = ♥ transferi, 4♥ = ♠ transferi.
     /// Cevapçı 6+ kartlık majörle oyun değerinde (10-15 HP; 2NT sonrası 4+ HP) ve şlem ilgisi olmadan kullanır.
     /// Açıcı transferi her zaman kabul eder (4♦→4♥, 4♥→4♠), böylece güçlü el gizli kalır ve açıcı deklaran olur.
-    /// Cevapçı kabulden sonra pas geçer.
+    /// Cevapçı kabulden sonra pas geçer. (2NT'de SAS 2NT cevap sistemi açıksa Texas uygulanmaz.)
     /// </summary>
     internal sealed class TexasTransfers : YeniKonvTaban
     {
@@ -18,6 +18,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             foreach (string nt in new[] { "1NT", "2NT" })
             {
+                // SAS 2NT cevap sistemi açıkken 2NT-4♦ = 5♠5♥/6+♠ (slam daveti), 4♥/4♠ = 5/4 minör SNG: Texas değildir
+                if (nt == "2NT" && z.D != null && z.D.Anlasma != null && z.D.Anlasma.TwoNT_AnswerSistemi) continue;
                 int altSinir = nt == "1NT" ? 10 : 4;
                 int ustSinir = nt == "1NT" ? 15 : 11;
                 if (z.Es("O:" + nt))
