@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding.Interfaces;
@@ -173,6 +173,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (devam == "2NT" && rebid != "2NT" && rebid != "2♥" && rebid != "2♠") return "3♣";   // 2NTt → 3♣
             if ((rebid == "2♥" || rebid == "2♠") && devam == "2NT") return "3♣";                    // Lebensohl → 3♣
             if (rebid == "1NT" && devam == "2♣") return "2♦";                                       // puppet → 2♦
+            if (rebid == "1NT" && devam == "2♦") return OneNTRole.AciciCevap(e, '♦', '♣');                 // FG röle: öncelik sırası (s.92)
             bool min;
             if (rebid == "2♣" && devam == "2♥")   // röle: 2♠ min w 3♦ / 2NT max / 3♣ min / 3♦ max w 3♦
             {
@@ -192,6 +193,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
         {
             if (rebid == "1♥") return OneClub_OneDiamond_OneHeart.CevapciKarar(e, devam, roleCevap);
             if (devam == "2NT" && roleCevap == "3♣" && rebid != "2NT") return "Pas";                // transfer tamam: ♣ oynanır
+            if (rebid == "1NT" && devam == "2♦") return OneNTRole.CevapciKarar(e, '♦', '♣', roleCevap);
             if (rebid == "2♦" && devam == "2♥")
             {
                 if (roleCevap == "2♠") return e.Hcp >= 12 ? "2NT" : "3♦";                           // SAS / 4+♦ 9-11 S.O

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -747,6 +747,18 @@ namespace BricKartOyunu.Tests
                 TestHelpers.ElOlustur("K32", "Q32", "KJ32", "Q32"),
                 new[] { "1♥", "Pas", "2NT", "Pas", "3♦", "Pas" }, Player.Kuzey, "4♥",
                 sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 1♥-1♠-1NT-2♦ FG röle: açanın öncelik sırası ve cevapçı (s.92) ──");
+            string[] hRole = { "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas" };
+            Test("röle cevabı: 3♠ destek → 2♠", new OneHeart_OneSpade(), TestHelpers.ElOlustur("Q32", "AQ932", "K2", "J32"), hRole, Player.Guney, "2♠", sonucEkle, ref gecen, ref kalan);
+            Test("röle cevabı: destek yok, iyi 5♥ → 2♥", new OneHeart_OneSpade(), TestHelpers.ElOlustur("32", "AKJ32", "Q32", "432"), hRole, Player.Guney, "2♥", sonucEkle, ref gecen, ref kalan);
+            Test("röle cevabı: destek yok, kötü 5♥ → 2NT", new OneHeart_OneSpade(), TestHelpers.ElOlustur("32", "Q9843", "AK2", "K32"), hRole, Player.Guney, "2NT", sonucEkle, ref gecen, ref kalan);
+            Test("röle sonrası cevapçı: 2♠ + 4♠ → 4♠", new OneHeart_OneSpade(), TestHelpers.ElOlustur("KJ32", "32", "AQ32", "K32"),
+                new[] { "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas", "2♠", "Pas" }, Player.Kuzey, "4♠", sonucEkle, ref gecen, ref kalan);
+            Test("röle sonrası cevapçı: 2NT + 6♠ → 4♠", new OneHeart_OneSpade(), TestHelpers.ElOlustur("AKJ932", "32", "Q32", "32"),
+                new[] { "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas", "2NT", "Pas" }, Player.Kuzey, "4♠", sonucEkle, ref gecen, ref kalan);
+            Test("röle sonrası cevapçı: 2♥ + 3♥ destek (5♥ iyi) → 4♥", new OneHeart_OneSpade(), TestHelpers.ElOlustur("KJ32", "432", "AQ32", "K2"),
+                new[] { "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas" }, Player.Kuzey, "4♥", sonucEkle, ref gecen, ref kalan);
+
 
 
             sonucEkle("");

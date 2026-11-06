@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding.Interfaces;
@@ -122,6 +122,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
         {
             int hcp = e.Hcp;
             if (rebid == "1NT" && devam == "2♣") return "2♦";                              // puppet
+            if (rebid == "1NT" && devam == "2♦") return OneNTRole.AciciCevap(e, '♠', '♥');       // FG röle: öncelik sırası (s.92)
             if (rebid == "1NT" && devam == "2NT") return "3♣";                             // 2NTt
             if (rebid == "2♣" && devam == "2♦")
             {
@@ -161,6 +162,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
         {
             if ((rebid == "1NT" && devam == "2♣" && roleCevap == "2♦") ||
                 (rebid == "1NT" && devam == "2NT" && roleCevap == "3♣")) return "Pas";
+            if (rebid == "1NT" && devam == "2♦") return OneNTRole.CevapciKarar(e, '♠', '♥', roleCevap);
             return null;
         }
     }

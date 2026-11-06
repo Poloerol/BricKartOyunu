@@ -162,6 +162,16 @@ namespace BricKartOyunu.Tests
             TW("cevapçı: 2NT-3♣ röle → yüksek renk 3♠", zar, TestHelpers.ElOlustur("AKJ32", "KQ932", "32", "3"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
             TW("açan: ...3♠ ve 3 maça → 4♠", zar, TestHelpers.ElOlustur("Q32", "K32", "AK32", "Q32"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
             TW("açan: ...3♠ ve 2 maça → 3NT", zar, TestHelpers.ElOlustur("K2", "Q32", "AQ32", "K432"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 1♣-1♦-1NT-2♦ FG röle: açanın öncelik sırası ve cevapçı (s.92) ──");
+            var oc1d = new BricKartOyunu.Class.Bidding.OpeningSystems.OneClub.OneClub_OneDiamond();
+            string[] hRl = { "1♣", "Pas", "1♦", "Pas", "1NT", "Pas", "2♦", "Pas" };
+            T("röle: 4♥ → 2♥", oc1d, TestHelpers.ElOlustur("K32", "Q432", "K32", "AJ2"), hRl, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("röle: 4♠ → 2♠", oc1d, TestHelpers.ElOlustur("Q432", "K32", "K32", "AJ2"), hRl, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("röle: 3♦ destek → 3♦", oc1d, TestHelpers.ElOlustur("K32", "Q32", "KJ2", "AJ32"), hRl, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("röle: iyi 5♣ → 3♣", oc1d, TestHelpers.ElOlustur("K32", "Q32", "32", "AKJ32"), hRl, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("röle: kötü 5♣ → 2NT", oc1d, TestHelpers.ElOlustur("K32", "Q32", "32", "AJ432"), hRl, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("röle sonrası: 2♥ + 4♥ → 4♥", oc1d, TestHelpers.ElOlustur("32", "KJ98", "AQ432", "K2"), new[] { "1♣", "Pas", "1♦", "Pas", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            T("röle sonrası: 2♥ + 3♥ → 3NT", oc1d, TestHelpers.ElOlustur("AK2", "432", "KQ432", "32"), new[] { "1♣", "Pas", "1♦", "Pas", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
