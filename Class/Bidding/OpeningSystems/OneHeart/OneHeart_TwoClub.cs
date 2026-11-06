@@ -59,7 +59,6 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
         internal override string AciciRoleCevap(OcEl e, string rebid, string devam)
         {
             int hcp = e.Hcp;
-            bool k4441 = false;
             if (rebid == "2♦" && devam == "2♥")                                            // röle
             {
                 if (e.Singleton && e.H == 5 && e.D == 4 && e.S == 3 && e.C == 1 && hcp >= 14) return "3♠";

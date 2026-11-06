@@ -250,6 +250,28 @@ namespace BricKartOyunu.Tests
             TW("1♥-(2♠): ♥ yok 13 HCP → Dbl", zh1, TestHelpers.ElOlustur("432", "32", "AQ32", "KJ32"), new[] { "1♥", "2♠" }, "Dbl", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1♥-(Dbl)-1NT transfer → 2♣", zh1, TestHelpers.ElOlustur("AK32", "KQ432", "32", "Q2"), new[] { "1♥", "Dbl", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1♥-(1♠)-2♣ transfer → 2♦", zh1, TestHelpers.ElOlustur("A32", "KQ432", "32", "AQ2"), new[] { "1♥", "1♠", "2♣", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Zayıf NT: 1♠ açışına araya giriş cevapları (s.118-119) ──");
+            var zs1 = new BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade.OneSpadeZ_Araya();
+            TW("1♠-(Dbl): 3♠ 8 HCP → 2♥ yapıcı", zs1, TestHelpers.ElOlustur("Q32", "32", "KJ432", "Q32"), new[] { "1♠", "Dbl" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(Dbl): 3♠ 4 HCP → 2♠ tutuş", zs1, TestHelpers.ElOlustur("Q32", "432", "J432", "J32"), new[] { "1♠", "Dbl" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(Dbl): 5♣ zayıf → 1NT transfer", zs1, TestHelpers.ElOlustur("32", "432", "Q32", "KJ432"), new[] { "1♠", "Dbl" }, "1NT", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(Dbl): 5♦ zayıf → 2♣ transfer", zs1, TestHelpers.ElOlustur("32", "432", "KJ432", "Q32"), new[] { "1♠", "Dbl" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(Dbl): 5♥ zayıf → 2♦ transfer", zs1, TestHelpers.ElOlustur("32", "KJ432", "432", "Q32"), new[] { "1♠", "Dbl" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(Dbl): ♠ yok 13 HCP → RDbl", zs1, TestHelpers.ElOlustur("2", "K32", "AQ32", "KJ432"), new[] { "1♠", "Dbl" }, "RDbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(Dbl): 4♠ dengeli 10 HCP → 2NT", zs1, TestHelpers.ElOlustur("AJ32", "Q32", "Q32", "J32"), new[] { "1♠", "Dbl" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(Dbl): 4♠ tek kart ♥ 12 HCP → 4♥", zs1, TestHelpers.ElOlustur("AQ32", "2", "KJ32", "Q432"), new[] { "1♠", "Dbl" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(1NT): 6♥ 8 HCP → 2NT Lebensohl", zs1, TestHelpers.ElOlustur("32", "KQJ432", "Q32", "32"), new[] { "1♠", "1NT" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(1NT): 5♦ zayıf → 2♦", zs1, TestHelpers.ElOlustur("32", "432", "KJ932", "432"), new[] { "1♠", "1NT" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(1NT): 15 HCP ♠ yok → Dbl ceza", zs1, TestHelpers.ElOlustur("K2", "Q32", "AQ32", "KJ32"), new[] { "1♠", "1NT" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(2♣): 3♠ 8 HCP → 2♠ tutuş", zs1, TestHelpers.ElOlustur("Q32", "Q32", "J432", "QJ2"), new[] { "1♠", "2♣" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(2♣): 5♥ 11 HCP → 2♥", zs1, TestHelpers.ElOlustur("32", "AKQ32", "Q32", "432"), new[] { "1♠", "2♣" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(2♦): 4♥ 9 HCP → Dbl", zs1, TestHelpers.ElOlustur("K2", "KJ98", "Q432", "432"), new[] { "1♠", "2♦" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(2♦): 3♠ 16 HCP → 3♦ cuebid FG", zs1, TestHelpers.ElOlustur("K32", "Q32", "AJ32", "AQ2"), new[] { "1♠", "2♦" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(2♥): 3♠ 11 HCP → 2NT davet", zs1, TestHelpers.ElOlustur("KJ2", "432", "AQ32", "J32"), new[] { "1♠", "2♥" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(2♥): ♠ yok 10 HCP → Dbl", zs1, TestHelpers.ElOlustur("2", "432", "AQ32", "KJ432"), new[] { "1♠", "2♥" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(2♠ Michaels): 3♠ 16 HCP → 3♥ cuebid FG", zs1, TestHelpers.ElOlustur("K32", "Q32", "AJ32", "AQ2"), new[] { "1♠", "2♠" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1♠-(Dbl)-1NT transfer → 2♣", zs1, TestHelpers.ElOlustur("AK432", "Q32", "K32", "Q2"), new[] { "1♠", "Dbl", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1♠-(Dbl)-2♦ transfer → 2♥", zs1, TestHelpers.ElOlustur("AK432", "Q32", "K32", "Q2"), new[] { "1♠", "Dbl", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
