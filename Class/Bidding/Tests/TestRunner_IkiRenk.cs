@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using BricKartOyunu.Class;
@@ -144,6 +144,24 @@ namespace BricKartOyunu.Tests
             TW("cevapçı: 1NT-2♦-2♥ uyum 13 HCP → 4♥", z2d, TestHelpers.ElOlustur("A32", "KQ32", "K32", "J32"), new[] { "1NT", "Pas", "2♦", "Pas", "2♥", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1NT-2NT 14 HCP → 3NT", z2n, TestHelpers.ElOlustur("AK32", "Q32", "K32", "Q32"), new[] { "1NT", "Pas", "2NT", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1NT-2♥ 14 HCP 3♥ → 3♥", z2h, TestHelpers.ElOlustur("A32", "KQ3", "K432", "Q32"), new[] { "1NT", "Pas", "2♥", "Pas" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Zayıf NT versiyonu: 1NT-(Dbl) araya giriş (s.90) ──");
+            var zar = new BricKartOyunu.Class.Bidding.OpeningSystems.OneNT.OneNTZ_Araya();
+            string[] hDbl = { "1NT", "Dbl" };
+            TW("1NT-(Dbl): zayıf dengeli → Pas", zar, TestHelpers.ElOlustur("K432", "Q32", "432", "J32"), hDbl, "Pas", sonucEkle, ref gecen, ref kalan);
+            TW("1NT-(Dbl): 10 HCP → RDbl", zar, TestHelpers.ElOlustur("AQ32", "K32", "432", "J32"), hDbl, "RDbl", sonucEkle, ref gecen, ref kalan);
+            TW("1NT-(Dbl): zayıf 6♠ → 2♠", zar, TestHelpers.ElOlustur("KJ9432", "32", "432", "32"), hDbl, "2♠", sonucEkle, ref gecen, ref kalan);
+            TW("1NT-(Dbl): 7♥ blokaj → 3♥", zar, TestHelpers.ElOlustur("32", "KJ98432", "43", "32"), hDbl, "3♥", sonucEkle, ref gecen, ref kalan);
+            TW("1NT-(Dbl): 5-5 majör 13 HCP → 2NT", zar, TestHelpers.ElOlustur("AKJ32", "KQ932", "32", "3"), hDbl, "2NT", sonucEkle, ref gecen, ref kalan);
+            string[] hPP = { "1NT", "Dbl", "Pas", "Pas" };
+            TW("açan: 1NT-(Dbl)-Pas-(Pas) 5♥ → 2♥", zar, TestHelpers.ElOlustur("A32", "KQ432", "K32", "Q3"), hPP, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 5'li renk yok 14 HCP → Pas", zar, TestHelpers.ElOlustur("AK32", "Q32", "K32", "Q32"), hPP, "Pas", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 5'li renk yok 12 HCP → RDbl", zar, TestHelpers.ElOlustur("AQ32", "K32", "Q32", "J32"), hPP, "RDbl", sonucEkle, ref gecen, ref kalan);
+            TW("RDbl sonrası cevapçı: en uzun renk 4♥ → 2♥", zar, TestHelpers.ElOlustur("432", "KJ98", "Q32", "432"), new[] { "1NT", "Dbl", "Pas", "Pas", "RDbl", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-(Dbl)-2♠-(Pas) → Pas", zar, TestHelpers.ElOlustur("AK32", "Q32", "K32", "Q32"), new[] { "1NT", "Dbl", "2♠", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-(Dbl)-2NT-(Pas) → 3♣ röle", zar, TestHelpers.ElOlustur("AK32", "Q32", "K32", "Q32"), new[] { "1NT", "Dbl", "2NT", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 2NT-3♣ röle → yüksek renk 3♠", zar, TestHelpers.ElOlustur("AKJ32", "KQ932", "32", "3"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            TW("açan: ...3♠ ve 3 maça → 4♠", zar, TestHelpers.ElOlustur("Q32", "K32", "AK32", "Q32"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
+            TW("açan: ...3♠ ve 2 maça → 3NT", zar, TestHelpers.ElOlustur("K2", "Q32", "AQ32", "K432"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }

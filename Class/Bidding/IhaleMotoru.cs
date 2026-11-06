@@ -282,6 +282,7 @@ namespace BricKartOyunu.Class.Bidding
                 new OneNTZ_TwoHeart(),
                 new OneNTZ_TwoSpade(),
                 new OneNTZ_TwoNT(),
+                new OneNTZ_Araya(),
                 new OneNT_ThreeClub(),
                 new OneNT_ThreeDiamond(),
                 new OneNT_ThreeHeart(),

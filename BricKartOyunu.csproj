@@ -331,6 +331,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_TwoSpade.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_TwoNT.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNTZ_Taban.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNTZ_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_ThreeClub.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_ThreeDiamond.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_ThreeHeart.cs" />
