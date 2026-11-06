@@ -395,6 +395,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_TORubensohl.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Balans.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_Leben2NT.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_GoodBad.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\IkiRenk\IkiRenk_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\IkiRenk\IkiRenk_NTAraya.cs" />
