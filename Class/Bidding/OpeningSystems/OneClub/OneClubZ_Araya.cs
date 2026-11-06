@@ -81,17 +81,27 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (g.Count != i + 2 || d.AktifOyuncu != IhaleDurumu.PartnerBul(acici)) return null;
             switch (a)
             {
-                case "Dbl": return Sec(KDbl(zonda), e, "Pas");
-                case "1♦": return Sec(KRenk('♦', zonda), e, "Pas");
-                case "1♥": return Sec(KRenk('♥', zonda), e, "Pas");
-                case "1♠": return Sec(KRenk('♠', zonda), e, "Pas");
-                case "1NT": return Sec(K1NT(), e, "Pas");
-                case "2♣": return Sec(KMajor(zonda), e, "Pas");
-                case "2♦": return Sec(KZayif2('♦'), e, "Pas");
-                case "2♥": return Sec(KZayif2('♥'), e, "Pas");
-                case "2♠": return Sec(KZayif2('♠'), e, "Pas");
+                case "Dbl": return Karar(KDbl(zonda), e);
+                case "1♦": return Karar(KRenk('♦', zonda), e);
+                case "1♥": return Karar(KRenk('♥', zonda), e);
+                case "1♠": return Karar(KRenk('♠', zonda), e);
+                case "1NT": return Karar(K1NT(), e);
+                case "2♣": return Karar(KMajor(zonda), e);
+                case "2♦": return Karar(KZayif2('♦'), e);
+                case "2♥": return Karar(KZayif2('♥'), e);
+                case "2♠": return Karar(KZayif2('♠'), e);
             }
             return null;
+        }
+
+        /// <summary>Tabloda satır yoksa: 10+ HCP ise genel motor devralır (null), değilse Pas.</summary>
+        private static string Karar(List<OcKural> kurallar, OcEl e)
+        {
+            // 6+♣ ve 10+ HCP: büyük uyum / slam araştırması için genel motor devralır
+            if (e.C >= 6 && e.Hcp >= 10) return null;
+            string r = Sec(kurallar, e, null);
+            if (r != null) return r;
+            return e.Hcp >= 10 ? null : "Pas";
         }
 
         private static bool Bomba(OcEl e, char s) { return Uz(e, s) >= 6 && e.Hcp <= 7; }
