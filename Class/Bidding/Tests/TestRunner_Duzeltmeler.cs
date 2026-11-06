@@ -38,6 +38,9 @@ namespace BricKartOyunu.Tests
             // 1♣ – 1♠ – 1NT – 2NT (davet): açıcı 3 kartlık destekle düzeltir
             // Slam sorgusu (yedek mantık): 1♠-2♣-2♠, 22 HP + ♠K75, açıcının 6. maçası → 4♠ ile kapatma, zorlayıcı 3♠
             T("SL1 1S-2C-2S, 22hcp ♠K75 → 3S (slam ilgisi)", TestHelpers.ElOlustur("K75", "AK3", "AQ4", "KQJ2"), "3♠", "1♠", "Pas", "2♣", "Pas", "2♠", "Pas");
+            T("SL2 1S-2H-2S, 20hcp 8 kupa → 3H (4H ile kapatma yok)", TestHelpers.ElOlustur("10", "AKQJ1043", "AK6", "K8"), "3♥", "1♠", "Pas", "2♥", "Pas", "2♠", "Pas");
+            T("SL3 1S-2H-2S-3H-3S, 20hcp 8 kupa ♦A → 4D kontrol", TestHelpers.ElOlustur("10", "AKQJ1043", "AK6", "K8"), "4♦", "1♠", "Pas", "2♥", "Pas", "2♠", "Pas", "3♥", "Pas", "3♠", "Pas");
+            T("SL4 1C-1H-2C-4H, 21hcp 7 sinek, kupa void → 5C (Pas yok)", TestHelpers.ElOlustur("KQ2", "", "AK4", "AKQ10743"), "5♣", "1♣", "Pas", "1♥", "Pas", "2♣", "Pas", "4♥", "Pas");
             T("C1 1C-1S-1NT-2NT, 3 maca 13hcp -> Pas (4-3 fit riskli)", TestHelpers.ElOlustur("A52", "J973", "A82", "AT3"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
             T("C2 1C-1S-1NT-2NT, 3 maca 14hcp -> 3NT", TestHelpers.ElOlustur("A52", "KJ73", "A82", "AT3"), "3NT", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
             T("C3 1C-1S-1NT-2NT, 2 maca asgari -> Pas", TestHelpers.ElOlustur("K5", "K842", "K954", "A42"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");

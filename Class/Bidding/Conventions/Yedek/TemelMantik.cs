@@ -523,6 +523,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (sl != null) return sl;
             }
 
+            // Oyun zorlayıcı (2/1) kendi 7+ kartlık rengim, ortak rebid etti, güç slam bölgesinde (est>=31, 18+ HP):
+            // 4M ile kapatma; 3 seviyesinde zorlayıcı renk tekrarı, ortak yeni renk söyleyince 4. seviyede kontrol (cue).
+            if (sonOrtak && est >= 31 && hp >= 18 && son.Koz != "NT" &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi))
+            {
+                string uzun = null;
+                foreach (var r in Renkler)
+                    if (ElDegerlendirici.RenkUzunlugu(el, r) >= 7 && gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == r && h.Seviye == 2) &&
+                        !gercek.Any(h => h.Oyuncu == d.Partner && h.Koz == r)) uzun = r;
+                if (uzun != null)
+                {
+                    bool uc = gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == uzun && h.Seviye == 3);
+                    if (!uc && son.Seviye <= 2 && Cheapest(d, uzun) == 3) return Seviye(d, uzun, 3);
+                    if (uc && son.Seviye == 3 && son.Koz != uzun && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Seviye == 4))
+                    {
+                        foreach (var r in Renkler)
+                        {
+                            if (r == uzun || r == son.Koz || Cheapest(d, r) != 4) continue;
+                            if (ElDegerlendirici.RenkUzunlugu(el, r) == 0 || el.Any(c => c.Suit == r && c.Value == 14)) return Seviye(d, r, 4);
+                        }
+                    }
+                }
+            }
+
             // Ters çevrilmiş minör (1m-2m): açıcı en az bir tur daha konuşmalı
             if (IMZorunlu(d, gercek)) return IMDevam(d, el, hp, dengeli, rakipRenkleri);
 
@@ -956,6 +980,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     !gercek.Any(h => h.Oyuncu == d.AktifOyuncu))
                     return Seviye(d, "NT", 1);
                 return Seviye(d, "NT", 2);                        // davet
+            }
+            // Ortak 4M'ye sıçradı (fit yok: o rengimde ≤2 kart), benim güçlü (19+ HP) ve 7+ kartlık kendi rengim var:
+            // Pas yerine kendi rengimi 5 seviyesinde göster (ortak 6'ya taşıyabilir ya da 5M'ye dönebilir).
+            if (gercek.Last().Oyuncu == d.Partner && gercek.Last().Seviye == 4 && Major(gercek.Last().Koz) && hp >= 19 &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi) &&
+                ElDegerlendirici.RenkUzunlugu(el, gercek.Last().Koz) <= 2)
+            {
+                string ur5 = EnUzunRenk(el);
+                if (ur5 != gercek.Last().Koz && ElDegerlendirici.RenkUzunlugu(el, ur5) >= 7 &&
+                    gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == ur5) && Cheapest(d, ur5) == 5)
+                    return Seviye(d, ur5, 5);
             }
             if (cur >= 3 && !zorunlu) return "Pas";
 
