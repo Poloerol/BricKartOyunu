@@ -329,6 +329,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Araya_GoodBad(),
                 new Araya_UcSeviye(),
                 new TwoHeart_Araya(),
+                new TwoSpade_Araya(),
                 new IkiRenk_Araya(),
                 new IkiRenk_NTAraya(),
             };

@@ -7,6 +7,7 @@ using BricKartOyunu.Class.Bidding;
 using BricKartOyunu.Class.Bidding.Interfaces;
 using BricKartOyunu.Class.Bidding.OpeningSystems.Araya;
 using BricKartOyunu.Class.Bidding.OpeningSystems.TwoHeart;
+using BricKartOyunu.Class.Bidding.OpeningSystems.TwoSpade;
 
 namespace BricKartOyunu.Tests
 {
@@ -343,6 +344,25 @@ namespace BricKartOyunu.Tests
             T("açıcı: 3♦ daveti, azami 10 HCP → 4♥", tw, TestHelpers.ElOlustur("32", "KQJ943", "A32", "32"), new[] { "2♥", "Dbl", "3♦", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
             T("2♥ bağlam dışı: 3♠ girişi → devreye girmez", tw, TestHelpers.ElOlustur("432", "32", "Q432", "J432"), new[] { "2♥", "3♠" }, null, sonucEkle, ref gecen, ref kalan);
             T("1♥ açışı Dbl → devreye girmez", tw, TestHelpers.ElOlustur("432", "32", "Q432", "J432"), new[] { "1♥", "Dbl" }, null, sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 2♠ - (Dbl / 3♣ / 3♦ / 3♥) - ? (s.71) ──");
+            var ts = new TwoSpade_Araya();
+            T("2♠: RDbl: 15 HCP", ts, TestHelpers.ElOlustur("J32", "KQ2", "AK4", "Q432"), new[] { "2♠", "Dbl" }, "RDbl", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♥ davet: 3♠ 10 HCP", ts, TestHelpers.ElOlustur("K32", "AJ2", "Q432", "432"), new[] { "2♠", "Dbl" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            T("2♠: RDbl: ♠ ikili honör 11 HCP", ts, TestHelpers.ElOlustur("K2", "AQ32", "Q432", "432"), new[] { "2♠", "Dbl" }, "RDbl", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♠ oynamak için: 4♠ 5 HCP", ts, TestHelpers.ElOlustur("Q432", "32", "K432", "432"), new[] { "2♠", "Dbl" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 2♥ doğal NF: 5♥ 6 HCP", ts, TestHelpers.ElOlustur("2", "KJ932", "Q432", "432"), new[] { "2♠", "Dbl" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 2NT: 6♣ 6 HCP", ts, TestHelpers.ElOlustur("2", "432", "432", "KQJ743"), new[] { "2♠", "Dbl" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♣: 6♦ 6 HCP", ts, TestHelpers.ElOlustur("43", "432", "KQJ743", "32"), new[] { "2♠", "Dbl" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("2♠: Pas: 3 HCP", ts, TestHelpers.ElOlustur("32", "432", "Q432", "J432"), new[] { "2♠", "Dbl" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♣ girişine ceza Dbl: 5♣ 10 HCP", ts, TestHelpers.ElOlustur("2", "432", "K432", "AQJ43"), new[] { "2♠", "3♣" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♣ girişine 3♦ F1R: 6♦ 13 HCP", ts, TestHelpers.ElOlustur("2", "K32", "AKJ432", "Q43"), new[] { "2♠", "3♣" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♦ girişine 3♥ F1R: 5♥ 13 HCP", ts, TestHelpers.ElOlustur("2", "AKJ43", "432", "KQ43"), new[] { "2♠", "3♦" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♥ girişine ceza Dbl: 4♥ 11 HCP", ts, TestHelpers.ElOlustur("32", "AQJ4", "K32", "Q432"), new[] { "2♠", "3♥" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            T("2♠: 3♦ girişine 3♠: 3♠ 5 HCP", ts, TestHelpers.ElOlustur("Q32", "32", "432", "J5432"), new[] { "2♠", "3♦" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            T("2♠ açıcı: 2♥ NF sonrası Pas", ts, TestHelpers.ElOlustur("KQJ943", "32", "432", "32"), new[] { "2♠", "Dbl", "2♥", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            T("2♠ açıcı: 3♥ daveti, asgari → 3♠", ts, TestHelpers.ElOlustur("KJ9432", "32", "432", "32"), new[] { "2♠", "Dbl", "3♥", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            T("2♠ açıcı: 3♥ daveti, azami 10 HCP → 4♠", ts, TestHelpers.ElOlustur("KQJ943", "32", "A32", "32"), new[] { "2♠", "Dbl", "3♥", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
+            T("2♠ bağlam dışı: 3♠ girişi → devreye girmez", ts, TestHelpers.ElOlustur("432", "32", "Q432", "J432"), new[] { "2♠", "3♠" }, null, sonucEkle, ref gecen, ref kalan);
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
 
