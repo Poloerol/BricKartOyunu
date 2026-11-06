@@ -103,6 +103,15 @@ namespace BricKartOyunu.Tests
             TW("cevapçı: 1NT sonrası zayıf 5♠ → 2♥ transfer", zh, TestHelpers.ElOlustur("KJ432", "432", "32", "432"), new[] { "1♣", "Pas", "1♥", "Pas", "1NT", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1NT-2♥ transfer → 2♠", zh, TestHelpers.ElOlustur("KJ32", "AQ3", "K32", "Q32"), new[] { "1♣", "Pas", "1♥", "Pas", "1NT", "Pas", "2♥", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
             TW("açan: 2♠-2NT röle 15 HCP min → 3♠", zh, TestHelpers.ElOlustur("KJ32", "AQ3", "K32", "Q32"), new[] { "1♣", "Pas", "1♥", "Pas", "2♠", "Pas", "2NT", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Zayıf NT versiyonu: 1♣-1♠ (4+♦) gelişimi (s.83) ──");
+            var zs = new BricKartOyunu.Class.Bidding.OpeningSystems.OneClub.OneClubZ_OneSpade();
+            TW("açan: 15 dengeli → 1NT", zs, TestHelpers.ElOlustur("KJ32", "AQ3", "K32", "Q32"), new[] { "1♣", "Pas", "1♠", "Pas" }, "1NT", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 5♣ dengesiz 12 HCP → 2♣", zs, TestHelpers.ElOlustur("KQ32", "432", "2", "AQJ32"), new[] { "1♣", "Pas", "1♠", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1NT sonrası 6♦ FG → 2♣ puppet", zs, TestHelpers.ElOlustur("32", "3", "AKQ432", "K432"), new[] { "1♣", "Pas", "1♠", "Pas", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1NT sonrası 4♦ dengeli 11 HCP → 2NT", zs, TestHelpers.ElOlustur("K32", "Q32", "KJ32", "Q32"), new[] { "1♣", "Pas", "1♠", "Pas", "1NT", "Pas" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-2♦ transfer → 2♥", zs, TestHelpers.ElOlustur("KJ32", "AQ3", "K32", "Q32"), new[] { "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-2♠ transfer → 3♣", zs, TestHelpers.ElOlustur("KJ32", "AQ3", "K32", "Q32"), new[] { "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♠", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 2♣-2♦ röle 5♣4♠ → 2♠", zs, TestHelpers.ElOlustur("KQ32", "432", "2", "AQJ32"), new[] { "1♣", "Pas", "1♠", "Pas", "2♣", "Pas", "2♦", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }

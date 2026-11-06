@@ -244,6 +244,7 @@ namespace BricKartOyunu.Class.Bidding
                 new OneClub_OneNT(),
                 new OneClubZ_OneDiamond(),
                 new OneClubZ_OneHeart(),
+                new OneClubZ_OneSpade(),
                 new OneClub_TwoClub(),
                 new OneClub_TwoDiamond(),
                 new OneClub_TwoHeart(),
