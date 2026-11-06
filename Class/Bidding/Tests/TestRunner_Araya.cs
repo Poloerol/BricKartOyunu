@@ -221,6 +221,12 @@ namespace BricKartOyunu.Tests
             TK("1♣: 2♦ → 2♥", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
             TK("1♣: 2♣ → 2♦", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♣", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
             TK("1♣: 2♠ (transfer cuebid) → 3♣", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♠", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── T/O kontra atanın transfer sonrası seçimleri (s.107) ──");
+            TK("kontracı: 2♦ transferi, 18 HCP 4♥ → 3♥ atlamalı kabul (davet)", to, TestHelpers.ElOlustur("AK2", "AQ32", "K32", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            TK("kontracı: 2♦ transferi, 12 HCP 4♥ → 2♥ minimum kabul", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "432"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TK("kontracı: 2♦ transferi, 19 HCP 5♠ → 2♠ doğal kuvvetli", to, TestHelpers.ElOlustur("AKJ32", "K2", "AQ2", "Q32"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TK("kontracı: 2♦ transferi, 18 HCP 5♠ 4♥ → 3♠ atlamalı yeni renk", to, TestHelpers.ElOlustur("AKQ32", "KQ32", "A2", "43"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            TK("kontracı: 2♦ transferi, 18 HCP dengeli ♥ 2 kart → 3♣ cuebid", to, TestHelpers.ElOlustur("AK2", "Q2", "AQ32", "K432"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
             TK("1♠: 3♣ → 3♦", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♠", "Dbl", "Pas", "3♣", "Pas" }, "3♦", sonucEkle, ref gecen, ref kalan);
             TK("1♥: 2♠ → 3♣", to, TestHelpers.ElOlustur("K32", "AQ32", "K32", "Q32"), new[] { "1♥", "Dbl", "Pas", "2♠", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
             T("transfer sonrası 15 HCP → 4♥", to, TestHelpers.ElOlustur("AK2", "AJ32", "K32", "432"), new[] { "1♣", "Dbl", "Pas", "2♦", "Pas", "2♥", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);

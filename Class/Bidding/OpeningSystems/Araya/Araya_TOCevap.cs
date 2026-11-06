@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BricKartOyunu.Class;
@@ -13,7 +13,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
     ///   - Transferler: x'in cuebid'i → x'ten sonraki ilk renk, her renk bir sonrakine, son renk → x'in cuebid'i
     ///     (dengeli, oyun zorlayıcı "transfer cuebid"). 8+ HCP; majörde 4+, minörde 5+ kart.
     ///   - 1NT doğal (x'te stoper) 7-10; 2NT doğal (stoper) 11-12; 3 seviyesinde iki renkli oyun zorlayıcı eller.
-    /// Kontra yapan transferi en ucuz seviyeden tamamlar. Cevapçı tamamlamadan sonra 11-12 ile davet, 13+ ile oyun söyler.
+    /// Kontra yapan transferi en ucuz seviyeden tamamlar; güçlü ellerde atlamalı kabul / yeni renk / cuebid seçenekleri vardır (KontraciSecim). Cevapçı tamamlamadan sonra 11-12 ile davet, 13+ ile oyun söyler.
     /// Balancing kontraya (1x-Pas-Pas-Dbl-Pas) cevaplar aynıdır, yalnızca 2 HCP eklenir (kitap s.109).
     /// Basitleştirmeler: davet/süper kabul ve atlamalı transfer yok (açanın ortağı konuşunca: Araya_TORubensohl).
     /// </summary>
@@ -88,7 +88,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
                 if (tr.Count == 0) return null;
                 char hedef = tr[0].Value;
                 char kaynakRenk = g[1].Teklif[1];
-                return Ucuz(g[1].Teklif[0] - '0', kaynakRenk, hedef);
+                return KontraciSecim(e, x, hedef, g[1].Teklif[0] - '0', kaynakRenk);
             }
 
             // Cevapçı ikinci hamle: ... Dbl - Pas - transfer(ben) - Pas - tamamlama - Pas - (ben)
@@ -98,6 +98,35 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
             var tr2 = Transferler(x).Where(t => t.Key == g[1].Teklif).ToList();
             if (tr2.Count == 0) return null;
             return IkinciHamle(e, x, tr2[0].Value, g[2].Teklif, dusur);
+        }
+
+        /// <summary>
+        /// T/O kontra atanın transfer cevabından sonraki seçimi (kitap s.107): transferin kabulü = minimum T/O kontra (en ucuz seviye) ·
+        /// atlamalı kabul = davet (16+ HCP, hedefte 4+ kart) · yeni renk = doğal, kuvvetli T/O kontra (18+ HCP, 5+ kart) ·
+        /// atlamalı yeni renk = 5+ kart, hedefte 4'lü tutuş, oyun zorlar · cuebid = maksimum dengeli (17+ HCP, hedefte en çok 2 kart), stoper sorar.
+        /// "Atlamalı iyi tutuş SNG cuebid" satırı kitapta belirsiz olduğundan kodlanmadı. Transfer cuebid (hedef = x) her zaman en ucuz tamamlanır.
+        /// </summary>
+        private static string KontraciSecim(OcEl e, char x, char hedef, int lv, char kaynak)
+        {
+            string normal = Ucuz(lv, kaynak, hedef);
+            if (hedef == x) return normal;
+            int hp = e.Hcp;
+            int ucHedef = Ri(hedef) > Ri(kaynak) ? lv : lv + 1;
+            var yeni = Sira.Where(c => c != x && c != hedef && Uz(e, c) >= 5).OrderByDescending(c => Uz(e, c)).ThenByDescending(c => Ri(c)).ToList();
+            if (hp >= 18 && yeni.Count > 0)
+            {
+                char y = yeni[0];
+                int ucY = Ri(y) > Ri(kaynak) ? lv : lv + 1;
+                if (Uz(e, hedef) >= 4 && ucY + 1 <= 4) return (ucY + 1).ToString() + y;     // atlamalı yeni renk
+                return ucY.ToString() + y;                                                  // doğal, kuvvetli
+            }
+            if (hp >= 16 && Uz(e, hedef) >= 4 && ucHedef + 1 <= 3) return (ucHedef + 1).ToString() + hedef;   // atlamalı kabul: davet
+            if (hp >= 17 && e.Dengeli && Uz(e, hedef) <= 2)
+            {
+                int ucX = Ri(x) > Ri(kaynak) ? lv : lv + 1;
+                return ucX.ToString() + x;                                                  // cuebid
+            }
+            return normal;
         }
 
         private static readonly Dictionary<char, Dictionary<string, char[]>> FG = new Dictionary<char, Dictionary<string, char[]>>

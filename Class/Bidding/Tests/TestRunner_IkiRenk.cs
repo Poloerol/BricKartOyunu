@@ -162,6 +162,14 @@ namespace BricKartOyunu.Tests
             TW("cevapçı: 2NT-3♣ röle → yüksek renk 3♠", zar, TestHelpers.ElOlustur("AKJ32", "KQ932", "32", "3"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
             TW("açan: ...3♠ ve 3 maça → 4♠", zar, TestHelpers.ElOlustur("Q32", "K32", "AK32", "Q32"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
             TW("açan: ...3♠ ve 2 maça → 3NT", zar, TestHelpers.ElOlustur("K2", "Q32", "AQ32", "K432"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-(Dbl)-RDbl-(2♣) ♣ 4 kart → Pas (inverted)", zar, TestHelpers.ElOlustur("AK2", "Q32", "K32", "QJ42"), new[] { "1NT", "Dbl", "RDbl", "2♣" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-(Dbl)-RDbl-(2♣) ♣ 3 kart → Dbl (inverted)", zar, TestHelpers.ElOlustur("AQ2", "K32", "KJ42", "Q32"), new[] { "1NT", "Dbl", "RDbl", "2♣" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-(Dbl)-RDbl-(2♣) ♣ tek kart 5♠ → 2♠", zar, TestHelpers.ElOlustur("AK432", "Q32", "KJ32", "2"), new[] { "1NT", "Dbl", "RDbl", "2♣" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: RDbl-(2♣)-Pas-(Pas) → Dbl ceza", zar, TestHelpers.ElOlustur("KQ2", "KJ2", "QJ32", "432"), new[] { "1NT", "Dbl", "RDbl", "2♣", "Pas", "Pas" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: RDbl-(2♣)-Dbl-(Pas) ♣ 5 kart → Pas", zar, TestHelpers.ElOlustur("K32", "Q32", "32", "KQ942"), new[] { "1NT", "Dbl", "RDbl", "2♣", "Dbl", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: RDbl-(2♣)-Dbl-(Pas) ♣ stoperli → 3NT", zar, TestHelpers.ElOlustur("KJ2", "Q32", "AQ32", "K32"), new[] { "1NT", "Dbl", "RDbl", "2♣", "Dbl", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 2NT-3♣-3♠-3NT sonrası 5-5 majör → 4♥", zar, TestHelpers.ElOlustur("AKJ32", "KQJ32", "2", "32"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas", "3NT", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 2NT-3♣-3♠-3NT sonrası 5♠ 4♥ → Pas", zar, TestHelpers.ElOlustur("AKJ32", "KQJ2", "2", "432"), new[] { "1NT", "Dbl", "2NT", "Pas", "3♣", "Pas", "3♠", "Pas", "3NT", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
             sonucEkle("── 1♣-1♦-1NT-2♦ FG röle: açanın öncelik sırası ve cevapçı (s.92) ──");
             var oc1d = new BricKartOyunu.Class.Bidding.OpeningSystems.OneClub.OneClub_OneDiamond();
             string[] hRl = { "1♣", "Pas", "1♦", "Pas", "1NT", "Pas", "2♦", "Pas" };
