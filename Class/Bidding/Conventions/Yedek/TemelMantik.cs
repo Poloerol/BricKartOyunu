@@ -519,6 +519,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 string cue = KontrolTeklifi(d, el, gercek);
                 if (cue != null) return cue;
+                string sl = SlamSorgusu(d, el, gercek, est, hp);
+                if (sl != null) return sl;
             }
 
             // Ters çevrilmiş minör (1m-2m): açıcı en az bir tur daha konuşmalı
@@ -696,6 +698,33 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (toplam >= 5) return Seviye(d, koz, 6);
             if (toplam == 4) return est >= 32 ? Seviye(d, koz, 6) : (ucuz5 <= 5 ? Seviye(d, koz, 5) : "Pas");
             return ucuz5 <= 5 ? Seviye(d, koz, 5) : "Pas";
+        }
+
+        /// <summary>
+        /// Majör koz anlaşılmış (ortak ≥2 kez söyledi ya da anlaşılan koz) ve toplam güç slam bölgesinde (est >= 33)
+        /// iken 4. seviyede ucuz kontrol teklifi yoksa 4M ile kapatmak yerine 4NT (RKCB) sorulur.
+        /// </summary>
+        private string SlamSorgusu(IhaleDurumu d, List<Card> el, List<IhaleHamlesi> gercek, double est, int hp)
+        {
+            if (est < 33 || hp < 16) return null;
+            if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi)) return null;
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT")) return null;
+            string koz = null;
+            foreach (var r in new[] { "Maça", "Kupa" })
+            {
+                int ort = gercek.Count(h => h.Oyuncu == d.Partner && h.Koz == r);
+                bool benBu = gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == r);
+                if (ort >= 2 && !benBu && el.Any(c => c.Suit == r && c.Value >= 12)) { koz = r; break; }
+            }
+            if (koz == null) return null;
+            // Dağılımımı tam tarif etmeden (söylenmemiş 4+ kartlık yan renk varken) sorma: önce renk göster
+            foreach (var r in Renkler)
+                if (r != koz && ElDegerlendirici.RenkUzunlugu(el, r) >= 4 && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == r))
+                    return null;
+            // Koz henüz anlaşılmamışsa (ortak majörü söyledi, ben desteklemedim) 4NT kozsuz kalır: önce zorlayıcı 3M desteği
+            if (d.AnlasilanKoz() != koz)
+                return Cheapest(d, koz) <= 3 ? Seviye(d, koz, 3) : null;
+            return Cheapest(d, "NT") <= 4 ? "4NT" : null;
         }
 
         /// <summary>
