@@ -6,6 +6,7 @@ using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding;
 using BricKartOyunu.Class.Bidding.Interfaces;
 using BricKartOyunu.Class.Bidding.OpeningSystems.Araya;
+using BricKartOyunu.Class.Bidding.OpeningSystems.TwoHeart;
 
 namespace BricKartOyunu.Tests
 {
@@ -317,6 +318,31 @@ namespace BricKartOyunu.Tests
             T("GB-B açan 2.: 5♦5♣ 20 ♠ stoperli → 3♠", gb, TestHelpers.ElOlustur("AK", "3", "AKJ32", "KQ432"), gB3, "3♠", sonucEkle, ref gecen, ref kalan);
             T("GB-B açan 2.: 4♥ 4♦ 17 → 3♥", gb, TestHelpers.ElOlustur("2", "AKQ2", "AJ32", "K432"), gB3, "3♥", sonucEkle, ref gecen, ref kalan);
             T("GB: bağlam dışı (1♦-Pas-1♠-2♣) → devreye girmez", gb, TestHelpers.ElOlustur("32", "432", "KJ32", "AQ32"), new[] { "1♦", "Pas", "1♠", "2♣" }, null, sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 2♥ - (Dbl) - ? (s.70) ──");
+            var tw = new TwoHeart_Araya();
+            T("RDbl: 15 HCP", tw, TestHelpers.ElOlustur("KQ2", "J32", "AK4", "Q432"), new[] { "2♥", "Dbl" }, "RDbl", sonucEkle, ref gecen, ref kalan);
+            T("3♦ davet: 3♥ 10 HCP", tw, TestHelpers.ElOlustur("AJ2", "K32", "Q432", "432"), new[] { "2♥", "Dbl" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("RDbl: ♥ ikili honör 11 HCP", tw, TestHelpers.ElOlustur("AQ32", "K2", "Q432", "432"), new[] { "2♥", "Dbl" }, "RDbl", sonucEkle, ref gecen, ref kalan);
+            T("3♥ oynamak için: 4♥ 5 HCP", tw, TestHelpers.ElOlustur("32", "Q432", "K432", "432"), new[] { "2♥", "Dbl" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            T("2♠ doğal NF: 5♠ 6 HCP", tw, TestHelpers.ElOlustur("KJ932", "2", "Q432", "432"), new[] { "2♥", "Dbl" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("2NT: 6♣ 6 HCP", tw, TestHelpers.ElOlustur("432", "2", "432", "KQJ743"), new[] { "2♥", "Dbl" }, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("3♣: 6♦ 6 HCP", tw, TestHelpers.ElOlustur("432", "43", "KQJ743", "32"), new[] { "2♥", "Dbl" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("Pas: 3 HCP", tw, TestHelpers.ElOlustur("432", "32", "Q432", "J432"), new[] { "2♥", "Dbl" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── 2♥ - (2♠/3♣/3♦) - ? ──");
+            T("2♠ girişine ceza Dbl: 4♠ 12 HCP", tw, TestHelpers.ElOlustur("KJ43", "32", "AQ2", "Q432"), new[] { "2♥", "2♠" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            T("2♠ girişine yeni renk F1R: 6♦ 12 HCP → 3♦", tw, TestHelpers.ElOlustur("32", "2", "AQJ432", "KQ43"), new[] { "2♥", "2♠" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("2♠ girişine 3♥: 4♥ 5 HCP", tw, TestHelpers.ElOlustur("32", "Q432", "K432", "432"), new[] { "2♥", "2♠" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            T("2♠ girişine Pas: zayıf", tw, TestHelpers.ElOlustur("432", "32", "Q432", "J432"), new[] { "2♥", "2♠" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            T("3♣ girişine ceza Dbl: 5♣ 10 HCP", tw, TestHelpers.ElOlustur("432", "2", "K432", "AQJ43"), new[] { "2♥", "3♣" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            T("3♣ girişine 3♦ F1R: 6♦ 13 HCP", tw, TestHelpers.ElOlustur("K32", "2", "AKJ432", "Q43"), new[] { "2♥", "3♣" }, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("3♦ girişine 3♠ F1R: 5♠ 13 HCP", tw, TestHelpers.ElOlustur("AKJ43", "2", "432", "KQ43"), new[] { "2♥", "3♦" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Açıcı: 2♥ - (Dbl) - ortak - (Pas) ──");
+            T("açıcı: 2♠ NF sonrası Pas", tw, TestHelpers.ElOlustur("32", "KQJ943", "432", "32"), new[] { "2♥", "Dbl", "2♠", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            T("açıcı: RDbl sonrası Pas", tw, TestHelpers.ElOlustur("32", "KQJ943", "432", "32"), new[] { "2♥", "Dbl", "RDbl", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            T("açıcı: 3♦ daveti, asgari → 3♥", tw, TestHelpers.ElOlustur("32", "KJ9432", "432", "32"), new[] { "2♥", "Dbl", "3♦", "Pas" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            T("açıcı: 3♦ daveti, azami 10 HCP → 4♥", tw, TestHelpers.ElOlustur("32", "KQJ943", "A32", "32"), new[] { "2♥", "Dbl", "3♦", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            T("2♥ bağlam dışı: 3♠ girişi → devreye girmez", tw, TestHelpers.ElOlustur("432", "32", "Q432", "J432"), new[] { "2♥", "3♠" }, null, sonucEkle, ref gecen, ref kalan);
+            T("1♥ açışı Dbl → devreye girmez", tw, TestHelpers.ElOlustur("432", "32", "Q432", "J432"), new[] { "1♥", "Dbl" }, null, sonucEkle, ref gecen, ref kalan);
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
 

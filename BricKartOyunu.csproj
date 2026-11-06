@@ -381,6 +381,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\TwoDiamond\TwoDiamond_TwoSpade.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_TwoDiamond.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoHeart\TwoHeart_Answer.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\TwoHeart\TwoHeart_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoHeart\TwoHeart_TwoSpade.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_TwoHeart.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\TwoSpade\TwoSpade_Answer.cs" />
