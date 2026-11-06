@@ -294,6 +294,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClubZ_OneDiamond.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClubZ_OneHeart.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClubZ_OneSpade.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClubZ_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_OneSpade.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_TwoClub.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneClub\OneClub_TwoDiamond.cs" />
