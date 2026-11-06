@@ -256,6 +256,7 @@ namespace BricKartOyunu.Class.Bidding
                 new OneDiamondZ_Araya(),
                 new OneHeartZ_Araya(),
                 new OneSpadeZ_Araya(),
+                new OneNT_Araya(),
                 new OneDiamond_OneSpade(),
                 new OneDiamond_OneNT(),
                 new OneDiamond_TwoClub(),
@@ -326,6 +327,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Araya_Balans(),
                 new Araya_Leben2NT(),
                 new Araya_GoodBad(),
+                new Araya_UcSeviye(),
                 new IkiRenk_Araya(),
                 new IkiRenk_NTAraya(),
             };

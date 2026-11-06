@@ -308,6 +308,8 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamondZ_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneHeart\OneHeartZ_Araya.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneSpade\OneSpadeZ_Araya.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_Araya.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\Araya\Araya_UcSeviye.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_OneNT.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_OneSpade.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_TwoClub.cs" />

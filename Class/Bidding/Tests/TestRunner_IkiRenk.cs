@@ -272,6 +272,33 @@ namespace BricKartOyunu.Tests
             TW("1♠-(2♠ Michaels): 3♠ 16 HCP → 3♥ cuebid FG", zs1, TestHelpers.ElOlustur("K32", "Q32", "AJ32", "AQ2"), new[] { "1♠", "2♠" }, "3♥", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1♠-(Dbl)-1NT transfer → 2♣", zs1, TestHelpers.ElOlustur("AK432", "Q32", "K32", "Q2"), new[] { "1♠", "Dbl", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1♠-(Dbl)-2♦ transfer → 2♥", zs1, TestHelpers.ElOlustur("AK432", "Q32", "K32", "Q2"), new[] { "1♠", "Dbl", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Zayıf NT: açışımıza 3 seviyesinde araya giriş (s.120) ──");
+            var zu = new BricKartOyunu.Class.Bidding.OpeningSystems.Araya.Araya_UcSeviye();
+            TW("1♦-(3♥): 4♠ 12 HCP → Dbl", zu, TestHelpers.ElOlustur("KJ98", "32", "Q32", "AQ32"), new[] { "1♦", "3♥" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♣-(3♥): 5♠ 13 HCP → 3♠ FG", zu, TestHelpers.ElOlustur("AKJ32", "32", "Q32", "K32"), new[] { "1♣", "3♥" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            TW("1♥-(3♦): 3♥ 16 HCP → 4♦ cuebid", zu, TestHelpers.ElOlustur("K32", "AQ2", "32", "AKJ32"), new[] { "1♥", "3♦" }, "4♦", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(3♦): 4♥ 9 HCP → Dbl", zu, TestHelpers.ElOlustur("K32", "KJ98", "32", "Q432"), new[] { "1♠", "3♦" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♦-(3♥): ♥ stoperi yok 13 HCP → Dbl", zu, TestHelpers.ElOlustur("K32", "32", "AQ32", "KJ32"), new[] { "1♦", "3♥" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♣-(3♦): 13 HCP → Dbl 3NT araştırması", zu, TestHelpers.ElOlustur("AK32", "K32", "32", "QJ32"), new[] { "1♣", "3♦" }, "Dbl", sonucEkle, ref gecen, ref kalan);
+            TW("1♠-(3♥): 4 HCP → Pas", zu, TestHelpers.ElOlustur("Q32", "432", "J432", "J32"), new[] { "1♠", "3♥" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1♦-(3♥)-Dbl-(Pas) 5♠ → 3♠", zu, TestHelpers.ElOlustur("AK432", "Q32", "K32", "Q2"), new[] { "1♦", "3♥", "Dbl", "Pas" }, "3♠", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1♦-(3♥)-Dbl-Pas-3♠ ♠ 3 kart → 4♠", zu, TestHelpers.ElOlustur("Q32", "32", "KJ32", "K432"), new[] { "1♦", "3♥", "Dbl", "Pas", "3♠", "Pas" }, "4♠", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1♦-(3♥)-Dbl-Pas-3♠ ♠ 2 kart → 3NT", zu, TestHelpers.ElOlustur("32", "K32", "KJ32", "K432"), new[] { "1♦", "3♥", "Dbl", "Pas", "3♠", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Güçlü NT: 1NT-(Dbl ceza) cevapları (s.120) ──");
+            var zn = new BricKartOyunu.Class.Bidding.OpeningSystems.OneNT.OneNT_Araya();
+            TS("1NT-(Dbl): dengeli 9 HCP → Pas", zn, TestHelpers.ElOlustur("Q32", "Q32", "J32", "KJ32"), new[] { "1NT", "Dbl" }, "Pas", sonucEkle, ref gecen, ref kalan);
+            TS("1NT-(Dbl): 5♣ zayıf → RDbl", zn, TestHelpers.ElOlustur("432", "32", "432", "KJ432"), new[] { "1NT", "Dbl" }, "RDbl", sonucEkle, ref gecen, ref kalan);
+            TS("1NT-(Dbl): 5♠ → 2♥ transfer", zn, TestHelpers.ElOlustur("KJ432", "32", "432", "432"), new[] { "1NT", "Dbl" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TS("1NT-(Dbl): 5♥ → 2♦ transfer", zn, TestHelpers.ElOlustur("32", "KJ432", "432", "432"), new[] { "1NT", "Dbl" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TS("1NT-(Dbl): 4♠ 8 HCP → 2♣ Stayman", zn, TestHelpers.ElOlustur("KJ98", "32", "Q32", "Q432"), new[] { "1NT", "Dbl" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            TS("1NT-(Dbl): 5♣ 9 HCP → 2♠ transfer davet+", zn, TestHelpers.ElOlustur("32", "Q32", "K32", "KJ432"), new[] { "1NT", "Dbl" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TS("1NT-(Dbl): 7♥ zayıf → 3♥", zn, TestHelpers.ElOlustur("32", "KJ98432", "32", "32"), new[] { "1NT", "Dbl" }, "3♥", sonucEkle, ref gecen, ref kalan);
+            TS("açan: 1NT-(Dbl)-Pas-(Pas) → RDbl", zn, TestHelpers.ElOlustur("AK2", "Q32", "K32", "KJ32"), new[] { "1NT", "Dbl", "Pas", "Pas" }, "RDbl", sonucEkle, ref gecen, ref kalan);
+            TS("açan: 1NT-(Dbl)-RDbl-(Pas) → 2♣", zn, TestHelpers.ElOlustur("AK2", "Q32", "K32", "KJ32"), new[] { "1NT", "Dbl", "RDbl", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            TS("açan: 1NT-(Dbl)-2♦-(Pas) → 2♥", zn, TestHelpers.ElOlustur("AK2", "Q32", "K32", "KJ32"), new[] { "1NT", "Dbl", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TS("açan: 1NT-(Dbl)-2♠-(Pas) → 3♣", zn, TestHelpers.ElOlustur("AK2", "Q32", "K32", "KJ32"), new[] { "1NT", "Dbl", "2♠", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
+            TS("cevapçı: RDbl-2♣ sonrası 5♦ → 2♦", zn, TestHelpers.ElOlustur("32", "32", "KJ432", "Q432"), new[] { "1NT", "Dbl", "RDbl", "Pas", "2♣", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TS("cevapçı: RDbl-2♣ sonrası 5♣ → Pas", zn, TestHelpers.ElOlustur("32", "32", "Q432", "KJ432"), new[] { "1NT", "Dbl", "RDbl", "Pas", "2♣", "Pas" }, "Pas", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
@@ -287,6 +314,18 @@ namespace BricKartOyunu.Tests
         { Calistir(ad, motor, el, Player.Kuzey, gecmis, beklenen, sonucEkle, ref gecen, ref kalan); }
 
         // Zayıf NT (12-14) anlaşması: aktif Güney
+        private static void TS(string ad, IAcilisGelisimi motor, List<Card> el, string[] gecmis, string beklenen,
+            Action<string> sonucEkle, ref int gecen, ref int kalan)
+        {
+            sonucEkle($"▶ {ad}");
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, gecmis);
+            durum.Anlasma.StrongNT = true;
+            bool uygun = motor.UygunMu(el, durum);
+            string sonuc = uygun ? motor.TeklifVer(el, durum) : null;
+            if (sonuc == beklenen) { sonucEkle($"✅ DOĞRU: {sonuc ?? "(devreye girmedi)"}"); gecen++; }
+            else { sonucEkle($"❌ HATA: Beklenen {beklenen ?? "(devreye girmez)"}, gelen {sonuc ?? "(devreye girmedi)"}"); kalan++; }
+        }
+
         private static void TW(string ad, IAcilisGelisimi motor, List<Card> el, string[] gecmis, string beklenen,
             Action<string> sonucEkle, ref int gecen, ref int kalan)
         {

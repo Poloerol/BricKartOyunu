@@ -72,6 +72,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Sondan iki önceki: açıcının 1 seviyesi renk teklifi (1♣, 1♦, 1♥)
             var aciciTeklifi = gercekTeklifler[n - 3];
             if (aciciTeklifi.Oyuncu != durum.Partner) return false;
+            // Bu 1X gerçekten açış olmalı: öncesinde bizim tarafın gerçek teklifi bulunamaz
+            // (aksi halde 1♣-1♦-1♥-1NT gibi cevapçının kendi 1NT'sini açanın 1NT rebid'i sanır).
+            if (OncedenTarafTeklifiVar(durum, gercekTeklifler, n - 3)) return false;
             if (aciciTeklifi.Seviye != 1) return false;
             if (aciciTeklifi.Koz == "NT") return false;
 
@@ -112,6 +115,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// <summary>
         /// 1X - 1M - 1NT - 2NT davetine açıcının cevabı: maksimumda (14+) 3NT; asgaride null (normal motor Pas der).
         /// </summary>
+        /// <summary>İndeksten önce bizim tarafın (aktif oyuncu ya da ortağı) gerçek teklifi var mı?</summary>
+        private static bool OncedenTarafTeklifiVar(IhaleDurumu durum, List<IhaleHamlesi> ger, int indeks)
+        {
+            for (int j = 0; j < indeks; j++)
+                if (ger[j].Oyuncu == durum.AktifOyuncu || ger[j].Oyuncu == durum.Partner) return true;
+            return false;
+        }
+
         private string AciciIkiNTCevabi(IhaleDurumu durum, List<IhaleHamlesi> ger)
         {
             int n = ger.Count;
@@ -123,6 +134,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (cev.Koz != "Kupa" && cev.Koz != "Maça") return null;
             var ac = ger[n - 4];
             if (ac.Oyuncu != durum.AktifOyuncu || ac.Seviye != 1 || ac.Koz == "NT") return null;
+            if (OncedenTarafTeklifiVar(durum, ger, n - 4)) return null;
             var el = durum.AktifOyuncuEli;
             if (el == null || el.Count != 13) return null;
             int hp = ElDegerlendirici.HCP(el);

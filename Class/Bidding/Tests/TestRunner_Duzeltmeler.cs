@@ -253,6 +253,9 @@ namespace BricKartOyunu.Tests
             TS("V108 1H-1S-1NT-3D: 12 HP, KQJ karo destek -> 3NT kabul", TestHelpers.ElOlustur("83", "AT762", "KQJ", "Q109"), "3NT", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "3♦", "Pas");
             TS("V109 1H-1S-1NT-3D: 12 HP, QJ9 karo destek yok -> Pas", TestHelpers.ElOlustur("83", "AT762", "QJ9", "KQ10"), "Pas", "Pas", "1♥", "Pas", "1♠", "Pas", "1NT", "Pas", "3♦", "Pas");
 
+            // 1♣-1♦-1♥-1NT: 1NT cevapçının rebid'i, İki Yönlü Checkback (açanın 1NT'si) devreye girmemeli
+            TZ("1♣-1♦-1♥-1NT: açan 12 HP checkback 2NT demez", TestHelpers.ElOlustur("KQJ7", "J875", "103", "KQ10"), "Pas",
+                "1♣", "Pas", "1♦", "Pas", "1♥", "Pas", "1NT", "Pas");
             AcilisCevapTaramasi(8000);
 
             sonucEkle("");
