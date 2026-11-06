@@ -39,7 +39,7 @@ namespace BricKartOyunu.Class.Bidding
             if (ad.StartsWith("OneClub_", StringComparison.Ordinal) || ad.StartsWith("OneClubZ_", StringComparison.Ordinal)) return "1♣ Cevap Sistemi";
             if (ad == "OneDiamond_Opening") return "1♦ Açılış Sistemi";
             if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal) || ad.StartsWith("OneDiamondZ_", StringComparison.Ordinal)) return "1♦ Cevap Sistemi";
-            if (ad.StartsWith("OneHeart_", StringComparison.Ordinal)) return "1♥ Cevap Sistemi";
+            if (ad.StartsWith("OneHeart_", StringComparison.Ordinal) || ad.StartsWith("OneHeartZ_", StringComparison.Ordinal)) return "1♥ Cevap Sistemi";
             if (ad.StartsWith("OneSpade_", StringComparison.Ordinal)) return "1♠ Cevap Sistemi";
             if (ad.StartsWith("OneNT_", StringComparison.Ordinal) || ad.StartsWith("OneNTZ_", StringComparison.Ordinal)) return "1NT Cevap Sistemi";
             if (ad.StartsWith("TwoClub_", StringComparison.Ordinal)) return "2♣ Cevap Sistemi";
@@ -254,6 +254,7 @@ namespace BricKartOyunu.Class.Bidding
                 new OneDiamondZ_OneHeart(),
                 new OneDiamondZ_OneSpade(),
                 new OneDiamondZ_Araya(),
+                new OneHeartZ_Araya(),
                 new OneDiamond_OneSpade(),
                 new OneDiamond_OneNT(),
                 new OneDiamond_TwoClub(),
@@ -472,6 +473,8 @@ namespace BricKartOyunu.Class.Bidding
                 return _anlasma.OneDiamond_AnswerSistemi && !_anlasma.StrongNT;
             if (ad.StartsWith("OneDiamond_", StringComparison.Ordinal) && ad != "OneDiamond_Opening")
                 return _anlasma.OneDiamond_AnswerSistemi;
+            if (ad.StartsWith("OneHeartZ_", StringComparison.Ordinal))
+                return _anlasma.OneHeart_AnswerSistemi && !_anlasma.StrongNT;
             if (ad.StartsWith("OneHeart_", StringComparison.Ordinal))
                 return _anlasma.OneHeart_AnswerSistemi;
             if (ad.StartsWith("OneSpade_", StringComparison.Ordinal))
