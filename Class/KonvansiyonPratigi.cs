@@ -166,6 +166,14 @@ namespace BricKartOyunu.Class
             return m;
         }
 
+        /// <summary>52 kartlık desteden dört eli (Kuzey, Doğu, Güney, Batı) çıkarır.</summary>
+        public static Dictionary<Player, List<Card>> DestedenEller(List<string> deste)
+        {
+            var eller = new Dictionary<Player, List<Card>>();
+            for (int k = 0; k < 4; k++) eller[Sira[k]] = KartlarinElleri(deste, k);
+            return eller;
+        }
+
         private static List<Card> KartlarinElleri(List<string> deste, int koltuk)
         {
             var el = new List<Card>();

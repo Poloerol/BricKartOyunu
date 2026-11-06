@@ -236,6 +236,31 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
                     return "Dbl";
             }
+            // Rakibin zayıf 2 / 3 seviye engel açılışı (2♣ hariç), doğrudan koltuk: güçlü el (17+ HP) pas geçmemeli.
+            if ((sev == 2 || sev == 3) && gercek.Count == 1 && rk != "NT" && son.Teklif != "2♣" && hp >= 17)
+            {
+                bool deng = ElDegerlendirici.DengeliEl(el);
+                if (deng && hp >= 19 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") <= 3 &&
+                    !Renkler.Any(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 6))
+                    return Seviye(d, "NT", 3);
+                if (ElDegerlendirici.RenkUzunlugu(el, rk) <= 3 &&
+                    Renkler.Where(r => r != rk).All(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 3))
+                    return "Dbl";
+            }
+            // Rakip zayıf 2'yi 3'e yükseltti / 3 seviye engeli yükseltti, ortağım hiç konuşmadı: güçlü uzun rengimle (6+ kart ya da 16+ HP'li iyi 5 kart) yine gir.
+            if (gercek.Count == 2 && hp >= 15 && rk != "NT" && gercek[0].Oyuncu != d.Partner && gercek[0].Oyuncu != d.AktifOyuncu &&
+                gercek[1].Oyuncu == son.Oyuncu && d.Rakipler.Contains(gercek[0].Oyuncu) && gercek[0].Seviye >= 2 && gercek[0].Seviye <= 3 &&
+                gercek[0].Koz == rk && gercek[1].Koz == rk && gercek[0].Teklif != "2♣")
+            {
+                foreach (var r in Renkler)
+                {
+                    int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                    // 6+ kartlık iyi renk, ya da 16+ HP ile üst onurlarından (A/K/Q) en az ikisi olan 5 kartlık renk
+                    if (r == rk || !((u >= 6 && IyiRenk(el, r)) || (u == 5 && hp >= 16 && el.Count(c => c.Suit == r && c.Value >= 12) >= 2))) continue;
+                    string t = Seviye(d, r, 4);
+                    if (t != "Pas") return t;
+                }
+            }
             if (sev >= 3 || hp < 8 + fark) return "Pas";
 
             // Dengeli 15-18 HP, rakibin rengini durduruyor: NT müdahalesi (1♦ – (1NT), 2♥ – (2NT) = 15-18).
@@ -275,6 +300,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int lvl = Cheapest(d, en);
             if (lvl == 1 && hp >= 8 + fark) return "1" + KozYardimcisi.KozSembolu(en);
             if (lvl == 2 && hp >= 11 + fark && enUz >= 5 && IyiRenk(el, en)) return "2" + KozYardimcisi.KozSembolu(en);
+            // Rakip zayıf 2 açtı: 3 seviyesinde uzun (6+) iyi renk, 12+ HP
+            if (lvl == 3 && sev == 2 && gercek.Count == 1 && enUz >= 6 && hp >= 12 + fark && IyiRenk(el, en)) return "3" + KozYardimcisi.KozSembolu(en);
             return "Pas";
         }
 
@@ -469,6 +496,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 {
                     if (fit != null && Major(fit) && fitToplam >= 8 && hp >= 10) return Seviye(d, fit, 4);
                     if (dengeli && hp >= 10) return Seviye(d, "NT", 3);
+                    // Dengesiz el (tek kart / uzun minör), 5 kartlık majör yok: ortağın 15+ HP'siyle oyun değeri var, yine 3NT
+                    if (!dengeli && hp >= 10 && ElDegerlendirici.RenkUzunlugu(el, "Maça") < 5 && ElDegerlendirici.RenkUzunlugu(el, "Kupa") < 5 && (fit == null || !Major(fit)))
+                        return Seviye(d, "NT", 3);
                     if (dengeli && hp >= 8 && hp <= 9)
                     {
                         // Minör transferi açıkken 1NT–2NT transferdir (karo): doğal davet Stayman (2♣) yoluyla yapılır,

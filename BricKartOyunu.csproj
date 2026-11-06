@@ -157,6 +157,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Class\DD\HizliDD.cs" />
+    <Compile Include="Class\DD\DDMotor.cs" />
+    <Compile Include="Class\DD\ParHesabi.cs" />
+    <Compile Include="Class\DD\IhaleDegerlendirme.cs" />
+    <Compile Include="Class\DD\IhaleSonucu.cs" />
+    <Compile Include="Class\DD\MotorKarnesi.cs" />
+    <Compile Include="Forms\DDAnalizForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\DDKarneForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.DD.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="AppState.cs" />
     <Compile Include="Class\AtakKurallari.cs" />
     <Compile Include="Class\Bidding\BiddingPresenter.cs" />
@@ -416,6 +431,7 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_Gelisimler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_IkiBirOyunZorlama.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Duzeltmeler.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_DD.cs" />
     <Compile Include="Class\Bidding\Tests\ToplamIhaleDenetimi.cs" />
     <Compile Include="Class\Cards.cs" />
     <Compile Include="Class\CardSorter.cs" />
@@ -702,6 +718,12 @@
     <Folder Include="Images\UI\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Native\x64\dds.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Native\x86\dds.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="BricKartOyunu.ico" />
     <Content Include="Images\Backgrounds\AnaCover.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
