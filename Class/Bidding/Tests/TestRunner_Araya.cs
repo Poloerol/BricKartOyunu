@@ -253,6 +253,28 @@ namespace BricKartOyunu.Tests
             T("rakip açmadıysa devreye girmez", bal, TestHelpers.ElOlustur("432", "KQJ9432", "32", "2"), new[] { "Pas", "Pas", "Pas" }, null, sonucEkle, ref gecen, ref kalan);
             T("Pas-Pas yoksa devreye girmez", bal, TestHelpers.ElOlustur("432", "KQJ9432", "32", "2"), new[] { "1♣", "Pas" }, null, sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
+            sonucEkle("── 2NT Lebensohl (s.93-94) ──");
+            var leb = new Araya_Leben2NT();
+            string[] h2 = { "2♥", "Dbl", "Pas" };
+            T("Leb: 0-7 4♠ → 2♠", leb, TestHelpers.ElOlustur("KJ32", "432", "432", "432"), h2, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("Leb: 8-10 5♠ → 3♠ atlamalı", leb, TestHelpers.ElOlustur("AQ932", "32", "K32", "432"), h2, "3♠", sonucEkle, ref gecen, ref kalan);
+            T("Leb: 10 HCP renk yok → 2NT davet", leb, TestHelpers.ElOlustur("K32", "432", "AQ32", "J32"), h2, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("Leb: 13 HCP dengeli ♥ stoperli → 3NT", leb, TestHelpers.ElOlustur("K32", "KQ2", "AJ32", "432"), h2, "3NT", sonucEkle, ref gecen, ref kalan);
+            T("Leb: FG stopersiz → cuebid 3♥", leb, TestHelpers.ElOlustur("AK32", "432", "AQ2", "K32"), h2, "3♥", sonucEkle, ref gecen, ref kalan);
+            T("Leb: zayıf 6♣ → 2NT", leb, TestHelpers.ElOlustur("32", "32", "432", "KJ9432"), h2, "2NT", sonucEkle, ref gecen, ref kalan);
+            T("Leb: 0-7 4♦ → 3♦", leb, TestHelpers.ElOlustur("32", "432", "KJ98", "5432"), h2, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("Leb: (1♥)-Dbl-(2♥) 0-7 4♠ → 2♠", leb, TestHelpers.ElOlustur("KJ32", "432", "432", "432"), new[] { "1♥", "Dbl", "2♥" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            T("Leb: (1♣)-Dbl-(Pas) bağlam dışı → devreye girmez", leb, TestHelpers.ElOlustur("KJ32", "432", "432", "432"), new[] { "1♣", "Dbl", "Pas" }, null, sonucEkle, ref gecen, ref kalan);
+            string[] h2n = { "2♥", "Dbl", "Pas", "2NT", "Pas" };
+            T("Leb dbl: minimum → 3♣", leb, TestHelpers.ElOlustur("AQ32", "3", "KJ32", "Q432"), h2n, "3♣", sonucEkle, ref gecen, ref kalan);
+            T("Leb dbl: max 5♠ → 3♠", leb, TestHelpers.ElOlustur("AKJ32", "3", "AQ32", "K32"), h2n, "3♠", sonucEkle, ref gecen, ref kalan);
+            T("Leb dbl: max 5♦ → 3♦", leb, TestHelpers.ElOlustur("AK32", "3", "AQJ32", "K32"), h2n, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("Leb dbl: max dengeli stoperli → 3NT", leb, TestHelpers.ElOlustur("AK32", "KQ2", "Q32", "KJ2"), h2n, "3NT", sonucEkle, ref gecen, ref kalan);
+            string[] h3c = { "2♥", "Dbl", "Pas", "2NT", "Pas", "3♣", "Pas" };
+            T("Leb 2.: 3♣ sonrası zayıf ♣ → Pas", leb, TestHelpers.ElOlustur("32", "32", "432", "KJ9432"), h3c, "Pas", sonucEkle, ref gecen, ref kalan);
+            T("Leb 2.: 3♣ sonrası 5♦ davet → 3♦", leb, TestHelpers.ElOlustur("K32", "32", "AQ932", "432"), h3c, "3♦", sonucEkle, ref gecen, ref kalan);
+            T("Leb 2.: 3♣ sonrası 4♠ 9 HCP → 3♠", leb, TestHelpers.ElOlustur("KJ32", "32", "Q432", "K32"), h3c, "3♠", sonucEkle, ref gecen, ref kalan);
+            T("Leb 2.: 3♣ sonrası 4♠ 10 HCP → 3♥ cuebid", leb, TestHelpers.ElOlustur("KJ32", "32", "QJ32", "K43"), h3c, "3♥", sonucEkle, ref gecen, ref kalan);
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
 
