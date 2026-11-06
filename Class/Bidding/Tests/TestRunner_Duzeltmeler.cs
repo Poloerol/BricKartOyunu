@@ -256,6 +256,12 @@ namespace BricKartOyunu.Tests
             // 1♣-1♦-1♥-1NT: 1NT cevapçının rebid'i, İki Yönlü Checkback (açanın 1NT'si) devreye girmemeli
             TZ("1♣-1♦-1♥-1NT: açan 12 HP checkback 2NT demez", TestHelpers.ElOlustur("KQJ7", "J875", "103", "KQ10"), "Pas",
                 "1♣", "Pas", "1♦", "Pas", "1♥", "Pas", "1NT", "Pas");
+            // 1♦-(1♥): 6♠ 14 HP elde minör fit'e (5♦) atlamadan 6'lı majör söylenir (1♠)
+            TZ("1♦-(1♥): 6♠ 14 HP ♦ 4'lü → 1♠ (5♦ değil)", TestHelpers.ElOlustur("K108542", "A2", "KJ93", "K"), "1♠",
+                "1♦", "1♥");
+            // 1♦-(1♥)-1♠-(Pas): açan rakibin ♥ rengini kendi rengi gibi (2♥) söylemez; ♦ rebid
+            TZ("1♦-(1♥)-1♠-(Pas): açan 4-4-4-1 12 HP → 2♦ (2♥ cuebid değil)", TestHelpers.ElOlustur("9", "Q864", "AQ62", "A974"), "2♦",
+                "1♦", "1♥", "1♠", "Pas");
             AcilisCevapTaramasi(8000);
 
             sonucEkle("");

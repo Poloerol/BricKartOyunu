@@ -554,6 +554,26 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "Pas";
             }
 
+            {
+                string ym = YeniMajorOnceligi(d, el, hp, fit, gercek, rakipRenkleri);
+                if (ym != null) return ym;
+            }
+
+            // Kendi söylediğim 6+ kartlık majör varken ortağın minör "fit"i (ör. 1♣–1♠–2♣) oyun hedefi olmaz: majörde oyna.
+            if (fit != null && !Major(fit) && fit != "NT" && sonOrtak)
+            {
+                foreach (var mj in new[] { "Maça", "Kupa" })
+                {
+                    if (rakipRenkleri.Contains(mj)) continue;
+                    if (ElDegerlendirici.RenkUzunlugu(el, mj) >= 6 && gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == mj) && est >= 23)
+                    {
+                        int ucM = Cheapest(d, mj);
+                        int hedefM = est >= 25 ? 4 : 3;
+                        if (ucM <= hedefM) return Seviye(d, mj, hedefM);
+                    }
+                }
+            }
+
             // ── Fit varsa: fit rengiyle hedef ──
             if (fit != null && fit != "NT")
             {
@@ -1004,11 +1024,37 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // ═════════════════════════════════════════════════════════════════
         // 4. REKABET (son söz rakipte)
         // ═════════════════════════════════════════════════════════════════
+        /// <summary>
+        /// Ortak minör açtı, ilk cevabım (rakip araya girmiş olabilir): 5+ kartlı yeni majör varsa minör fit'e atlamadan önce
+        /// majörü söyle (1 seviyede 6+ HP, 2 seviyede 10+ HP; 6+ kartta 8+ HP). Yeni majör zorlayıcıdır, fit sonra bulunur.
+        /// </summary>
+        private string YeniMajorOnceligi(IhaleDurumu d, List<Card> el, int hp, string fit, List<IhaleHamlesi> gercek, List<string> rakipRenkleri)
+        {
+            if (fit == null || Major(fit) || fit == "NT") return null;
+            var ilk = gercek.First();
+            if (ilk.Oyuncu != d.Partner || ilk.Seviye != 1 || ilk.Koz != fit) return null;
+            if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi)) return null;
+            string yeniMajor = null;
+            foreach (var r in new[] { "Maça", "Kupa" })
+            {
+                if (rakipRenkleri.Contains(r)) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                int ucMaj = Cheapest(d, r);
+                if (u >= 5 && ((ucMaj == 1 && hp >= 6) || (ucMaj == 2 && (hp >= 10 || (u >= 6 && hp >= 8)))) &&
+                    (yeniMajor == null || u > ElDegerlendirici.RenkUzunlugu(el, yeniMajor))) yeniMajor = r;
+            }
+            return yeniMajor == null ? null : Seviye(d, yeniMajor, Cheapest(d, yeniMajor));
+        }
+
         private string Rekabet(IhaleDurumu d, List<Card> el, int hp, bool dengeli, IhaleKoruma.Aralik ar,
                                IhaleHamlesi son, List<string> rakipRenkleri, List<IhaleHamlesi> gercek)
         {
             string fit = FitBul(d, el, gercek, rakipRenkleri, out int toplam);
             if (fit == null || fit == "NT" || toplam < 8) return AciciRekabeti(d, el, hp, son, rakipRenkleri, gercek);
+            {
+                string ym = YeniMajorOnceligi(d, el, hp, fit, gercek, rakipRenkleri);
+                if (ym != null) return ym;
+            }
 
             // Toplam Kart Kanunu: seviye = toplam koz - 6
             int lott = toplam - 6;
@@ -1517,7 +1563,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                               .OrderByDescending(r => ElDegerlendirici.RenkUzunlugu(el, r))
                               .FirstOrDefault();
             if (benim != null && ElDegerlendirici.RenkUzunlugu(el, benim) >= 6) return benim;
-            return EnUzunRenk(el);
+            // Rakibin söylediği renk doğal renk değil cuebid olur (1♦-(1♥)-1♠-(Pas)-2♥): rakip renklerini dışla
+            var rakip = gercek.Where(h => d.Rakipler.Contains(h.Oyuncu) && h.Koz != "NT").Select(h => h.Koz).Distinct().ToList();
+            string en = null; int u = -1;
+            foreach (var r in Renkler)
+            {
+                if (rakip.Contains(r)) continue;
+                int x = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (x > u || (x == u && RenkSira(r) > RenkSira(en))) { en = r; u = x; }
+            }
+            return en ?? EnUzunRenk(el);
         }
 
         // ── Teklif üretme ──
