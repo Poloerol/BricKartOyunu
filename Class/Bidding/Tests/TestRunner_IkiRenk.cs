@@ -112,6 +112,38 @@ namespace BricKartOyunu.Tests
             TW("açan: 1NT-2♦ transfer → 2♥", zs, TestHelpers.ElOlustur("KJ32", "AQ3", "K32", "Q32"), new[] { "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
             TW("açan: 1NT-2♠ transfer → 3♣", zs, TestHelpers.ElOlustur("KJ32", "AQ3", "K32", "Q32"), new[] { "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♠", "Pas" }, "3♣", sonucEkle, ref gecen, ref kalan);
             TW("açan: 2♣-2♦ röle 5♣4♠ → 2♠", zs, TestHelpers.ElOlustur("KQ32", "432", "2", "AQJ32"), new[] { "1♣", "Pas", "1♠", "Pas", "2♣", "Pas", "2♦", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Zayıf NT versiyonu: 1♦ cevapları ve 1♦-1♥/1♠ 1NT rebidi (s.84-86) ──");
+            var zdh = new BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond.OneDiamondZ_OneHeart();
+            var zds = new BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond.OneDiamondZ_OneSpade();
+            TW("açan: 5♦ 3♥ → 1NT", zdh, TestHelpers.ElOlustur("A32", "K32", "AQJ32", "32"), new[] { "1♦", "Pas", "1♥", "Pas" }, "1NT", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 4♥ ise devreye girmez", zdh, TestHelpers.ElOlustur("A32", "K432", "AQJ32", "2"), new[] { "1♦", "Pas", "1♥", "Pas" }, null, sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1NT sonrası zayıf 5♥ → 2♥", zdh, TestHelpers.ElOlustur("432", "KJ432", "32", "432"), new[] { "1♦", "Pas", "1♥", "Pas", "1NT", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 5♥ 4♠ 13 HCP → 2♠ FG", zdh, TestHelpers.ElOlustur("KQ32", "AJ432", "K2", "32"), new[] { "1♦", "Pas", "1♥", "Pas", "1NT", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 5♥ 17 HCP dengeli → 2♣ röle", zdh, TestHelpers.ElOlustur("432", "AKJ32", "KQ2", "A2"), new[] { "1♦", "Pas", "1♥", "Pas", "1NT", "Pas" }, "2♣", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 2♣ röle, 6♦ 13 HCP → 2♦", zdh, TestHelpers.ElOlustur("A32", "K32", "KQJ932", "2"), new[] { "1♦", "Pas", "1♥", "Pas", "1NT", "Pas", "2♣", "Pas" }, "2♦", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 2♣ röle, 5♦4♠3♥1♣ → 2♠", zdh, TestHelpers.ElOlustur("AKJ2", "K32", "AQJ32", "2"), new[] { "1♦", "Pas", "1♥", "Pas", "1NT", "Pas", "2♣", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 5♦ 3♠ → 1NT", zds, TestHelpers.ElOlustur("K32", "A32", "AQJ32", "K2"), new[] { "1♦", "Pas", "1♠", "Pas" }, "1NT", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1NT sonrası zayıf 5♠ → 2♠", zds, TestHelpers.ElOlustur("KJ432", "432", "32", "432"), new[] { "1♦", "Pas", "1♠", "Pas", "1NT", "Pas" }, "2♠", sonucEkle, ref gecen, ref kalan);
+            TD("1♦ cevap: 5 HCP 4♥ → 1♥", TestHelpers.ElOlustur("432", "KQ32", "432", "432"), "1♥", sonucEkle, ref gecen, ref kalan);
+            TD("1♦ cevap: 4 HCP 4♥ → Pas", TestHelpers.ElOlustur("432", "KJ32", "432", "432"), "Pas", sonucEkle, ref gecen, ref kalan);
+            TD("1♦ cevap: 8 HCP dengeli → 1NT", TestHelpers.ElOlustur("K32", "432", "432", "KQ32"), "1NT", sonucEkle, ref gecen, ref kalan);
+            TD("1♦ cevap: 4♦ 5 HCP majör yok → 3♦ blokaj", TestHelpers.ElOlustur("43", "432", "KJ32", "J432"), "3♦", sonucEkle, ref gecen, ref kalan);
+            sonucEkle("── Zayıf NT versiyonu: 12-14 1NT açılışı cevapları ve gelişimleri (s.87-89) ──");
+            var z2c = new BricKartOyunu.Class.Bidding.OpeningSystems.OneNT.OneNTZ_TwoClub();
+            var z2d = new BricKartOyunu.Class.Bidding.OpeningSystems.OneNT.OneNTZ_TwoDiamond();
+            var z2h = new BricKartOyunu.Class.Bidding.OpeningSystems.OneNT.OneNTZ_TwoHeart();
+            var z2n = new BricKartOyunu.Class.Bidding.OpeningSystems.OneNT.OneNTZ_TwoNT();
+            TN("1NT cevap: zayıf 5♠ → 2♠ (transfer yok)", TestHelpers.ElOlustur("KJ432", "432", "32", "432"), "2♠", sonucEkle, ref gecen, ref kalan);
+            TN("1NT cevap: 15 dengeli majörsüz → 3NT", TestHelpers.ElOlustur("AK2", "KQ3", "Q432", "J32"), "3NT", sonucEkle, ref gecen, ref kalan);
+            TN("1NT cevap: 15 HCP 4♥ → 2♦ FG Stayman", TestHelpers.ElOlustur("AK2", "KQ32", "Q32", "J32"), "2♦", sonucEkle, ref gecen, ref kalan);
+            TN("1NT cevap: 11 dengeli majörsüz → 2NT davet", TestHelpers.ElOlustur("K32", "Q32", "KJ32", "Q32"), "2NT", sonucEkle, ref gecen, ref kalan);
+            TN("1NT cevap: 11 HCP 5♥ → 2♣ davet Stayman", TestHelpers.ElOlustur("32", "KQJ32", "K32", "Q32"), "2♣", sonucEkle, ref gecen, ref kalan);
+            TN("1NT cevap: 6♥ 13 HCP → 4♥", TestHelpers.ElOlustur("A2", "KQJ932", "K32", "32"), "4♥", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-2♣ 4♥ → 2♥", z2c, TestHelpers.ElOlustur("432", "KJ32", "AQ2", "K32"), new[] { "1NT", "Pas", "2♣", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1NT-2♣-2♦ 5♥ davet → 2♥", z2c, TestHelpers.ElOlustur("32", "KQJ32", "K32", "Q32"), new[] { "1NT", "Pas", "2♣", "Pas", "2♦", "Pas" }, "2♥", sonucEkle, ref gecen, ref kalan);
+            TW("cevapçı: 1NT-2♦-2♥ uyum 13 HCP → 4♥", z2d, TestHelpers.ElOlustur("A32", "KQ32", "K32", "J32"), new[] { "1NT", "Pas", "2♦", "Pas", "2♥", "Pas" }, "4♥", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-2NT 14 HCP → 3NT", z2n, TestHelpers.ElOlustur("AK32", "Q32", "K32", "Q32"), new[] { "1NT", "Pas", "2NT", "Pas" }, "3NT", sonucEkle, ref gecen, ref kalan);
+            TW("açan: 1NT-2♥ 14 HCP 3♥ → 3♥", z2h, TestHelpers.ElOlustur("A32", "KQ3", "K432", "Q32"), new[] { "1NT", "Pas", "2♥", "Pas" }, "3♥", sonucEkle, ref gecen, ref kalan);
             sonucEkle("");
             sonucEkle($"  SONUÇ: {gecen} geçti, {kalan} kaldı");
         }
@@ -146,6 +178,30 @@ namespace BricKartOyunu.Tests
             var durum = TestHelpers.DurumOlustur(el, Player.Guney, new[] { "1♣", "Pas" });
             durum.Anlasma.StrongNT = false;
             var k = new BricKartOyunu.Class.Bidding.OpeningSystems.OneClub.OneClub_Answer();
+            string sonuc = k.UygunMu(durum) ? k.TeklifVer(durum) : null;
+            if (sonuc == beklenen) { sonucEkle($"✅ DOĞRU: {sonuc}"); gecen++; }
+            else { sonucEkle($"❌ HATA: Beklenen {beklenen}, gelen {sonuc ?? "(devreye girmedi)"}"); kalan++; }
+        }
+
+        // 1♦ cevabı (IKonvansiyon): ortak 1♦ açtı, sağdaki Pas → ben (Güney), zayıf NT
+        private static void TD(string ad, List<Card> el, string beklenen, Action<string> sonucEkle, ref int gecen, ref int kalan)
+        {
+            sonucEkle($"▶ {ad}");
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, new[] { "1♦", "Pas" });
+            durum.Anlasma.StrongNT = false;
+            var k = new BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond.OneDiamond_Answer();
+            string sonuc = k.UygunMu(durum) ? k.TeklifVer(durum) : null;
+            if (sonuc == beklenen) { sonucEkle($"✅ DOĞRU: {sonuc}"); gecen++; }
+            else { sonucEkle($"❌ HATA: Beklenen {beklenen}, gelen {sonuc ?? "(devreye girmedi)"}"); kalan++; }
+        }
+
+        // 1NT cevabı (IKonvansiyon): ortak 1NT açtı, sağdaki Pas → ben (Güney), zayıf NT
+        private static void TN(string ad, List<Card> el, string beklenen, Action<string> sonucEkle, ref int gecen, ref int kalan)
+        {
+            sonucEkle($"▶ {ad}");
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, new[] { "1NT", "Pas" });
+            durum.Anlasma.StrongNT = false;
+            var k = new BricKartOyunu.Class.Bidding.OpeningSystems.OneNT.OneNT_Answer();
             string sonuc = k.UygunMu(durum) ? k.TeklifVer(durum) : null;
             if (sonuc == beklenen) { sonucEkle($"✅ DOĞRU: {sonuc}"); gecen++; }
             else { sonucEkle($"❌ HATA: Beklenen {beklenen}, gelen {sonuc ?? "(devreye girmedi)"}"); kalan++; }

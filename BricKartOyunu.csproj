@@ -302,6 +302,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_Opening.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_Answer.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_OneHeart.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamondZ_Taban.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_OneNT.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_OneSpade.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneDiamond\OneDiamond_TwoClub.cs" />
@@ -329,6 +330,7 @@
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_TwoHeart.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_TwoSpade.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_TwoNT.cs" />
+    <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNTZ_Taban.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_ThreeClub.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_ThreeDiamond.cs" />
     <Compile Include="Class\Bidding\OpeningSystems\OneNT\OneNT_ThreeHeart.cs" />

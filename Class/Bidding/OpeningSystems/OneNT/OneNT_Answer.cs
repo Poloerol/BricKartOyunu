@@ -41,6 +41,32 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneNT
             int d = ElDegerlendirici.RenkUzunlugu(el, "Karo");
             int c = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
 
+            // ZAYIF NT VERSİYONU (SAS s.87): 1NT = 12-14, transfer yok. 2♣ davet Stayman, 2♦ FG Stayman, 2♥/2♠ doğal NF,
+            // 2NT davet (4'lü majör yok), 3♣/3♦ 6+ NF, 3♥/3♠ 5/4+ minör SNG FG, 3NT doğal, 4♣/4♦ majörler, 4♥/4♠ oynamak için.
+            // SEÇİM: zayıf ≤9, davet 10-12, oyun 13+ HCP.
+            if (durum.Anlasma != null && !durum.Anlasma.StrongNT)
+            {
+                bool bal = ElDegerlendirici.DengeliEl(el);
+                if (hcp >= 10 && s >= 5 && h >= 5) return h >= s ? "4♣" : "4♦";             // majörler (iyi olan belirtilir)
+                if (hcp >= 10 && h >= 6) return "4♥";
+                if (hcp >= 10 && s >= 6) return "4♠";
+                if (hcp >= 13 && c >= 4 && d >= 4 && (c >= 5 || d >= 5) && h <= 1) return "3♥";   // 5/4+ minör SNG ♥ FG
+                if (hcp >= 13 && c >= 4 && d >= 4 && (c >= 5 || d >= 5) && s <= 1) return "3♠";
+                if (hcp >= 13 && bal && s < 4 && h < 4) return "3NT";
+                if (hcp >= 13) return "2♦";                                                  // FG Stayman
+                if (hcp >= 10)
+                {
+                    if (s >= 5 || h >= 5) return "2♣";                                       // 5+ majör davet
+                    if ((s == 4 || h == 4) && (c >= 5 || d >= 5 || bal)) return "2♣";        // 4 majör + 5 minör / dengeli
+                    if (s < 4 && h < 4) return "2NT";                                        // davet
+                    return "2♣";
+                }
+                if (s >= 5) return "2♠";
+                if (h >= 5) return "2♥";
+                if (c >= 6) return "3♣";
+                if (d >= 6) return "3♦";
+                return "Pas";
+            }
             // 1) Texas: 6+ majör, oyun gücü (10-14)
             if (hcp >= 10 && hcp <= 14)
             {

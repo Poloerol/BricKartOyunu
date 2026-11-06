@@ -40,6 +40,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond
             int c = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
             bool dengeli = ElDegerlendirici.DengeliEl(el);
             bool tehlikeli = ElDegerlendirici.ZondaMi(durum.ZonNS, durum.ZonEW, durum.AktifOyuncu);
+            bool zayifNT = durum.Anlasma != null && !durum.Anlasma.StrongNT;   // SAS s.84: 1♥/1♠ 5+ HCP, 1NT 7-10, 2♣ 5+♣, 3♦ 4+♦ blokaj
 
             // 1) 3NT: 4♦ 3-3-3, 12-14 HCP, 0-3 kontrol
             if (hcp >= 12 && hcp <= 14 && d == 4 && s == 3 && h == 3 && c == 3 && ElDegerlendirici.KontrolSayisi(el) <= 3)
@@ -51,7 +52,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond
             if (hcp >= 9 && hcp <= 11 && c >= 6 && s < 4 && h < 4) return "2♠";
 
             // 3) 2♣: 12+ HCP dengeli 2+♣ ya da 4+♦ FG
-            if (hcp >= 12 && ((dengeli && s < 5 && h < 5) || d >= 4)) return "2♣";
+            if (hcp >= 12 && ((dengeli && s < 5 && h < 5) || (zayifNT ? c >= 5 : d >= 4))) return "2♣";
 
             // 4) 2♥: 5♠ 4+♥ 3-8 HCP
             if (s >= 5 && h >= 4 && hcp >= 3 && hcp <= 8) return "2♥";
@@ -64,12 +65,14 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneDiamond
             if (hcp >= 11 && hcp <= 12 && dengeli && s < 4 && h < 4) return "2NT";
 
             // 7) 1NT: 5-10 HCP, 4'lü majör yok
-            if (hcp >= 5 && hcp <= 10 && s < 4 && h < 4 && !(c >= 6 && hcp <= 8)) return "1NT"; // 6+♣ zayıf → 3♣ önleyici
+            if (hcp >= (zayifNT ? 7 : 5) && hcp <= 10 && s < 4 && h < 4 && !(c >= 6 && hcp <= 8)) return "1NT"; // 6+♣ zayıf → 3♣ önleyici
 
             // 8) Majörler: 4+ HCP, 4+ kart
-            if (hcp >= 4 && s >= 4 && s > h) return "1♠";
-            if (hcp >= 4 && h >= 4) return "1♥";
-            if (hcp >= 4 && s >= 4) return "1♠";
+            int minMaj = zayifNT ? 5 : 4;
+            if (hcp >= minMaj && s >= 4 && s > h) return "1♠";
+            if (hcp >= minMaj && h >= 4) return "1♥";
+            if (hcp >= minMaj && s >= 4) return "1♠";
+            if (zayifNT && d >= 4 && hcp <= 8) return "3♦";   // 4+♦ blokaj
 
             // 9) Önleyiciler
             if (tehlikeli)
