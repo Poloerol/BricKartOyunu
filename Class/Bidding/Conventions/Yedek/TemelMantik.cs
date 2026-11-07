@@ -715,7 +715,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string serbest = acilmamis[2];
 
             double est = hp + ar.Min;
-            if (est < 25) return null;
+            if (est < 25)
+            {
+                // Oyun gücü yok ama 6+ kartlık iyi bir serbest renk ve 7+ HP: rakibin iki renkli müdahalesine karşı 3. seviyeden doğal rekabet
+                if (hp >= 7 && ElDegerlendirici.RenkUzunlugu(el, serbest) >= 6 && el.Count(c => c.Suit == serbest && c.Value >= 10) >= 2)
+                {
+                    string rk = Seviye(d, serbest, 3);
+                    if (rk != "Pas") return rk;
+                }
+                return null;
+            }
 
             if (rakip.All(r => Tutuk(el, r)) && ElDegerlendirici.DengeliEl(el)) return Seviye(d, "NT", 3);
 

@@ -33,6 +33,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.IhaleBittiMi()) return false;
 
+            // 0. Ben 1NT açıcısıyım: 1NT–2♣–2♦–3♥/3♠ (Smolen) sonrası cevap
+            if (AciciCevabi(durum) != null) return true;
+
             // 1. Partner 1NT açtı mı?
             if (durum.PartnerTeklifleri.Count == 0) return false;
             if (durum.PartnerTeklifleri[0] != "1NT") return false;
@@ -63,8 +66,31 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return true;
         }
 
+        /// <summary>
+        /// Açıcı (1NT) 2♦ ile majör olmadığını söyledi, ortak 3♥ (5♠+4♥) ya da 3♠ (5♥+4♠) ile Smolen yaptı (oyun zorlayıcı).
+        /// 3'lü (ya da daha uzun) 5'li majör desteği varsa 4M, yoksa 3NT. Dizi bu 4 çağrıdan başka gerçek teklif içermemeli.
+        /// </summary>
+        private static string AciciCevabi(IhaleDurumu durum)
+        {
+            if (durum.Anlasma == null || !durum.Anlasma.Smolen) return null;
+            var g = durum.Gecmis == null ? null : durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g == null || g.Count != 4) return null;
+            if (g[0].Teklif != "1NT" || g[0].Oyuncu != durum.AktifOyuncu) return null;
+            if (g[1].Teklif != "2♣" || g[1].Oyuncu != durum.Partner) return null;
+            if (g[2].Teklif != "2♦" || g[2].Oyuncu != durum.AktifOyuncu) return null;
+            if (g[3].Oyuncu != durum.Partner) return null;
+            var el = durum.AktifOyuncuEli;
+            if (el == null || el.Count != 13) return null;
+            if (g[3].Teklif == "3♥") return ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 3 ? "4♠" : "3NT";
+            if (g[3].Teklif == "3♠") return ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 3 ? "4♥" : "3NT";
+            return null;
+        }
+
         public string TeklifVer(IhaleDurumu durum)
         {
+            string acici = AciciCevabi(durum);
+            if (acici != null) return acici;
+
             var el = durum.AktifOyuncuEli;
             int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");

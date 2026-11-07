@@ -224,7 +224,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (hp >= 8 && hp <= 9) return "2NT";
                     if (hp >= 10) return "3NT";
 
-                    return "2NT";
+                    return "Pas";   // 8 HP altı (garbage Stayman): 2♦'de dur; 2NT daveti 8-9 HP ister
                 }
 
                 // ─── Açıcı 2♥ dedi (4'lü ♥ var) ──────────────────────────
@@ -236,7 +236,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     {
                         if (hp >= 8 && hp <= 9) return "3♥";
                         if (hp >= 10) return "4♥";
-                        return "3♥";
+                        return "Pas";   // 8 HP altı: 2♥'de dur (3♥ daveti 8-9 HP ister)
                     }
 
                     int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
@@ -256,11 +256,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     {
                         if (hp >= 8 && hp <= 9) return "3♠";
                         if (hp >= 10) return "4♠";
-                        return "3♠";
+                        return "Pas";   // 8 HP altı: 2♠'de dur (3♠ daveti 8-9 HP ister)
                     }
 
                     if (hp >= 10) return "3NT";
-                    return "2NT";
+                    if (hp >= 8) return "2NT";
+                    return "Pas";
                 }
             }
 

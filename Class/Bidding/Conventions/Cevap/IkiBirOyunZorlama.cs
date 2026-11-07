@@ -342,7 +342,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return null;
             }
             // Slam değeri (18+ HP): çok turlu GF devamı, Serious 3NT / kontrol çağrısı / Blackwood gibi konvansiyonlara bırakılır
-            if (z.Hp >= 18) return null;
+            // (Minör açılışta majör fit yok: bu slam araçları işlemez; oyun zorlayıcı ihale pasla bitmesin, aşağıdaki genel mantık oyun seviyesine taşır)
+            if (z.Hp >= 18 && m != "Karo") return null;
             string sonRenk = YK.KozOf(son);
             int hp = z.Hp;
             int sonSev = YK.Sev(son);
@@ -393,7 +394,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Genel fit: majörde 4M, minörde 3NT
             if (fit != null)
             {
-                if (hp >= (YK.Major(fit) ? 20 : 17)) return null;   // slam bölgesi: diğer konvansiyonlara bırakılır (minörde 17+)
+                if (hp >= (YK.Major(fit) ? 20 : 17) && !(m == "Karo" && fit != m)) return null;   // slam bölgesi: diğer konvansiyonlara bırakılır (minörde 17+; karo açılışta fit karo değilse araç yok)
                 // Minör açılışta açıcının 2. rengi majörde fit (cevaplayan 15+ HP): 4M yerine 3M ile şlem ilgisi (4M atlamaz)
                 if (!benAcici && z.Hepsi.Count == 3 && YK.Major(fit) && !YK.Major(m) && hp >= 15 && sonSev == 2 && YK2.Yuksek(YK.T(3, fit), son))
                     return YK.T(3, fit);
