@@ -22,6 +22,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
 
             if (durum.SonGercekTeklif != "1♣") return false;
             if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
+            if (durum.KendiGercekTeklifSayisi != 0) return false;                  // yalniz ortagin ACILISINA cevap (kendi rebid'inde calismaz)
 
             if (durum.RakipTeklifleri.Any(t => !string.IsNullOrEmpty(t)
                 && t != "Pas" && t != "Dbl" && t != "RDbl"))

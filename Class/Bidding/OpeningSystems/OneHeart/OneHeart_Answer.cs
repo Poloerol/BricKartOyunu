@@ -23,6 +23,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
             if (durum.AktifOyuncuEli.Count != 13) return false;
             if (durum.SonGercekTeklif != "1♥") return false;
             if (durum.SonGercekTeklifSahibi != durum.Partner) return false;
+            if (durum.KendiGercekTeklifSayisi != 0) return false;                  // yalniz ortagin ACILISINA cevap (kendi rebid'inde calismaz)
             if (durum.RakipTeklifleri.Any(t => !string.IsNullOrEmpty(t) && t != "Pas" && t != "Dbl" && t != "RDbl"))
                 return false;
             return true;
