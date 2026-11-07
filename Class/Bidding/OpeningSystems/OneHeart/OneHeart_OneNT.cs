@@ -125,5 +125,14 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
                 return e.C >= 6 ? "3♣" : "3♦";
             return null;
         }
+
+        // Puppet sekansi (2♣/2♦/2♥ - 2♠ - 2NT - 3♣/3♦): cevapci 6+ minor gosterdi; acan sozlesmeyi kabul eder, 17+ HP ile 3NT dener.
+        internal override bool KararTanimli(string rebid, string devam) { return devam == "2♠" && (rebid == "2♣" || rebid == "2♦" || rebid == "2♥"); }
+        internal override string AciciSon(OcEl e, string rebid, string devam, string roleCevap, string karar)
+        {
+            if (devam == "2♠" && roleCevap == "2NT" && (rebid == "2♣" || rebid == "2♦" || rebid == "2♥") && (karar == "3♣" || karar == "3♦"))
+                return e.Hcp >= 17 ? "3NT" : "Pas";
+            return null;
+        }
     }
 }
