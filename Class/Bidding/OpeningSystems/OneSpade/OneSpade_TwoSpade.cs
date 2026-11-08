@@ -29,7 +29,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade
             return OneClub_OneDiamond.Duz(e) ? "2NT" : "Pas";
         }
 
-        internal override bool DevamTanimli(string rebid) { return false; }                // cevapçı: gelişim natürel
-        internal override string CevapciDevam(OcEl e, string rebid) { return "Pas"; }
+        // Acanin deneme teklifleri (2NT / 3♥ / 3♣ / 3♦) zorlayici: cevapci 9-10 HP ile oyuna, daha azla 3♠ ile cevap verir.
+        internal override bool DevamTanimli(string rebid) { return rebid == "2NT" || rebid == "3♥" || rebid == "3♣" || rebid == "3♦"; }
+        internal override string CevapciDevam(OcEl e, string rebid) { return e.Hcp >= 9 ? "4♠" : "3♠"; }
     }
 }
