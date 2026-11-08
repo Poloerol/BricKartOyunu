@@ -51,6 +51,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Cevapçı, kendi 2♦ (oyun zorlayıcı) checkback'ine açıcının cevabı gelince oyuna kadar devam eder.
             if (CevapciDevamMi(durum, gercekTeklifler)) return true;
             if (AciciIkiNTCevabi(durum, gercekTeklifler) != null) return true;
+            if (AciciCheckbackCevapSirasi(durum, gercekTeklifler)) return true;
 
             // Son üç teklif: 1X (açıcı), 1Y (cevapçı), 1NT (açıcı) olmalı
             int n = gercekTeklifler.Count;
@@ -116,6 +117,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// 1X - 1M - 1NT - 2NT davetine açıcının cevabı: maksimumda (14+) 3NT; asgaride null (normal motor Pas der).
         /// </summary>
         /// <summary>İndeksten önce bizim tarafın (aktif oyuncu ya da ortağı) gerçek teklifi var mı?</summary>
+        /// <summary>1X – 1M – 1NT – 2♣/2♦ : sıra checkback'i yapan ortağa cevap verecek açıcıda mı? (XYZ kapalıyken de açıcı cevap verebilsin)</summary>
+        private static bool AciciCheckbackCevapSirasi(IhaleDurumu durum, List<IhaleHamlesi> g)
+        {
+            int n = g.Count;
+            if (n < 4) return false;
+            if (g[n - 1].Oyuncu != durum.Partner || (g[n - 1].Teklif != "2♣" && g[n - 1].Teklif != "2♦")) return false;
+            if (g[n - 2].Oyuncu != durum.AktifOyuncu || g[n - 2].Teklif != "1NT") return false;
+            if (g[n - 3].Oyuncu != durum.Partner || g[n - 3].Seviye != 1 || (g[n - 3].Koz != "Kupa" && g[n - 3].Koz != "Maça")) return false;
+            if (g[n - 4].Oyuncu != durum.AktifOyuncu || g[n - 4].Seviye != 1 || g[n - 4].Koz == "NT") return false;
+            if (g[n - 4].Koz == "Kupa" && g[n - 3].Koz != "Maça") return false;
+            return !OncedenTarafTeklifiVar(durum, g, n - 4);
+        }
+
         private static bool OncedenTarafTeklifiVar(IhaleDurumu durum, List<IhaleHamlesi> ger, int indeks)
         {
             for (int j = 0; j < indeks; j++)
