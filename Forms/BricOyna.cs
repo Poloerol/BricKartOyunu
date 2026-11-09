@@ -81,6 +81,50 @@ namespace BricKartOyunu
             foreach (var f in Application.OpenForms.OfType<DekBasForm>().ToList())
                 f.Hizala();
         }
+        /// <summary>Dizideki gorunen kartlardan biri arka yuz degil, yuzu gorunen bir kart mi?</summary>
+        private static bool YuzuAcikMi(PictureBox[] kartlar, Image arka)
+        {
+            foreach (var pb in kartlar)
+            {
+                if (pb == null || !pb.Visible || pb.Image == null) continue;
+                return !ReferenceEquals(pb.Image, arka);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Pencere boyutu degisince KartYerlesimiHazirla tum elleri baslangic duzenine (kapali cascade) alir.
+        /// Burada, boyut degisiminden once acik olan eller yeniden renk satirlari duzenine (Bati/Dogu) ya da
+        /// renk gruplari duzenine (Kuzey) getirilir; kapali eller kapali kalir.
+        /// </summary>
+        private void AcikKapaliElleriYenidenDuzenle(bool nAcik, bool wAcik, bool eAcik, Image arka)
+        {
+            // Kuzey
+            if (kuzeyEl.Count > 0)
+            {
+                if (nAcik)
+                    BricStandartlarinaGoreDizYatay(kuzeyKartlar, kuzeyEl, 250, _kuzeyY, false, true);
+                else
+                    foreach (var pb in kuzeyKartlar)
+                    {
+                        if (pb == null || !pb.Visible) continue;
+                        if (arka != null) pb.Image = arka; else { pb.Image = null; pb.BackColor = AnaSayfa.MasaRengi; }
+                    }
+            }
+            // Bati / Dogu
+            int ewY = GetCenteredEWStartingY();
+            if (batiEl.Count > 0)
+            {
+                if (wAcik) BricStandartlarinaGoreDiz(batiKartlar, batiEl, 40, ewY);
+                else KapaliDikeyYiginiDuzenle(batiKartlar, batiEl.Count, 40);
+            }
+            if (doguEl.Count > 0)
+            {
+                int doguX = doguKartlar[0] != null ? doguKartlar[0].Left : 930;
+                if (eAcik) BricStandartlarinaGoreDiz(doguKartlar, doguEl, doguX, ewY);
+                else KapaliDikeyYiginiDuzenle(doguKartlar, doguEl.Count, doguX);
+            }
+        }
         private int _kuzeyY = 0;
         private int _guneyY = 0;
 
@@ -596,7 +640,11 @@ namespace BricKartOyunu
             this.SuspendLayout(); EkranYardimci.CizimiDondur(this);
             try
             {
+                // Yeniden yerlesimden once hangi ellerin acik (yuzu gorunen) oldugunu hatirla
+                Image arka = GetBackImage();
+                bool nAcik = YuzuAcikMi(kuzeyKartlar, arka), wAcik = YuzuAcikMi(batiKartlar, arka), eAcik = YuzuAcikMi(doguKartlar, arka);
                 KartYerlesimiHazirla();
+                AcikKapaliElleriYenidenDuzenle(nAcik, wAcik, eAcik, arka);
             }
             finally
             {
