@@ -52,7 +52,7 @@ namespace BricKartOyunu.Forms
             _ilk = new NumericUpDown { Minimum = 1, Maximum = 1000000, Value = 1, Width = 80, Location = new Point(74, 13) };
             ust.Controls.Add(_ilk);
             ust.Controls.Add(EtiketYap("Bord Sayısı:", 172));
-            _adet = new NumericUpDown { Minimum = 1, Maximum = 5000, Value = 200, Width = 70, Location = new Point(246, 13) };
+            _adet = new NumericUpDown { Minimum = 1, Maximum = 50000, Value = 200, Width = 70, Location = new Point(246, 13) };
             ust.Controls.Add(_adet);
             _basla = new Button { Text = "Başlat", Width = 96, Height = 28, Location = new Point(332, 11), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(46, 140, 96), ForeColor = Color.White };
             _basla.FlatAppearance.BorderSize = 0;
