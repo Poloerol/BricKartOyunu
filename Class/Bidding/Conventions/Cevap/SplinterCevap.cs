@@ -26,8 +26,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (g[0].Oyuncu != d.AktifOyuncu || g[1].Oyuncu != d.Partner) return false;
             if (g[0].Seviye != 1 || (g[0].Koz != "Maça" && g[0].Koz != "Kupa")) return false;
             var r = g[1];
+            // SAS cevap sistemi: 1♠ - 4♥ = kupada void (açıcı 4♠ ile kapatabilir); yalnız 1♠ cevap sistemi açıkken geçerli
+            bool sasVoid = d.Anlasma != null && r.Seviye == 4 && g[0].Koz == "Maça" && r.Koz == "Kupa" && d.Anlasma.OneSpade_AnswerSistemi;
             bool ok = (r.Seviye == 4 && (r.Koz == "Karo" || r.Koz == "Sinek")) ||
-                      (g[0].Koz == "Kupa" && r.Seviye == 3 && r.Koz == "Maça");
+                      (g[0].Koz == "Kupa" && r.Seviye == 3 && r.Koz == "Maça") || sasVoid;
             if (!ok) return false;
             koz = g[0].Koz; kisa = r.Koz;
             return true;
@@ -46,6 +48,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var el = durum.AktifOyuncuEli;
             int hp = ElDegerlendirici.HCP(el);
             string son = "4" + KozYardimcisi.KozSembolu(koz);
+            // 1♠-4♥ splinter'ından sonra 4 seviyesinde ucuz kontrol yeri yoktur: oyunu kapat
+            if (koz == "Maça" && kisa == "Kupa") return son;
             if (hp >= 17)
             {
                 string[] sira = { "Sinek", "Karo", "Kupa", "Maça" };

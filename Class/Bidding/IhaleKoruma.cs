@@ -542,6 +542,7 @@ namespace BricKartOyunu.Class.Bidding
                     teklif.EndsWith(KozYardimcisi.KozSembolu(gz[1].Koz))) return true;
             }
 
+            if (ad == "1♥ Cevap Sistemi" && (teklif == "4♣" || teklif == "4♦")) return true;     // SAS 1♥ cevabı: ♣/♦ kısalık splinter (HCP tahminiyle veto edilmez)
             if (ad == "Jacoby 2NT" || ad == "Splinter Cevap" || ad == "Smolen") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M; Smolen sonrası açıcı 4M/3NT) HCP tahminiyle veto edilmez
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale" || BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad))
                 return true;

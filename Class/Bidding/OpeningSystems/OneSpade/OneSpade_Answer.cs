@@ -8,7 +8,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade
     /// 1♠ AÇIŞINA CEVAPLAR (SAS kitabı s.44). OneSpade_AnswerSistemi açıkken çalışır.
     /// 1NT 5-11 (3♠ yok) / 9-11 (3♠); 2♣ FG röle; 2♦ 5+♦ FG / 6+♦ davet; 2♥ 5+♥ FG / 6+♥ 8-11;
     /// 2♠ 3+♠ yapıcı 7-10; 2NT 3♠ davet; 3♣ 4+♠ dengeli davet; 3♦ 4+♠ SNG 6-9; 3♥ 4+♠ SNG 10-12;
-    /// 3NT/4♣/4♦ 4+♠ void (♣/♦/♥) 8-12; 3♠/4♠/4♥ önleyici.
+    /// 4♣/4♦/4♥ 4+♠ void (♣/♦/♥, boş rengi kendisi) 8-12; 3♠/4♠/4♥ önleyici.
     /// </summary>
     public class OneSpade_Answer : IKonvansiyon
     {
@@ -42,12 +42,12 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade
             bool duz = OneClub.OneClub_OneDiamond.Duz(new OneClub.OcEl(el));
             bool tekli = s == 1 || h == 1 || d == 1 || c == 1;
 
-            // 1) 4+♠ void: 3NT ♣, 4♣ ♦, 4♦ ♥ (8-12 HCP)
+            // 1) 4+♠ void: boş renk doğal splinter olarak söylenir: 4♣ ♣, 4♦ ♦, 4♥ ♥ (8-12 HCP)
             if (s >= 4 && hcp >= 8 && hcp <= 12)
             {
-                if (c == 0) return "3NT";
-                if (d == 0) return "4♣";
-                if (h == 0) return "4♦";
+                if (c == 0) return "4♣";
+                if (d == 0) return "4♦";
+                if (h == 0) return "4♥";
             }
             // 2) 4+♠ singleton: 3♥ 10-12, 3♦ 6-9
             if (s >= 4 && tekli && hcp >= 10 && hcp <= 12) return "3♥";

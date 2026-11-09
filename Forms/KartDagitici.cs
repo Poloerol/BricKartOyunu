@@ -573,15 +573,23 @@ namespace BricKartOyunu.Forms
 
         private void Oyna()
         {
-            var seedler = Secilenler(true);
+            // Oyna: birden fazla dağıtım seçildiyse yalnızca onlar; tek seçim (listede otomatik seçili ilk satır dahil) ya da seçim yoksa
+            // seçili dağıtımdan başlayarak listedeki TÜM dağıtımlar sırayla oynanır
+            List<int> hepsi;
+            lock (_kilit) { hepsi = _bulunan.ToList(); }
+            var seciliSirasi = _lstDagitimlar.SelectedIndices.Cast<int>().Where(i => i < hepsi.Count).ToList();
+            List<int> seedler;
+            if (seciliSirasi.Count > 1) seedler = seciliSirasi.Select(i => hepsi[i]).ToList();
+            else seedler = hepsi.Skip(seciliSirasi.Count == 1 ? seciliSirasi[0] : 0).ToList();
             if (seedler.Count == 0) return;
             var anaSayfa = (Owner as AnaSayfa) ?? Application.OpenForms.OfType<AnaSayfa>().FirstOrDefault();
             if (anaSayfa == null) { Bildir("Ana pencere bulunamadı."); return; }
             var liste = seedler.Select(sd => new PratikDagitim { Seed = sd, Konvansiyon = "Kart Dağıtıcı", Profil = DagitimProfili.Rastgele }).ToList();
-            // Oyun penceresi açıkken dağıtıcı gizlenir; bulunan dağıtımlar korunur, oyun bitince geri gelir
+            // Oyun penceresi açıkken dağıtıcı gizlenir; pratik bitince geri gelmez, doğrudan ana ekrana dönülür
             Hide();
-            try { anaSayfa.PratikOyunuAc(liste, false); }
-            finally { if (!IsDisposed) Show(); }
+            // duyur=true: her dağıtımda "Pratik n/N" duyurusu; liste bitince "Pratik tamamlandı" mesajı
+            try { anaSayfa.PratikOyunuAc(liste, true); }
+            finally { if (!IsDisposed) Close(); }   // ana ekranı PratikOyunuAc zaten geri getirir
         }
 
         private void Cikis()
