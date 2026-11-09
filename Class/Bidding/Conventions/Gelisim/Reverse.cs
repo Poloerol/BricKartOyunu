@@ -46,6 +46,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (gercekTeklifler.Count < 2) return false;
 
+            // ─── SENARYO C: 1X (ben) - 1Y - 2Z (ben, Reverse) - 2NT (asgari, uyumsuz): 17+ HP ile oyun ───
+            if (gercekTeklifler.Count == 4)
+            {
+                var c0 = gercekTeklifler[0]; var c1 = gercekTeklifler[1]; var c2 = gercekTeklifler[2]; var c3 = gercekTeklifler[3];
+                return c0.Oyuncu == durum.AktifOyuncu && c2.Oyuncu == durum.AktifOyuncu
+                    && c1.Oyuncu == durum.Partner && c3.Oyuncu == durum.Partner
+                    && c0.Seviye == 1 && c0.Koz != "NT" && c1.Seviye == 1 && c1.Koz != "NT"
+                    && c2.Seviye == 2 && c2.Koz != "NT" && c2.Koz != c1.Koz && RenkSirasiKucukMu(c0.Koz, c2.Koz)
+                    && c3.Teklif == "2NT";
+            }
+
             // ─── SENARYO A: Açıcının Reverse yapması ───
             if (gercekTeklifler.Count == 2)
             {
@@ -116,6 +127,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             var gercekTeklifler = durum.Gecmis
                 .Where(h => h.GercekTeklifMi)
                 .ToList();
+
+            if (gercekTeklifler.Count == 4)
+                return ElDegerlendirici.HCP(el) >= 17 ? "3NT" : "Pas";
 
             // Açıcı mıyız? (Reverse yapacağız)
             if (gercekTeklifler.Count == 2)

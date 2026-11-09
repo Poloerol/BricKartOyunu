@@ -62,6 +62,15 @@ namespace BricKartOyunu.Tests
             T("MD6 1S-(2S Michaels)-3H tercih, 15hcp -> 4H", TestHelpers.ElOlustur("3", "AKQ64", "AQ975", "65"), "4♥", "1♠", "2♠", "Pas", "3♥", "Pas");
             T("MD7 1S-(2S)-3H tercih, 14hcp -> Pas", TestHelpers.ElOlustur("3", "AKJ64", "AQ975", "65"), "Pas", "1♠", "2♠", "Pas", "3♥", "Pas");
 
+            // Karne (kaçırılan oyunlar) düzeltmeleri: davet / süper kabul / cue-bid sonrası devamlar
+            T("KO3 1NT-2C-2H-2NT, 17hcp -> 3NT", TestHelpers.ElOlustur("Q85", "AJ987", "AK5", "K9"), "3NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas", "2NT", "Pas");
+            T("KO4 1NT-2C-2H-2NT, 15hcp -> Pas", TestHelpers.ElOlustur("Q85", "AJ987", "KQ5", "K9"), "Pas", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas", "2NT", "Pas");
+            T("KO5 1D-1S-1NT-2NT, 14hcp -> 3NT", TestHelpers.ElOlustur("T63", "J72", "AK96", "AQ8"), "3NT", "1♦", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
+            T("KO6 1D-1S-1NT-2NT, 12hcp -> Pas", TestHelpers.ElOlustur("T63", "QJ2", "AK96", "Q85"), "Pas", "1♦", "Pas", "1♠", "Pas", "1NT", "Pas", "2NT", "Pas");
+            T("KO7 1C-1S-2D(rev)-2NT, 18hcp -> 3NT", TestHelpers.ElOlustur("A", "KQ4", "KT97", "KQJ76"), "3NT", "1♣", "Pas", "1♠", "Pas", "2♦", "Pas", "2NT", "Pas");
+            T("KO8 1H-(Dbl)-Pas-2H cue sonrası doubler 4♠ -> 2S", TestHelpers.ElOlustur("KJ96", "Q2", "A765", "K85"), "2♠", "1♥", "Dbl", "Pas", "2♥", "Pas");
+            T("KO9 1H-(Dbl)-P-2H(cue)-P-3D-P: 12hcp ♥ tutuş -> 3NT", TestHelpers.ElOlustur("K952", "AJ765", "Q93", "Q"), "3NT", "1♥", "Dbl", "Pas", "2♥", "Pas", "3♦", "Pas");
+
             // Unusual 2NT sonrası 3. seviye: 18 HP + rakip rengi AKQ8 -> ceza kontrası
             T("U1 1C-(2NT)-P-(3H) 18hcp AKQ8 -> Dbl", TestHelpers.ElOlustur("JT97", "AKQ8", "A", "KJ82"), "Dbl", "1♣", "2NT", "Pas", "3♥");
             // 1♣-(1♦)-1♠-(Pas)-2♣: cevapçı 16 HP, 4 kupa -> 2♥ (pas değil)

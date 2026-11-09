@@ -52,6 +52,14 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneNT
 
         internal override string AciciRoleCevap(OcEl e, string rebid, string devam)
         {
+            bool max = e.Hcp >= 16;
+            // 2NT daveti (8-9 HP): MAX kabul eder
+            if (devam == "2NT" && (rebid == "2♦" || rebid == "2♥" || rebid == "2♠")) return max ? "3NT" : "Pas";
+            // 3M daveti (fit, 8-9 HP)
+            if (devam == "3♥" && rebid == "2♥") return (max || (e.Hcp >= 15 && e.H >= 5)) ? "4♥" : "Pas";
+            if (devam == "3♠" && rebid == "2♠") return (max || (e.Hcp >= 15 && e.S >= 5)) ? "4♠" : "Pas";
+            // 2♦ sonrası / 2♥ sonrası 5♠ daveti
+            if (devam == "2♠" && (rebid == "2♦" || rebid == "2♥")) return max ? (e.S >= 3 ? "4♠" : "3NT") : (e.S >= 3 ? "3♠" : "Pas");
             if (rebid == "2♥" && devam == "3♠")                                           // 4+♠ bilinmeyen SNG sorusu
             {
                 if (e.C <= 1) return "3NT";

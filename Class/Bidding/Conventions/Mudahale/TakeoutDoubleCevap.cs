@@ -178,3 +178,89 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         }
     }
 }
+
+namespace BricKartOyunu.Class.Bidding.Conventions
+{
+    /// <summary>
+    /// Takeout Double yapanın, ortağın rakip rengi CUE-BID cevabından sonraki devamı.
+    ///   Rakip 1x - Dbl (ben) - Pas - 2x (cue-bid) - Pas - ?
+    /// Cue-bid pas geçilmez: 4+ kartlı majör (en uzun, eşitse ♠'dan önce ♥ değil: uzunluk/üst renk) en ucuz seviyede;
+    /// yoksa rakip renginde durdurucu ile 2NT (15+ HP: 3NT); yoksa en uzun minör.
+    /// Öncelik: 3
+    /// </summary>
+    public class TakeoutDoubleDevam : IKonvansiyon, IBilincliPas
+    {
+        public string Ad => "Takeout Double Devam";
+        public string Aciklama => "Takeout Double yapanın ortağın cue-bid'inden sonraki devamı";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 3;
+
+        private static readonly string[] Renkler = { "Sinek", "Karo", "Kupa", "Maça" };
+        private static string Sem(string r) { return r == "Sinek" ? "♣" : r == "Karo" ? "♦" : r == "Kupa" ? "♥" : "♠"; }
+
+        public bool UygunMu(IhaleDurumu d) { return Bul(d) != null; }
+        public string TeklifVer(IhaleDurumu d) { return Bul(d) ?? "Pas"; }
+
+        /// <summary>Rakip 1x - Dbl (ortak) - Pas - 2x (ben, cue) - Pas - R (ortak) - Pas - ?  Cue 9+ HP gösterdi: oyun altında bırakılmaz.</summary>
+        private static string CueSonrasi(IhaleDurumu d, List<IhaleHamlesi> g)
+        {
+            if (!d.Rakipler.Contains(g[0].Oyuncu) || g[0].Teklif.Length != 2 || g[0].Teklif[0] != '1') return null;
+            if (g[1].Oyuncu != d.Partner || g[1].Teklif != "Dbl") return null;
+            string koz = KozYardimcisi.TekliftenKozCikar(g[0].Teklif);
+            if (string.IsNullOrEmpty(koz) || koz == "NT" || Array.IndexOf(Renkler, koz) < 0) return null;
+            if (g[2].Oyuncu != d.AktifOyuncu || g[2].Teklif != "2" + Sem(koz)) return null;
+            if (g[3].Oyuncu != d.Partner) return null;
+            int n = d.Gecmis.Count;
+            if (n < 2 || !ReferenceEquals(d.Gecmis[n - 2], g[3]) || d.Gecmis[n - 1].Teklif != "Pas") return null;
+            string r = g[3].Teklif;
+            if (r.Length < 2 || !char.IsDigit(r[0]) || r[0] > '3') return null;
+            var el = d.AktifOyuncuEli;
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp < 12) return null;                                  // 9-11 HP'lik davet eli: genel mantık
+            if (r == "2NT") return "3NT";
+            string rk = KozYardimcisi.TekliftenKozCikar(r);
+            if (rk == "Kupa" || rk == "Maça")
+            {
+                if (ElDegerlendirici.RenkUzunlugu(el, rk) >= 3) return "4" + Sem(rk);
+                return ElDegerlendirici.StopperVar(el, koz) ? "3NT" : null;
+            }
+            if (ElDegerlendirici.StopperVar(el, koz)) return "3NT";
+            return null;
+        }
+
+        private static string Bul(IhaleDurumu d)
+        {
+            if (d == null || d.AktifOyuncuEli == null || d.AktifOyuncuEli.Count != 13 || d.Gecmis == null) return null;
+            if (d.IhaleBittiMi()) return null;
+            var n = d.Gecmis.Count;
+            if (n < 2 || d.Gecmis[n - 1].Teklif != "Pas" || !d.Rakipler.Contains(d.Gecmis[n - 1].Oyuncu)) return null;
+            var g = d.Gecmis.Where(h => h.Teklif != "Pas").ToList();
+            if (g.Count == 4) return CueSonrasi(d, g);
+            if (g.Count != 3) return null;
+            if (!d.Rakipler.Contains(g[0].Oyuncu) || g[0].Teklif.Length != 2 || g[0].Teklif[0] != '1') return null;
+            if (g[1].Oyuncu != d.AktifOyuncu || g[1].Teklif != "Dbl") return null;
+            if (g[2].Oyuncu != d.Partner || !ReferenceEquals(d.Gecmis[n - 2], g[2])) return null;
+            string koz = KozYardimcisi.TekliftenKozCikar(g[0].Teklif);
+            if (string.IsNullOrEmpty(koz) || koz == "NT" || Array.IndexOf(Renkler, koz) < 0) return null;
+            if (g[2].Teklif != "2" + Sem(koz)) return null;           // yalnızca cue-bid
+
+            var el = d.AktifOyuncuEli;
+            int hp = ElDegerlendirici.HCP(el);
+            int oppIdx = Array.IndexOf(Renkler, koz);
+            Func<string, int> uz = r => ElDegerlendirici.RenkUzunlugu(el, r);
+            Func<string, string> ucuz = r => (Array.IndexOf(Renkler, r) > oppIdx ? "2" : "3") + Sem(r);
+
+            // 4+ kartlı majör: en uzun, eşitse en ucuz seviyedeki
+            var majorler = new[] { "Maça", "Kupa" }.Where(r => r != koz && uz(r) >= 4)
+                .OrderByDescending(r => uz(r)).ThenBy(r => ucuz(r)).ToList();
+            if (majorler.Count > 0) return ucuz(majorler[0]);
+
+            if (ElDegerlendirici.StopperVar(el, koz)) return hp >= 15 ? "3NT" : "2NT";
+
+            var minorler = new[] { "Karo", "Sinek" }.Where(r => r != koz).OrderByDescending(r => uz(r)).ToList();
+            if (minorler.Count > 0) return ucuz(minorler[0]);
+            return "2NT";
+        }
+    }
+}
+

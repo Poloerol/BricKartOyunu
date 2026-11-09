@@ -234,6 +234,42 @@ namespace BricKartOyunu.Tests
                 sonucEkle, ref gecen, ref kalan);
 
 
+            sonucEkle("── Süper kabul sonrası cevapçı / Stayman 2NT daveti (Karne düzeltmeleri) ──");
+            Test("2♦ süper kabul 3♥, 10 HCP 5♥ → 4♥", new OneNT_TwoDiamond(),
+                TestHelpers.ElOlustur("AK9", "98762", "K76", "32"),
+                new[] { "1NT", "Pas", "2♦", "Pas", "3♥", "Pas" }, Player.Kuzey, "4♥",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♦ süper kabul 3♥, 4 HCP 5♥ → Pas", new OneNT_TwoDiamond(),
+                TestHelpers.ElOlustur("J94", "98762", "Q76", "32"),
+                new[] { "1NT", "Pas", "2♦", "Pas", "3♥", "Pas" }, Player.Kuzey, "Pas",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♦ ardından 2NT (3♥ MAX), 4 HCP → 3♥", new OneNT_TwoDiamond(),
+                TestHelpers.ElOlustur("J94", "98762", "Q76", "32"),
+                new[] { "1NT", "Pas", "2♦", "Pas", "2NT", "Pas" }, Player.Kuzey, "3♥",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("2♥ süper kabul 3♠, 10 HCP 5♠ → 4♠", new OneNT_TwoHeart(),
+                TestHelpers.ElOlustur("98762", "AK9", "K76", "32"),
+                new[] { "1NT", "Pas", "2♥", "Pas", "3♠", "Pas" }, Player.Kuzey, "4♠",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("Stayman 2♥ - 2NT daveti, 17 HCP → 3NT", new OneNT_TwoClub(),
+                TestHelpers.ElOlustur("Q85", "AJ987", "AK5", "K9"),
+                new[] { "1NT", "Pas", "2♣", "Pas", "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "3NT",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("Stayman 2♥ - 2NT daveti, 15 HCP → Pas", new OneNT_TwoClub(),
+                TestHelpers.ElOlustur("Q85", "AJ987", "KQ5", "K9"),
+                new[] { "1NT", "Pas", "2♣", "Pas", "2♥", "Pas", "2NT", "Pas" }, Player.Guney, "Pas",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("Stayman 2♥ - 3♥ daveti (fit), 16 HCP → 4♥", new OneNT_TwoClub(),
+                TestHelpers.ElOlustur("Q85", "AJ987", "AK5", "Q9"),
+                new[] { "1NT", "Pas", "2♣", "Pas", "2♥", "Pas", "3♥", "Pas" }, Player.Guney, "4♥",
+                sonucEkle, ref gecen, ref kalan);
+
             sonucEkle("── 1NT ⇒ 2♥ (♠ transferi) ──");
             Test("açan 3♠ — 4♠ MAX", new OneNT_TwoHeart(),
                 TestHelpers.ElOlustur("AKJ2", "AK2", "Q32", "K32"),

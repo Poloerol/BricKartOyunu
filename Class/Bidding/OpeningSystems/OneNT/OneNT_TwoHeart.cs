@@ -20,11 +20,19 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneNT
             return "2♠";                                                                  // transferin kabulü
         }
 
-        internal override bool DevamTanimli(string rebid) { return rebid == "2♠"; }
+        internal override bool DevamTanimli(string rebid) { return rebid == "2♠" || rebid == "3♠" || rebid == "2NT"; }
 
         internal override string CevapciDevam(OcEl e, string rebid)
         {
             int hcp = e.Hcp;
+            // Süper kabul (3♠ = 4♠ MAX) ve 3♠ MAX (2NT): cevapçı oyuna kadar devam eder
+            if (rebid == "3♠") return hcp >= 8 ? "4♠" : "Pas";
+            if (rebid == "2NT")
+            {
+                if (hcp <= 7) return "3♠";
+                if (hcp <= 9) return "4♠";
+                return (e.S == 5 && e.Dengeli) ? "3NT" : "4♠";
+            }
             if (hcp <= 7) return "Pas";                                                   // 5+♠ S.O
             if (e.S >= 5 && hcp >= 10 && e.H >= 5) return "3♥";                           // 5+♠ 5+♥ FG
             if (e.S >= 5 && hcp >= 10 && e.H == 4) return "3♦";                           // 5+♠ 4♥ FG
