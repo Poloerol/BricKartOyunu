@@ -80,6 +80,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade
                         K("3♣", x => x.C >= 6),
                         K("3♦", x => x.D >= 6),
                         K("3♥", x => x.H >= 6),
+                        K("3♣", x => hcp >= 9 && x.S <= 1 && x.C >= 5 && (x.D >= 5 || x.H >= 5)),   // ♠ boş/single + 5-5: ikinci rengi göster
+                        K("3♦", x => hcp >= 9 && x.S <= 1 && x.D >= 5 && x.H >= 5),
                     }, e, "Pas");
                 case "2NT":   // 6♠ 4m 15+
                     return Sec(new[] {
@@ -108,6 +110,12 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade
             }
             if (rebid == "2NT" && devam == "3♦")                                           // S.O (pass or correct): karoda 4+ varsa Pas, yoksa majör
                 return e.D >= 4 ? "Pas" : "3♠";
+            if (rebid == "2♠" && (devam == "3♣" || devam == "3♦" || devam == "3♥"))        // cevapçı ♠ boşken ikinci rengini gösterdi
+            {
+                int n = devam == "3♣" ? e.C : devam == "3♦" ? e.D : e.H;
+                if (n >= 4) return hcp >= 13 ? "4" + devam.Substring(1) : "Pas";          // 9 kartlık uyum: asgari Pas, 13+ oyun
+                return "3♠";
+            }
             if (rebid == "2NT" && devam == "3♣")
             {
                 if (e.S >= 6 && e.C >= 5) return "4♣";

@@ -69,6 +69,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
                         K("2NT", x => hcp >= 8 && x.Dengeli),
                         K("3♣", x => x.C >= 6),
                         K("3♦", x => x.D >= 6),
+                        K("3♣", x => hcp >= 9 && x.H <= 1 && x.C >= 5 && x.D >= 5),                // ♥ boş/single + 5-5 minör
                     }, e, "Pas");
                 case "2♠":    // 5♥ 4+m 19+ FG
                     return Sec(new[] {
@@ -108,6 +109,11 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
                 if (e.C >= 5) return "3♥";
                 if (e.D >= 5) return "3♠";
                 return e.C >= 4 ? "3♣" : "3♦";
+            }
+            if (rebid == "2♥" && devam == "3♣")                                            // cevapçı ♥ boşken 5-5 minörünü gösterdi
+            {
+                if (e.C >= 4) return hcp >= 13 ? "4♣" : "Pas";
+                return "3♥";
             }
             if (rebid == "2NT" && devam == "3♦")                                           // S.O (pass or correct): karoda 4+ varsa Pas, yoksa majör
                 return e.D >= 4 ? "Pas" : "3♥";

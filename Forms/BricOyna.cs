@@ -961,7 +961,7 @@ namespace BricKartOyunu
                     guneyKartlar[i].Click += (s, ev) => GuneyKartTiklandi(kartIndex);
                 }
             }
-            BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, guneyX, _guneyY, false, false);
+            BricStandartlarinaGoreDizYatay(guneyKartlar, guneyEl, guneyX, _guneyY, false, true);   // Guney eli her zaman acik: renk gruplari arasinda bosluk
 
             SetupInfoBoard();
             SetupPlayerBadges();
