@@ -213,3 +213,64 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         }
     }
 }
+
+namespace BricKartOyunu.Class.Bidding.Conventions
+{
+    /// <summary>
+    /// Michaels yapanın, ortağın tercihinden sonraki devamı.
+    ///   Ortağın tercihi (2M, ya da 1♠ açılışında 3M) 0-9 HP'lik zayıf bir tercihtir:
+    ///     17+ HP → 4M | 15-16 HP → 3M davet (1♠ açılışında 4M) | aksi halde PAS.
+    ///   Ortağın daveti (tercihten bir seviye yukarısı, 10+ HP ve 4+ uyum): 13+ HP → 4M, aksi halde PAS.
+    /// Öncelik: 18
+    /// </summary>
+    public class MichaelsDevam : IKonvansiyon, IBilincliPas
+    {
+        public string Ad => "Michaels Devam";
+        public string Aciklama => "Michaels yapanın ortağın tercih/davetinden sonraki devamı";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 18;
+
+        public bool UygunMu(IhaleDurumu durum) { return Bul(durum) != null; }
+        public string TeklifVer(IhaleDurumu durum) { return Bul(durum) ?? "Pas"; }
+
+        private static int Sira(char c) { return "♣♦♥♠".IndexOf(c); }
+
+        private static string Bul(IhaleDurumu d)
+        {
+            if (d == null || d.AktifOyuncuEli == null || d.AktifOyuncuEli.Count != 13) return null;
+            if (d.IhaleBittiMi()) return null;
+            var g = d.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            var benim = g.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+            var ortak = g.Where(h => h.Oyuncu == IhaleDurumu.PartnerBul(d.AktifOyuncu)).ToList();
+            if (benim.Count != 1 || ortak.Count != 1) return null;
+            if (g.Count != 3 || !d.Rakipler.Contains(g[0].Oyuncu)) return null;
+            if (!ReferenceEquals(g[1], benim[0]) || !ReferenceEquals(g[2], ortak[0])) return null;
+            // Ortağın teklifinden hemen sonra rakip Pas demiş olmalı
+            int n = d.Gecmis.Count;
+            if (n < 2 || !ReferenceEquals(d.Gecmis[n - 2], g[2]) || d.Gecmis[n - 1].Teklif != "Pas") return null;
+
+            string acilis = g[0].Teklif, cue = g[1].Teklif, tercih = g[2].Teklif;
+            if (acilis.Length != 2 || acilis[0] != '1' || cue.Length != 2 || cue[0] != '2' || cue[1] != acilis[1]) return null;
+            if (tercih.Length != 2 || !char.IsDigit(tercih[0]) || Sira(tercih[1]) < 0 || tercih[1] == cue[1]) return null;
+            char M = tercih[1];
+            if (M != '♥' && M != '♠') return null;
+            int seviye = tercih[0] - '0';
+            int min = Sira(M) > Sira(cue[1]) ? 2 : 3;
+            string sz = M == '♠' ? "Maça" : "Kupa";
+            if (ElDegerlendirici.RenkUzunlugu(d.AktifOyuncuEli, sz) < 5) return null;
+            int hp = ElDegerlendirici.HCP(d.AktifOyuncuEli);
+            string oyun = "4" + M;
+
+            if (seviye == min)                                   // tercih
+            {
+                if (hp >= 17) return oyun;
+                if (hp >= 15) return min == 2 ? "3" + M : oyun;
+                return "Pas";
+            }
+            if (seviye == min + 1 && seviye < 4)                 // davet
+                return hp >= 13 ? oyun : "Pas";
+            return null;
+        }
+    }
+}
+

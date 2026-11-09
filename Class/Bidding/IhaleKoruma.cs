@@ -573,6 +573,9 @@ namespace BricKartOyunu.Class.Bidding
                 return true;
             }
 
+            // Michaels yapanın devamı: eşikler konvansiyonun kendi kuralında (ortağın tercih gücü bilinmediği için tahmin kapısı uygulanmaz)
+            if (ad == "Michaels Devam") return true;
+
             // ── Bağlam kapıları: yapıya özgü konvansiyonlar yalnızca ilgili dizilerde ──
             if (!BaglamUygun(d, ad, teklif)) return false;
 

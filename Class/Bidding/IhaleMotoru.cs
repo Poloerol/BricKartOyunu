@@ -197,6 +197,7 @@ namespace BricKartOyunu.Class.Bidding
                 new SupportDouble(),
                 new SupportDoubleCevap(),
                 new Michaels(),
+                new MichaelsDevam(),
                 new StrongNT(),
                 new NegativeDouble(),
                 new ResponsiveDouble(),
@@ -729,6 +730,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Lebensohl (Zayıf 2)": return _anlasma.LebensohlWeakTwo == 1;
                 case "Lebensohl": return _anlasma.Lebensohl && !_anlasma.Rubensohl;
                 case "Michaels": return _anlasma.Michaels && !_anlasma.Ghestem;
+                case "Michaels Devam": return _anlasma.Michaels && !_anlasma.Ghestem;
                 case "Unusual 2NT": return _anlasma.Unusual2NT && !_anlasma.Ghestem;
 
                 case "Cappelletti": return _anlasma.Cappelletti && !_anlasma.HelloOver1NT;

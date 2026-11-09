@@ -53,6 +53,15 @@ namespace BricKartOyunu.Tests
             T("R1 1C-(1H) 18hcp dengeli, tutuk -> 3NT", TestHelpers.ElOlustur("832", "K93", "AKJ7", "AK2"), "3NT", "1♣", "1♥");
             T("R2 1C-(1D) 14hcp dengeli, tutuk -> 2NT", TestHelpers.ElOlustur("Q82", "K93", "KJ7", "AJ52"), "2NT", "1♣", "1♦");
 
+            // Michaels yapanın, ortağın tercih/davetinden sonraki devamı
+            T("MD1 1C-(2C Michaels)-2H tercih, 14hcp 5-5 -> Pas", TestHelpers.ElOlustur("A9864", "AJ975", "Q", "K6"), "Pas", "1♣", "2♣", "Pas", "2♥", "Pas");
+            T("MD2 1C-(2C)-2H tercih, 17hcp 5-5 -> 4H", TestHelpers.ElOlustur("AKJ64", "AQ975", "3", "K6"), "4♥", "1♣", "2♣", "Pas", "2♥", "Pas");
+            T("MD3 1C-(2C)-2H tercih, 16hcp 5-5 -> 3H davet", TestHelpers.ElOlustur("AKQ64", "AJ975", "Q", "65"), "3♥", "1♣", "2♣", "Pas", "2♥", "Pas");
+            T("MD4 1C-(2C)-3H davet, 14hcp -> 4H", TestHelpers.ElOlustur("KJ964", "AJ975", "Q", "K6"), "4♥", "1♣", "2♣", "Pas", "3♥", "Pas");
+            T("MD5 1C-(2C)-3H davet, 11hcp -> Pas", TestHelpers.ElOlustur("KJ964", "AJ975", "Q", "65"), "Pas", "1♣", "2♣", "Pas", "3♥", "Pas");
+            T("MD6 1S-(2S Michaels)-3H tercih, 15hcp -> 4H", TestHelpers.ElOlustur("3", "AKQ64", "AQ975", "65"), "4♥", "1♠", "2♠", "Pas", "3♥", "Pas");
+            T("MD7 1S-(2S)-3H tercih, 14hcp -> Pas", TestHelpers.ElOlustur("3", "AKJ64", "AQ975", "65"), "Pas", "1♠", "2♠", "Pas", "3♥", "Pas");
+
             // Unusual 2NT sonrası 3. seviye: 18 HP + rakip rengi AKQ8 -> ceza kontrası
             T("U1 1C-(2NT)-P-(3H) 18hcp AKQ8 -> Dbl", TestHelpers.ElOlustur("JT97", "AKQ8", "A", "KJ82"), "Dbl", "1♣", "2NT", "Pas", "3♥");
             // 1♣-(1♦)-1♠-(Pas)-2♣: cevapçı 16 HP, 4 kupa -> 2♥ (pas değil)
