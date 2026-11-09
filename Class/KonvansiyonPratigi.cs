@@ -248,7 +248,7 @@ namespace BricKartOyunu.Class
                     Gecmis = new List<IhaleHamlesi>(gecmis)
                 };
                 string t = (ns ? motorNS : motorEW).TeklifVer(d);
-                if (t != hedef[i]) return false;
+                if (hedef[i] != "Herhangi" && t != hedef[i]) return false;   // "Herhangi": o sirada her cagri eslesir
                 gecmis.Add(new IhaleHamlesi { Oyuncu = p, Teklif = t, Sira = i + 1, GecerliMi = true });
             }
             return true;

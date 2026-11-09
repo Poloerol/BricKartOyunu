@@ -808,7 +808,7 @@ namespace BricKartOyunu.Forms
                 bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
                 try
                 {
-                    bricOynaForm.ShowDialog();
+                    bricOynaForm.ShowDialog(this);   // sahip AnaSayfa olsun: gizli Kart Dagitici sahip olursa gorev cubugundan geri donulemiyordu
                 }
                 finally
                 {

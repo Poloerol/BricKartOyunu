@@ -29,7 +29,7 @@ namespace BricKartOyunu.Forms
         private readonly TextBox[,,] _kutu = new TextBox[4, 6, 2];
         private ComboBox _cmbDagitici;
         private Button _btnIhale;
-        private Label _lblIhale;
+        private ListView _lvIhale;
         private List<string> _ihale = new List<string>();   // İhale Belirle: dağıtıcıdan başlayan teklifler
         private int _ihaleDagitici;
         private TextBox _txtSeed, _txtAdet;
@@ -55,101 +55,170 @@ namespace BricKartOyunu.Forms
 
         // ───────────────────────── Arayüz ─────────────────────────
 
+        // Maça siyah, Kupa kırmızı, Karo turuncu, Sinek yeşil
+        private static Color SuitRengi(char c)
+        {
+            switch (c)
+            {
+                case '\u2665': return Color.Red;
+                case '\u2666': return Color.DarkOrange;
+                case '\u2663': return Color.Green;
+                default: return SystemColors.WindowText;
+            }
+        }
+
         private void Kur()
         {
+            // Yerleşim "Deal Generator" penceresinin birebir düzenidir: görünen pencere 465x440
+            // (başlık çubuğu dahil), istemci alanı 463x409. Koordinatlar referans görüntüden alınmıştır.
             Text = "Kart Dağıtıcı";
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
-            ClientSize = new Size(760, 560);
-            Font = new Font("Segoe UI", 9F);
+            MinimizeBox = false;
+            Font = new Font("Microsoft Sans Serif", 8.25F);
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.None;   // boyut sabit
+            ClientSize = new Size(463, 409);
 
-            var gEller = new GroupBox { Text = "Eller", Location = new Point(10, 8), Size = new Size(470, 262) };
+            // Etiket yardımcısı (konum, ebeveyne göre)
+            Func<string, int, int, int, int, ContentAlignment, Label> L = (metin, x, y, w, h, hiza) =>
+                new Label { Text = metin, AutoSize = false, Location = new Point(x, y), Size = new Size(w, h), TextAlign = hiza };
+
+            // ───── Eller (sol üst): referans görüntüde (10,41) – (325,231) ─────
+            var gEller = new GroupBox { Text = "Eller", Location = new Point(9, 11), Size = new Size(323, 190) };
+            // Grup içi koordinat = görüntü koordinatı - (10, 41)
+            string[] satirAd = { "Toplam:", "Yüksek kart:", "Maça uzunluk:", "Kupa uzunluk:", "Karo uzunluk:", "Sinek uzunluk:" };
+            gEller.Controls.Add(L("PUAN", 4, 20, 70, 13, ContentAlignment.MiddleLeft));
             for (int k = 0; k < 4; k++)
-                gEller.Controls.Add(new Label
-                {
-                    Text = Koltuklar[k], AutoSize = false, TextAlign = ContentAlignment.MiddleCenter,
-                    Font = new Font(Font, FontStyle.Bold), Location = new Point(110 + k * 88, 18), Size = new Size(84, 18)
-                });
-            for (int k = 0; k < 4; k++)
-                gEller.Controls.Add(new Label
-                {
-                    Text = "min - max", AutoSize = false, TextAlign = ContentAlignment.MiddleCenter,
-                    Font = new Font(Font.FontFamily, 7.5F), Location = new Point(110 + k * 88, 36), Size = new Size(84, 14)
-                });
+            {
+                int px = 75 + k * 62;                                           // çift (min,max) başlangıcı
+                gEller.Controls.Add(L(Koltuklar[k], px - 4, 4, 55, 13, ContentAlignment.MiddleCenter));
+                gEller.Controls.Add(L("min", px, 20, 22, 13, ContentAlignment.MiddleCenter));
+                gEller.Controls.Add(L("max", px + 25, 20, 22, 13, ContentAlignment.MiddleCenter));
+            }
             for (int r = 0; r < 6; r++)
             {
-                int y = 56 + r * 33;
-                gEller.Controls.Add(new Label { Text = Satirlar[r], AutoSize = false, TextAlign = ContentAlignment.MiddleRight, Location = new Point(8, y), Size = new Size(98, 22) });
+                int y = 36 + r * 25;
+                var lbl = L(satirAd[r], 0, y + 1, 74, 18, ContentAlignment.MiddleRight);
+                if (r >= 2)
+                {
+                    // Yalnızca suit adı kendi renginde, "uzunluk:" normal renkte çizilir
+                    int bosluk = satirAd[r].IndexOf(' ');
+                    string simge = satirAd[r].Substring(0, bosluk), kalan = satirAd[r].Substring(bosluk);
+                    Color sr = r == 3 ? Color.Red : r == 4 ? Color.DarkOrange : r == 5 ? Color.Green : SystemColors.WindowText;
+                    lbl.Text = "";
+                    lbl.Paint += (s, ev) =>
+                    {
+                        var f = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.VerticalCenter;
+                        var kw = TextRenderer.MeasureText(ev.Graphics, kalan, lbl.Font, new Size(int.MaxValue, int.MaxValue), f).Width;
+                        var sw = TextRenderer.MeasureText(ev.Graphics, simge, lbl.Font, new Size(int.MaxValue, int.MaxValue), f).Width;
+                        int x0 = lbl.Width - kw - sw;
+                        TextRenderer.DrawText(ev.Graphics, simge, lbl.Font, new Rectangle(x0, 0, sw + 2, lbl.Height), sr, f);
+                        TextRenderer.DrawText(ev.Graphics, kalan, lbl.Font, new Rectangle(x0 + sw, 0, kw + 2, lbl.Height), lbl.ForeColor, f);
+                    };
+                }
+                gEller.Controls.Add(lbl);
                 for (int k = 0; k < 4; k++)
                     for (int m = 0; m < 2; m++)
                     {
-                        var t = new TextBox { Location = new Point(112 + k * 88 + m * 40, y), Size = new Size(36, 22), MaxLength = 2, TextAlign = HorizontalAlignment.Center };
+                        var t = new TextBox { Location = new Point(75 + k * 62 + m * 25, y), Size = new Size(22, 20), MaxLength = 2, TextAlign = HorizontalAlignment.Center };
                         t.KeyPress += (s, e) => { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; };
                         _kutu[k, r, m] = t;
                         gEller.Controls.Add(t);
                     }
             }
 
-            var lblDagitici = new Label { Text = "Dağıtıcı:", AutoSize = true, Location = new Point(14, 284) };
-            _cmbDagitici = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(74, 280), Width = 110 };
+            // ───── Dağıtıcı + İhale Belirle ─────
+            var lblDagitici = L("Dağıtıcı", 9, 207, 46, 14, ContentAlignment.MiddleLeft);
+            _cmbDagitici = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(56, 204), Size = new Size(84, 21) };
             _cmbDagitici.Items.AddRange(new object[] { "Herhangi", "Kuzey", "Doğu", "Güney", "Batı" });
-
-            _btnIhale = new Button { Text = "İhale Belirle…", Location = new Point(194, 278), Size = new Size(110, 26) };
+            _btnIhale = new Button { Text = "İhale Belirle", Location = new Point(146, 203), Size = new Size(83, 24) };
             _btnIhale.Click += (s, e) => IhaleBelirle();
-            _lblIhale = new Label { AutoSize = false, AutoEllipsis = true, Location = new Point(310, 283), Size = new Size(170, 18), ForeColor = Color.DimGray };
 
-            var lblSecili = new Label { Text = "Seçili dağıtım:", AutoSize = true, Location = new Point(14, 314) };
-            _txtEller = new TextBox { Location = new Point(10, 334), Size = new Size(470, 150), Multiline = true, ReadOnly = true, Font = new Font("Consolas", 9F), ScrollBars = ScrollBars.Vertical };
+            // İhale listesi: sütunlar Batı Kuzey Doğu Güney
+            var lblIhaleBas = L("Batı", 9, 236, 54, 13, ContentAlignment.MiddleLeft);
+            var lblIhaleBas2 = L("Kuzey", 63, 236, 54, 13, ContentAlignment.MiddleLeft);
+            var lblIhaleBas3 = L("Doğu", 117, 236, 54, 13, ContentAlignment.MiddleLeft);
+            var lblIhaleBas4 = L("Güney", 171, 236, 54, 13, ContentAlignment.MiddleLeft);
+            _lvIhale = new ListView
+            {
+                View = View.Details, HeaderStyle = ColumnHeaderStyle.None, Location = new Point(9, 249), Size = new Size(220, 118),
+                BorderStyle = BorderStyle.Fixed3D, FullRowSelect = false, MultiSelect = false, Scrollable = true
+            };
+            for (int c = 0; c < 4; c++) _lvIhale.Columns.Add("", 54);
+            // Teklifteki suit simgeleri kendi renginde çizilir
+            _lvIhale.OwnerDraw = true;
+            _lvIhale.DrawColumnHeader += (s, ev) => ev.DrawDefault = true;
+            _lvIhale.DrawItem += (s, ev) => { };
+            _lvIhale.DrawSubItem += (s, ev) =>
+            {
+                string t = ev.SubItem.Text ?? "";
+                var bayrak = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
+                int x = ev.Bounds.X + 2;
+                foreach (char ch in t)
+                {
+                    string p = ch.ToString();
+                    var boyut = TextRenderer.MeasureText(ev.Graphics, p, _lvIhale.Font, new Size(int.MaxValue, int.MaxValue), bayrak);
+                    TextRenderer.DrawText(ev.Graphics, p, _lvIhale.Font, new Rectangle(x, ev.Bounds.Y, boyut.Width + 2, ev.Bounds.Height), SuitRengi(ch), bayrak);
+                    x += boyut.Width;
+                }
+            };
 
-            var btnNS = new Button { Text = "N/S Ortaklık Profili", Location = new Point(10, 496), Size = new Size(140, 28) };
-            var btnEW = new Button { Text = "E/W Ortaklık Profili", Location = new Point(160, 496), Size = new Size(140, 28) };
-            btnNS.Click += (s, e) => AnlasmaForm.Goster(this, Taraf.NS);
-            btnEW.Click += (s, e) => AnlasmaForm.Goster(this, Taraf.EW);
-
-            // Üret
-            var gUret = new GroupBox { Text = "Üret", Location = new Point(496, 8), Size = new Size(246, 262) };
-            gUret.Controls.Add(new Label { Text = "Başlangıç seed:", AutoSize = true, Location = new Point(14, 24) });
-            _txtSeed = new TextBox { Location = new Point(14, 44), Size = new Size(110, 22), MaxLength = 9, TextAlign = HorizontalAlignment.Center };
+            // ───── Üret (orta alt): (238,237) – (327,397) ─────
+            var gUret = new GroupBox { Text = "Oluştur", Location = new Point(243, 207), Size = new Size(89, 160) };
+            gUret.Controls.Add(L("Seed:", 4, 16, 80, 14, ContentAlignment.MiddleCenter));
+            _txtSeed = new TextBox { Location = new Point(8, 31), Size = new Size(70, 20), MaxLength = 9, TextAlign = HorizontalAlignment.Center };
             _txtSeed.KeyPress += (s, e) => { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; };
             gUret.Controls.Add(_txtSeed);
-            gUret.Controls.Add(new Label { Text = "Bulunacak dağıtım:", AutoSize = true, Location = new Point(14, 78) });
-            _txtAdet = new TextBox { Location = new Point(14, 98), Size = new Size(60, 22), MaxLength = 3, TextAlign = HorizontalAlignment.Center };
+            gUret.Controls.Add(L("Bulunacak", 4, 58, 80, 14, ContentAlignment.MiddleCenter));
+            _txtAdet = new TextBox { Location = new Point(8, 73), Size = new Size(70, 20), MaxLength = 3, TextAlign = HorizontalAlignment.Center };
             _txtAdet.KeyPress += (s, e) => { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; };
             gUret.Controls.Add(_txtAdet);
-            gUret.Controls.Add(new Label { Text = "Süre:", AutoSize = true, Location = new Point(14, 132) });
-            _lblZaman = new Label { Text = "00:00:00", AutoSize = true, Location = new Point(14, 150) };
+            gUret.Controls.Add(L("Süre:", 4, 104, 80, 14, ContentAlignment.MiddleCenter));
+            _lblZaman = L("00:00:00", 4, 118, 80, 14, ContentAlignment.MiddleCenter);
             gUret.Controls.Add(_lblZaman);
-            _btnCalistir = new Button { Text = "Çalıştır", Location = new Point(14, 180), Size = new Size(100, 30) };
-            _btnTemizle = new Button { Text = "Tümünü Temizle", Location = new Point(14, 218), Size = new Size(100, 30) };
+            _btnCalistir = new Button { Text = "Çalıştır", Location = new Point(7, 134), Size = new Size(75, 23) };
             _btnCalistir.Click += (s, e) => { if (_calisiyor) Durdur(); else Calistir(); };
-            _btnTemizle.Click += (s, e) => { if (!_calisiyor) VarsayilanlariYukle(); };
             gUret.Controls.Add(_btnCalistir);
-            gUret.Controls.Add(_btnTemizle);
 
-            // Dağıtımlar
-            var gDag = new GroupBox { Text = "Dağıtımlar", Location = new Point(496, 280), Size = new Size(246, 204) };
-            gDag.Controls.Add(new Label { Text = "Denenen:", AutoSize = true, Location = new Point(12, 22) });
-            _lblTest = new Label { Text = "0", AutoSize = true, Location = new Point(110, 22) };
+            // ───── Dağıtımlar (sağ): (330,41) – (453,390) ─────
+            var gDag = new GroupBox { Text = "Dağıtımlar:", Location = new Point(345, 11), Size = new Size(108, 349) };
+            gDag.Controls.Add(L("Denenen:", 8, 18, 47, 14, ContentAlignment.MiddleLeft));
+            _lblTest = L("0", 52, 18, 52, 14, ContentAlignment.MiddleRight);
             gDag.Controls.Add(_lblTest);
-            gDag.Controls.Add(new Label { Text = "Geçerli:", AutoSize = true, Location = new Point(12, 42) });
-            _lblGecerli = new Label { Text = "0", AutoSize = true, Location = new Point(110, 42) };
+            gDag.Controls.Add(L("Geçerli:", 8, 34, 47, 14, ContentAlignment.MiddleLeft));
+            _lblGecerli = L("0", 52, 34, 52, 14, ContentAlignment.MiddleRight);
             gDag.Controls.Add(_lblGecerli);
-            _lstDagitimlar = new ListBox { Location = new Point(12, 64), Size = new Size(222, 130), IntegralHeight = false, SelectionMode = SelectionMode.MultiExtended };
+            _lstDagitimlar = new ListBox { Location = new Point(8, 56), Size = new Size(92, 234), IntegralHeight = false, SelectionMode = SelectionMode.MultiExtended };
             _lstDagitimlar.SelectedIndexChanged += (s, e) => SeciliGoster();
             gDag.Controls.Add(_lstDagitimlar);
-
-            _btnKaydet = new Button { Text = "Kaydet (PBN)", Location = new Point(496, 494), Size = new Size(100, 30), Enabled = false };
-            _btnOyna = new Button { Text = "Oyna", Location = new Point(606, 494), Size = new Size(60, 30), Enabled = false };
-            var btnCikis = new Button { Text = "Çıkış", Location = new Point(676, 494), Size = new Size(66, 30) };
+            _btnKaydet = new Button { Text = "Kaydet", Location = new Point(16, 296), Size = new Size(76, 22), Enabled = false };
+            _btnOyna = new Button { Text = "Oyna", Location = new Point(16, 322), Size = new Size(76, 22), Enabled = false };
             _btnKaydet.Click += (s, e) => PbnKaydet();
             _btnOyna.Click += (s, e) => Oyna();
+            gDag.Controls.Add(_btnKaydet);
+            gDag.Controls.Add(_btnOyna);
+
+            // ───── Alt sıra ─────
+            // Alt sıra: sabit yerleşim (tüm butonlar 108x23, aralık 4 px; yazı 94 px civarı, sığar)
+            var btnNS = new Button { Text = "N/S Ortaklık Profili", Location = new Point(9, 370), Size = new Size(108, 23), Padding = Padding.Empty };
+            var btnEW = new Button { Text = "E/W Ortaklık Profili", Location = new Point(121, 370), Size = new Size(108, 23), Padding = Padding.Empty };
+            btnNS.Click += (s, e) => AnlasmaForm.Goster(this, Taraf.NS);
+            btnEW.Click += (s, e) => AnlasmaForm.Goster(this, Taraf.EW);
+            _btnTemizle = new Button { Text = "Temizle", Location = new Point(250, 370), Size = new Size(75, 23) };
+            _btnTemizle.Click += (s, e) => { if (!_calisiyor) VarsayilanlariYukle(); };
+            var btnCikis = new Button { Text = "Çıkış", Location = new Point(361, 370), Size = new Size(75, 23) };
             btnCikis.Click += (s, e) => Cikis();
+
+            // Seçili dağıtımın metni artık pencerede gösterilmez (liste + Oyna/Kaydet yeterli); alan yalnızca iç kullanım içindir.
+            _txtEller = new TextBox { Multiline = true, ReadOnly = true };
 
             _zamanlayici = new System.Windows.Forms.Timer { Interval = 150 };
             _zamanlayici.Tick += (s, e) => Guncelle();
 
-            Controls.AddRange(new Control[] { gEller, lblDagitici, _cmbDagitici, _btnIhale, _lblIhale, lblSecili, _txtEller, btnNS, btnEW, gUret, gDag, _btnKaydet, _btnOyna, btnCikis });
+            Controls.AddRange(new Control[] { gEller, lblDagitici, _cmbDagitici, _btnIhale,
+                lblIhaleBas, lblIhaleBas2, lblIhaleBas3, lblIhaleBas4, _lvIhale, gUret, gDag, btnNS, btnEW, _btnTemizle, btnCikis });
             FormClosing += (s, e) => { if (_iptal != null) _iptal.Cancel(); };
         }
 
@@ -178,6 +247,11 @@ namespace BricKartOyunu.Forms
         private void IhaleBelirle()
         {
             if (_calisiyor) return;
+            if (_ihale.Count == 0 && _cmbDagitici.SelectedIndex <= 0)
+            {
+                MessageBox.Show(this, "İhale dizisi girmeden önce lütfen bir dağıtıcı seçin!", "Kart Dağıtıcı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             int dag = _ihale.Count > 0 ? _ihaleDagitici : Math.Max(0, _cmbDagitici.SelectedIndex - 1);
             using (var f = new IhaleBelirleForm(dag, _ihale))
             {
@@ -190,13 +264,21 @@ namespace BricKartOyunu.Forms
 
         private void IhaleEtiketiGuncelle()
         {
+            _lvIhale.Items.Clear();
             if (_ihale.Count == 0)
             {
-                _lblIhale.Text = "İhale koşulu yok";
                 _cmbDagitici.Enabled = true;
                 return;
             }
-            _lblIhale.Text = KoltukAd[_ihaleDagitici] + ": " + string.Join(" ", _ihale);
+            // Sütunlar: Batı, Kuzey, Doğu, Güney (saat yönü). Koltuk sırası (Kuzey=0, Doğu=1, Güney=2, Batı=3) → sütun
+            int[] sutun = { 1, 2, 3, 0 };
+            int baslangic = sutun[_ihaleDagitici];
+            for (int i = 0; i < _ihale.Count; i++)
+            {
+                int idx = baslangic + i, satir = idx / 4, kol = idx % 4;
+                while (_lvIhale.Items.Count <= satir) _lvIhale.Items.Add(new ListViewItem(new[] { "", "", "", "" }));
+                _lvIhale.Items[satir].SubItems[kol].Text = _ihale[i];
+            }
             _cmbDagitici.SelectedIndex = _ihaleDagitici + 1;   // dağıtıcı ihalenin ilk teklifini yapan oyuncudur
             _cmbDagitici.Enabled = false;
         }
@@ -273,8 +355,25 @@ namespace BricKartOyunu.Forms
 
         // ───────────────────────── Üretim ─────────────────────────
 
+        /// <summary>Hiçbir el koşulu değiştirilmemiş mi (puan 0-37, uzunluk 0-13)?</summary>
+        private bool TumKosullarVarsayilanMi()
+        {
+            for (int k = 0; k < 4; k++)
+                for (int r = 0; r < 6; r++)
+                {
+                    string enAz = _kutu[k, r, 0].Text.Trim(), enCok = _kutu[k, r, 1].Text.Trim();
+                    if ((enAz != "" && enAz != "0") || (enCok != "" && enCok != (r < 2 ? "37" : "13"))) return false;
+                }
+            return true;
+        }
+
         private void Calistir()
         {
+            if (_ihale.Count == 0 && TumKosullarVarsayilanMi())
+            {
+                MessageBox.Show(this, "Anlaşma özellikleri boş! Tekrar deneyin!", "Kart Dağıtıcı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             string hata;
             var kosul = KosulOku(out hata);
             int baslangic, adet;
@@ -352,7 +451,9 @@ namespace BricKartOyunu.Forms
                 for (int i = _lstDagitimlar.Items.Count; i < kopya.Count; i++)
                 {
                     int seed = kopya[i];
-                    _lstDagitimlar.Items.Add("#" + seed + "  (" + KoltukAd[DagiticiOf(seed)] + ")");
+                    // Dağıtıcı sabitse (ihale girilmiş ya da kutuda seçili) satırda yalnızca seed; "Herhangi" ise kısa harf (K/D/G/B) eklenir
+                    bool sabit = _ihale.Count > 0 || _cmbDagitici.SelectedIndex > 0;
+                    _lstDagitimlar.Items.Add(sabit ? "#" + seed : "#" + seed + "  " + KoltukAd[DagiticiOf(seed)].Substring(0, 1));
                 }
                 bool var = kopya.Count > 0;
                 _btnKaydet.Enabled = var; _btnOyna.Enabled = var;

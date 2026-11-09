@@ -82,7 +82,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (partnerTeklifleri.Count == 0) return false;
 
-            string sonPartnerTeklifi = partnerTeklifleri.Last().Teklif;
+            var sonPartner = partnerTeklifleri.Last();
+            string sonPartnerTeklifi = sonPartner.Teklif;
 
             if (sonPartnerTeklifi != "4♣" && sonPartnerTeklifi != "4♦")
                 return false;
@@ -94,10 +95,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (sonGercekTeklif == null) return false;
             if (sonGercekTeklif.Oyuncu != durum.Partner) return false;
 
+            // Namyats yalnızca ihalenin İLK gerçek teklifi (açılış) olabilir; 1♥-4♣ gibi sonraki 4♣/4♦ (Splinter vb.) Namyats değildir
+            if (!IhalenInIlkGercekTeklifiMi(durum, sonPartner)) return false;
+
             // Partnerin İLK Namyats teklifi mi?
             if (partnerTeklifleri.Count == 1) return true;
 
             return false;
+        }
+
+        /// <summary>Verilen hamleden önce ihalede hiç gerçek teklif (Pas/Dbl/RDbl dışı) yapılmamış mı?</summary>
+        private static bool IhalenInIlkGercekTeklifiMi(IhaleDurumu durum, IhaleHamlesi hamle)
+        {
+            return !durum.Gecmis.Any(h => h.GercekTeklifMi && h.Sira < hamle.Sira);
         }
 
         private static bool AraAdimSonrasiAciyorMu(IhaleDurumu durum)
@@ -110,6 +120,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                                   && (h.Teklif == "4♣" || h.Teklif == "4♦"));
 
             if (ilkNamyats == null) return false;
+            if (!IhalenInIlkGercekTeklifiMi(durum, ilkNamyats)) return false;
 
             if (durum.AktifOyuncu != ilkNamyats.Oyuncu) return false;
 
