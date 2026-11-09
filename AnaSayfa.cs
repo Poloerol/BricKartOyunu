@@ -94,6 +94,7 @@ namespace BricKartOyunu.Forms
                 true);
             this.UpdateStyles();
             BricKartOyunu.Class.EkranYardimci.TumKontrollerdeCiftTampon(this);
+            BricKartOyunu.Class.EkranYardimci.AcikFormlariTakipEt(this);
 
             oyunAyarlarıToolStripMenuItem.Click += OyunAyarlariToolStripMenuItem_Click;
             nSOrtaklıkAyarlarıToolStripMenuItem.Click += (s, e) => OrtaklikProfiliAc(Taraf.NS);

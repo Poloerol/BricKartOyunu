@@ -38,19 +38,37 @@ namespace BricKartOyunu.Forms
             this.UpdateStyles();
         }
 
+        private float _uygulananOlcek = 1f;
+
         private void DekBasForm_Load(object sender, EventArgs e)
         {
-            // Hangi yoldan açılırsa açılsın (ilk açılış, Sonraki el, 4 Pas) form,
-            // BricOyna.playZonePanel'in tam ortasında görünür.
-            if (_bricOyna?.playZonePanel != null)
+            Hizala();
+        }
+
+        /// <summary>
+        /// Formu BricOyna.playZonePanel merkezine tasir; ekran kucuk ise boyutunu da orantili kucultur.
+        /// Pencere tasindiginda/boyutu degistiginde BricOyna tarafindan yeniden cagrilir.
+        /// </summary>
+        public void Hizala()
+        {
+            if (IsDisposed || _bricOyna == null || _bricOyna.playZonePanel == null || !_bricOyna.playZonePanel.IsHandleCreated) return;
+
+            float s = Math.Max(0.75f, _bricOyna.DuzenOlcegi);
+            if (Math.Abs(s - _uygulananOlcek) > 0.005f)
             {
-                Point ekran = _bricOyna.playZonePanel.PointToScreen(Point.Empty);
-                Size boyut = _bricOyna.playZonePanel.Size;
-                this.Location = new Point(
-                    ekran.X + (boyut.Width - this.Width) / 2,
-                    ekran.Y + (boyut.Height - this.Height) / 2
-                );
+                float f = s / _uygulananOlcek;
+                _uygulananOlcek = s;
+                foreach (Control c in Controls)
+                    c.Bounds = new Rectangle((int)Math.Round(c.Left * f), (int)Math.Round(c.Top * f),
+                                             (int)Math.Round(c.Width * f), (int)Math.Round(c.Height * f));
+                ClientSize = new Size((int)Math.Round(ClientSize.Width * f), (int)Math.Round(ClientSize.Height * f));
             }
+
+            Point ekran = _bricOyna.playZonePanel.PointToScreen(Point.Empty);
+            Size boyut = _bricOyna.playZonePanel.Size;
+            Location = new Point(
+                ekran.X + (boyut.Width - Width) / 2,
+                ekran.Y + (boyut.Height - Height) / 2);
         }
 
         /// <summary>

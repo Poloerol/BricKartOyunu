@@ -67,7 +67,7 @@ namespace BricKartOyunu.Forms
         }
 
         /// <summary>Formu BricOyna.playZonePanel'in tam ortasına yerleştirir; ekran dışına taşmaz.</summary>
-        private void PlayZoneOrtasinaKonumla()
+        public void PlayZoneOrtasinaKonumla()
         {
             try
             {

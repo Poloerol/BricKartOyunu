@@ -72,6 +72,15 @@ namespace BricKartOyunu
                 kv.Value.Location = OyuncuIcinMasaPozisyonu(kv.Key);
             }
         }
+        /// <summary>Duzen olcegi (1 = tasarim boyutu); yardimci formlar boyutlarini buna gore ayarlar.</summary>
+        public float DuzenOlcegi { get { return _olcek; } }
+
+        /// <summary>Pencere tasindi/boyutu degisti: acik Deklarasyon Baslangic formunu masa ortasina tasir.</summary>
+        private void DekFormlariniHizala()
+        {
+            foreach (var f in Application.OpenForms.OfType<DekBasForm>().ToList())
+                f.Hizala();
+        }
         private int _kuzeyY = 0;
         private int _guneyY = 0;
 
@@ -428,6 +437,8 @@ namespace BricKartOyunu
             }
             this.Load += BricOyna_Load;
             this.Resize += BricOyna_Resize;
+            this.LocationChanged += (s, e) => DekFormlariniHizala();
+            BricKartOyunu.Class.EkranYardimci.AcikFormlariTakipEt(this);
 
             // 🔹 Geri Al / İleri Al butonlarının tıklama olaylarını bağla
             if (BtnGeriAl != null)
@@ -591,6 +602,7 @@ namespace BricKartOyunu
             {
                 this.ResumeLayout(true); EkranYardimci.CizimiAc(this);
             }
+            DekFormlariniHizala();
         }
 
         /// <summary>Araç çubuğu: kart arka yüzünü iki resimden biriyle değiştirir; ekrandaki kapalı kartlar hemen güncellenir.</summary>
