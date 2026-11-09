@@ -36,7 +36,16 @@ namespace BricKartOyunu
         private int _kartYukseklik { get { return Ol(135); } }
 
         // Ölçeklenmeyen sabit paylar: üstte menü+araç çubuğu (40), altta oyuncu rozeti + durum çubuğu (50)
-        private const int UstSabitPay = 40;
+        // Ust pay: menu + arac cubugunun gercek yuksekligi (DPI/yazi tipi olcegine gore degisir) + kucuk bosluk.
+        private int UstSabitPay
+        {
+            get
+            {
+                int alt = (toolStrip1 != null && toolStrip1.Visible) ? toolStrip1.Bottom
+                        : (menuStrip1 != null ? menuStrip1.Bottom : 0);
+                return Math.Max(40, alt + 4);
+            }
+        }
         private const int AltSabitPay = 50;
         // Ölçeklenen bölüm (172 + 4 kart + 3×2 + 10 + 1 kart) tasarım yüksekliği
         private const int OlceklenenTasarimYuksekligi = 172 + (4 * 135 + 3 * 2) + 10 + 135;
@@ -789,7 +798,7 @@ namespace BricKartOyunu
             int maxEWToplamYukseklik = (4 * _kartYukseklik) + (3 * 2);
             int toplamBlokYukseklik = _kartYukseklik + maxEWToplamYukseklik + _kartYukseklik;
 
-            int ustSınır = 40;
+            int ustSınır = UstSabitPay;
             int dikeyKaydırma = (this.ClientSize.Height - toplamBlokYukseklik) / 2;
             // Küçük ekranda alt kenarı (rozet + durum çubuğu) taşırmasın
             int altaKadar = Ol(172) + maxEWToplamYukseklik + Ol(10) + _kartYukseklik;
