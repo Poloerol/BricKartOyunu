@@ -15,6 +15,7 @@ namespace BricKartOyunu
     // Bilgi panelleri, rozetler, seed paneli, durum çubuğu
     public partial class BricOyna
     {
+        private int _infoBoardBoyut = 50;
         private void SetupInfoBoard()
         {
             // Infoboard boyutunu büyütüyoruz
@@ -39,6 +40,27 @@ namespace BricKartOyunu
                 infoBoardPanel.Controls.Add(lblSouth);
                 infoBoardPanel.Controls.Add(lblWest);
                 this.Controls.Add(infoBoardPanel);
+            }
+            // Kucuk ekranlarda kartlar kuculurken ortadaki yon/tur kutusu da orantili kuculsun
+            // (yoksa Bati elinin ustune biner). 1080p'de hedef = 50: gorunum degismez.
+            int hedef = Math.Max(32, Ol(50));
+            if (hedef != _infoBoardBoyut)
+            {
+                _infoBoardBoyut = hedef;
+                infoBoardPanel.Size = new Size(hedef * 3, hedef * 3);
+                Action<Label, int, int, float> yerles = (l, x, y, pt) =>
+                {
+                    l.Size = new Size(hedef, hedef);
+                    l.Location = new Point(x, y);
+                    Font eski = l.Font;
+                    l.Font = new Font("Arial", Math.Max(8f, pt * hedef / 50f), FontStyle.Bold);
+                    if (eski != null) eski.Dispose();
+                };
+                yerles(lblTour, hedef, hedef, 14F);
+                yerles(lblNorth, hedef, 0, 12F);
+                yerles(lblEast, hedef * 2, hedef, 12F);
+                yerles(lblSouth, hedef, hedef * 2, 12F);
+                yerles(lblWest, 0, hedef, 12F);
             }
             infoBoardPanel.Location = new Point(panelX, panelY);
             infoBoardPanel.BringToFront();
