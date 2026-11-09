@@ -94,7 +94,8 @@ namespace BricKartOyunu.Forms
 
             _sonuclar.Add(new TestSonucu { Mesaj = mesaj, Renk = renk });
 
-            if (_txtSonuclar != null)
+            // Sonuç penceresi test sürerken kapatılmış olabilir (Application.DoEvents kapanmaya izin verir)
+            if (_txtSonuclar != null && !_txtSonuclar.IsDisposed && !_txtSonuclar.Disposing)
             {
                 _txtSonuclar.SelectionStart = _txtSonuclar.TextLength;
                 _txtSonuclar.SelectionLength = 0;
