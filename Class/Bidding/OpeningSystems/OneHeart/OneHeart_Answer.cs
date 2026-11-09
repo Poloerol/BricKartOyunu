@@ -88,3 +88,41 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
         }
     }
 }
+
+namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
+{
+    using BricKartOyunu.Class.Bidding.OpeningSystems.OneClub;
+
+        public class OneHeart_ThreeClub : OneClub_GelisimTabani
+        {
+            protected override string Acilis { get { return "1♥"; } }
+            protected override string Cevap { get { return "3♣"; } }
+            public override string Aciklama { get { return "1♥-3♣ (4+♥ dengeli davet): açan 14+ HCP (6♥ ile 13+) 4♥, aksi halde 3♥"; } }
+            internal override string AciciRebid(OcEl e) { return (e.Hcp >= 14 || (e.Hcp >= 13 && e.H >= 6)) ? "4♥" : "3♥"; }
+            // Cevapçının yapay 3'lü cevabı ortakta Pas ile bitmez; açan 3M (asgari) veya 4M der. Sonrası genel mantık.
+            internal override bool DevamTanimli(string rebid) { return false; }
+            internal override string CevapciDevam(OcEl e, string rebid) { return "Pas"; }
+        }
+
+        public class OneHeart_ThreeDiamond : OneClub_GelisimTabani
+        {
+            protected override string Acilis { get { return "1♥"; } }
+            protected override string Cevap { get { return "3♦"; } }
+            public override string Aciklama { get { return "1♥-3♦ (4+♥ tekli 6-9): açan 17+ HCP (6♥ ile 16+) 4♥, aksi halde 3♥"; } }
+            internal override string AciciRebid(OcEl e) { return (e.Hcp >= 17 || (e.Hcp >= 16 && e.H >= 6)) ? "4♥" : "3♥"; }
+            // Cevapçının yapay 3'lü cevabı ortakta Pas ile bitmez; açan 3M (asgari) veya 4M der. Sonrası genel mantık.
+            internal override bool DevamTanimli(string rebid) { return false; }
+            internal override string CevapciDevam(OcEl e, string rebid) { return "Pas"; }
+        }
+
+        public class OneHeart_ThreeSpade : OneClub_GelisimTabani
+        {
+            protected override string Acilis { get { return "1♥"; } }
+            protected override string Cevap { get { return "3♠"; } }
+            public override string Aciklama { get { return "1♥-3♠ (4+♥ tekli 10-12): 3♠ pas geçilmez, açan 4♥ der (3♥ ile geri dönüş yok)"; } }
+            internal override string AciciRebid(OcEl e) { return "4♥"; }
+            // Cevapçının yapay 3'lü cevabı ortakta Pas ile bitmez; açan 3M (asgari) veya 4M der. Sonrası genel mantık.
+            internal override bool DevamTanimli(string rebid) { return false; }
+            internal override string CevapciDevam(OcEl e, string rebid) { return "Pas"; }
+        }
+}

@@ -236,3 +236,72 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
         }
     }
 }
+
+namespace BricKartOyunu.Class.Bidding.OpeningSystems.Araya
+{
+    /// <summary>
+    /// ARAYA GİRENİN, ORTAĞIN RAKİP RENGİ CUEBID'İNE (limit raise) DEVAMI:
+    /// ortak benim doğal girişimi rakibin renginde cuebid ile yükseltti, sağdaki rakip Pas.
+    /// Pas geçilmez: en ucuz seviyeden kendi rengimi söylerim; güçlüysem (ya da uzunsa) oyun.
+    /// </summary>
+    public class Araya_CueDevam : IAcilisGelisimi
+    {
+        public int Oncelik { get { return 21; } }
+        public string Aciklama { get { return "Ortağın cuebid (limit raise) cevabından sonra araya girenin devamı"; } }
+
+        public bool UygunMu(List<Card> el, IhaleDurumu d) { return Bul(el, d) != null; }
+        public string TeklifVer(List<Card> el, IhaleDurumu d) { return Bul(el, d) ?? "Pas"; }
+
+        private const string Sira = "♣♦♥♠";
+
+        private static int Deger(string t)
+        {
+            if (t == null || t.Length < 2 || !char.IsDigit(t[0])) return -1;
+            int idx = t.Substring(1) == "NT" ? 4 : Sira.IndexOf(t[1]);
+            return idx < 0 ? -1 : (t[0] - '0') * 5 + idx;
+        }
+
+        private string Bul(List<Card> el, IhaleDurumu d)
+        {
+            if (d == null || el == null || el.Count != 13) return null;
+            var g = d.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g.Count < 3) return null;
+            Player ortak = IhaleDurumu.PartnerBul(d.AktifOyuncu);
+            var cue = g[g.Count - 1];
+            if (cue.Oyuncu != ortak) return null;
+            if (d.Gecmis.Count < 2 || !ReferenceEquals(d.Gecmis[d.Gecmis.Count - 2], cue) || d.Gecmis[d.Gecmis.Count - 1].Teklif != "Pas") return null;
+            var benim = g.Where(h => h.Oyuncu == d.AktifOyuncu).ToList();
+            var ortagin = g.Where(h => h.Oyuncu == ortak).ToList();
+            if (benim.Count != 1 || ortagin.Count != 1) return null;
+            // Taraf içindeki ilk gerçek teklif benim girişim olmalı
+            var ilk = g.First(h => h.Oyuncu == ortak || h.Oyuncu == d.AktifOyuncu);
+            if (!ReferenceEquals(ilk, benim[0])) return null;
+            string oc = benim[0].Teklif;
+            if (oc.Length != 2 || !char.IsDigit(oc[0]) || oc[0] > '2' || Sira.IndexOf(oc[1]) < 0) return null;
+            char M = oc[1];
+            string ct = cue.Teklif;
+            int cv = Deger(ct);
+            if (cv < 0 || ct.Length != 2 || ct[0] < '2' || ct[0] > '3') return null;
+            char cs = ct[1];
+            if (cs == M || !g.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Teklif.Length == 2 && h.Teklif[1] == cs)) return null;
+
+            var e = new OcEl(el);
+            int uz = M == '♠' ? e.S : M == '♥' ? e.H : M == '♦' ? e.D : e.C;
+            int mi = Sira.IndexOf(M);
+            int lv = 2;
+            while (lv * 5 + mi <= cv) lv++;
+            bool major = M == '♥' || M == '♠';
+            if (major)
+            {
+                bool oyun = e.Hcp >= 14 || uz >= 7 || (e.Hcp >= 12 && uz >= 6);
+                if (oyun) return "4" + M;
+                if (lv > 4) return null;
+                return lv.ToString() + M;
+            }
+            // minör
+            if (e.Hcp >= 14 && e.Stopper(cs == '♠' ? "Maça" : cs == '♥' ? "Kupa" : cs == '♦' ? "Karo" : "Sinek")) return "3NT";
+            if (lv > 5) return null;
+            return lv.ToString() + M;
+        }
+    }
+}

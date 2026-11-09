@@ -107,9 +107,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 {
                     if (z.Hp >= 15) return YK.T(4, x);
                     string sign = YK.T(3, x);
-                    return YK2.Yuksek(sign, c) ? sign : "Pas";
+                    if (YK2.Yuksek(sign, c)) return sign;
+                    return YK.T(4, x);                                    // özellik rengi 3M'in üstünde: yapay cevabı pas geçme, oyuna git
                 }
-                return z.Hp >= 17 ? "3NT" : "Pas";
+                string signM = YK.T(3, x);
+                if (z.Hp >= 15) return "3NT";                              // yan renkte özellik + 15+ HCP: 3NT
+                return YK2.Yuksek(signM, c) ? signM : "3NT";
             }
             return null;
         }

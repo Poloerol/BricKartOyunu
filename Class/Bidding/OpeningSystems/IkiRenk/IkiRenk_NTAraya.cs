@@ -57,6 +57,11 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.IkiRenk
                 return Cevap(new OcEl(el), oc);
             }
 
+            // Cevapçı: 1NT - giriş (ortak) - RAKİP TEKLİFİ - (ben): yapay girişin ortağı pas geçmez, rakip müdahalesini hesaba katar
+            if (g.Count == 3 && g[1].Oyuncu == ortak && d.Rakipler.Contains(g[2].Oyuncu)
+                && d.Gecmis.Count == ix + 3 && ReferenceEquals(d.Gecmis[ix + 2], g[2]))
+                return RakipliCevap(e, oc, g[2].Teklif);
+
             // Multi sonrası araya girenin düzeltmesi: 1NT - 2♦ - Pas - 2♥ - Pas - (ben)
             if (oc != "2♦" || g[1].Oyuncu != d.AktifOyuncu || g[2].Oyuncu != ortak || g[2].Teklif != "2♥") return null;
             if (d.Gecmis.Count != ix + 5 || d.Gecmis[ix + 2].Teklif != "Pas" || d.Gecmis[ix + 4].Teklif != "Pas") return null;
@@ -97,6 +102,45 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.IkiRenk
             if (e.C >= 5 && e.C >= e.D && e.C >= e.H && e.C >= e.S) return "Dbl";
             var secim = new[] { Tuple.Create('♠', e.S), Tuple.Create('♥', e.H), Tuple.Create('♦', e.D) }.Where(t => t.Item2 >= 5).OrderByDescending(t => t.Item2).FirstOrDefault();
             return secim == null ? null : "2" + secim.Item1;
+        }
+
+        private static int Deger(string t)
+        {
+            if (t == null || t.Length < 2 || !char.IsDigit(t[0])) return -1;
+            int idx = t.Substring(1) == "NT" ? 4 : "♣♦♥♠".IndexOf(t[1]);
+            return idx < 0 ? -1 : (t[0] - '0') * 5 + idx;
+        }
+
+        /// <summary>Rakip müdahalesinden sonra en ucuz yasal seviyede renk teklifi (yoksa null).</summary>
+        private static string UcuzRenk(char renk, string rakipTeklif, out int seviye)
+        {
+            seviye = 0;
+            int rb = Deger(rakipTeklif);
+            if (rb < 0) return null;
+            int idx = "♣♦♥♠".IndexOf(renk);
+            for (int l = 2; l <= 4; l++)
+                if (l * 5 + idx > rb) { seviye = l; return l.ToString() + renk; }
+            return null;
+        }
+
+        private static string RakipliCevap(OcEl e, string oc, string rb)
+        {
+            int lv;
+            if (oc == "2♣")
+            {
+                char m = e.S > e.H ? '♠' : '♥';
+                string t = UcuzRenk(m, rb, out lv);
+                if (t == null) return "Pas";
+                return (lv <= 2 || (lv == 3 && e.Hcp >= 9)) ? t : "Pas";
+            }
+            if (oc == "2NT")
+            {
+                char m = e.C >= e.D ? '♣' : '♦';
+                string t = UcuzRenk(m, rb, out lv);
+                if (t == null || lv > 3) return "Pas";
+                return t;
+            }
+            return "Pas";                                                     // Multi: rakip girdi, pas = tutar
         }
 
         private static string Cevap(OcEl e, string oc)

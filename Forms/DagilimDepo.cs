@@ -29,5 +29,10 @@ namespace BricKartOyunu.Forms
             }
             this.Close();
         }
+
+        private void DagilimDepo_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
