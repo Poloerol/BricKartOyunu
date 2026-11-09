@@ -32,16 +32,16 @@ namespace BricKartOyunu.Tests
                 TestHelpers.ElOlustur("AJ32", "KQ32", "Q432", "2"), "3♥",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("3NT — 5♠ void♣ 9 HCP",
-                TestHelpers.ElOlustur("KJ432", "QJ32", "Q432", ""), "3NT",
+            Test("4♣ — 5♠ void♣ 9 HCP",
+                TestHelpers.ElOlustur("KJ432", "QJ32", "Q432", ""), "4♣",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("4♣ — 5♠ void♦ 9 HCP",
-                TestHelpers.ElOlustur("KJ432", "QJ32", "", "Q432"), "4♣",
+            Test("4♦ — 5♠ void♦ 9 HCP",
+                TestHelpers.ElOlustur("KJ432", "QJ32", "", "Q432"), "4♦",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("4♦ — 5♠ void♥ 9 HCP",
-                TestHelpers.ElOlustur("KJ432", "", "QJ32", "Q432"), "4♦",
+            Test("4♥ — 5♠ void♥ 9 HCP",
+                TestHelpers.ElOlustur("KJ432", "", "QJ32", "Q432"), "4♥",
                 sonucEkle, ref gecen, ref kalan);
 
             Test("4♠ — 7♠ önleyici",
