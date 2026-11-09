@@ -271,7 +271,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (ntMud && hp <= 18 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == sev)
                 return Seviye(d, "NT", sev);
             // Dengeli 19-21 HP, rakibin rengini durduruyor, 1 seviye açılış: doğal 2NT (15-18 aralığı 1NT'dir)
-            if (ntMud && hp >= 19 && hp <= 21 && sev == 1 && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == 1)
+            // Unusual 2NT anlaşması açıkken 1 seviye açılışa karşı 2NT her zaman yapay (iki alt renk): doğal 19-21 2NT söylenmez
+            // (ortak ve rakipler 2NT'yi 5-11 HP iki renkli diye yorumlar). Bu elle diğer kollar (kontra / renk) denenir.
+            bool unusualAcik = d.Anlasma != null && d.Anlasma.Unusual2NT;
+            if (ntMud && hp >= 19 && hp <= 21 && sev == 1 && !unusualAcik && ElDegerlendirici.StopperVar(el, rk) && Cheapest(d, "NT") == 1)
                 return Seviye(d, "NT", 2);
             // Dengeli 15+ HP, rakibin rengini durduramıyor ve diğer renklerde en az 3 kart: takeout kontra
             if (ntMud && !ElDegerlendirici.StopperVar(el, rk) &&

@@ -30,7 +30,11 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneSpade
         }
 
         // Acanin deneme teklifleri (2NT / 3♥ / 3♣ / 3♦) zorlayici: cevapci 9-10 HP ile oyuna, daha azla 3♠ ile cevap verir.
-        internal override bool DevamTanimli(string rebid) { return rebid == "2NT" || rebid == "3♥" || rebid == "3♣" || rebid == "3♦"; }
-        internal override string CevapciDevam(OcEl e, string rebid) { return e.Hcp >= 9 ? "4♠" : "3♠"; }
+        internal override bool DevamTanimli(string rebid) { return rebid == "2NT" || rebid == "3♥" || rebid == "3♣" || rebid == "3♦" || rebid == "4♣" || rebid == "4♦" || rebid == "4♥"; }
+        internal override string CevapciDevam(OcEl e, string rebid)
+        {
+            if (rebid == "4♣" || rebid == "4♦" || rebid == "4♥") return "4♠";   // 5-5 iki renkli: majöre dön
+            return e.Hcp >= 9 ? "4♠" : "3♠";
+        }
     }
 }

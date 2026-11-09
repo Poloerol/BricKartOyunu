@@ -109,6 +109,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneHeart
                 if (e.D >= 5) return "3♠";
                 return e.C >= 4 ? "3♣" : "3♦";
             }
+            if (rebid == "2NT" && devam == "3♦")                                           // S.O (pass or correct): karoda 4+ varsa Pas, yoksa majör
+                return e.D >= 4 ? "Pas" : "3♥";
             if (rebid == "2NT" && devam == "3♣")
             {
                 if (e.H >= 6 && e.C >= 5) return "4♣";
