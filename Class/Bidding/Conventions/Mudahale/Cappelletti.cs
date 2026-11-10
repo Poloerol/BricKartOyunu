@@ -105,6 +105,22 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
             }
 
+            // ─── SENARYO C: Ben 2♣ (tek renkli) dedim, rakip röle seviyesine (2♦) girdi,
+            //     partnerim kontra ile röle yaptı → uzun rengimi söylerim ───
+            if (gercekTeklifler.Count >= 3
+                && gercekTeklifler[0].Teklif == "1NT"
+                && durum.Rakipler.Contains(gercekTeklifler[0].Oyuncu)
+                && gercekTeklifler[1].Oyuncu == durum.AktifOyuncu
+                && gercekTeklifler[1].Teklif == "2♣"
+                && gercekTeklifler[2].Teklif == "2♦"
+                && durum.Rakipler.Contains(gercekTeklifler[2].Oyuncu)
+                && durum.Rakipler.Contains(gercekTeklifler.Last().Oyuncu)
+                && durum.PartnerTeklifleri.Count > 0
+                && durum.PartnerTeklifleri.Last() == "Dbl")
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -202,6 +218,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // PARTNERİN CAPPELLETTI MÜDAHALESİNE CEVAP
         // ═══════════════════════════════════════════════════════════════════
 
+        private static int SuitRank(string koz)
+        {
+            return koz == "Sinek" ? 1 : koz == "Karo" ? 2 : koz == "Kupa" ? 3 : 4;
+        }
+
         private string PartnerCevabi(IhaleDurumu durum, List<Card> el,
             List<IhaleHamlesi> gercekTeklifler)
         {
@@ -209,24 +230,35 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ─── Ben 2♣ (tek renkli) dedim, partner 2♦ röle dedi → uzun rengimi söylerim ───
             var benimGercekler = durum.KendiTeklifleri.Where(t => !string.IsNullOrEmpty(t) && t != "Pas" && t != "Dbl" && t != "RDbl").ToList();
-            if (partnerTeklif == "2♦" && benimGercekler.Count > 0 && benimGercekler.Last() == "2♣")
+            if ((partnerTeklif == "2♦" || (partnerTeklif == "Dbl" && gercekTeklifler.Count >= 3 && gercekTeklifler[2].Teklif == "2♦"))
+                && benimGercekler.Count > 0 && benimGercekler.Last() == "2♣")
             {
                 int m = ElDegerlendirici.RenkUzunlugu(el, "Maça");
                 int k = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
                 int d = ElDegerlendirici.RenkUzunlugu(el, "Karo");
                 int c = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
                 int en = Math.Max(Math.Max(m, k), Math.Max(d, c));
-                if (m == en) return "2♠";
-                if (k == en) return "2♥";
-                if (c == en) return "3♣";
-                return "3♦";
+                // Rakip araya girdiyse (ör. 2♦ - Dbl - 3♦) uzun rengimi yasal en ucuz seviyede söylerim
+                var son = gercekTeklifler.Last();
+                int sonSv = son.Seviye;
+                int sonRk = son.Koz == "NT" ? 5 : SuitRank(son.Koz);
+                string renk = m == en ? "Maça" : k == en ? "Kupa" : c == en ? "Sinek" : "Karo";
+                string sem = renk == "Maça" ? "♠" : renk == "Kupa" ? "♥" : renk == "Sinek" ? "♣" : "♦";
+                int rk = SuitRank(renk);
+                int sv = (rk > sonRk) ? sonSv : sonSv + 1;
+                if (sv < 2) sv = 2;
+                if (sv > 3) return "Pas";
+                return sv + sem;
             }
 
             // ─── Partner 2♣ dedi (tek renkli) → 2♦ röle ───
             if (partnerTeklif == "2♣")
             {
-                // Zayıf el varsa 2♦ röle
-                return "2♦";
+                var son = gercekTeklifler.Last();
+                if (son.Teklif == "2♣") return "2♦";                 // normal röle
+                if (son.Teklif == "2♦" && durum.Rakipler.Contains(son.Oyuncu))
+                    return "Dbl";                                    // rakip 2♦ dedi: kontra = röle
+                return "Pas";                                        // başka müdahale: Temel Mantık karar versin
             }
 
             // ─── Partner 2♦ dedi (majörler) → en uzun majör ───
@@ -263,6 +295,47 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "3♣";
             }
 
+            return "Pas";
+        }
+    }
+
+    /// <summary>
+    /// Cappelletti 2♣ (tek renkli) sonrası rakip 2♦ dedi, ben Dbl ile röle yaptım, ortak rengini söyledi:
+    /// kabul (Pas) — güçlüysem majörde oyun. Temel Mantığın kendi rengime (ör. 4♣) kaçmasını önler.
+    /// </summary>
+    public class CappellettiRoleDevam : IKonvansiyon, IBilincliPas
+    {
+        public string Ad => "Cappelletti Röle Devam";
+        public string Aciklama => "Cappelletti röle (Dbl) sonrası ortağın söylediği renge karar";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 12;
+
+        public bool UygunMu(IhaleDurumu durum) { return Bul(durum) != null; }
+        public string TeklifVer(IhaleDurumu durum) { return Bul(durum) ?? "Pas"; }
+
+        private static string Bul(IhaleDurumu d)
+        {
+            if (d == null || d.AktifOyuncuEli == null || d.AktifOyuncuEli.Count != 13) return null;
+            if (d.IhaleBittiMi()) return null;
+            var g = d.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            var ortak = IhaleDurumu.PartnerBul(d.AktifOyuncu);
+            if (g.Count < 4) return null;
+            if (g[0].Teklif != "1NT" || !d.Rakipler.Contains(g[0].Oyuncu)) return null;
+            if (g[1].Oyuncu != ortak || g[1].Teklif != "2♣") return null;
+            if (g[2].Teklif != "2♦" || !d.Rakipler.Contains(g[2].Oyuncu)) return null;
+            if (g.Any(h => h.Oyuncu == d.AktifOyuncu)) return null;
+            if (!d.KendiTeklifleri.Contains("Dbl")) return null;
+            var son = g[g.Count - 1];
+            if (son.Oyuncu != ortak || g.Count < 4) return null;
+            string t = son.Teklif;
+            if (t.Length != 2 || !char.IsDigit(t[0])) return null;
+            int sv = t[0] - '0';
+            char renk = t[1];
+            if (renk != '♥' && renk != '♠') return "Pas";
+            string sz = renk == '♠' ? "Maça" : "Kupa";
+            int hp = ElDegerlendirici.HCP(d.AktifOyuncuEli);
+            int uz = ElDegerlendirici.RenkUzunlugu(d.AktifOyuncuEli, sz);
+            if (uz >= 2 && hp >= 15 && sv <= 3) return "4" + renk;
             return "Pas";
         }
     }

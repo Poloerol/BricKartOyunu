@@ -198,6 +198,7 @@ namespace BricKartOyunu.Class.Bidding
                 new SupportDoubleCevap(),
                 new Michaels(),
                 new MichaelsDevam(),
+                new CappellettiRoleDevam(),
                 new StrongNT(),
                 new NegativeDouble(),
                 new ResponsiveDouble(),
@@ -732,6 +733,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Lebensohl (Zayıf 2)": return _anlasma.LebensohlWeakTwo == 1;
                 case "Lebensohl": return _anlasma.Lebensohl && !_anlasma.Rubensohl;
                 case "Michaels": return _anlasma.Michaels && !_anlasma.Ghestem;
+                case "Cappelletti Röle Devam": return _anlasma.Cappelletti && !_anlasma.HelloOver1NT;
                 case "Michaels Devam": return _anlasma.Michaels && !_anlasma.Ghestem;
                 case "Unusual 2NT": return _anlasma.Unusual2NT && !_anlasma.Ghestem;
 
@@ -886,4 +888,4 @@ namespace BricKartOyunu.Class.Bidding
     /// Kullanım: public class DopiRopi : IKonvansiyon, IBilincliPas
     /// </summary>
     public interface IBilincliPas { }
-}
+}

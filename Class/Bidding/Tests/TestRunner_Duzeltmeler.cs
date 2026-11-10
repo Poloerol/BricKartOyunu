@@ -74,6 +74,12 @@ namespace BricKartOyunu.Tests
             // 5'li majörlü 5-4-2-2 el 1NT açmaz (1M); 5'li minörlü 5-4-2-2 1NT açabilir
             T("NT1 15hcp ♠5 ♥4 2-2 → 1♠ (1NT değil)", TestHelpers.ElOlustur("AKT32", "KJ87", "96", "AT"), "1♠", "Pas", "Pas", "Pas");
             T("NT2 15hcp ♦5 ♣4 2-2 → 1NT", TestHelpers.ElOlustur("K5", "Q3", "AQ843", "KJ72"), "1NT", "Pas", "Pas", "Pas");
+            // Cappelletti 2♣ (tek renkli) sonrası rakip 2♦ dedi: Dbl = röle, 2♣'cı uzun rengini söyler, röleci kabul eder
+            TC("CP1 1NT-(2♣ Cap)-2♦-Dbl-3♦ , ♥6 → 3♥", TestHelpers.ElOlustur("Q63", "KJ9743", "Q", "973"), "3♥", "1NT", "2♣", "2♦", "Dbl", "3♦");
+            TC("CP2 1NT-(2♣ Cap)-2♦-Dbl-Pas , ♥6 → 2♥", TestHelpers.ElOlustur("Q63", "KJ9743", "Q", "973"), "2♥", "1NT", "2♣", "2♦", "Dbl", "Pas");
+            TC("CP3 1NT-(2♣ Cap ortak)-2♦ , 11hcp → Dbl (röle)", TestHelpers.ElOlustur("9742", "A6", "954", "AQJ2"), "Dbl", "1NT", "2♣", "2♦");
+            TC("CP4 röleci: Dbl ... 3♥ Pas → Pas (kendi ♣'ine kaçmaz)", TestHelpers.ElOlustur("9742", "A6", "954", "AQJ2"), "Pas", "1NT", "2♣", "2♦", "Dbl", "3♦", "3♥", "Pas");
+            TC("CP5 röleci 17hcp ♥AQ5: Dbl ... 3♥ Pas → 4♥", TestHelpers.ElOlustur("K2", "AQ5", "A54", "KJ874"), "4♥", "1NT", "2♣", "2♦", "Dbl", "3♦", "3♥", "Pas");
 
             // Unusual 2NT sonrası 3. seviye: 18 HP + rakip rengi AKQ8 -> ceza kontrası
             T("U1 1C-(2NT)-P-(3H) 18hcp AKQ8 -> Dbl", TestHelpers.ElOlustur("JT97", "AKQ8", "A", "KJ82"), "Dbl", "1♣", "2NT", "Pas", "3♥");
@@ -382,6 +388,18 @@ namespace BricKartOyunu.Tests
             bool gecti = ihlal == 0;
             if (gecti) _gecen++; else _kalan++;
             _yaz((gecti ? "✅ " : "❌ ") + "TARAMA 1m-(P)-cevap: majör önceliği (" + taranan + " el)" + (gecti ? "" : " → " + ihlal + " ihlal: " + string.Join("; ", ornek)));
+        }
+
+        private static void TC(string ad, List<Card> el, string beklenen, params string[] gecmis)
+        {
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, gecmis);
+            var an = OrtaklikAnlasmasi.Varsayilan();
+            an.Cappelletti = true; an.Dont = false;
+            var motor = new IhaleMotoru(an);
+            string r = motor.TeklifVer(durum);
+            bool gecti = r == beklenen;
+            if (gecti) _gecen++; else _kalan++;
+            _yaz((gecti ? "✅ " : "❌ ") + ad + " → " + r + (gecti ? "" : "   [beklenen: " + beklenen + "]"));
         }
 
         private static void T(string ad, List<Card> el, string beklenen, params string[] gecmis)

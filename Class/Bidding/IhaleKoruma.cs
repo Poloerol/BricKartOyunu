@@ -572,12 +572,20 @@ namespace BricKartOyunu.Class.Bidding
                     if (ortSonR != null && benSonR != null && g.IndexOf(ortSonR) > g.IndexOf(benSonR) &&
                         Sev(ortSonR.Teklif) <= 2) return true;
                 }
+                // Cappelletti 2♣ sonrası rakip röle seviyesine girdi, ortak Dbl ile röle yaptı → uzun rengimi söylerim
+                if (ad == "Cappelletti" && benKonustu && !ortakKonustu && !BizimTaraf(d, ilk.Oyuncu))
+                {
+                    var benSon = g.LastOrDefault(h => h.Oyuncu == d.AktifOyuncu && Gercek(h.Teklif));
+                    if (benSon != null && benSon.Teklif == "2♣"
+                        && g.Skip(g.IndexOf(benSon) + 1).Any(h => h.Oyuncu == d.Partner && h.Teklif == "Dbl"))
+                        return true;
+                }
                 if (benKonustu || ortakKonustu) return false;
                 return true;
             }
 
             // Michaels yapanın devamı: eşikler konvansiyonun kendi kuralında (ortağın tercih gücü bilinmediği için tahmin kapısı uygulanmaz)
-            if (ad == "Michaels Devam" || ad == "Takeout Double Devam") return true;
+            if (ad == "Michaels Devam" || ad == "Cappelletti Röle Devam" || ad == "Takeout Double Devam") return true;
 
             // ── Bağlam kapıları: yapıya özgü konvansiyonlar yalnızca ilgili dizilerde ──
             if (!BaglamUygun(d, ad, teklif)) return false;

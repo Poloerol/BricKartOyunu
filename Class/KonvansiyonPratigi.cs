@@ -109,7 +109,7 @@ namespace BricKartOyunu.Class
                 "German 2C Relays", "Walsh", "Preemptive Reraises", "Truscott 2NT", "Kokish" }),
             new KeyValuePair<string, string[]>("Rekabet", new[] {
                 "Takeout Double", "Takeout Double Cevap", "Takeout Double Devam", "Negative Double", "Support Double", "Support Double Cevap",
-                "Responsive Double", "Responsive Double Cevap", "Michaels", "Michaels Devam", "Unusual 2NT", "Ghestem", "Cue Bid",
+                "Responsive Double", "Responsive Double Cevap", "Michaels", "Michaels Devam", "Cappelletti Röle Devam", "Unusual 2NT", "Ghestem", "Cue Bid",
                 "Lebensohl (Reverse)", "Lebensohl (Zayıf 2)", "Weak Jump Overcalls", "Maximal Overcall Dbl.", "Artif. 2C/2D Resp. to 1M-X",
                 "Invisible Cue-Bids", "Limit-Plus Cue-Bids", "Good-Bad 2NT", "Inverted DBL", "Mixed Raise (Jump Cue-Bid)", "FSJS",
                 "Cappelletti", "DONT", "Multi-Landy", "Hello over 1NT", "Robinson", "Yapay 2♣ Sonrası Kontra Stayman", "Sandwich 1NT", "Exit Transfer 1NT Runouts",
