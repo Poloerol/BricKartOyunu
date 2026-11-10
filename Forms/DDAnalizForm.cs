@@ -101,6 +101,24 @@ namespace BricKartOyunu.Forms
         public void TabloAyarla(DDTablo t) { Hazirla(t); }
         public bool SeviyeGoster { get { return _seviyeGoster; } set { _seviyeGoster = value; } }
 
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // DDAnalizForm
+            // 
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "DDAnalizForm";
+            this.Load += new System.EventHandler(this.DDAnalizForm_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        private void DDAnalizForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
         // ═════════════════════════════════════════════════════════════
         private sealed class DDKanvas : Control
         {

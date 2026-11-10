@@ -4105,7 +4105,7 @@ namespace BricKartOyunu
             kontrol("TEST 12.04 — 15 HP dengeli, 16-18 aralığı → 1NT değil", teklif(el15b, Player.Guney, bos, a => a.NT1Range = 6), r => r != "1NT", "1NT dışında");
             kontrol("TEST 12.05 — 15 HP dengeli, varsayılan → 1NT", teklif(el15b, Player.Guney, bos, null), r => r == "1NT", "1NT");
             var el5422 = mk("S:AQ874 H:KJ52 D:K3 C:Q3");
-            kontrol("TEST 12.06 — 5-4-2-2 15 HP, varsayılan → 1NT", teklif(el5422, Player.Guney, bos, null), r => r == "1NT", "1NT");
+            kontrol("TEST 12.06 — 5'li majörlü 5-4-2-2 15 HP, varsayılan → 1♠ (1NT değil)", teklif(el5422, Player.Guney, bos, null), r => r == "1♠", "1♠");
             kontrol("TEST 12.07 — 5-4-2-2 15 HP, 5-4-2-2 kapalı → 1♠", teklif(el5422, Player.Guney, bos, a => a.NT1Allow5422 = 0), r => r == "1♠", "1♠");
             var el5332 = mk("S:AQ874 H:K52 D:KJ3 C:Q3");
             kontrol("TEST 12.08 — 5'li majör 5-3-3-2 15 HP, 5'li majör ile 1NT kapalı → 1♠", teklif(el5332, Player.Guney, bos, a => a.NT1Allow5Major = 0), r => r == "1♠", "1♠");

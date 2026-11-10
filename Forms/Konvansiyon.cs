@@ -108,7 +108,7 @@ namespace BricKartOyunu
             _lstDagitimlar = new ListBox { Left = 452, Top = 104, Width = 98, Height = 188, IntegralHeight = false };
             Controls.Add(_lstDagitimlar);
 
-            _btnUret = new Button { Text = "Üret", Left = 186, Top = 300, Width = 80, Height = 26 };
+            _btnUret = new Button { Text = "Oluştur", Left = 186, Top = 300, Width = 80, Height = 26 };
             _btnUret.Click += BtnUret_Click;
             Controls.Add(_btnUret);
 

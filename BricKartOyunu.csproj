@@ -170,6 +170,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\BricOyna.DD.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="AppState.cs" />
@@ -639,6 +640,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\DagilimDepo.resx">
       <DependentUpon>DagilimDepo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\DDAnalizForm.resx">
+      <DependentUpon>DDAnalizForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\DealCompleteForm.resx">
       <DependentUpon>DealCompleteForm.cs</DependentUpon>

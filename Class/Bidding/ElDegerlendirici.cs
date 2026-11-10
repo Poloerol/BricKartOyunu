@@ -498,7 +498,7 @@ namespace BricKartOyunu.Class.Bidding
             if (s[0] == 4 && s[1] == 3 && s[2] == 3 && s[3] == 3) return true;
             if (s[0] == 4 && s[1] == 4 && s[2] == 3 && s[3] == 2) return true;
             if (s[0] == 5 && s[1] == 3 && s[2] == 3 && s[3] == 2) return true;
-            if (s[0] == 5 && s[1] == 4 && s[2] == 2 && s[3] == 2) return a5422;
+            if (s[0] == 5 && s[1] == 4 && s[2] == 2 && s[3] == 2) return a5422 && !besliMajor;   // 5'li majörlü 5-4-2-2 el 1M açar (1NT yalnız 5'li minörlü 5-4-2-2)
             if (s[0] == 6 && s[1] == 3 && s[2] == 2 && s[3] == 2) return a6m;
             if (a != null && a.NT1AllowSingletonHonor != 0 && s[3] == 1 && s[0] <= 5 && TekilAsPapaz(el)) return true;
             return false;

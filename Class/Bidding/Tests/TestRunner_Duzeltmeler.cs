@@ -71,6 +71,10 @@ namespace BricKartOyunu.Tests
             T("KO8 1H-(Dbl)-Pas-2H cue sonrası doubler 4♠ -> 2S", TestHelpers.ElOlustur("KJ96", "Q2", "A765", "K85"), "2♠", "1♥", "Dbl", "Pas", "2♥", "Pas");
             T("KO9 1H-(Dbl)-P-2H(cue)-P-3D-P: 12hcp ♥ tutuş -> 3NT", TestHelpers.ElOlustur("K952", "AJ765", "Q93", "Q"), "3NT", "1♥", "Dbl", "Pas", "2♥", "Pas", "3♦", "Pas");
 
+            // 5'li majörlü 5-4-2-2 el 1NT açmaz (1M); 5'li minörlü 5-4-2-2 1NT açabilir
+            T("NT1 15hcp ♠5 ♥4 2-2 → 1♠ (1NT değil)", TestHelpers.ElOlustur("AKT32", "KJ87", "96", "AT"), "1♠", "Pas", "Pas", "Pas");
+            T("NT2 15hcp ♦5 ♣4 2-2 → 1NT", TestHelpers.ElOlustur("K5", "Q3", "AQ843", "KJ72"), "1NT", "Pas", "Pas", "Pas");
+
             // Unusual 2NT sonrası 3. seviye: 18 HP + rakip rengi AKQ8 -> ceza kontrası
             T("U1 1C-(2NT)-P-(3H) 18hcp AKQ8 -> Dbl", TestHelpers.ElOlustur("JT97", "AKQ8", "A", "KJ82"), "Dbl", "1♣", "2NT", "Pas", "3♥");
             // 1♣-(1♦)-1♠-(Pas)-2♣: cevapçı 16 HP, 4 kupa -> 2♥ (pas değil)
