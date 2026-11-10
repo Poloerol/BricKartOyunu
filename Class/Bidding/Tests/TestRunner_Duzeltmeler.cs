@@ -74,6 +74,9 @@ namespace BricKartOyunu.Tests
             // 5'li majörlü 5-4-2-2 el 1NT açmaz (1M); 5'li minörlü 5-4-2-2 1NT açabilir
             T("NT1 15hcp ♠5 ♥4 2-2 → 1♠ (1NT değil)", TestHelpers.ElOlustur("AKT32", "KJ87", "96", "AT"), "1♠", "Pas", "Pas", "Pas");
             T("NT2 15hcp ♦5 ♣4 2-2 → 1NT", TestHelpers.ElOlustur("K5", "Q3", "AQ843", "KJ72"), "1NT", "Pas", "Pas", "Pas");
+            // Rakip 1NT'ye araya girdiyse ortağın 2♦/2♥'i Jacoby transfer DEĞİLDİR (Lebensohl: doğal/zayıf) → transfer tamamlanmaz
+            T("JT1 1NT-(2♣)-2♦-(Pas), açıcı ♥2 kart → 2♥ (transfer tamamlama) değil Pas", TestHelpers.ElOlustur("AK10", "Q5", "Q76", "AK854"), "Pas", "1NT", "2♣", "2♦", "Pas");
+            T("JT2 1NT-(2♣)-2♥-(Pas), açıcı ♠3 kart → 2♠ (transfer tamamlama) değil Pas", TestHelpers.ElOlustur("AK10", "Q5", "Q76", "AK854"), "Pas", "1NT", "2♣", "2♥", "Pas");
             // Cappelletti 2♣ (tek renkli) sonrası rakip 2♦ dedi: Dbl = röle, 2♣'cı uzun rengini söyler, röleci kabul eder
             TC("CP1 1NT-(2♣ Cap)-2♦-Dbl-3♦ , ♥6 → 3♥", TestHelpers.ElOlustur("Q63", "KJ9743", "Q", "973"), "3♥", "1NT", "2♣", "2♦", "Dbl", "3♦");
             TC("CP2 1NT-(2♣ Cap)-2♦-Dbl-Pas , ♥6 → 2♥", TestHelpers.ElOlustur("Q63", "KJ9743", "Q", "973"), "2♥", "1NT", "2♣", "2♦", "Dbl", "Pas");

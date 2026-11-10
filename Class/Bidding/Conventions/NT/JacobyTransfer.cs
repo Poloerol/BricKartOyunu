@@ -66,8 +66,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.KendiTeklifleri.LastOrDefault() == "1NT")
             {
                 string partnerSon = durum.PartnerTeklifleri.LastOrDefault();
-                if (partnerSon == "2♦" || partnerSon == "2♥")
+                if ((partnerSon == "2♦" || partnerSon == "2♥") && !durum.RakipMudahaleliMi())
                 {
+                    // Rakip araya girdiyse 2♦/2♥ transfer değil (Lebensohl vb. doğal/zayıf) → transfer tamamlanmaz
                     return true;
                 }
             }
@@ -240,4 +241,4 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return null;
         }
     }
-}
+}

@@ -278,4 +278,36 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return "Pas";
         }
     }
+
+    /// <summary>
+    /// 1NT açıcısı: rakip 2 seviyesinde araya girdi, ortak 2 seviyesinde bir renk söyledi (Lebensohl: doğal, zayıf, oynamak için).
+    /// Bu çağrı transfer değildir ve zorlayıcı değildir → açıcı Pas der.
+    /// </summary>
+    public class LebensohlDevam : IKonvansiyon, IBilincliPas
+    {
+        public string Ad => "Lebensohl Devam";
+        public string Aciklama => "Lebensohl: ortağın 2 seviyesindeki doğal/zayıf cevabına açıcı Pas der";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 9;
+
+        public bool UygunMu(IhaleDurumu durum)
+        {
+            if (durum == null || durum.AktifOyuncuEli == null || durum.AktifOyuncuEli.Count != 13) return false;
+            if (durum.IhaleBittiMi()) return false;
+            var g = durum.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            var ortak = IhaleDurumu.PartnerBul(durum.AktifOyuncu);
+            if (g.Count != 3) return false;
+            if (g[0].Oyuncu != durum.AktifOyuncu || g[0].Teklif != "1NT") return false;
+            if (!durum.Rakipler.Contains(g[1].Oyuncu) || g[1].Seviye != 2 || g[1].Koz == "NT") return false;
+            if (g[2].Oyuncu != ortak || g[2].Seviye != 2 || g[2].Koz == "NT" || g[2].Koz == g[1].Koz) return false;
+            // 4+ kart desteğim varsa rekabete devam etmek serbest (Temel Mantık karar versin)
+            if (ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, g[2].Koz) >= 4) return false;
+            // Son hamle ortağın teklifinden sonra rakibin Pas'ı (ya da ortağın teklifi hemen önceki)
+            var son = durum.Gecmis[durum.Gecmis.Count - 1];
+            if (son.Oyuncu == ortak) return true;
+            return son.PasMi && durum.Rakipler.Contains(son.Oyuncu);
+        }
+
+        public string TeklifVer(IhaleDurumu durum) { return "Pas"; }
+    }
 }
