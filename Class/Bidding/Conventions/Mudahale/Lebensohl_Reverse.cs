@@ -20,7 +20,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// 
     /// Öncelik: 6 (diğer Lebensohl'lardan önce)
     /// </summary>
-    public class Lebensohl_Reverse : IKonvansiyon
+    public class Lebensohl_Reverse : IKonvansiyon, IBilincliPas
     {
         public string Ad => "Lebensohl (Reverse)";
         public string Aciklama => "Reverse sekansına Lebensohl cevapları";
@@ -99,29 +99,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // 5'li ilk rengimi tekrar göstermek için
                 string benIlk = durum.KendiTeklifleri.First(t => t != "Pas");
 
-                // 5'li ♠ (1♠ cevabıysa)
-                if (benIlk == "1♠")
+                // Sign-off: (1) kendi renginde 6+ → 3M; (2) açıcının ilk renginde (♦) 3+ → 3♦ tercih;
+                // (3) açıcının ilk rengi ♣ ise 3♣ zaten onun rengi → Pas; (4) ♣'de 3+ → Pas; (5) 5'li kendi rengim → 3M
+                var ortakIlk = durum.PartnerTeklifleri.First(t => t != "Pas");
+                if ((benIlk == "1♠" || benIlk == "1♥") && benIlk.Length == 2)
                 {
-                    // Pas (3♣ oynamak için) veya 3♠ sign-off
-                    // Eğer ♠ 5'liyse 3♠
-                    if (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 5)
-                        return "3♠";
-                    return "Pas";
-                }
-
-                // 5'li ♥ (1♥ cevabıysa)
-                if (benIlk == "1♥")
-                {
-                    if (ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5)
-                        return "3♥";
-                    return "Pas";
-                }
-
-                // 5'li ♦ (1♦ cevabıysa)
-                if (benIlk == "1♦")
-                {
-                    if (ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5)
-                        return "3♦";
+                    string benRenk = benIlk == "1♠" ? "Maça" : "Kupa";
+                    string benSem = benIlk == "1♠" ? "♠" : "♥";
+                    int benUz = ElDegerlendirici.RenkUzunlugu(el, benRenk);
+                    if (benUz >= 6) return "3" + benSem;
+                    if (ortakIlk == "1♦" && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 3) return "3♦";
+                    if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 3 || ortakIlk == "1♣") return "Pas";
+                    if (benUz >= 5) return "3" + benSem;
                     return "Pas";
                 }
 
@@ -157,4 +146,4 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return "2NT";
         }
     }
-}
+}

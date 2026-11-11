@@ -5607,11 +5607,11 @@ namespace BricKartOyunu
         public static void Test_Lebensohl_Reverse_SignOff()
         {
             Yaz("════════════════════════════════════════");
-            Yaz("TEST 15.3 — Lebensohl Reverse: 2NT sonrası 3♠ sign-off");
+            Yaz("TEST 15.3 — Lebensohl Reverse: 2NT sonrası 3♦ tercih (açıcının ilk rengi, ♦3 kart)");
             Yaz("════════════════════════════════════════");
 
             // 1♦ - 1♠ - 2♥ - 2NT - Pas - 3♣ - Pas - ? (Güney)
-            // Güney: 5'li ♠ ile 3♠ sign-off
+            // Güney: 5'li ♠ ama karoda 3 kart: açıcının ilk rengine (♦) tercih → 3♦ (6+ ♠ olsaydı 3♠)
             var guneyEli = new List<Card>
     {
         // 5'li ♠
@@ -5657,13 +5657,13 @@ namespace BricKartOyunu
 
             Yaz($"HCP: {ElDegerlendirici.HCP(guneyEli)}");
             Yaz($"♠ Uzunluk: {ElDegerlendirici.RenkUzunlugu(guneyEli, "Maça")}");
-            Yaz("Beklenen: 3♠ (sign-off)");
+            Yaz("Beklenen: 3♦ (tercih)");
             Yaz("────────────────────────────────────────");
 
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "3♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♠)");
+            Yaz(sonuc == "3♦" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 3♦)");
             Yaz("════════════════════════════════════════");
         }
 
@@ -16010,4 +16010,4 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         }
 
     }
-}
+}

@@ -77,6 +77,10 @@ namespace BricKartOyunu.Tests
             // Rakip 1NT'ye araya girdiyse ortağın 2♦/2♥'i Jacoby transfer DEĞİLDİR (Lebensohl: doğal/zayıf) → transfer tamamlanmaz
             T("JT1 1NT-(2♣)-2♦-(Pas), açıcı ♥2 kart → 2♥ (transfer tamamlama) değil Pas", TestHelpers.ElOlustur("AK10", "Q5", "Q76", "AK854"), "Pas", "1NT", "2♣", "2♦", "Pas");
             T("JT2 1NT-(2♣)-2♥-(Pas), açıcı ♠3 kart → 2♠ (transfer tamamlama) değil Pas", TestHelpers.ElOlustur("AK10", "Q5", "Q76", "AK854"), "Pas", "1NT", "2♣", "2♥", "Pas");
+            // Lebensohl (Reverse): 1♦-1♠-2♥(reverse)-2NT-3♣ röle sonrası cevapçının sign-off'u
+            T("LR1 reverse+2NT+3♣ röle, ♦4 kart → 3♦ (açıcının ilk rengine tercih)", TestHelpers.ElOlustur("AQ865", "76", "T654", "53"), "3♦", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "2NT", "Pas", "3♣", "Pas");
+            T("LR2 reverse+2NT+3♣ röle, ♠6 kart → 3♠", TestHelpers.ElOlustur("AQ8652", "7", "T5", "5432"), "3♠", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "2NT", "Pas", "3♣", "Pas");
+            T("LR3 reverse+2NT+3♣ röle, ♦1 ♣4 ♠5 → Pas (3♣)", TestHelpers.ElOlustur("AQ865", "763", "5", "T654"), "Pas", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "2NT", "Pas", "3♣", "Pas");
             // Cappelletti 2♣ (tek renkli) sonrası rakip 2♦ dedi: Dbl = röle, 2♣'cı uzun rengini söyler, röleci kabul eder
             TC("CP1 1NT-(2♣ Cap)-2♦-Dbl-3♦ , ♥6 → 3♥", TestHelpers.ElOlustur("Q63", "KJ9743", "Q", "973"), "3♥", "1NT", "2♣", "2♦", "Dbl", "3♦");
             TC("CP2 1NT-(2♣ Cap)-2♦-Dbl-Pas , ♥6 → 2♥", TestHelpers.ElOlustur("Q63", "KJ9743", "Q", "973"), "2♥", "1NT", "2♣", "2♦", "Dbl", "Pas");
