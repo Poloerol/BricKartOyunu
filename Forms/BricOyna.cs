@@ -756,12 +756,7 @@ namespace BricKartOyunu
             // Duyuru ve DekBasForm, form görünür olduktan sonra açılır (geçişte tek başlarına belirmesinler)
             _acilisSonrasi = () =>
             {
-                // Kullanıcı girişi: form görünür olduktan sonra eller elle girilir (İptal: oyun açılmaz)
-                if (ManuelGirisModu())
-                {
-                    if (!ManuelGirisAl()) { Close(); return; }
-                    ManuelYenidenDagit();
-                }
+                // Kullanıcı girişi artık PBN dosyasından okunur (DagitimiUret); elle giriş formu açılmaz
                 PratikDuyurusu(); YeniDekBasFormAc();
             };
         }

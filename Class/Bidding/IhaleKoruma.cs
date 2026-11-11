@@ -585,7 +585,7 @@ namespace BricKartOyunu.Class.Bidding
             }
 
             // Michaels yapanın devamı: eşikler konvansiyonun kendi kuralında (ortağın tercih gücü bilinmediği için tahmin kapısı uygulanmaz)
-            if (ad == "Michaels Devam" || ad == "Cappelletti Röle Devam" || ad == "Takeout Double Devam") return true;
+            if (ad == "Michaels Devam" || ad == "Cappelletti Röle Devam" || ad == "Takeout Double Devam" || ad == "Oyun Daveti Kabulü") return true;
 
             // ── Bağlam kapıları: yapıya özgü konvansiyonlar yalnızca ilgili dizilerde ──
             if (!BaglamUygun(d, ad, teklif)) return false;

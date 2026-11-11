@@ -352,7 +352,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (hp >= 12)
                 {
                     if (Major(x) && xLen >= 3) return "3" + Sem(x);
-                    return "2NT";
+                    return null;   // 2NT daveti açıcının minimum rebidinden sonra veriler ışığında kârsız
                 }
                 return null;
             }
@@ -360,7 +360,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (z == y && zs == 2 && Major(y))
             {
                 if (hp >= 13) return "4" + Sem(y);
-                if (hp >= 11) return "3" + Sem(y);
+                if (hp >= 12) return "3" + Sem(y);
                 return null;
             }
             // (d) 1 seviyede yeni majör
@@ -381,6 +381,36 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return null;
             }
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Oyun Daveti Kabulü — 1M - 2M - 3M(açıcının daveti) - ?
+    /// Cevapçı 2M ile 6-10 OP gösterdi; üst düzeyde (10 OP) daveti kabul edip 4M der.
+    /// </summary>
+    public class OyunDavetiKabul : IKonvansiyon
+    {
+        public string Ad => "Oyun Daveti Kabulü";
+        public string Aciklama => "1M-2M-3M sonrası cevapçı 10+ OP ile 4M teklif eder";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 26;
+
+        public bool UygunMu(IhaleDurumu durum) { return Bul(durum) != null; }
+        public string TeklifVer(IhaleDurumu durum) { return Bul(durum) ?? "Pas"; }
+
+        private static string Bul(IhaleDurumu d)
+        {
+            if (d == null || d.AktifOyuncuEli == null || d.AktifOyuncuEli.Count != 13) return null;
+            if (d.IhaleBittiMi()) return null;
+            var g = d.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g.Count != 3) return null;
+            if (g[0].Oyuncu != d.Partner || g[1].Oyuncu != d.AktifOyuncu || g[2].Oyuncu != d.Partner) return null;
+            string m = g[0].Koz;
+            if (m != "Maça" && m != "Kupa") return null;
+            if (g[0].Seviye != 1 || g[1].Seviye != 2 || g[1].Koz != m) return null;
+            if (g[2].Seviye != 3 || g[2].Koz != m) return null;
+            if (ElDegerlendirici.HCP(d.AktifOyuncuEli) < 10) return null;
+            return "4" + (m == "Maça" ? "♠" : "♥");
         }
     }
 }

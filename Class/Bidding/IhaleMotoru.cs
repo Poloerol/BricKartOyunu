@@ -202,6 +202,7 @@ namespace BricKartOyunu.Class.Bidding
                 new LebensohlDevam(),
                 new RakipMudahalesiNT(),
                 new CevapciIkinciTur(),
+                new OyunDavetiKabul(),
                 new StrongNT(),
                 new NegativeDouble(),
                 new ResponsiveDouble(),
@@ -892,4 +893,4 @@ namespace BricKartOyunu.Class.Bidding
     /// Kullanım: public class DopiRopi : IKonvansiyon, IBilincliPas
     /// </summary>
     public interface IBilincliPas { }
-}
+}

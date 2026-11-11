@@ -19,9 +19,7 @@ namespace BricKartOyunu
         /// <summary>Oyun Planı'nda "Kullanıcı girişi" seçili mi (pratik modunda hiçbir zaman)?</summary>
         private bool ManuelGirisModu()
         {
-            if (PratikModu) return false;
-            var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
-            return plan.DagitimKaynagi == DagitimKaynagi.KullaniciGirisi;
+            return false;   // Kullanıcı girişi artık PBN dosyasından okunur (PbnOkuyucu); elle giriş devre dışı
         }
 
         /// <summary>

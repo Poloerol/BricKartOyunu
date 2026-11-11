@@ -87,6 +87,8 @@ namespace BricKartOyunu.Tests
             T("CT4 1♥-1♠-2♠, 13 hcp → 4♠", TestHelpers.ElOlustur("AQ876", "32", "KJ5", "K32"), "4♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
             T("CT5 1♥-1♠-2♠, 11 hcp → 3♠ davet", TestHelpers.ElOlustur("KJ976", "32", "AQ5", "J86"), "3♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
             T("CT6 1♦-1♠-2♦, 9 hcp → 4. renk/davet yok (3NT/4♠ değil)", TestHelpers.ElOlustur("KJ984", "Q32", "JT", "Q76"), "2♠", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas");
+            T("CT7 1♠-2♠-3♠, 10 hcp → 4♠", TestHelpers.ElOlustur("Q54", "J32", "KJ76", "K65"), "4♠", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
+            T("CT8 1♠-2♠-3♠, 8 hcp → Pas", TestHelpers.ElOlustur("Q54", "J32", "KJ76", "965"), "Pas", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
             // Lebensohl (Reverse): 1♦-1♠-2♥(reverse)-2NT-3♣ röle sonrası cevapçının sign-off'u
             T("LR1 reverse+2NT+3♣ röle, ♦4 kart → 3♦ (açıcının ilk rengine tercih)", TestHelpers.ElOlustur("AQ865", "76", "T654", "53"), "3♦", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "2NT", "Pas", "3♣", "Pas");
             T("LR2 reverse+2NT+3♣ röle, ♠6 kart → 3♠", TestHelpers.ElOlustur("AQ8652", "7", "T5", "5432"), "3♠", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "2NT", "Pas", "3♣", "Pas");

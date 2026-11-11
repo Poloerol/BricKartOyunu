@@ -24,6 +24,7 @@ namespace BricKartOyunu.Forms
         // Dağıtım
         private RadioButton[] _rbKaynak, _rbEnIyi, _rbDagitici;
         private CheckBox _chkYeniNo;
+        private string _pbnYolu = "";
         // Oyun
         private RadioButton[] _rbOyunTuru, _rbGecikme;
         private CheckBox _chkGorunmez, _chkHemen, _chkHizli, _chkKontratIhale, _chkOk, _chkDondurme, _chkTekKart;
@@ -81,9 +82,9 @@ namespace BricKartOyunu.Forms
             MinimizeBox = false;
             ShowInTaskbar = false;
             AutoScaleMode = AutoScaleMode.None;
-            Size = new Size(400, 280);
+            Size = new Size(406, 280);
 
-            _sekmeler = new TabControl { Left = 6, Top = 6, Width = 372, Height = 196, Font = _yazi };
+            _sekmeler = new TabControl { Left = 6, Top = 6, Width = 378, Height = 196, Font = _yazi };
             Controls.Add(_sekmeler);
 
             DagitimSekmesi();
@@ -99,9 +100,9 @@ namespace BricKartOyunu.Forms
                 // Formdaki seçimleri varsayılana çevirir; kalıcı olması için Tamam'a basılmalı
                 Yukle(new OyunPlaniSecenekleri());
             };
-            _btnTamam = Dugme("Tamam", 134, 208);
-            _btnIptal = Dugme("İptal", 218, 208);
-            _btnYardim = Dugme("Yardım", 302, 208);
+            _btnTamam = Dugme("Tamam", 137, 208);
+            _btnIptal = Dugme("İptal", 221, 208);
+            _btnYardim = Dugme("Yardım", 308, 208);
             _btnTamam.Click += (s, e) =>
             {
                 int insanSayisi = 0;
@@ -116,6 +117,8 @@ namespace BricKartOyunu.Forms
                 string eksik = "";
                 if (Secenekler.OyunTuru != OyunTuru.Duplicate)
                     eksik += "• Oyun türü: yalnızca Duplicate kullanılabilir (diğerleri henüz yok).\n";
+                if (Secenekler.DagitimKaynagi == DagitimKaynagi.KullaniciGirisi && PbnOkuyucu.Oku(Secenekler.PbnYolu).Count == 0)
+                    eksik += "• Kullanıcı girişi: geçerli PBN dosyası seçilmedi, rastgele dağıtım kullanılacak.\n";
                 if (eksik.Length > 0)
                     MessageBox.Show(this, "Seçimleriniz kaydedildi, ancak şu ayarlar henüz oyunda etkin değil:\n\n" + eksik,
                         "Oyun Planı", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -178,24 +181,30 @@ namespace BricKartOyunu.Forms
 
         private void DagitimSekmesi()
         {
-            var s = YeniSekme("Dağılım");
+            var s = YeniSekme("Dağıtım");
 
-            var g1 = Grup(s, "Dağılım Kaynağı", 4, 2, 152, 160);
+            var g1 = Grup(s, "Dağıtım Kaynağı", 4, 2, 152, 160);
             _rbKaynak = RadyoDizisi(g1, new[] {
-                "Kullanıcı Girişi", "Rastgele Dağılım", "Rastgele Part Skor", "Rastgele Oyun Eli",
-                "Rastgele Şlem Eli", "Oluşturulmuş Dağılım", "Numaralı rastgele", "NT Dağılımı" },
+                "Kullanıcı girişi", "Rastgele dağıtım", "Rastgele parsiyel skor", "Rastgele oyun eli",
+                "Rastgele slam eli", "Üretilmiş dağıtım", "Numaralı rastgele", "Kozsuz dağıtımlar" },
                 8, 16, 17, 140);
+            _rbKaynak[0].Text = "Kullanıcı girişi (PBN)";
+            _rbKaynak[0].CheckedChanged += (snd, ev) =>
+            {
+                if (!_rbKaynak[0].Checked || _yukleniyor) return;
+                if (!PbnSec()) { _yukleniyor = true; _rbKaynak[1].Checked = true; _yukleniyor = false; }
+            };
 
-            var g2 = Grup(s, "En İyi El", 162, 2, 98, 160);
+            var g2 = Grup(s, "En İyi El", 162, 2, 104, 160);
             _rbEnIyi = RadyoDizisi(g2, new[] {
-                "Herhangi Biri", "Kuzey-Güney", "Doğu-Batı", "Kuzey", "Doğu", "Güney", "Batı" },
-                8, 16, 19, 86);
+                "Herhangi biri", "Kuzey-Güney", "Doğu-Batı", "Kuzey", "Doğu", "Güney", "Batı" },
+                8, 16, 19, 92);
 
-            var g3 = Grup(s, "Dağıtıcı", 266, 2, 92, 108);
+            var g3 = Grup(s, "Dağıtıcı", 272, 2, 92, 108);
             _rbDagitici = RadyoDizisi(g3, new[] { "Dönüşümlü", "Kuzey", "Doğu", "Güney", "Batı" },
                 8, 16, 17, 80);
 
-            _chkYeniNo = Onay(s, "Yeni bord numaralarını kullan", 268, 114, 92, 40);
+            _chkYeniNo = Onay(s, "Yeni bord numaralarını kullan", 274, 114, 92, 40);
         }
 
         private void OyunSekmesi()
@@ -377,8 +386,39 @@ namespace BricKartOyunu.Forms
             return 0;
         }
 
+        private bool _yukleniyor;
+
         private void Yukle(OyunPlaniSecenekleri o)
         {
+            _yukleniyor = true;
+            try { YukleIc(o); } finally { _yukleniyor = false; }
+        }
+
+        /// <summary>PBN dosyası seçtirir; en az bir geçerli bord varsa true.</summary>
+        private bool PbnSec()
+        {
+            using (var dlg = new OpenFileDialog())
+            {
+                dlg.Title = "Oynanacak bordların PBN dosyası";
+                dlg.Filter = "Taşınabilir Briç Notasyonu (*.pbn)|*.pbn|Tüm dosyalar|*.*";
+                if (!string.IsNullOrEmpty(_pbnYolu) && File.Exists(_pbnYolu)) dlg.FileName = _pbnYolu;
+                if (dlg.ShowDialog(this) != DialogResult.OK) return false;
+                int adet = PbnOkuyucu.Oku(dlg.FileName).Count;
+                if (adet == 0)
+                {
+                    MessageBox.Show(this, "Dosyada okunabilir bord bulunamadı.", "PBN", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+                _pbnYolu = dlg.FileName;
+                MessageBox.Show(this, adet + " bord bulundu. Bordlar sırayla bu dosyadan oynanacak.\n(Bord 1'den başlamak için \"Yeni bord numaralarını kullan\" kutusunu işaretleyin.)",
+                    "PBN", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return true;
+            }
+        }
+
+        private void YukleIc(OyunPlaniSecenekleri o)
+        {
+            _pbnYolu = o.PbnYolu ?? "";
             Sec(_rbKaynak, (int)o.DagitimKaynagi);
             Sec(_rbEnIyi, (int)o.EnIyiEl);
             Sec(_rbDagitici, (int)o.Dagitici);
@@ -417,6 +457,7 @@ namespace BricKartOyunu.Forms
         {
             var o = Secenekler;
             o.DagitimKaynagi = (DagitimKaynagi)Secili(_rbKaynak);
+            o.PbnYolu = _pbnYolu;
             o.EnIyiEl = (EnIyiEl)Secili(_rbEnIyi);
             o.Dagitici = (DagiticiSecimi)Secili(_rbDagitici);
             o.YeniBordNumaralari = _chkYeniNo.Checked;
