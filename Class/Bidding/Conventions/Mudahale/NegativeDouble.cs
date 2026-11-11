@@ -103,4 +103,45 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return "Dbl";
         }
     }
-}
+
+    /// <summary>
+    /// Ortak 1M açtı, rakip 2 seviyesinde bir renkle araya girdi, ben henüz konuşmadım:
+    /// dengeli el + rakibin rengini durduruyorum + açıcının majöründe 3+ destek yok + kullanılmamış majörde 4+ kart yok
+    ///   11-12 HP → 2NT (davet, doğal), 13-16 HP → 3NT.
+    /// Destekli eller (raise / cue) ve 4'lü majörlü eller (negatif kontra / yeni renk) kendi kurallarına kalır.
+    /// </summary>
+    public class RakipMudahalesiNT : IKonvansiyon
+    {
+        public string Ad => "Müdahale Sonrası NT Cevap";
+        public string Aciklama => "1M - (2 seviyesi müdahale) - dengeli, durdurucu: 2NT (11-12) / 3NT (13-16)";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 25;
+
+        public bool UygunMu(IhaleDurumu durum) { return Bul(durum) != null; }
+        public string TeklifVer(IhaleDurumu durum) { return Bul(durum) ?? "Pas"; }
+
+        private static string Bul(IhaleDurumu d)
+        {
+            if (d == null || d.AktifOyuncuEli == null || d.AktifOyuncuEli.Count != 13) return null;
+            if (d.IhaleBittiMi()) return null;
+            var g = d.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g.Count != 2) return null;
+            if (g[0].Oyuncu != d.Partner || g[0].Seviye != 1 || (g[0].Koz != "Maça" && g[0].Koz != "Kupa")) return null;
+            if (!d.Rakipler.Contains(g[1].Oyuncu) || g[1].Seviye != 2 || g[1].Koz == "NT") return null;
+            if (g[1].Koz == g[0].Koz) return null;
+
+            var el = d.AktifOyuncuEli;
+            if (!ElDegerlendirici.DengeliEl(el)) return null;
+            if (!ElDegerlendirici.StopperVar(el, g[1].Koz)) return null;
+            if (ElDegerlendirici.RenkUzunlugu(el, g[0].Koz) >= 3) return null;
+            // Kullanılmamış majörde 4+ kart → negatif kontra / yeni renk
+            foreach (var m in new[] { "Maça", "Kupa" })
+                if (m != g[0].Koz && m != g[1].Koz && ElDegerlendirici.RenkUzunlugu(el, m) >= 4) return null;
+
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp >= 11 && hp <= 12) return "2NT";
+            if (hp >= 13 && hp <= 16) return "3NT";
+            return null;
+        }
+    }
+}

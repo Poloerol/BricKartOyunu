@@ -178,17 +178,17 @@ namespace BricKartOyunu.Forms
 
         private void DagitimSekmesi()
         {
-            var s = YeniSekme("Dağıtım");
+            var s = YeniSekme("Dağılım");
 
-            var g1 = Grup(s, "Dağıtım Kaynağı", 4, 2, 152, 160);
+            var g1 = Grup(s, "Dağılım Kaynağı", 4, 2, 152, 160);
             _rbKaynak = RadyoDizisi(g1, new[] {
-                "Kullanıcı girişi", "Rastgele dağıtım", "Rastgele parsiyel skor", "Rastgele oyun eli",
-                "Rastgele slam eli", "Üretilmiş dağıtım", "Numaralı rastgele", "Kozsuz dağıtımlar" },
+                "Kullanıcı Girişi", "Rastgele Dağılım", "Rastgele Part Skor", "Rastgele Oyun Eli",
+                "Rastgele Şlem Eli", "Oluşturulmuş Dağılım", "Numaralı rastgele", "NT Dağılımı" },
                 8, 16, 17, 140);
 
             var g2 = Grup(s, "En İyi El", 162, 2, 98, 160);
             _rbEnIyi = RadyoDizisi(g2, new[] {
-                "Herhangi biri", "Kuzey-Güney", "Doğu-Batı", "Kuzey", "Doğu", "Güney", "Batı" },
+                "Herhangi Biri", "Kuzey-Güney", "Doğu-Batı", "Kuzey", "Doğu", "Güney", "Batı" },
                 8, 16, 19, 86);
 
             var g3 = Grup(s, "Dağıtıcı", 266, 2, 92, 108);

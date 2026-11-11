@@ -77,6 +77,16 @@ namespace BricKartOyunu.Tests
             // Rakip 1NT'ye araya girdiyse ortağın 2♦/2♥'i Jacoby transfer DEĞİLDİR (Lebensohl: doğal/zayıf) → transfer tamamlanmaz
             T("JT1 1NT-(2♣)-2♦-(Pas), açıcı ♥2 kart → 2♥ (transfer tamamlama) değil Pas", TestHelpers.ElOlustur("AK10", "Q5", "Q76", "AK854"), "Pas", "1NT", "2♣", "2♦", "Pas");
             T("JT2 1NT-(2♣)-2♥-(Pas), açıcı ♠3 kart → 2♠ (transfer tamamlama) değil Pas", TestHelpers.ElOlustur("AK10", "Q5", "Q76", "AK854"), "Pas", "1NT", "2♣", "2♥", "Pas");
+            // 1M - (2 seviyesi müdahale) - dengeli + durdurucu: 2NT (11-12) / 3NT (13-16)
+            T("RN1 1♥-(2♣)-?, 15 hcp dengeli ♣K durdurucu → 3NT", TestHelpers.ElOlustur("K54", "Q2", "AQ76", "KJ54"), "3NT", "1♥", "2♣");
+            T("RN2 1♥-(2♦)-?, 12 hcp dengeli ♦A durdurucu → 2NT", TestHelpers.ElOlustur("K54", "Q2", "AJ76", "J654"), "2NT", "1♥", "2♦");
+            T("RN3 1♥-(2♣)-?, 10 hcp dengeli ♣K durdurucu → 2NT/3NT değil", TestHelpers.ElOlustur("Q54", "J2", "KJ76", "K654"), "Pas", "1♥", "2♣");
+            T("CT1 1♦-1♠-2♦, 14 hcp → 3NT", TestHelpers.ElOlustur("AJ984", "AQ32", "JT", "Q7"), "3NT", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas");
+            T("CT2 1♦-1♠-1NT, 12 hcp → 2NT", TestHelpers.ElOlustur("AT95", "QJ92", "KQ8", "65"), "2NT", "1♦", "Pas", "1♠", "Pas", "1NT", "Pas");
+            T("CT3 1♥-1♠-2♥, 15 hcp → 4♥", TestHelpers.ElOlustur("AKT76", "K3", "A74", "J86"), "4♥", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
+            T("CT4 1♥-1♠-2♠, 13 hcp → 4♠", TestHelpers.ElOlustur("AQ876", "32", "KJ5", "K32"), "4♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
+            T("CT5 1♥-1♠-2♠, 11 hcp → 3♠ davet", TestHelpers.ElOlustur("KJ976", "32", "AQ5", "J86"), "3♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
+            T("CT6 1♦-1♠-2♦, 9 hcp → 4. renk/davet yok (3NT/4♠ değil)", TestHelpers.ElOlustur("KJ984", "Q32", "JT", "Q76"), "2♠", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas");
             // Lebensohl (Reverse): 1♦-1♠-2♥(reverse)-2NT-3♣ röle sonrası cevapçının sign-off'u
             T("LR1 reverse+2NT+3♣ röle, ♦4 kart → 3♦ (açıcının ilk rengine tercih)", TestHelpers.ElOlustur("AQ865", "76", "T654", "53"), "3♦", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "2NT", "Pas", "3♣", "Pas");
             T("LR2 reverse+2NT+3♣ röle, ♠6 kart → 3♠", TestHelpers.ElOlustur("AQ8652", "7", "T5", "5432"), "3♠", "1♦", "Pas", "1♠", "Pas", "2♥", "Pas", "2NT", "Pas", "3♣", "Pas");

@@ -288,4 +288,99 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return i1 < i2;
         }
     }
+
+    /// <summary>
+    /// Cevapçı İkinci Tur — 1x - 1Y - (açıcının minimum yeniden teklifi) - ?
+    /// Cevapçı 11+ OP ile Pas yerine davet/oyun teklif eder.
+    /// </summary>
+    public class CevapciIkinciTur : IKonvansiyon
+    {
+        public string Ad => "Cevapçı İkinci Tur";
+        public string Aciklama => "1x-1Y-minimum yeniden teklif sonrası cevapçı 11+ OP ile davet / oyun teklif eder";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 26;
+
+        public bool UygunMu(IhaleDurumu durum) { return Bul(durum) != null; }
+        public string TeklifVer(IhaleDurumu durum) { return Bul(durum) ?? "Pas"; }
+
+        private static string Sem(string koz)
+        {
+            switch (koz) { case "Maça": return "♠"; case "Kupa": return "♥"; case "Karo": return "♦"; case "Sinek": return "♣"; }
+            return null;
+        }
+        private static bool Major(string k) { return k == "Maça" || k == "Kupa"; }
+
+        private static string Bul(IhaleDurumu d)
+        {
+            if (d == null || d.AktifOyuncuEli == null || d.AktifOyuncuEli.Count != 13) return null;
+            if (d.IhaleBittiMi()) return null;
+            var g = d.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g.Count != 3) return null;
+            if (g[0].Oyuncu != d.Partner || g[1].Oyuncu != d.AktifOyuncu || g[2].Oyuncu != d.Partner) return null;
+            if (g[0].Seviye != 1 || g[0].Koz == "NT") return null;
+            if (g[1].Seviye != 1 || g[1].Koz == "NT" || g[1].Koz == "Sinek") return null;
+            if (g[1].Koz == g[0].Koz) return null;
+
+            var el = d.AktifOyuncuEli;
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp < 11) return null;
+            bool dengeli = ElDegerlendirici.DengeliEl(el);
+            string x = g[0].Koz, y = g[1].Koz, z = g[2].Koz;
+            int zs = g[2].Seviye;
+            int yLen = ElDegerlendirici.RenkUzunlugu(el, y);
+            // Başka bir rengi 6+ kartsa kendi rengini teklif etmek daha doğru
+            foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                if (r != y && ElDegerlendirici.RenkUzunlugu(el, r) >= 6) return null;
+
+            // (a) 1NT
+            if (z == "NT" && zs == 1)
+            {
+                if (hp == 11) return null;
+                if (hp == 12) return "2NT";
+                if (Major(y) && yLen >= 6) return "4" + Sem(y);
+                return "3NT";
+            }
+            // (b) açıcı kendi rengini tekrarladı
+            if (z == x && zs == 2)
+            {
+                int xLen = ElDegerlendirici.RenkUzunlugu(el, x);
+                if (hp >= 14)
+                {
+                    if (Major(x) && xLen >= 2) return "4" + Sem(x);
+                    return "3NT";
+                }
+                if (hp >= 12)
+                {
+                    if (Major(x) && xLen >= 3) return "3" + Sem(x);
+                    return "2NT";
+                }
+                return null;
+            }
+            // (c) açıcı benim majörümü yükseltti
+            if (z == y && zs == 2 && Major(y))
+            {
+                if (hp >= 13) return "4" + Sem(y);
+                if (hp >= 11) return "3" + Sem(y);
+                return null;
+            }
+            // (d) 1 seviyede yeni majör
+            if (zs == 1 && Major(z) && z != y && z != x)
+            {
+                int zLen = ElDegerlendirici.RenkUzunlugu(el, z);
+                if (zLen >= 4)
+                {
+                    if (hp >= 13) return "4" + Sem(z);
+                    if (hp >= 10) return "3" + Sem(z);
+                    return null;
+                }
+                if (dengeli)
+                {
+                    if (hp >= 13) return "3NT";
+                    if (hp >= 11) return "2NT";
+                }
+                return null;
+            }
+            return null;
+        }
+    }
 }

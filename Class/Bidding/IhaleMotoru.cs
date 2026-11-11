@@ -200,6 +200,8 @@ namespace BricKartOyunu.Class.Bidding
                 new MichaelsDevam(),
                 new CappellettiRoleDevam(),
                 new LebensohlDevam(),
+                new RakipMudahalesiNT(),
+                new CevapciIkinciTur(),
                 new StrongNT(),
                 new NegativeDouble(),
                 new ResponsiveDouble(),
