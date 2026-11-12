@@ -656,9 +656,6 @@
     <EmbeddedResource Include="Forms\ElDegerForm.resx">
       <DependentUpon>ElDegerForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\ElGirisiForm.resx">
-      <DependentUpon>ElGirisiForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\ElleriDegistir.resx">
       <DependentUpon>ElleriDegistir.cs</DependentUpon>
     </EmbeddedResource>

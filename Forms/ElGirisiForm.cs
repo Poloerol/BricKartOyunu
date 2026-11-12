@@ -198,23 +198,5 @@ namespace BricKartOyunu.Forms
             DialogResult = DialogResult.OK;
             Close();
         }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            // 
-            // ElGirisiForm
-            // 
-            this.ClientSize = new System.Drawing.Size(284, 261);
-            this.Name = "ElGirisiForm";
-            this.Load += new System.EventHandler(this.ElGirisiForm_Load);
-            this.ResumeLayout(false);
-
-        }
-
-        private void ElGirisiForm_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }
