@@ -39,15 +39,15 @@ namespace BricKartOyunu.Forms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false; MinimizeBox = false; ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new Size(312, 262);
+            ClientSize = new Size(310, 305);
 
             for (int s = 0; s < 4; s++)
             {
-                var grup = new GroupBox { Text = RenkAdlari[s], Left = 8 + s * 52, Top = 4, Width = 50, Height = 250 };
+                var grup = new GroupBox { Text = RenkAdlari[s], Left = 8 + s * 52, Top = 4, Width = 50, Height = 290 };
                 for (int d = 0; d < 13; d++)
                 {
                     _sahip[s, d] = -1;
-                    var kutu = new CheckBox { Text = Degerler[d], Left = 5, Top = 14 + d * 17, Width = 42, Height = 17 };
+                    var kutu = new CheckBox { Text = Degerler[d], Left = 5, Top = 14 + d * 21, Width = 42, Height = 17 };
                     int renk = s, deger = d;
                     kutu.CheckedChanged += (o, e) => KutuDegisti(renk, deger);
                     _kutu[s, d] = kutu;
@@ -197,6 +197,24 @@ namespace BricKartOyunu.Forms
             Eller = MevcutEller();
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // ElGirisiForm
+            // 
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "ElGirisiForm";
+            this.Load += new System.EventHandler(this.ElGirisiForm_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        private void ElGirisiForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

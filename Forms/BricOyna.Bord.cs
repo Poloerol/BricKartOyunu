@@ -228,7 +228,8 @@ namespace BricKartOyunu
             if (plan.DagitimKaynagi != DagitimKaynagi.KullaniciGirisi) return null;
             var liste = PbnOkuyucu.Oku(plan.PbnYolu);
             if (liste.Count == 0) return null;
-            return liste[(((_currentTour - 1) % liste.Count) + liste.Count) % liste.Count];
+            // Başlangıç bordu (Dağılım Deposu'nda seçilen) + bord numarası kadar ileri
+            return liste[((((plan.PbnBaslangic + _currentTour - 1) % liste.Count) + liste.Count) % liste.Count)];
         }
 
         /// <summary>Dağıtım kaynağı ve en iyi el ayarlarına göre 52 kartı üretir (Kuzey, Doğu, Güney, Batı).</summary>

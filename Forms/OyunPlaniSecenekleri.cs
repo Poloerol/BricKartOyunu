@@ -37,6 +37,8 @@ namespace BricKartOyunu.Forms
         public bool YeniBordNumaralari = false;
         /// <summary>"Kullanıcı girişi" kaynağında oynanacak bordların okunduğu PBN dosyası.</summary>
         public string PbnYolu = "";
+        /// <summary>PBN dosyasında oyuna başlanacak bordun sıfır tabanlı indeksi (Dağılım Deposu'ndan seçilen bord).</summary>
+        public int PbnBaslangic = 0;
 
         // Oyun sekmesi
         public OyunTuru OyunTuru = Forms.OyunTuru.Duplicate;
@@ -149,6 +151,8 @@ namespace BricKartOyunu.Forms
     public class PbnBord
     {
         public string Ad = "";
+        /// <summary>[Description] etiketi varsa açıklama (yoksa boş).</summary>
+        public string Aciklama = "";
         public bool DagiticiVar;
         public Player Dagitici;                      // fiziksel koltuk
         public string[] El = new string[4];          // fiziksel Kuzey, Doğu, Güney, Batı: "S.H.D.C"
@@ -167,7 +171,7 @@ namespace BricKartOyunu.Forms
             DateTime z = File.GetLastWriteTimeUtc(yol);
             if (_onbellek != null && _yol == yol && _zaman == z) return _onbellek;
 
-            string ad = "", deal = null, dealer = null;
+            string ad = "", deal = null, dealer = null, acik = "";
             foreach (var satir in File.ReadAllLines(yol))
             {
                 var m = Etiket.Match(satir.Trim());
@@ -175,17 +179,18 @@ namespace BricKartOyunu.Forms
                 string tag = m.Groups[1].Value, deger = m.Groups[2].Value;
                 if ((tag == "Event" || tag == "Deal") && deal != null)
                 {
-                    var b = Coz(deal, dealer, ad);
+                    var b = Coz(deal, dealer, ad, acik);
                     if (b != null) liste.Add(b);
-                    ad = ""; deal = null; dealer = null;
+                    ad = ""; deal = null; dealer = null; acik = "";
                 }
                 if (tag == "Event") ad = deger;
+                else if (tag == "Description") acik = deger;
                 else if (tag == "Dealer") dealer = deger;
                 else if (tag == "Deal") deal = deger;
             }
             if (deal != null)
             {
-                var b = Coz(deal, dealer, ad);
+                var b = Coz(deal, dealer, ad, acik);
                 if (b != null) liste.Add(b);
             }
             _yol = yol; _zaman = z; _onbellek = liste;
@@ -198,14 +203,14 @@ namespace BricKartOyunu.Forms
             return -1;
         }
 
-        private static PbnBord Coz(string deal, string dealer, string ad)
+        private static PbnBord Coz(string deal, string dealer, string ad, string aciklama)
         {
             if (deal.Length < 3 || deal[1] != ':') return null;
             int bas = KoltukNo(deal[0]);
             if (bas < 0) return null;
             var eller = deal.Substring(2).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (eller.Length != 4) return null;
-            var b = new PbnBord { Ad = ad };
+            var b = new PbnBord { Ad = ad, Aciklama = aciklama ?? "" };
             var gorulen = new HashSet<string>();
             for (int j = 0; j < 4; j++)
             {

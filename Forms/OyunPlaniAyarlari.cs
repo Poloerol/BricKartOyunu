@@ -457,6 +457,7 @@ namespace BricKartOyunu.Forms
         {
             var o = Secenekler;
             o.DagitimKaynagi = (DagitimKaynagi)Secili(_rbKaynak);
+            if (!string.Equals(o.PbnYolu, _pbnYolu, StringComparison.OrdinalIgnoreCase)) o.PbnBaslangic = 0;   // başka dosya: baştan
             o.PbnYolu = _pbnYolu;
             o.EnIyiEl = (EnIyiEl)Secili(_rbEnIyi);
             o.Dagitici = (DagiticiSecimi)Secili(_rbDagitici);

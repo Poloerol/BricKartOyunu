@@ -18,6 +18,19 @@ namespace BricKartOyunu.Forms
         {
             InitializeComponent();
             BtnDepoyaYukle.Click += BtnDepoyaYukle_Click;
+
+            // Var olan .pbn dosyalarını depoya kopyalayan ek düğme ("Ana Sayfaya Dön"ün üstüne yerleşir)
+            var btnAktar = new Button
+            {
+                Text = "PBN Dosyasını Depoya Aktar",
+                Location = new Point(BtnAnaSayfa.Left, BtnAnaSayfa.Top),
+                Size = BtnAnaSayfa.Size,
+                UseVisualStyleBackColor = true
+            };
+            btnAktar.Click += BtnPbnAktar_Click;
+            BtnAnaSayfa.Top += 44;
+            ClientSize = new Size(ClientSize.Width, ClientSize.Height + 44);
+            Controls.Add(btnAktar);
             BtnDepodanYukle.Click += BtnDepodanYukle_Click;
             BtnDepodanSil.Click += BtnDepodanSil_Click;
             BtnDepodanDuzenle.Click += BtnDepodanDuzenle_Click;
@@ -29,8 +42,139 @@ namespace BricKartOyunu.Forms
             get { return Path.Combine(AyarDeposu.KlasorYolu, "DagilimDeposu"); }
         }
 
-        /// <summary>Seçilen PBN dosyalarını doğrulayıp depo klasörüne kopyalar (aynı ad varsa numaralandırır).</summary>
+        /// <summary>
+        /// El Girişi formunu açar; girilen dört el depodaki seçilen (veya yeni) PBN dosyasına yeni bord olarak eklenir.
+        /// Kayıttan sonra başka bord girmek istenirse form yeniden açılır.
+        /// </summary>
         private void BtnDepoyaYukle_Click(object sender, EventArgs e)
+        {
+            while (true)
+            {
+                Dictionary<Player, List<string>> eller;
+                using (var giris = new ElGirisiForm())
+                {
+                    if (giris.ShowDialog(this) != DialogResult.OK || giris.Eller == null) return;
+                    eller = giris.Eller;
+                }
+
+                string deal;
+                try { deal = PbnDealMetni(eller); }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, "Eller işlenemedi:\n" + ex.Message, "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                string ad = DepoDosyasiAdiSor();
+                if (ad == null) return;
+
+                int no;
+                try { no = BordEkle(ad, deal); }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, "Bord depoya kaydedilemedi:\n" + ex.Message, "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (MessageBox.Show(this, "Bord " + no + ", \"" + ad + ".pbn\" dosyasına eklendi.\n\nBaşka bir bord girmek ister misiniz?",
+                        "Dağılım Deposu", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
+                    return;
+            }
+        }
+
+        /// <summary>El Girişi'nin koltuk başına kart dosya adlarını ("10H.png") PBN Deal metnine çevirir: "N:S.H.D.C E... S... W...".</summary>
+        private static string PbnDealMetni(Dictionary<Player, List<string>> eller)
+        {
+            const string degerSirasi = "AKQJT98765432";
+            char[] renkler = { 'S', 'H', 'D', 'C' };
+            var sira = new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            var eller4 = new List<string>();
+            foreach (var oyuncu in sira)
+            {
+                List<string> el;
+                if (!eller.TryGetValue(oyuncu, out el) || el.Count != 13)
+                    throw new InvalidOperationException("Her elde 13 kart olmalıdır.");
+                var renk = renkler.ToDictionary(r => r, r => new List<char>());
+                foreach (string kart in el)
+                {
+                    string ad = Path.GetFileNameWithoutExtension(kart);          // ör. "10H"
+                    char suit = char.ToUpperInvariant(ad[ad.Length - 1]);
+                    string deger = ad.Substring(0, ad.Length - 1);
+                    renk[suit].Add(deger == "10" ? 'T' : char.ToUpperInvariant(deger[0]));
+                }
+                eller4.Add(string.Join(".", renkler.Select(r => renk[r].Count == 0
+                    ? "-"
+                    : new string(renk[r].OrderBy(c => degerSirasi.IndexOf(c)).ToArray()))));
+            }
+            return "N:" + string.Join(" ", eller4);
+        }
+
+        /// <summary>Bordu depodaki dosyanın sonuna ekler (dosya yoksa oluşturur); eklenen bordun numarasını döndürür.</summary>
+        private static int BordEkle(string dosyaAdi, string deal)
+        {
+            Directory.CreateDirectory(DepoKlasoru);
+            string yol = Path.Combine(DepoKlasoru, dosyaAdi + ".pbn");
+            int no = 1;
+            string metin;
+            if (File.Exists(yol))
+            {
+                no = PbnOkuyucu.Oku(yol).Count + 1;
+                metin = File.ReadAllText(yol);
+                if (metin.Length > 0 && !metin.EndsWith("\n")) metin += "\r\n";
+                metin += "\r\n";
+            }
+            else metin = "% PBN 2.1\r\n\r\n";
+
+            metin += "[Event \"Bord " + no + "\"]\r\n" +
+                     "[Dealer \"" + "NESW"[(no - 1) % 4] + "\"]\r\n" +
+                     "[Deal \"" + deal + "\"]\r\n";
+            File.WriteAllText(yol, metin, new System.Text.UTF8Encoding(false));
+            return no;
+        }
+
+        /// <summary>Bordun ekleneceği dosya adını sorar: depodaki bir dosya seçilir ya da yeni ad yazılır. İptalde null.</summary>
+        private string DepoDosyasiAdiSor()
+        {
+            using (var f = new Form())
+            {
+                f.Text = "Depoya kaydet";
+                f.StartPosition = FormStartPosition.CenterParent;
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.MinimizeBox = false; f.MaximizeBox = false; f.ShowInTaskbar = false;
+                f.ClientSize = new Size(380, 110);
+
+                f.Controls.Add(new Label { Text = "Dosya adı (mevcut dosya seçilirse bord sonuna eklenir):", Location = new Point(10, 10), AutoSize = true });
+                var cmb = new ComboBox { Location = new Point(10, 34), Width = 360, DropDownStyle = ComboBoxStyle.DropDown };
+                if (Directory.Exists(DepoKlasoru))
+                    foreach (string y in Directory.GetFiles(DepoKlasoru, "*.pbn").OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase))
+                        cmb.Items.Add(Path.GetFileNameWithoutExtension(y));
+                cmb.Text = "Yeni ihale";
+                f.Controls.Add(cmb);
+
+                var tamam = new Button { Text = "Kaydet", Location = new Point(190, 70), Size = new Size(85, 28) };
+                var iptal = new Button { Text = "Vazgeç", Location = new Point(285, 70), Size = new Size(85, 28), DialogResult = DialogResult.Cancel };
+                tamam.Click += (s, e) =>
+                {
+                    string ad = cmb.Text.Trim();
+                    if (ad.EndsWith(".pbn", StringComparison.OrdinalIgnoreCase)) ad = ad.Substring(0, ad.Length - 4).Trim();
+                    if (ad.Length == 0 || ad.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                    {
+                        MessageBox.Show(f, "Geçerli bir dosya adı girin (\\ / : * ? \" < > | karakterleri kullanılamaz).",
+                            "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    cmb.Text = ad;
+                    f.DialogResult = DialogResult.OK;
+                };
+                f.Controls.AddRange(new Control[] { tamam, iptal });
+                f.AcceptButton = tamam; f.CancelButton = iptal;
+
+                return f.ShowDialog(this) == DialogResult.OK ? cmb.Text : null;
+            }
+        }
+
+        /// <summary>Seçilen PBN dosyalarını doğrulayıp depo klasörüne kopyalar (aynı ad varsa numaralandırır).</summary>
+        private void BtnPbnAktar_Click(object sender, EventArgs e)
         {
             using (var dlg = new OpenFileDialog())
             {
@@ -114,28 +258,99 @@ namespace BricKartOyunu.Forms
             }
         }
 
+        /// <summary>
+        /// "Oynanacak Bord Seç" penceresi: dosyadaki bordları (numara, ad, açıklama) listeler, altta bulunan bord sayısı yazar.
+        /// Seçilen bordun sıfır tabanlı indeksini döndürür; İptal'de -1.
+        /// </summary>
+        private int BordSec(List<PbnBord> bordlar)
+        {
+            string[] dagiticiAdi = { "Kuzey", "Doğu", "Güney", "Batı" };
+            using (var f = new Form())
+            {
+                f.Text = "Oynanacak Bord Seç";
+                f.StartPosition = FormStartPosition.CenterParent;
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.MinimizeBox = false; f.MaximizeBox = false; f.ShowInTaskbar = false;
+                f.ClientSize = new Size(420, 270);
+
+                var lv = new ListView { Location = new Point(10, 10), Size = new Size(400, 215), View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false, GridLines = true };
+                lv.Columns.Add("Bord", 45, HorizontalAlignment.Right);
+                lv.Columns.Add("Ad", 90);
+                lv.Columns.Add("Açıklama", 245);
+                for (int i = 0; i < bordlar.Count; i++)
+                {
+                    var b = bordlar[i];
+                    string acik = !string.IsNullOrEmpty(b.Aciklama) ? b.Aciklama
+                                : b.DagiticiVar ? "Dağıtıcı: " + dagiticiAdi[Array.IndexOf(new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati }, b.Dagitici)]
+                                : "";
+                    var oge = new ListViewItem((i + 1).ToString());
+                    oge.SubItems.Add(b.Ad);
+                    oge.SubItems.Add(acik);
+                    lv.Items.Add(oge);
+                }
+                f.Controls.Add(lv);
+                f.Controls.Add(new Label { Text = "Bulunan bord: " + bordlar.Count, Location = new Point(10, 242), AutoSize = true });
+
+                var tamam = new Button { Text = "Tamam", Location = new Point(235, 235), Size = new Size(85, 28), DialogResult = DialogResult.OK };
+                var iptal = new Button { Text = "İptal", Location = new Point(325, 235), Size = new Size(85, 28), DialogResult = DialogResult.Cancel };
+                f.Controls.AddRange(new Control[] { tamam, iptal });
+                f.AcceptButton = tamam; f.CancelButton = iptal;
+                lv.DoubleClick += (s, e) => { if (lv.SelectedIndices.Count == 1) f.DialogResult = DialogResult.OK; };
+                lv.Items[0].Selected = true;
+
+                if (f.ShowDialog(this) != DialogResult.OK || lv.SelectedIndices.Count != 1) return -1;
+                return lv.SelectedIndices[0];
+            }
+        }
+
         /// <summary>Depodan seçilen dosyayı oyun planının dağıtım kaynağı (Kullanıcı girişi - PBN) yapar.</summary>
         private void BtnDepodanYukle_Click(object sender, EventArgs e)
         {
-            string yol = DepodanSec("Depodan ihale dosyası yükle", "Yükle");
-            if (yol == null) return;
+            // Standart "Aç" penceresi, depo klasöründe açılır
+            string yol;
+            try { Directory.CreateDirectory(DepoKlasoru); } catch (Exception) { }
+            using (var dlg = new OpenFileDialog())
+            {
+                dlg.Title = "Aç";
+                dlg.InitialDirectory = DepoKlasoru;
+                dlg.Filter = "Taşınabilir Briç Notasyonu (*.pbn)|*.pbn";
+                dlg.CheckFileExists = true;
+                dlg.Multiselect = false;
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                yol = dlg.FileName;
+            }
 
-            int adet = PbnOkuyucu.Oku(yol).Count;
+            // Yalnızca depodaki dosyalar yüklenir (başka klasördeki dosya için "PBN Dosyasını Depoya Aktar")
+            string klasor = Path.GetDirectoryName(yol) ?? "";
+            if (!string.Equals(klasor.TrimEnd('\\'), DepoKlasoru.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show(this, "Yalnızca depodaki dosyalar yüklenebilir.\nBaşka bir klasördeki dosya için önce \"PBN Dosyasını Depoya Aktar\" düğmesini kullanın.",
+                    "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var bordlar = PbnOkuyucu.Oku(yol);
+            int adet = bordlar.Count;
             if (adet == 0)
             {
                 MessageBox.Show(this, "Bu dosyada okunabilir bord bulunamadı.", "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
+            // "Oynanacak Bord Seç" penceresi: dosyada tek bord varsa da gösterilir
+            int secilen = BordSec(bordlar);
+            if (secilen < 0) return;
+
             var plan = AnaSayfa.OyunPlani;
             plan.DagitimKaynagi = DagitimKaynagi.KullaniciGirisi;
             plan.PbnYolu = yol;
-            plan.SonBordNo = 0;                       // dosya baştan (1. bordtan) oynanır
+            plan.PbnBaslangic = secilen;              // oyun seçilen bordla başlar, sonraki bordlar sırayla gelir
+            plan.SonBordNo = 0;
             bool kaydedildi = plan.Kaydet();
 
             string mesaj = "\"" + Path.GetFileName(yol) + "\" yüklendi (" + adet + " bord).\n\n" +
                            "Oyun planında dağıtım kaynağı \"Kullanıcı girişi (PBN)\" olarak ayarlandı; " +
-                           "yeni oyunda bordlar bu dosyadan 1. bordtan başlayarak gelecek.";
+                           "yeni oyun " + (secilen + 1) + ". bordla (" + (string.IsNullOrEmpty(bordlar[secilen].Ad) ? "adsız" : bordlar[secilen].Ad) + ") başlayacak.";
             if (!kaydedildi) mesaj += "\n\nUyarı: ayarlar diske kaydedilemedi, değişiklik yalnızca bu oturumda geçerli.";
             MessageBox.Show(this, mesaj, "Dağılım Deposu", MessageBoxButtons.OK,
                 kaydedildi ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
