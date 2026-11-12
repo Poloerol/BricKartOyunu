@@ -96,7 +96,7 @@
             this.MinimizeBox = false;
             this.Name = "DagilimDepo";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Kişisel Oyun Deposu";
+            this.Text = "Dağılım Deposu";
             this.Load += new System.EventHandler(this.DagilimDepo_Load);
             this.ResumeLayout(false);
 

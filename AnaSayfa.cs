@@ -646,7 +646,7 @@ namespace BricKartOyunu.Forms
                     break;
                 case ActiveMain.Araclar:
                     ortaButon.Text = "Kart Dağıtıcı";
-                    ortaButon2.Text = "Dağılım Kütüphanesi";
+                    ortaButon2.Text = "Dağılım Deposu";
                     ortaButon3.Text = "Geri";
                     break;
             }
