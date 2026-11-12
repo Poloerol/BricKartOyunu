@@ -413,4 +413,42 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return "4" + (m == "Maça" ? "♠" : "♥");
         }
     }
+
+    /// <summary>
+    /// Minör Davet Cevabı — 1m - (Pas) - 3m(limit raise, 10-15 OP) - (Pas) - ?
+    /// Açıcı 14+ OP ile daveti kabul eder: dört rengi de tutuk ve dengeli ise 3NT, değilse 5m.
+    /// Asgari elle Pas kalır.
+    /// </summary>
+    public class MinorDavetCevabi : IKonvansiyon
+    {
+        public string Ad => "Minör Davet Cevabı";
+        public string Aciklama => "1m-3m sonrası açıcı 14+ OP ile oyuna gider (3NT veya 5m)";
+        public bool AktifMi { get; set; } = true;
+        public int Oncelik => 26;
+
+        public bool UygunMu(IhaleDurumu durum) { return Bul(durum) != null; }
+        public string TeklifVer(IhaleDurumu durum) { return Bul(durum) ?? "Pas"; }
+
+        private static string Bul(IhaleDurumu d)
+        {
+            if (d == null || d.AktifOyuncuEli == null || d.AktifOyuncuEli.Count != 13) return null;
+            if (d.IhaleBittiMi()) return null;
+            var g = d.Gecmis.Where(h => h.GercekTeklifMi).ToList();
+            if (g.Count != 2) return null;
+            if (g[0].Oyuncu != d.AktifOyuncu || g[1].Oyuncu != d.Partner) return null;
+            string m = g[0].Koz;
+            if (m != "Karo" && m != "Sinek") return null;
+            if (g[0].Seviye != 1 || g[1].Seviye != 3 || g[1].Koz != m) return null;
+            var el = d.AktifOyuncuEli;
+            if (ElDegerlendirici.HCP(el) < 14) return null;
+            if (ElDegerlendirici.DengeliEl(el))
+            {
+                bool hepsiTutuk = true;
+                foreach (var r in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+                    if (!ElDegerlendirici.StopperVar(el, r)) { hepsiTutuk = false; break; }
+                if (hepsiTutuk) return "3NT";
+            }
+            return "5" + (m == "Karo" ? "♦" : "♣");
+        }
+    }
 }

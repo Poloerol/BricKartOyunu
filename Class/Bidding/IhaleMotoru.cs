@@ -203,6 +203,7 @@ namespace BricKartOyunu.Class.Bidding
                 new RakipMudahalesiNT(),
                 new CevapciIkinciTur(),
                 new OyunDavetiKabul(),
+                new MinorDavetCevabi(),
                 new StrongNT(),
                 new NegativeDouble(),
                 new ResponsiveDouble(),
