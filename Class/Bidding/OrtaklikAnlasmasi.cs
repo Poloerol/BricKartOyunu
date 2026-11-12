@@ -280,7 +280,7 @@ namespace BricKartOyunu.Class.Bidding
         public int NT1Range { get; set; } = 5;                 // 0 10-12, 1 11-13, 2 12-14, 3 13-15, 4 14-16, 5 15-17, 6 16-18
         public int NT1Allow5422 { get; set; } = 1;
         public int NT1AllowSingletonHonor { get; set; } = 0;
-        public int NT1Allow5Major { get; set; } = 1;
+        public int NT1Allow5Major { get; set; } = 0;
         public int NT1Allow6Minor { get; set; } = 1;
         public int NT1Puppet { get; set; } = 0;                // 1NT-2♣ Puppet Stayman
         public int NT1MinorBid { get; set; } = 0;              // 2 = 1NT-2♠ röle, 3 = süper kabullü minör transfer
@@ -437,7 +437,7 @@ namespace BricKartOyunu.Class.Bidding
             a.RKCB = false; a.RKCB1430 = false; a.Gerber = false; a.Splinter = false; a.Drury = false;
             a.SupportDouble = false; a.ResponsiveDouble = false; a.Lebensohl = false;
             // seçenekler
-            a.NT1Range = 5; a.NT1Allow5Major = 1; a.NT1MinorBid = 2; a.NT1Puppet = 0;
+            a.NT1Range = 5; a.NT1Allow5Major = 0; a.NT1MinorBid = 2; a.NT1Puppet = 0;
             a.MajorRaiseLimit = 1; a.GameTryShort = 0; a.NegDblLimit = 4; a.NT2Range = 6; a.LebensohlWeakTwo = 0;
             a.GrandSlamForce = 0;
             a.FeatureAsking2NT = true; a.Ogust = false;
