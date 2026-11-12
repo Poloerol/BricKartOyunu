@@ -181,6 +181,7 @@ namespace BricKartOyunu
         /// </summary>
         private void DagiticiyiAyarla()
         {
+            if (_depoDeste != null) { _dealer = _depoDagitici; return; }   // Dağılım Deposu bordu
             if (PratikModu)
             {
                 _dealer = KonvansiyonPratigi.Dagitici(PratikDagitimlari[_pratikIndeks].Seed);
@@ -235,6 +236,7 @@ namespace BricKartOyunu
         /// <summary>Dağıtım kaynağı ve en iyi el ayarlarına göre 52 kartı üretir (Kuzey, Doğu, Güney, Batı).</summary>
         private List<string> DagitimiUret()
         {
+            if (_depoDeste != null) return _depoDeste;   // Dağılım Deposu bordu (yeni bord başlayınca silinir)
             if (PratikModu) return KonvansiyonPratigi.Deste(PratikDagitimlari[_pratikIndeks]);
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             var pbnBord = PbnBordu(plan);
@@ -290,6 +292,7 @@ namespace BricKartOyunu
             if (!MacSonrakiBordaHazirla()) return;   // maç bittiyse yeni bord yok
 
             PratikIlerlet();
+            _depoDeste = null;   // depodan yüklenen bord yalnızca o bord için geçerli
             BordDurumunuSifirla();
 
             // 4) Aktif oyuncu, dealer, kontrat vs. sıfırlanır — DortPasSonrasiYeniEliBaslat ile aynı
@@ -695,6 +698,7 @@ namespace BricKartOyunu
             if (!MacSonrakiBordaHazirla()) return;
 
             PratikIlerlet();
+            _depoDeste = null;   // depodan yüklenen bord yalnızca o bord için geçerli
             BordDurumunuSifirla();
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
             _currentTour = MacDurumu.SonrakiBordNo(_currentTour);   // 16'dan sonra 1

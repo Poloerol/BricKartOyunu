@@ -783,7 +783,7 @@ namespace BricKartOyunu.Forms
                     ShowChildForm(new Turnuva());
                     break;
                 case ActiveMain.Araclar:
-                    ShowChildForm(new DagilimDepo());
+                    DagilimDeposuAc();
                     break;
             }
         }
@@ -816,6 +816,33 @@ namespace BricKartOyunu.Forms
                     foreach (var kf in Application.OpenForms.Cast<Form>().Where(x => x is Konvansiyon).ToList())
                         kf.Close();
                     SonElBilgisiniGoster(bricOynaForm);
+                    this.Opacity = 1;
+                    this.Show();
+                    this.Activate();
+                    ResetToInitialState();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Dağılım Deposu: oyun masası (BricOyna) kartsız ve "Dağılım Deposu" başlığıyla açılır,
+        /// üzerinde Dağılım Deposu penceresi gelir. Masa kapanınca AnaSayfa geri gelir ve durum sıfırlanır.
+        /// </summary>
+        private void DagilimDeposuAc()
+        {
+            using (var bricOynaForm = new BricOyna
+            {
+                CurrentBackImage = currentBackImage,
+                DepoModu = true
+            })
+            {
+                bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
+                try
+                {
+                    bricOynaForm.ShowDialog(this);
+                }
+                finally
+                {
                     this.Opacity = 1;
                     this.Show();
                     this.Activate();

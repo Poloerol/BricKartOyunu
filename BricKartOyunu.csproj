@@ -489,6 +489,7 @@
     <Compile Include="Forms\BricOyna.Designer.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\BricOyna.Depo.cs" />
     <Compile Include="Forms\DagilimDepo.cs">
       <SubType>Form</SubType>
     </Compile>

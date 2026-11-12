@@ -1257,8 +1257,17 @@ namespace BricKartOyunu.Forms
         /// Belirtilen oyuncu AI mı?
         /// Şimdilik SADECE Batı AI. Diğerleri insan.
         /// </summary>
+        /// <summary>
+        /// Dağılım Deposu "Evet" akışı: doluysa ihale bu teklif sırasıyla (dağıtıcıdan başlayarak, her koltuk için) otomatik
+        /// uygulanır; liste bitince normal ihale kuralları geçerli olur. Form gösterilmeden önce atanmalıdır.
+        /// </summary>
+        public Queue<string> SenaryoIhalesi { get; set; }
+
+        private bool SenaryoVar { get { return SenaryoIhalesi != null && SenaryoIhalesi.Count > 0; } }
+
         private bool AIMi(string oyuncu)
         {
+            if (SenaryoVar) return true;   // senaryoda Güney'in teklifi de otomatik verilir
             // Batı, Kuzey, Doğu → AI
             // Güney → insan
             return oyuncu != "Guney";
@@ -1321,6 +1330,11 @@ namespace BricKartOyunu.Forms
         /// </summary>
         private void AIHamlesiYap()
         {
+            if (SenaryoVar)
+            {
+                AIHamlesiniUygula(SenaryoIhalesi.Dequeue());
+                return;
+            }
             try
             {
                 SyncHumanVsAiSession();

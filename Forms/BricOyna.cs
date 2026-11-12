@@ -757,6 +757,7 @@ namespace BricKartOyunu
             _acilisSonrasi = () =>
             {
                 // Kullanıcı girişi artık PBN dosyasından okunur (DagitimiUret); elle giriş formu açılmaz
+                if (DepoModu) { DepoAcilisi(); return; }   // Dağılım Deposu: boş masa + depo penceresi
                 PratikDuyurusu(); YeniDekBasFormAc();
             };
         }

@@ -341,19 +341,19 @@ namespace BricKartOyunu.Forms
             int secilen = BordSec(bordlar);
             if (secilen < 0) return;
 
-            var plan = AnaSayfa.OyunPlani;
-            plan.DagitimKaynagi = DagitimKaynagi.KullaniciGirisi;
-            plan.PbnYolu = yol;
-            plan.PbnBaslangic = secilen;              // oyun seçilen bordla başlar, sonraki bordlar sırayla gelir
-            plan.SonBordNo = 0;
-            bool kaydedildi = plan.Kaydet();
-
-            string mesaj = "\"" + Path.GetFileName(yol) + "\" yüklendi (" + adet + " bord).\n\n" +
-                           "Oyun planında dağıtım kaynağı \"Kullanıcı girişi (PBN)\" olarak ayarlandı; " +
-                           "yeni oyun " + (secilen + 1) + ". bordla (" + (string.IsNullOrEmpty(bordlar[secilen].Ad) ? "adsız" : bordlar[secilen].Ad) + ") başlayacak.";
-            if (!kaydedildi) mesaj += "\n\nUyarı: ayarlar diske kaydedilemedi, değişiklik yalnızca bu oturumda geçerli.";
-            MessageBox.Show(this, mesaj, "Dağılım Deposu", MessageBoxButtons.OK,
-                kaydedildi ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+            // Seçilen bord oyun masasına dağıtılır; bu pencere (ve diğer depo pencereleri) kapanır, masa
+            // "Eller girildiği gibi ihale edilip oynansın mı?" diye sorar.
+            var masa = (this.Owner as BricOyna) ?? Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
+            if (masa == null)
+            {
+                MessageBox.Show(this, "Bord yalnızca oyun masasından (Araçlar > Dağılım Deposu) yüklenebilir.", "Dağılım Deposu",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            var bord = bordlar[secilen];
+            int bordNo = secilen + 1;
+            this.Close();
+            masa.BeginInvoke(new Action(() => masa.DepoBordunuYukle(bord, bordNo)));
         }
 
         /// <summary>Depodan seçilen dosyayı onay alarak siler; oyun planında kullanılıyorsa kaynağı rastgeleye döndürür.</summary>
@@ -653,6 +653,15 @@ namespace BricKartOyunu.Forms
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // Dağılım Deposu oyun masası üzerinde açıldıysa masayı kapat: AnaSayfa kendiliğinden geri gelir
+            var masa = (this.Owner as BricOyna) ?? Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
+            if (masa != null)
+            {
+                this.Close();
+                masa.Close();
+                return;
+            }
+
             // Tip bazlı arama: form adı değişse de bozulmaz
             var anaSayfa = (this.Owner as AnaSayfa)
                            ?? Application.OpenForms.OfType<AnaSayfa>().FirstOrDefault();
