@@ -18,6 +18,10 @@ namespace BricKartOyunu.Forms
         private RichTextBox _txtSonuclar;
         private Label _lblOzet;
 
+        // Sonuçların kaydedildiği dosya (form kapansa da kaybolmaz): <exe klasörü>\TestSonuclari.txt
+        private System.IO.StreamWriter _log;
+        public static string LogYolu { get { return System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestSonuclari.txt"); } }
+
         public TestForm()
         {
             InitializeComponent();
@@ -42,6 +46,9 @@ namespace BricKartOyunu.Forms
         {
             // Sonuç formunu hazırla
             SonucFormunuHazirla();
+
+            try { _log = new System.IO.StreamWriter(LogYolu, false, new System.Text.UTF8Encoding(true)) { AutoFlush = true }; }
+            catch (Exception) { _log = null; }
 
             // Sayaçları sıfırla
             _sonuclar = new List<TestSonucu>();
@@ -71,12 +78,17 @@ namespace BricKartOyunu.Forms
                 SonucEkle("════════════════════════════════════════");
                 SonucEkle($"  ÖZET: ✅ {_gecenSayisi} geçti, ❌ {_kalanSayisi} başarısız");
                 SonucEkle("════════════════════════════════════════");
+                SonucEkle("Sonuçlar dosyaya kaydedildi: " + LogYolu);
 
                 OzetiGuncelle();
             }
             catch (Exception ex)
             {
                 SonucEkle($"❌ HATA: {ex.Message}");
+            }
+            finally
+            {
+                try { if (_log != null) { _log.Dispose(); _log = null; } } catch (Exception) { }
             }
         }
 
@@ -93,6 +105,7 @@ namespace BricKartOyunu.Forms
             else if (mesaj.Contains("TEST")) renk = Color.Yellow;
 
             _sonuclar.Add(new TestSonucu { Mesaj = mesaj, Renk = renk });
+            try { if (_log != null) _log.WriteLine(mesaj); } catch (Exception) { }
 
             // Sonuç penceresi test sürerken kapatılmış olabilir (Application.DoEvents kapanmaya izin verir)
             if (_txtSonuclar != null && !_txtSonuclar.IsDisposed && !_txtSonuclar.Disposing)
