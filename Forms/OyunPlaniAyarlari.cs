@@ -185,10 +185,9 @@ namespace BricKartOyunu.Forms
 
             var g1 = Grup(s, "Dağıtım Kaynağı", 4, 2, 152, 160);
             _rbKaynak = RadyoDizisi(g1, new[] {
-                "Kullanıcı girişi", "Rastgele dağıtım", "Rastgele parsiyel skor", "Rastgele oyun eli",
-                "Rastgele slam eli", "Üretilmiş dağıtım", "Numaralı rastgele", "Kozsuz dağıtımlar" },
+                "Kullanıcı Girişi(PBN)", "Rastgele Dağılım", "Rastgele Part Skor", "Rastgele Oyun Eli",
+                "Rastgele Şlem Eli", "Oluşturulmuş El Dağılım", "Numaralı Rastgele Eller", "NT Dağılımları" },
                 8, 16, 17, 140);
-            _rbKaynak[0].Text = "Kullanıcı girişi (PBN)";
             _rbKaynak[0].CheckedChanged += (snd, ev) =>
             {
                 if (!_rbKaynak[0].Checked || _yukleniyor) return;
@@ -204,7 +203,7 @@ namespace BricKartOyunu.Forms
             _rbDagitici = RadyoDizisi(g3, new[] { "Dönüşümlü", "Kuzey", "Doğu", "Güney", "Batı" },
                 8, 16, 17, 80);
 
-            _chkYeniNo = Onay(s, "Yeni bord numaralarını kullan", 274, 114, 92, 40);
+            _chkYeniNo = Onay(s, "Yeni Bord Numaralarını Kullan", 274, 114, 92, 52);
         }
 
         private void OyunSekmesi()
@@ -410,7 +409,7 @@ namespace BricKartOyunu.Forms
                     return false;
                 }
                 _pbnYolu = dlg.FileName;
-                MessageBox.Show(this, adet + " bord bulundu. Bordlar sırayla bu dosyadan oynanacak.\n(Bord 1'den başlamak için \"Yeni bord numaralarını kullan\" kutusunu işaretleyin.)",
+                MessageBox.Show(this, adet + " bord bulundu. Bordlar sırayla bu dosyadan oynanacak.\n(Bord 1'den başlamak için \"Yeni Bord Numaralarını Kullan\" kutusunu işaretleyin.)",
                     "PBN", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
             }
