@@ -40,8 +40,19 @@ namespace BricKartOyunu.Forms
 
         private float _uygulananOlcek = 1f;
 
+        /// <summary>Dağılım Deposu'ndan ihale düzenleme: ekranın ortasında açılır; Elleri Değiştir ve Sonraki Dağılım pasif.</summary>
+        public bool DepoDuzenleModu { get; set; }
+
+        private Button _btnElleriDondur;
+
         private void DekBasForm_Load(object sender, EventArgs e)
         {
+            if (DepoDuzenleModu)
+            {
+                BtnElDegistir.Enabled = false;
+                BtnSonrakiDagilim.Enabled = false;
+                if (_btnElleriDondur != null) _btnElleriDondur.Enabled = false;
+            }
             Hizala();
         }
 
@@ -62,6 +73,13 @@ namespace BricKartOyunu.Forms
                     c.Bounds = new Rectangle((int)Math.Round(c.Left * f), (int)Math.Round(c.Top * f),
                                              (int)Math.Round(c.Width * f), (int)Math.Round(c.Height * f));
                 ClientSize = new Size((int)Math.Round(ClientSize.Width * f), (int)Math.Round(ClientSize.Height * f));
+            }
+
+            if (DepoDuzenleModu)
+            {
+                Rectangle alan = Screen.FromControl(_bricOyna).WorkingArea;   // ekranın tam ortası
+                Location = new Point(alan.Left + (alan.Width - Width) / 2, alan.Top + (alan.Height - Height) / 2);
+                return;
             }
 
             Point ekran = _bricOyna.playZonePanel.PointToScreen(Point.Empty);
@@ -198,6 +216,7 @@ namespace BricKartOyunu.Forms
                 Location = new Point(BtnElDegistir.Left, BtnElDegistir.Bottom + 6),
                 UseVisualStyleBackColor = true
             };
+            _btnElleriDondur = btn;
             btn.Click += BtnElleriDondur_Click;
             BtnSonrakiDagilim.Top += kayma;
             BtnOyundanCik.Top += kayma;

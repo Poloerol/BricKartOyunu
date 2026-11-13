@@ -66,6 +66,15 @@ begin
             and (Surum >= 528040);
 end;
 
+// Uygulama bu bilgisayarda zaten kurulu mu? (AppId ile aynı kimlik; kullanıcı bazlı kurulumda HKCU, yönetici kurulumunda HKLM)
+function UygulamaKurulu: Boolean;
+var
+  Anahtar: String;
+begin
+  Anahtar := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{6F1D4B52-3A7E-4C0B-9E58-2B7D1C9A41E3}_is1';
+  Result := RegKeyExists(HKCU, Anahtar) or RegKeyExists(HKLM, Anahtar);
+end;
+
 function InitializeSetup: Boolean;
 var
   Hata: Integer;
@@ -78,5 +87,33 @@ begin
               mbConfirmation, MB_YESNO) = IDYES then
       ShellExec('open', 'https://dotnet.microsoft.com/download/dotnet-framework/net48', '', '', SW_SHOWNORMAL, ewNoWait, Hata);
     Result := False;
+    Exit;
+  end;
+
+  // Zaten kuruluysa sor: Evet = eskisinin üzerine kur (kayıtlı eller ve ayarlar korunur), Hayır = kurulumdan çık.
+  // Sessiz kurulumda sorulmaz, doğrudan üzerine kurulur.
+  if UygulamaKurulu and not WizardSilent then
+  begin
+    if MsgBox('{#MyAppName} zaten kurulu.' + #13#10 + 'Yeni sürüm eskisinin üzerine kurulsun mu?',
+              mbConfirmation, MB_YESNO) = IDNO then
+      Result := False;
+  end;
+end;
+
+// Kaldırma sonunda kullanıcıya sorulur: kayıtlı eller (Dağılım Deposu) ve ayarlar silinsin mi?
+// Varsayılan "Hayır": yalnızca programı yeniden kuran biri ellerini kaybetmez. Sessiz kaldırmada veri korunur.
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep <> usPostUninstall then Exit;
+  if UninstallSilent then Exit;
+  if MsgBox('Kayıtlı elleriniz (Dağılım Deposu) ve ayarlarınız da silinsin mi?' + #13#10 + #13#10 +
+            'Evet: kayıtlı eller, ayarlar ve seed geçmişi tamamen silinir.' + #13#10 +
+            'Hayır: bunlar saklanır; programı sonradan tekrar kurarsanız kaldığınız yerden devam edersiniz.',
+            mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
+  begin
+    DelTree(ExpandConstant('{userappdata}\BricKartOyunu'), True, True, True);
+    DeleteFile(ExpandConstant('{app}\seedler.txt'));
+    DeleteFile(ExpandConstant('{app}\ortaklik_anlasmasi.json'));
+    RemoveDir(ExpandConstant('{app}'));
   end;
 end;

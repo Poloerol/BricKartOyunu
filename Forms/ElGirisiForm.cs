@@ -79,6 +79,26 @@ namespace BricKartOyunu.Forms
             Yenile();
         }
 
+        /// <summary>Var olan elleri forma yükler (koltuk başına dosya adları, ör. "10H.png"); düzenleme için kullanılır.</summary>
+        public void ElleriYukle(Dictionary<Player, List<string>> eller)
+        {
+            for (int s = 0; s < 4; s++)
+                for (int d = 0; d < 13; d++) _sahip[s, d] = -1;
+            for (int k = 0; k < 4; k++)
+            {
+                List<string> el;
+                if (eller == null || !eller.TryGetValue(Koltuklar[k], out el)) continue;
+                foreach (string kart in el)
+                {
+                    string ad = System.IO.Path.GetFileNameWithoutExtension(kart);
+                    int renk = Array.IndexOf(RenkHarfleri, ad.Substring(ad.Length - 1).ToUpperInvariant());
+                    int deger = Array.IndexOf(Degerler, ad.Substring(0, ad.Length - 1).ToUpperInvariant());
+                    if (renk >= 0 && deger >= 0 && _sahip[renk, deger] == -1) _sahip[renk, deger] = k;
+                }
+            }
+            Yenile();
+        }
+
         private Button YeniDugme(string metin, int ust)
         {
             var b = new Button { Text = metin, Left = 222, Top = ust, Width = 82, Height = 24 };

@@ -489,12 +489,18 @@
     <Compile Include="Forms\BricOyna.Designer.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\BricOyna.Depo.cs" />
+    <Compile Include="Forms\BricOyna.Depo.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\DagilimDepo.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\DagilimDepo.Designer.cs">
       <DependentUpon>DagilimDepo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\DagilimDepo.Duzenle.cs">
+      <DependentUpon>DagilimDepo.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\OyunPlaniSecenekleri.cs" />
     <Compile Include="Forms\OyunPlaniAyarlari.cs">

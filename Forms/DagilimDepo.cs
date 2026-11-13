@@ -17,6 +17,7 @@ namespace BricKartOyunu.Forms
         public DagilimDepo()
         {
             InitializeComponent();
+            ShowInTaskbar = false;   // görev çubuğunda ayrı düğme olmasın (sahip form: oyun masası)
             BtnDepoyaYukle.Click += BtnDepoyaYukle_Click;
 
             // Var olan .pbn dosyalarını depoya kopyalayan ek düğme ("Ana Sayfaya Dön"ün üstüne yerleşir)
@@ -265,9 +266,23 @@ namespace BricKartOyunu.Forms
         private int BordSec(List<PbnBord> bordlar)
         {
             string[] dagiticiAdi = { "Kuzey", "Doğu", "Güney", "Batı" };
+            var satirlar = new List<string[]>();
+            foreach (var b in bordlar)
+            {
+                string acik = !string.IsNullOrEmpty(b.Aciklama) ? b.Aciklama
+                            : b.DagiticiVar ? "Dağıtıcı: " + dagiticiAdi[Array.IndexOf(new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati }, b.Dagitici)]
+                            : "";
+                satirlar.Add(new[] { b.Ad, acik });
+            }
+            return BordSec("Oynanacak Bord Seç", satirlar);
+        }
+
+        /// <summary>Bord listesi penceresi (satır: ad, açıklama). Seçilen bordun sıfır tabanlı indeksi; İptal'de -1.</summary>
+        private int BordSec(string baslik, List<string[]> bordlar)
+        {
             using (var f = new Form())
             {
-                f.Text = "Oynanacak Bord Seç";
+                f.Text = baslik;
                 f.StartPosition = FormStartPosition.CenterParent;
                 f.FormBorderStyle = FormBorderStyle.FixedDialog;
                 f.MinimizeBox = false; f.MaximizeBox = false; f.ShowInTaskbar = false;
@@ -279,13 +294,9 @@ namespace BricKartOyunu.Forms
                 lv.Columns.Add("Açıklama", 245);
                 for (int i = 0; i < bordlar.Count; i++)
                 {
-                    var b = bordlar[i];
-                    string acik = !string.IsNullOrEmpty(b.Aciklama) ? b.Aciklama
-                                : b.DagiticiVar ? "Dağıtıcı: " + dagiticiAdi[Array.IndexOf(new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati }, b.Dagitici)]
-                                : "";
                     var oge = new ListViewItem((i + 1).ToString());
-                    oge.SubItems.Add(b.Ad);
-                    oge.SubItems.Add(acik);
+                    oge.SubItems.Add(bordlar[i][0]);
+                    oge.SubItems.Add(bordlar[i][1]);
                     lv.Items.Add(oge);
                 }
                 f.Controls.Add(lv);
@@ -303,31 +314,65 @@ namespace BricKartOyunu.Forms
             }
         }
 
-        /// <summary>Depodan seçilen dosyayı oyun planının dağıtım kaynağı (Kullanıcı girişi - PBN) yapar.</summary>
-        private void BtnDepodanYukle_Click(object sender, EventArgs e)
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        private struct RECT { public int Left, Top, Right, Bottom; }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        private static extern IntPtr FindWindow(string sinif, string baslik);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr pencere, out RECT r);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr pencere, IntPtr sonra, int x, int y, int g, int y2, uint bayrak);
+
+        /// <summary>Standart "Aç" penceresi (depo klasöründe açılır). Yalnızca depodaki dosya kabul edilir; iptalde/uygunsuzsa null.</summary>
+        private string DepoDosyasiAc()
         {
-            // Standart "Aç" penceresi, depo klasöründe açılır
             string yol;
             try { Directory.CreateDirectory(DepoKlasoru); } catch (Exception) { }
             using (var dlg = new OpenFileDialog())
+            using (var zamanlayici = new System.Windows.Forms.Timer { Interval = 30 })
             {
                 dlg.Title = "Aç";
                 dlg.InitialDirectory = DepoKlasoru;
                 dlg.Filter = "Taşınabilir Briç Notasyonu (*.pbn)|*.pbn";
                 dlg.CheckFileExists = true;
                 dlg.Multiselect = false;
-                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+
+                // Standart dosya penceresinin konumu ayarlanamaz; açılınca bulunup ekranın çalışma alanının ortasına taşınır
+                Rectangle alan = Screen.FromControl(this).WorkingArea;
+                zamanlayici.Tick += (s, e) =>
+                {
+                    IntPtr pencere = FindWindow("#32770", "Aç");
+                    RECT r;
+                    if (pencere == IntPtr.Zero || !GetWindowRect(pencere, out r)) return;
+                    zamanlayici.Stop();
+                    int g = r.Right - r.Left, y = r.Bottom - r.Top;
+                    SetWindowPos(pencere, IntPtr.Zero, alan.Left + (alan.Width - g) / 2, alan.Top + (alan.Height - y) / 2, 0, 0, 0x0001 | 0x0004 | 0x0010);   // SIZE | ZORDER | NOACTIVATE yok sayılır
+                };
+                zamanlayici.Start();
+                DialogResult sonuc = dlg.ShowDialog(this);
+                zamanlayici.Stop();
+                if (sonuc != DialogResult.OK) return null;
                 yol = dlg.FileName;
             }
 
-            // Yalnızca depodaki dosyalar yüklenir (başka klasördeki dosya için "PBN Dosyasını Depoya Aktar")
+            // Başka klasördeki dosya için "PBN Dosyasını Depoya Aktar" kullanılır
             string klasor = Path.GetDirectoryName(yol) ?? "";
             if (!string.Equals(klasor.TrimEnd('\\'), DepoKlasoru.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show(this, "Yalnızca depodaki dosyalar yüklenebilir.\nBaşka bir klasördeki dosya için önce \"PBN Dosyasını Depoya Aktar\" düğmesini kullanın.",
+                MessageBox.Show(this, "Yalnızca depodaki dosyalar açılabilir.\nBaşka bir klasördeki dosya için önce \"PBN Dosyasını Depoya Aktar\" düğmesini kullanın.",
                     "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                return null;
             }
+            return yol;
+        }
+
+        private void BtnDepodanYukle_Click(object sender, EventArgs e)
+        {
+            string yol = DepoDosyasiAc();
+            if (yol == null) return;
 
             var bordlar = PbnOkuyucu.Oku(yol);
             int adet = bordlar.Count;
@@ -450,198 +495,6 @@ namespace BricKartOyunu.Forms
             }
         }
 
-        /// <summary>Dosya adını değiştirme, bordları yukarı/aşağı taşıma ve silme penceresi.</summary>
-        private class DuzenleFormu : Form
-        {
-            private readonly PbnDosyasi _pbn;
-            private readonly TextBox _txtAd;
-            private readonly ListView _lv;
-            private readonly Button _btnYukari, _btnAsagi, _btnSil;
-
-            public string DosyaAdi { get { return _txtAd.Text.Trim(); } }
-
-            public DuzenleFormu(PbnDosyasi pbn, string dosyaAdi)
-            {
-                _pbn = pbn;
-                Text = "Depodan ihale dosyası düzenle";
-                StartPosition = FormStartPosition.CenterParent;
-                FormBorderStyle = FormBorderStyle.FixedDialog;
-                MinimizeBox = false; MaximizeBox = false; ShowInTaskbar = false;
-                ClientSize = new Size(640, 430);
-
-                Controls.Add(new Label { Text = "Dosya adı:", Location = new Point(10, 15), AutoSize = true });
-                _txtAd = new TextBox { Text = dosyaAdi, Location = new Point(80, 11), Size = new Size(300, 22) };
-                Controls.Add(_txtAd);
-                Controls.Add(new Label { Text = ".pbn", Location = new Point(385, 15), AutoSize = true });
-
-                _lv = new ListView { Location = new Point(10, 45), Size = new Size(520, 330), View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false };
-                _lv.Columns.Add("No", 40, HorizontalAlignment.Right);
-                _lv.Columns.Add("Bord adı", 110);
-                _lv.Columns.Add("Dağıtıcı", 55);
-                _lv.Columns.Add("Dağıtım (Deal)", 300);
-                Controls.Add(_lv);
-
-                _btnYukari = new Button { Text = "Yukarı taşı", Location = new Point(540, 45), Size = new Size(90, 30) };
-                _btnAsagi = new Button { Text = "Aşağı taşı", Location = new Point(540, 85), Size = new Size(90, 30) };
-                _btnSil = new Button { Text = "Bordu sil", Location = new Point(540, 135), Size = new Size(90, 30) };
-                Controls.AddRange(new Control[] { _btnYukari, _btnAsagi, _btnSil });
-
-                var kaydet = new Button { Text = "Kaydet", Location = new Point(440, 390), Size = new Size(90, 30) };
-                var iptal = new Button { Text = "Vazgeç", Location = new Point(540, 390), Size = new Size(90, 30), DialogResult = DialogResult.Cancel };
-                Controls.AddRange(new Control[] { kaydet, iptal });
-                CancelButton = iptal;
-
-                _lv.SelectedIndexChanged += (s, e) => DugmeleriGuncelle();
-                _btnYukari.Click += (s, e) => Tasi(-1);
-                _btnAsagi.Click += (s, e) => Tasi(1);
-                _btnSil.Click += (s, e) => Sil();
-                kaydet.Click += (s, e) => Onayla();
-
-                Doldur(0);
-            }
-
-            private int Secili { get { return _lv.SelectedIndices.Count == 1 ? _lv.SelectedIndices[0] : -1; } }
-
-            private void Doldur(int seciliIndeks)
-            {
-                _lv.BeginUpdate();
-                _lv.Items.Clear();
-                for (int i = 0; i < _pbn.Bordlar.Count; i++)
-                {
-                    var b = _pbn.Bordlar[i];
-                    var oge = new ListViewItem((i + 1).ToString());
-                    oge.SubItems.Add(b.Ad);
-                    oge.SubItems.Add(b.Dagitici);
-                    oge.SubItems.Add(b.Deal);
-                    _lv.Items.Add(oge);
-                }
-                _lv.EndUpdate();
-                if (_lv.Items.Count > 0)
-                {
-                    int s = Math.Max(0, Math.Min(seciliIndeks, _lv.Items.Count - 1));
-                    _lv.Items[s].Selected = true;
-                    _lv.EnsureVisible(s);
-                }
-                DugmeleriGuncelle();
-            }
-
-            private void DugmeleriGuncelle()
-            {
-                int s = Secili;
-                _btnYukari.Enabled = s > 0;
-                _btnAsagi.Enabled = s >= 0 && s < _pbn.Bordlar.Count - 1;
-                _btnSil.Enabled = s >= 0;
-            }
-
-            private void Tasi(int yon)
-            {
-                int s = Secili, h = s + yon;
-                if (s < 0 || h < 0 || h >= _pbn.Bordlar.Count) return;
-                var tmp = _pbn.Bordlar[s]; _pbn.Bordlar[s] = _pbn.Bordlar[h]; _pbn.Bordlar[h] = tmp;
-                Doldur(h);
-            }
-
-            private void Sil()
-            {
-                int s = Secili;
-                if (s < 0) return;
-                if (_pbn.Bordlar.Count == 1)
-                {
-                    MessageBox.Show(this, "Dosyada en az bir bord kalmalı. Dosyanın tamamını silmek için \"Depodan İhale Dosyası Sil\" düğmesini kullanın.",
-                        "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-                _pbn.Bordlar.RemoveAt(s);
-                Doldur(s);
-            }
-
-            private void Onayla()
-            {
-                string ad = DosyaAdi;
-                if (ad.Length == 0 || ad.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-                {
-                    MessageBox.Show(this, "Geçerli bir dosya adı girin (\\ / : * ? \" < > | karakterleri kullanılamaz).",
-                        "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    _txtAd.Focus();
-                    return;
-                }
-                DialogResult = DialogResult.OK;
-            }
-        }
-
-        /// <summary>Depodan seçilen dosyanın adını değiştirir, bordlarını sıralar/siler. Değişiklikler "Kaydet"te dosyaya yazılır.</summary>
-        private void BtnDepodanDuzenle_Click(object sender, EventArgs e)
-        {
-            string yol = DepodanSec("Depodan ihale dosyası düzenle", "Düzenle");
-            if (yol == null) return;
-
-            PbnDosyasi pbn;
-            try { pbn = PbnDosyasi.Oku(yol); }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, "Dosya okunamadı:\n" + ex.Message, "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (pbn.Bordlar.Count == 0)
-            {
-                MessageBox.Show(this, "Bu dosyada düzenlenecek bord bulunamadı.", "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            int ilkSayi = pbn.Bordlar.Count;
-            string ilkMetin = pbn.Yaz();
-            string eskiAd = Path.GetFileNameWithoutExtension(yol);
-            using (var f = new DuzenleFormu(pbn, eskiAd))
-            {
-                if (f.ShowDialog(this) != DialogResult.OK) return;
-
-                string yeniAd = f.DosyaAdi;
-                bool adDegisti = !string.Equals(yeniAd, eskiAd, StringComparison.Ordinal);
-                bool icerikDegisti = pbn.Yaz() != ilkMetin;
-                if (!adDegisti && !icerikDegisti) return;
-
-                string hedef = adDegisti ? Path.Combine(DepoKlasoru, yeniAd + ".pbn") : yol;
-                if (adDegisti && File.Exists(hedef) && !string.Equals(hedef, yol, StringComparison.OrdinalIgnoreCase))
-                {
-                    MessageBox.Show(this, "Depoda \"" + yeniAd + ".pbn\" adında bir dosya zaten var. Değişiklikler kaydedilmedi.",
-                        "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                try
-                {
-                    string gecici = yol + ".tmp";
-                    File.WriteAllText(gecici, pbn.Yaz(), new System.Text.UTF8Encoding(false));
-                    if (string.Equals(hedef, yol, StringComparison.OrdinalIgnoreCase))
-                    {
-                        File.Delete(yol);
-                        File.Move(gecici, hedef);
-                    }
-                    else
-                    {
-                        File.Move(gecici, hedef);
-                        File.Delete(yol);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(this, "Değişiklikler kaydedilemedi:\n" + ex.Message, "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                // Oyun planı bu dosyayı kullanıyorsa yolu güncelle (bord kümesi değiştiyse baştan oynansın)
-                var plan = AnaSayfa.OyunPlani;
-                if (string.Equals(plan.PbnYolu, yol, StringComparison.OrdinalIgnoreCase))
-                {
-                    plan.PbnYolu = hedef;
-                    if (pbn.Bordlar.Count != ilkSayi || icerikDegisti) plan.SonBordNo = 0;
-                    plan.Kaydet();
-                }
-                MessageBox.Show(this, "Değişiklikler kaydedildi (" + pbn.Bordlar.Count + " bord).", "Dağılım Deposu",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-
         private static string BenzersizHedef(string dosyaAdi)
         {
             string ad = Path.GetFileNameWithoutExtension(dosyaAdi), uz = Path.GetExtension(dosyaAdi);
@@ -652,6 +505,12 @@ namespace BricKartOyunu.Forms
         }
 
         private void button1_Click(object sender, EventArgs e)
+        {
+            AnaSayfayaDon();
+        }
+
+        /// <summary>Dağılım Deposu ve (varsa) oyun masasını kapatır; AnaSayfa açılıştaki haline döner.</summary>
+        private void AnaSayfayaDon()
         {
             // Dağılım Deposu oyun masası üzerinde açıldıysa masayı kapat: AnaSayfa kendiliğinden geri gelir
             var masa = (this.Owner as BricOyna) ?? Application.OpenForms.OfType<BricOyna>().FirstOrDefault();

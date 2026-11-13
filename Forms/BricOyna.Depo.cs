@@ -18,50 +18,57 @@ namespace BricKartOyunu
         // Depodan seçilen bordun 52 kartı (iç koltuk sırası K, D, G, B) ve dağıtıcısı; yeni bord başlayınca silinir
         private List<string> _depoDeste;
         private Player _depoDagitici;
-        private Panel _depoKapak;
+        private List<Control> _depoGizli;   // Dağılım Deposu boş masasında gizlenen kontroller (null: gizleme yok)
 
         /// <summary>Açılışta çağrılır: masayı boş gösterir, Dağılım Deposu penceresini üstte açar.</summary>
         private void DepoAcilisi()
         {
             this.Text = "Dağılım Deposu";
+            this.ShowInTaskbar = false;
             DepoKapagiKoy();
+            // Pencere yeniden boyutlanınca/etkinleşince kart yerleşimi kartları öne alır; kapak yeniden en üste çıkar
+            // Kart yerleşimi yeniden boyutlanmada/etkinleşmede kartları görünür yapabilir; boş masa sürdükçe tekrar gizle
+            this.Resize += (s, e) => { if (_depoGizli != null) DepoKapagiKoy(); };
+            this.Activated += (s, e) => { if (_depoGizli != null) DepoKapagiKoy(); };
 
             var depo = new DagilimDepo();
             depo.StartPosition = FormStartPosition.Manual;
-            Point ekran = playZonePanel != null ? playZonePanel.PointToScreen(Point.Empty) : this.Location;
-            Size boyut = playZonePanel != null ? playZonePanel.Size : this.ClientSize;
-            depo.Location = new Point(ekran.X + (boyut.Width - depo.Width) / 2, ekran.Y + (boyut.Height - depo.Height) / 2);
+            Rectangle alan = Screen.FromControl(this).WorkingArea;   // ekranın tam ortası
+            depo.Location = new Point(alan.Left + (alan.Width - depo.Width) / 2, alan.Top + (alan.Height - depo.Height) / 2);
             depo.Show(this);
             depo.BringToFront();
         }
 
-        /// <summary>Menü/araç/durum çubukları açık kalacak şekilde masa alanını masa renginde bir kapakla örter (kart görünmez).</summary>
-        private void DepoKapagiKoy()
+        /// <summary>İhaleyi Düzenle: DekBasForm ekranın tam ortasında açılır; Elleri Değiştir ve Sonraki Dağılım pasiftir.</summary>
+        public void DepoIhaleDuzenleAc()
         {
-            if (_depoKapak != null) return;
-            int ust = 0, alt = this.ClientSize.Height;
-            foreach (Control c in this.Controls)
-            {
-                if ((c is MenuStrip || c is ToolStrip) && c.Visible) ust = Math.Max(ust, c.Bottom);
-                if (c is StatusStrip && c.Visible) alt = Math.Min(alt, c.Top);
-            }
-            _depoKapak = new Panel
-            {
-                BackColor = AnaSayfa.MasaRengi,
-                Location = new Point(0, ust),
-                Size = new Size(this.ClientSize.Width, Math.Max(0, alt - ust)),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
-            };
-            this.Controls.Add(_depoKapak);
-            _depoKapak.BringToFront();
+            var dek = new DekBasForm(this) { DepoDuzenleModu = true, StartPosition = FormStartPosition.Manual };
+            Rectangle alan = Screen.FromControl(this).WorkingArea;
+            dek.Location = new Point(alan.Left + (alan.Width - dek.Width) / 2, alan.Top + (alan.Height - dek.Height) / 2);
+            dek.Show(this);
+            dek.BringToFront();
+            dek.Activate();
         }
 
+        /// <summary>Menü/araç/durum çubukları hariç masadaki her şeyi (kartlar, bilgi panelleri) gizler: boş yeşil masa kalır.</summary>
+        private void DepoKapagiKoy()
+        {
+            if (_depoGizli == null) _depoGizli = new List<Control>();
+            foreach (Control c in this.Controls)
+            {
+                if (c is MenuStrip || c is ToolStrip || c is StatusStrip || !c.Visible) continue;
+                _depoGizli.Add(c);
+                c.Visible = false;
+            }
+        }
+
+        /// <summary>Gizlenen kontrolleri geri getirir ve gizlemeyi bitirir (bord yüklenirken).</summary>
         private void DepoKapaginiKaldir()
         {
-            if (_depoKapak == null) return;
-            this.Controls.Remove(_depoKapak);
-            _depoKapak.Dispose();
-            _depoKapak = null;
+            if (_depoGizli == null) return;
+            var liste = _depoGizli;
+            _depoGizli = null;
+            foreach (Control c in liste) if (!c.IsDisposed) c.Visible = true;
         }
 
         /// <summary>
