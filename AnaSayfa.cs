@@ -836,17 +836,21 @@ namespace BricKartOyunu.Forms
                 DepoModu = true
             })
             {
-                bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
+                bricOynaForm.Hazir += (s2, e2) => { if (!this.IsDisposed) this.Opacity = 0; };
                 try
                 {
                     bricOynaForm.ShowDialog(this);
                 }
                 finally
                 {
-                    this.Opacity = 1;
-                    this.Show();
-                    this.Activate();
-                    ResetToInitialState();
+                    // AnaSayfa masa açıkken kapanmış/yok edilmişse (uygulama kapanıyor) ona dokunma
+                    if (!this.IsDisposed && !this.Disposing)
+                    {
+                        this.Opacity = 1;
+                        this.Show();
+                        this.Activate();
+                        ResetToInitialState();
+                    }
                 }
             }
         }

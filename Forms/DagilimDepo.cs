@@ -35,6 +35,16 @@ namespace BricKartOyunu.Forms
             BtnDepodanYukle.Click += BtnDepodanYukle_Click;
             BtnDepodanSil.Click += BtnDepodanSil_Click;
             BtnDepodanDuzenle.Click += BtnDepodanDuzenle_Click;
+
+            // X (veya Alt+F4) ile kapatılırsa tüm formlar kapanır, AnaSayfa açılıştaki gibi baştan yüklenir.
+            // Programatik kapatmalar (bord yüklenirken vb.) etkilenmez: onların CloseReason değeri UserClosing değildir.
+            FormClosing += (s, e) =>
+            {
+                if (_anaSayfayaDonuluyor || e.CloseReason != CloseReason.UserClosing) return;
+                e.Cancel = true;
+                _anaSayfayaDonuluyor = true;   // AnaSayfayaDon içindeki Close() bu işleyiciye yeniden takılıp sonsuz döngüye girmesin
+                BeginInvoke(new Action(AnaSayfayaDon));
+            };
         }
 
         /// <summary>Depodaki ihale (PBN) dosyalarının tutulduğu klasör: %AppData%\BricKartOyunu\DagilimDeposu</summary>
@@ -182,6 +192,8 @@ namespace BricKartOyunu.Forms
                 dlg.Title = "Depoya eklenecek ihale (PBN) dosyaları";
                 dlg.Filter = "Taşınabilir Briç Notasyonu (*.pbn)|*.pbn|Tüm dosyalar|*.*";
                 dlg.Multiselect = true;
+                // Depo klasöründe açılmasın: depodaki dosyalar zaten depoda, aktarılacak dosya dışarıdadır
+                dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
 
                 try { Directory.CreateDirectory(DepoKlasoru); }
@@ -196,6 +208,11 @@ namespace BricKartOyunu.Forms
                 foreach (string yol in dlg.FileNames)
                 {
                     string ad = Path.GetFileName(yol);
+                    if (string.Equals((Path.GetDirectoryName(yol) ?? "").TrimEnd('\\'), DepoKlasoru.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+                    {
+                        atlanan.Add(ad + " (zaten depoda)");
+                        continue;
+                    }
                     try
                     {
                         int adet = PbnOkuyucu.Oku(yol).Count;
@@ -509,9 +526,12 @@ namespace BricKartOyunu.Forms
             AnaSayfayaDon();
         }
 
+        private bool _anaSayfayaDonuluyor;
+
         /// <summary>Dağılım Deposu ve (varsa) oyun masasını kapatır; AnaSayfa açılıştaki haline döner.</summary>
         private void AnaSayfayaDon()
         {
+            _anaSayfayaDonuluyor = true;
             // Dağılım Deposu oyun masası üzerinde açıldıysa masayı kapat: AnaSayfa kendiliğinden geri gelir
             var masa = (this.Owner as BricOyna) ?? Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
             if (masa != null)
