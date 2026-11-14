@@ -947,6 +947,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.Seviye >= 2))
                 return Seviye(d, "NT", 3);
 
+            // Açıcı: 1♥–2x (cevapçı pas geçmiş, 2/1 oyun zorlayıcı değil) sonrası 17+ HP ve 5♥ + 4♠ (5-4 majör):
+            // 3NT'ye atlama, ikinci majörü doğal 2♠ ile göster (maça uyumu / slam aranır).
+            if (gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz == "Kupa" &&
+                gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 2 && gercek[1].Koz != "NT" && gercek[1].Koz != "Kupa" && gercek[1].Koz != "Maça" &&
+                !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && (hp >= 17 || est >= 26) &&
+                ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5 && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4 && Cheapest(d, "Maça") == 2)
+                return Seviye(d, "Maça", 2);
+
             // 2/1 sonrası ikinci renk: ortak açtı, ben yeni renkle (2. seviye) cevap verdim, ortak kendi
             // açış rengini tekrarladı (ör. 1♠–2♦–2♠). Oyun gücündeyim ve henüz söylemediğim 4+ kartlık
             // bir renk var → 3NT ile ihaleyi kapatmadan o rengi göster (fit/slam aranır).

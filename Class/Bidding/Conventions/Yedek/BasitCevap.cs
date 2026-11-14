@@ -67,6 +67,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
+                // 1♥ açılışına 4+ maça: 1 seviyesinde söylenebilen majör, daha uzun ama 2 seviyede kalacak minörden önce gelir
+                // (1♥–1♠, 5♠ 7♦ 9 HP; karo sonraki turda gösterilir). 6-9 HP'de 2 seviyesinde yeni renk oyun zorlayıcı sanılır.
+                if (partnerKozu == "Kupa" && partnerSeviye == 1 && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
+                    return "1♠";
+
                 // 2) Yeni renk (1 seviye) — 4+ kart, majör öncelikli
                 string yeniRenk = YeniRenkBul(el, partnerKozu, 4, "1");
                 if (!string.IsNullOrEmpty(yeniRenk))

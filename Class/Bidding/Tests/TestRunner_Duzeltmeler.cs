@@ -27,6 +27,13 @@ namespace BricKartOyunu.Tests
             T("N2 1H-1NT 6 kupa 17hcp -> 3H davet", TestHelpers.ElOlustur("K2", "AKJ952", "Q43", "A4"), "3♥", "Pas", "Pas", "1♥", "Pas", "1NT", "Pas");
             T("N3 1H-1NT asgari 13hcp -> Pas", TestHelpers.ElOlustur("Q72", "KJ985", "K43", "A4"), "Pas", "Pas", "Pas", "1♥", "Pas", "1NT", "Pas");
 
+            // 1♥ – 2♦ (pas geçmiş cevapçı) – açıcı 17 HP 5♥-4♠: 3NT yerine 2♠ (Bord 5)
+            T("N4 P-1H-2D 17hcp 5H4S -> 2S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "2♠", "Pas", "Pas", "Pas", "1♥", "Pas", "2♦", "Pas");
+            T("N6 1H-2D (Bord 5 gercek ihale, G dagitici) 17hcp 5H4S -> 2S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "2♠", "Pas", "1♥", "Pas", "2♦", "Pas");
+            T("N7 1H cevap 9hcp 5S 7D -> 1S (2D degil)", TestHelpers.ElOlustur("QJT85", "", "AQ97653", "7"), "1♠", "Pas", "1♥", "Pas");
+            T("N8 1H-1S 17hcp 4 maca destek -> 3S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "3♠", "Pas", "1♥", "Pas", "1♠", "Pas");
+            T("N5 P-1H-2D 3 maca -> 3NT (degismez)", TestHelpers.ElOlustur("A93", "AT942", "K82", "AQ"), "3NT", "Pas", "Pas", "Pas", "1♥", "Pas", "2♦", "Pas");
+
             // 1NT – 4♣ (Gerber) – cevap – soranın devamı
             T("G1 1NT-4C-4S: 4 as + 19hcp -> 6NT", TestHelpers.ElOlustur("AK2", "AQ3", "KJ4", "Q762"), "6NT", "1NT", "Pas", "4♣", "Pas", "4♠", "Pas");
             T("G2 1NT-4C-4D: as eksik -> 4NT (bitir)", TestHelpers.ElOlustur("A32", "KQ3", "KJ4", "Q762"), "4NT", "1NT", "Pas", "4♣", "Pas", "4♦", "Pas");
@@ -187,6 +194,13 @@ namespace BricKartOyunu.Tests
             TZ("Z1 2H-P-? 15hcp 2 kupa -> 4H", TestHelpers.ElOlustur("A764", "97", "AKQ8", "Q85"), "4♥", "2♥", "Pas");
             TZ("Z2 2H-P-? 14hcp 2 kupa -> Pas", TestHelpers.ElOlustur("A764", "97", "AKJ8", "Q85"), "Pas", "2♥", "Pas");
             TZ("Z3 2H-P-? 15hcp 3 kupa -> 4H", TestHelpers.ElOlustur("A74", "974", "AKQ8", "Q85"), "4♥", "2♥", "Pas");
+            // Motor Karnesi: "Oyun kaçırıldı" — çok güçlü elle bozucu/zayıf iki açılışına Pas denmez
+            TZ("Z4 2H-P-? 22hcp 1 kupa, yanlar durdurulu -> 3NT", TestHelpers.ElOlustur("AKQ4", "5", "AKJ4", "KQ52"), "3NT", "2♥", "Pas");
+            T("PA1 3H-P-? 23hcp 1 kupa -> 4H", TestHelpers.ElOlustur("AKQJ4", "5", "AKQ3", "KJ2"), "4♥", "3♥", "Pas");
+            T("PA2 3D-P-? 19hcp 2 karo, hepsi durdurulu -> 3NT", TestHelpers.ElOlustur("AKQ4", "KJ5", "32", "AQ97"), "3NT", "3♦", "Pas");
+            // Motor Karnesi: 24 HP'de 3NT yalnızca %41 yapılıyor; 3NT tahmin eşiği 25'e çıktı (5 kartlık renk +0,75, 6 kartlık +1,5)
+            // Koruma: V2/V4/V24 (1NT-2NT/2♠ minör transfer sonrası 9 HP 5 kart ya da 8 HP 6 kart → 3NT) bu eşikle de geçer.
+            T("PA3 3H-P-? 8hcp 1 kupa -> Pas", TestHelpers.ElOlustur("Q9652", "5", "J832", "T97"), "Pas", "3♥", "Pas");
 
             // Vugraph Bord 1: 1♠–2♠–3♣(deneme)–4♠ sonrası açıcı (17 HP) Blackwood sormaz; ortak 6-10 HP'nin üst yarısı
             T("V1 1S-2S-3C-4S 17hcp -> Pas (slam yok)", TestHelpers.ElOlustur("AKQJT6", "3", "A74", "QJ2"), "Pas", "Pas", "Pas", "1♠", "Pas", "2♠", "Pas", "3♣", "Pas", "4♠", "Pas");

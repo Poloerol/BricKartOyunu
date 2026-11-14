@@ -33,6 +33,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return Hesapla(durum) ?? "Pas";
         }
 
+        private static bool DigerRenklerDurduruluyor(System.Collections.Generic.List<BricKartOyunu.Class.Card> el, string koz)
+        {
+            return new[] { "Maça", "Kupa", "Karo", "Sinek" }
+                .Where(r => r != koz)
+                .All(r => ElDegerlendirici.StopperVar(el, r));
+        }
+
         // null → konvansiyon uygulanmaz
         private string Hesapla(IhaleDurumu durum)
         {
@@ -73,6 +80,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (uyum >= 3 && hp >= 6)
                 return "3" + sembol;
+
+            // Uyum yok ama çok güçlü el: ortak en fazla ~10 HP → 17+ ile toplam 24-27.
+            // Diğer üç renkte de durdurucu varsa 3NT (ortağın 6'lı rengi koşar).
+            if (uyum <= 2 && hp >= 17 && DigerRenklerDurduruluyor(el, renk))
+                return "3NT";
 
             return "Pas";
         }

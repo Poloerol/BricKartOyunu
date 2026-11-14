@@ -71,6 +71,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 if (destek >= 3) return "4" + sembol;
                 if (destek >= 2 && hp >= 14) return "4" + sembol;
+                // Çok güçlü el: ortağın 7'li rengi + tekli/renksiz bile 8 koz yapar; oyun payı var
+                if (hp >= 17) return "4" + sembol;
                 return "Pas";
             }
 
@@ -81,6 +83,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     .Where(r => r != koz)
                     .All(r => ElDegerlendirici.StopperVar(el, r));
                 if (hepsiDurdurulur) return "3NT";
+            }
+
+            // Çok güçlü el: durdurucular tamamsa 3NT, değilse minör fitle 5 minör
+            if (hp >= 17)
+            {
+                bool hepsi = new[] { "Maça", "Kupa", "Karo", "Sinek" }
+                    .Where(r => r != koz)
+                    .All(r => ElDegerlendirici.StopperVar(el, r));
+                if (hepsi) return "3NT";
+                if (destek >= 2) return "5" + sembol;
             }
 
             return "Pas";

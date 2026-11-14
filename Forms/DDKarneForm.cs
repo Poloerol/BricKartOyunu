@@ -148,12 +148,19 @@ namespace BricKartOyunu.Forms
             foreach (var b in l)
             {
                 var d = b.Degerlendirme;
-                sb.AppendLine(b.BordNo + "\t" + Harf[b.Dagitici] + "\t" + b.IhaleMetni + "\t" + Kontrat(b) + "\t" + (b.Sonuc.Pas ? "-" : d.DdLove.ToString()) + "\t" +
-                              (d.Par.Pas ? "0" : d.Par.Metin.Replace("Par: ", "")) + "\t" + d.ImpDeklaran + "\t" + d.Sapma + "\t" + (d.Sorumlu == 0 ? "NS" : d.Sorumlu == 1 ? "EW" : "-") + "\t" +
+                sb.AppendLine(b.BordNo + "\t" + Harf[b.Dagitici] + "\t" + SembolsuzMetin(b.IhaleMetni) + "\t" + SembolsuzMetin(Kontrat(b)) + "\t" + (b.Sonuc.Pas ? "-" : d.DdLove.ToString()) + "\t" +
+                              SembolsuzMetin(d.Par.Pas ? "0" : d.Par.Metin.Replace("Par: ", "")) + "\t" + d.ImpDeklaran + "\t" + d.Sapma + "\t" + (d.Sorumlu == 0 ? "NS" : d.Sorumlu == 1 ? "EW" : "-") + "\t" +
                               MotorKarnesi.HataAdi(d.Hata) + "\t" + El(b.Eller[0]) + "\t" + El(b.Eller[1]) + "\t" + El(b.Eller[2]) + "\t" + El(b.Eller[3]));
             }
             try { Clipboard.SetText(sb.ToString()); _durum.Text = l.Count + " bord panoya kopyalandı"; }
             catch (Exception ex) { MessageBox.Show(this, "Panoya kopyalanamadı: " + ex.Message, "Motor Karnesi"); }
+        }
+
+        // Dışa aktarımda renk simgeleri harfe çevrilir (ANSI kaydedilince '?' olmasın): ♠=S ♥=H ♦=D ♣=C
+        private static string SembolsuzMetin(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            return s.Replace("♠", "S").Replace("♥", "H").Replace("♦", "D").Replace("♣", "C");
         }
 
         private static string El(ulong m)

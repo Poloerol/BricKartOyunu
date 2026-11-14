@@ -605,7 +605,7 @@ namespace BricKartOyunu.Class.Bidding
             if (renk == "NT" && sev == 3)
             {
                 int mx = Renkler4().Max(r => d.AktifOyuncuEli.Count(c => c.Suit == r));
-                if (mx >= 6) est += (mx - 5) * 1.0;
+                if (mx >= 5) est += (mx - 4) * 0.75;   // 5 kart +0,75; 6 kart +1,5 (3NT eşiği 25'e çıktı: Motor Karnesi, 24 HP'de 3NT %41 yapılıyor)
             }
             int rakSev = RakipSeviyesi(d);
 
@@ -650,7 +650,7 @@ namespace BricKartOyunu.Class.Bidding
             }
             if (sev == 3)
             {
-                if (renk == "NT") return est >= 24 || rakSev >= 3;
+                if (renk == "NT") return est >= 25 || rakSev >= 3;
                 return est >= 20 || rakSev >= 2;
             }
             return true;
