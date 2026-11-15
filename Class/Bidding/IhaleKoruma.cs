@@ -635,18 +635,20 @@ namespace BricKartOyunu.Class.Bidding
                 }
                 if (ad == "Grand Slam Force") return est >= 34;
                 if (ad == "Pick-a-Slam") return est >= 29;
-                return est >= 30;
+                // Kendi Gerber (4♣) sorumun cevabından sonra bitirme/devam (4NT, 5 seviye, slam): yeni bir soru değil, güç eşiği aranmaz
+                if (ad == "Gerber" && (d.Gecmis ?? new List<IhaleHamlesi>()).Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4♣")) return true;
+                return est >= 31;   // Motor Karnesi ölçümü: 30'a göre 20.000 bordluk doğrulamada kazançlı
             }
 
             // Seviye tavanı
             if (sev >= 7) return est >= 36;
             if (sev == 6) return est >= 32;
-            if (sev == 5) return est >= 27 || rakSev >= 4 || (rakSev >= 3 && est >= 22);
+            if (sev == 5) return est >= 22 || rakSev >= 4 || (rakSev >= 3 && est >= 22);
             if (sev == 4)
             {
                 bool oyunSeviyesi = renk == "Maça" || renk == "Kupa";
                 if (!oyunSeviyesi) return est >= 25 || rakSev >= 3;
-                return est >= 24 || rakSev >= 3;
+                return est >= 20 || rakSev >= 3;
             }
             if (sev == 3)
             {
