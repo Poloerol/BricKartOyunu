@@ -82,6 +82,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int pidx = Array.IndexOf(srmKoz, partnerKozu);
                     int yidx = Array.IndexOf(srm, yeniRenk.Substring(1));
                     if (pidx < 0 || yidx > pidx) return yeniRenk;
+                    // 2 seviyede kalacak daha uzun minör yerine 1 seviyede söylenebilen 4+ majör (1♦–1♥, 5♣ 4♥ 9 HP)
+                    if (partnerMinor)
+                    {
+                        int sp0 = ElDegerlendirici.RenkUzunlugu(el, "Maça"), he0 = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                        if (he0 >= 4 && he0 >= sp0) return "1♥";
+                        if (sp0 >= 4) return "1♠";
+                    }
                     if (hp >= 8) return "2" + yeniRenk.Substring(1);
                     yeniRenk = null;
                 }
