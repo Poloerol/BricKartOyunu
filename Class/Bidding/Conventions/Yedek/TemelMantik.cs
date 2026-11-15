@@ -1207,7 +1207,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool ortakGuc = ar.Min >= 6;
             // Güçlü el (davet+): ortağın cevabını sıçramalı destekle (1♣–1♥–(1♠)–3♥), 2. seviyede kalma
             if (ortakGuc && Major(fit) && est >= 23 && ucuz == 2) return Seviye(d, fit, 3);
-            if (ortakGuc && est >= 19 && ucuz <= lott && ucuz <= 3) return Seviye(d, fit, ucuz);
+            // 10+ kart fit (ör. ortağın müdahalesi + bende 5 kart): 2 seviyede rekabetçi destek biraz daha düşük puanla yapılır (1♣–(1♦)–(1♥): ♦K9652 6 HP → 2♦)
+            if (ortakGuc && (est >= 19 || (toplam >= 10 && est >= 18 && ucuz <= 2)) && ucuz <= lott && ucuz <= 3) return Seviye(d, fit, ucuz);
             return "Pas";
         }
 
