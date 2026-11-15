@@ -233,6 +233,52 @@ namespace BricKartOyunu
             return liste[((((plan.PbnBaslangic + _currentTour - 1) % liste.Count) + liste.Count) % liste.Count)];
         }
 
+        /// <summary>Oyun planında "Numaralı Rastgele Eller" seçili ve bu normal bir oyun mu (maç/pratik/depo değil)?</summary>
+        private bool NumaraliKaynakMi()
+        {
+            if (PratikModu || DepoModu || MacDurumu.Aktif) return false;
+            var plan = AnaSayfa.OyunPlani;
+            return plan != null && plan.DagitimKaynagi == DagitimKaynagi.NumaraliRastgele;
+        }
+
+        /// <summary>
+        /// "Numaralı Rastgele Eller" seçiliyken oyun başlarken El Numarası penceresi açılır (Bridge Baron'daki "Deal Number" gibi).
+        /// Tamam'da numara değişmişse eller o numarayla yeniden dağıtılır; "Tüm elleri göster" işaretliyse dört el açılır.
+        /// Pencere kapanınca (X dahil) normal akış sürer ve DekBasForm açılır.
+        /// </summary>
+        private void ElNumarasiSor()
+        {
+            if (!NumaraliKaynakMi()) return;
+            try
+            {
+                using (var f = new ElNumarasiForm(_seed))
+                {
+                    // Masa panelinin tam ortasında açılır (DekBasForm gibi)
+                    if (playZonePanel != null)
+                        f.MerkezEkran = playZonePanel.PointToScreen(new Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
+                    // "Tüm elleri göster" kutusu anında yansır: işaretli -> dört el açık, değil -> yalnızca Güney'in eli
+                    f.TumElleriDegisti += gost => ElleriGosterAyarla(gost);
+                    if (f.ShowDialog(this) != DialogResult.OK) return;
+                    if (f.Numara != _seed)
+                    {
+                        KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, f.Numara);   // yeniden dağıtım gösterimi sıfırlar
+                        UpdateInfoBoard(_dealer);
+                        UpdatePlayerBadges();
+                        OyunBilgiPaneliniGuncelle();
+                    }
+                    ElleriGosterAyarla(f.TumElleriGoster);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[BricOyna] El Numarası penceresi hatası: " + ex.Message);
+            }
+        }
+        /// <summary>Dört eli açık (true) ya da yalnızca Güney'in elini açık (false) gösterir; zaten öyleyse dokunmaz.</summary>
+        private void ElleriGosterAyarla(bool hepsi)
+        {
+            if (hepsiniGösterToolStripMenuItem.Checked != hepsi) BtnHepsi_Click(this, EventArgs.Empty);
+        }
         /// <summary>Dağıtım kaynağı ve en iyi el ayarlarına göre 52 kartı üretir (Kuzey, Doğu, Güney, Batı).</summary>
         private List<string> DagitimiUret()
         {
@@ -251,7 +297,7 @@ namespace BricKartOyunu
                 case DagitimKaynagi.Kozsuz: profil = DagitimProfili.Kozsuz; break;
                 case DagitimKaynagi.NumaraliRastgele:
                     profil = DagitimProfili.Rastgele;
-                    seed = _currentTour * 7919 + 17;   // aynı bord numarası = aynı el
+                    seed = _seed;   // el numarası = seed (oyun başlarken El Numarası penceresinden girilir; aynı numara = aynı el)
                     break;
                 case DagitimKaynagi.Uretilmis:
                     // Bord numarasına göre sırayla parsiyel, oyun, kozsuz, slam elleri
@@ -317,7 +363,8 @@ namespace BricKartOyunu
             if (MacDurumu.Aktif && !MacDurumu.SeedRastgele) KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, MacDurumu.BordSeed());
             else KartlariDagitRastgele(AnaSayfa.SeciliKartSeti);
 
-            // 8) Yeni DekBasForm aç
+            // 8) Numaralı Rastgele Eller: önce Dağılım Numarası penceresi; sonra yeni DekBasForm aç
+            ElNumarasiSor();
             PratikDuyurusu();
             YeniDekBasFormAc();
         }
@@ -419,7 +466,7 @@ namespace BricKartOyunu
         /// </summary>
         public void KartlariDagitRastgele(string kartSeti)
         {
-            if (!PratikModu) _seed = YeniSeed();
+            if (!PratikModu) _seed = NumaraliKaynakMi() && _seed > 0 && _seed < int.MaxValue ? _seed + 1 : YeniSeed();   // numaralı kaynakta bir sonraki numara
             KartlariDagit(kartSeti);
             System.Diagnostics.Debug.WriteLine(
                 $"[KartlariDagitRastgele] Yeni seed: {_seed}");
@@ -720,6 +767,7 @@ namespace BricKartOyunu
             // 🔹 YENİ: Bilgi panelini güncelle (yeni Dealer ve Zon görünsün)
             OyunBilgiPaneliniGuncelle();
 
+            ElNumarasiSor();   // Numaralı Rastgele Eller: önce Dağılım Numarası penceresi, Tamam'dan sonra DekBasForm
             PratikDuyurusu();
             YeniDekBasFormAc();
         }

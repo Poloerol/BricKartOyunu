@@ -496,6 +496,8 @@ namespace BricKartOyunu
             }
             this.Load += BricOyna_Load;
             this.Resize += BricOyna_Resize;
+            // Eylemler > Sonraki Dağılım: araç çubuğundaki Sonraki El düğmesiyle aynı akış (deklarasyon açıksa uyarır; Numaralı Rastgele Eller'de Dağılım Numarası penceresi açılır)
+            sonrakiDağılımToolStripMenuItem.Click += (s, e) => BtnSonrakiEl_Click(s, e);
             this.LocationChanged += (s, e) => DekFormlariniHizala();
             BricKartOyunu.Class.EkranYardimci.AcikFormlariTakipEt(this);
 
@@ -773,6 +775,7 @@ namespace BricKartOyunu
             {
                 // Kullanıcı girişi artık PBN dosyasından okunur (DagitimiUret); elle giriş formu açılmaz
                 if (DepoModu) { DepoAcilisi(); return; }   // Dağılım Deposu: boş masa + depo penceresi
+                ElNumarasiSor();   // Numaralı Rastgele Eller: önce El Numarası penceresi, Tamam'dan sonra DekBasForm
                 PratikDuyurusu(); YeniDekBasFormAc();
             };
         }
