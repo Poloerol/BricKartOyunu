@@ -117,8 +117,6 @@ namespace BricKartOyunu.Forms
                 string eksik = "";
                 if (Secenekler.OyunTuru != OyunTuru.Duplicate)
                     eksik += "• Oyun türü: yalnızca Duplicate kullanılabilir (diğerleri henüz yok).\n";
-                if (Secenekler.DagitimKaynagi == DagitimKaynagi.KullaniciGirisi && PbnOkuyucu.Oku(Secenekler.PbnYolu).Count == 0)
-                    eksik += "• Kullanıcı girişi: geçerli PBN dosyası seçilmedi, rastgele dağıtım kullanılacak.\n";
                 if (eksik.Length > 0)
                     MessageBox.Show(this, "Seçimleriniz kaydedildi, ancak şu ayarlar henüz oyunda etkin değil:\n\n" + eksik,
                         "Oyun Planı", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -185,14 +183,9 @@ namespace BricKartOyunu.Forms
 
             var g1 = Grup(s, "Dağıtım Kaynağı", 4, 2, 152, 160);
             _rbKaynak = RadyoDizisi(g1, new[] {
-                "Kullanıcı Girişi(PBN)", "Rastgele Dağılım", "Rastgele Part Skor", "Rastgele Oyun Eli",
+                "Kullanıcı Girişli Dağılım", "Rastgele Dağılım", "Rastgele Part Skor", "Rastgele Oyun Eli",
                 "Rastgele Şlem Eli", "Oluşturulmuş El Dağılım", "Numaralı Rastgele Eller", "NT Dağılımları" },
                 8, 16, 17, 140);
-            _rbKaynak[0].CheckedChanged += (snd, ev) =>
-            {
-                if (!_rbKaynak[0].Checked || _yukleniyor) return;
-                if (!PbnSec()) { _yukleniyor = true; _rbKaynak[1].Checked = true; _yukleniyor = false; }
-            };
 
             var g2 = Grup(s, "En İyi El", 162, 2, 104, 160);
             _rbEnIyi = RadyoDizisi(g2, new[] {

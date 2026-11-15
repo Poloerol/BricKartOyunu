@@ -189,8 +189,6 @@ namespace BricKartOyunu
             }
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             _dealer = KoltukHaritasi.Ic(plan.FizikselDagitici(_currentTour));
-            var pbnB = PbnBordu(plan);
-            if (pbnB != null && pbnB.DagiticiVar) _dealer = KoltukHaritasi.Ic(pbnB.Dagitici);
             try
             {
                 if (plan.SonBordNo != _currentTour)
@@ -221,16 +219,6 @@ namespace BricKartOyunu
             foreach (var f in fizikselListe)
                 izin[Array.IndexOf(sira, KoltukHaritasi.Ic(f))] = true;
             return izin;
-        }
-
-        /// <summary>"Kullanıcı girişi" kaynağında bu bordun PBN dosyasındaki karşılığı (yoksa null).</summary>
-        private PbnBord PbnBordu(OyunPlaniSecenekleri plan)
-        {
-            if (plan.DagitimKaynagi != DagitimKaynagi.KullaniciGirisi) return null;
-            var liste = PbnOkuyucu.Oku(plan.PbnYolu);
-            if (liste.Count == 0) return null;
-            // Başlangıç bordu (Dağılım Deposu'nda seçilen) + bord numarası kadar ileri
-            return liste[((((plan.PbnBaslangic + _currentTour - 1) % liste.Count) + liste.Count) % liste.Count)];
         }
 
         /// <summary>Oyun planında "Numaralı Rastgele Eller" seçili ve bu normal bir oyun mu (maç/pratik/depo değil)?</summary>
@@ -284,9 +272,8 @@ namespace BricKartOyunu
         {
             if (_depoDeste != null) return _depoDeste;   // Dağılım Deposu bordu (yeni bord başlayınca silinir)
             if (PratikModu) return KonvansiyonPratigi.Deste(PratikDagitimlari[_pratikIndeks]);
+            if (_manuelDeste != null && _manuelDeste.Count == 52 && ManuelGirisModu()) return new List<string>(_manuelDeste);   // Kullanıcı Girişli Dağılım
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
-            var pbnBord = PbnBordu(plan);
-            if (pbnBord != null) return PbnOkuyucu.Deste(pbnBord);
             DagitimProfili profil;
             int seed = _seed;
             switch (plan.DagitimKaynagi)
@@ -345,6 +332,7 @@ namespace BricKartOyunu
             _oyunAsamasi = OyunAsamasi.Baslangic;
             _currentTour = MacDurumu.SonrakiBordNo(_currentTour);   // 16'dan sonra 1
             DagiticiyiAyarla();
+            if (!ManuelGirisAl()) { Close(); return; }   // Kullanıcı Girişli Dağılım: eller elle girilir (İptal: oyun kapanır)
             activePlayer = _dealer;
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
@@ -750,6 +738,7 @@ namespace BricKartOyunu
             _oyunAsamasi = OyunAsamasi.Baslangic;   // ← EKLE
             _currentTour = MacDurumu.SonrakiBordNo(_currentTour);   // 16'dan sonra 1
             DagiticiyiAyarla();
+            if (!ManuelGirisAl()) { Close(); return; }   // Kullanıcı Girişli Dağılım: eller elle girilir (İptal: oyun kapanır)
             activePlayer = _dealer;
             _declarer = _dealer;
             _atakYapacakOyuncu = _dealer;
@@ -915,13 +904,8 @@ namespace BricKartOyunu
         /// </summary>
         private string ZonDurumuMetni()
         {
-            int boardMod = ((_currentTour - 1) % 16) + 1;
-
-            bool nsZonda = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
-                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
-
-            bool ewZonda = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
-                            boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            bool nsZonda, ewZonda;
+            FizikselZon(out nsZonda, out ewZonda);   // kullanıcı zonu seçtiyse o, yoksa bord döngüsü
 
             if (nsZonda && ewZonda) return "Herkes";
             if (nsZonda) return "Kuzey/Güney";
@@ -1069,11 +1053,7 @@ namespace BricKartOyunu
         /// <summary>16'lı bord döngüsüne göre zon (risk) durumu.</summary>
         private void ZonDurumu(out bool ns, out bool ew)
         {
-            int boardMod = ((_currentTour - 1) % 16) + 1;
-            ns = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
-                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
-            ew = (boardMod == 3 || boardMod == 6 || boardMod == 9 || boardMod == 13 ||
-                  boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);
+            FizikselZon(out ns, out ew);
             // İnsan Doğu/Batı ise iç K-G çifti fiziksel D-B çiftidir
             if (KoltukHaritasi.CiftlerTers) { bool gecici = ns; ns = ew; ew = gecici; }
         }
