@@ -780,6 +780,7 @@ namespace BricKartOyunu
                     if (!ManuelGirisAl()) { Close(); return; }
                     ManuelYenidenDagit();
                 }
+                UretilmisDosyaSor();   // Oluşturulmuş El Dağılım: önce "Aç" penceresi
                 ElNumarasiSor();   // Numaralı Rastgele Eller: önce El Numarası penceresi, Tamam'dan sonra DekBasForm
                 PratikDuyurusu(); YeniDekBasFormAc();
             };

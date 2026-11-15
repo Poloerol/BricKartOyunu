@@ -189,6 +189,8 @@ namespace BricKartOyunu
             }
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             _dealer = KoltukHaritasi.Ic(plan.FizikselDagitici(_currentTour));
+            var ub = UretilmisBord();
+            if (ub != null && ub.DagiticiVar) _dealer = KoltukHaritasi.Ic(ub.Dagitici);
             try
             {
                 if (plan.SonBordNo != _currentTour)
@@ -262,6 +264,92 @@ namespace BricKartOyunu
                 System.Diagnostics.Debug.WriteLine("[BricOyna] El Numarası penceresi hatası: " + ex.Message);
             }
         }
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        private struct RECT { public int Left, Top, Right, Bottom; }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        private static extern IntPtr FindWindow(string sinif, string baslik);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr pencere, out RECT r);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr pencere, IntPtr sonra, int x, int y, int g, int y2, uint bayrak);
+
+        // "Oluşturulmuş El Dağılım": oyun başlarken seçilen dosyadaki bordlar sırayla oynanır
+        private List<PbnBord> _uretilmisBordlar;
+
+        private bool UretilmisKaynakMi()
+        {
+            if (PratikModu || DepoModu || MacDurumu.Aktif) return false;
+            var plan = AnaSayfa.OyunPlani;
+            return plan != null && plan.DagitimKaynagi == DagitimKaynagi.Uretilmis;
+        }
+
+        /// <summary>Bu bordun seçilen dosyadaki karşılığı (dosya seçilmediyse null).</summary>
+        private PbnBord UretilmisBord()
+        {
+            if (_uretilmisBordlar == null || _uretilmisBordlar.Count == 0 || !UretilmisKaynakMi()) return null;
+            int n = _uretilmisBordlar.Count;
+            return _uretilmisBordlar[(((_currentTour - 1) % n) + n) % n];
+        }
+
+        /// <summary>
+        /// "Oluşturulmuş El Dağılım" seçiliyken oyun başlarken standart "Aç" penceresi açılır (Bridge Baron gibi).
+        /// Dosya seçilirse bordlar ondan sırayla oynanır ve masa yeniden dağıtılır; İptal'de eski üretimli dağıtım sürer.
+        /// </summary>
+        private void UretilmisDosyaSor()
+        {
+            _uretilmisBordlar = null;
+            if (!UretilmisKaynakMi()) return;
+            try
+            {
+                string klasor = DagilimDepo.DepoKlasoru;
+                try { System.IO.Directory.CreateDirectory(klasor); } catch (Exception) { }
+                using (var dlg = new OpenFileDialog())
+                using (var zamanlayici = new System.Windows.Forms.Timer { Interval = 30 })
+                {
+                    dlg.Title = "Aç";
+                    dlg.InitialDirectory = klasor;
+                    dlg.Filter = "Oluşturulmuş Dağılımlar (*.pbn)|*.pbn";
+                    dlg.CheckFileExists = true;
+                    dlg.Multiselect = false;
+
+                    // Standart dosya penceresinin konumu ayarlanamaz; açılınca bulunup oyun masasının tam ortasına taşınır
+                    Point merkez = playZonePanel != null
+                        ? playZonePanel.PointToScreen(new Point(playZonePanel.Width / 2, playZonePanel.Height / 2))
+                        : new Point(Screen.FromControl(this).WorkingArea.Left + Screen.FromControl(this).WorkingArea.Width / 2,
+                                    Screen.FromControl(this).WorkingArea.Top + Screen.FromControl(this).WorkingArea.Height / 2);
+                    zamanlayici.Tick += (s, e) =>
+                    {
+                        IntPtr pencere = FindWindow("#32770", "Aç");
+                        RECT r;
+                        if (pencere == IntPtr.Zero || !GetWindowRect(pencere, out r)) return;
+                        zamanlayici.Stop();
+                        int g = r.Right - r.Left, y = r.Bottom - r.Top;
+                        SetWindowPos(pencere, IntPtr.Zero, merkez.X - g / 2, merkez.Y - y / 2, 0, 0, 0x0001 | 0x0004 | 0x0010);   // SIZE | ZORDER | NOACTIVATE yok sayılır
+                    };
+                    zamanlayici.Start();
+                    DialogResult sonuc = dlg.ShowDialog(this);
+                    zamanlayici.Stop();
+                    if (sonuc != DialogResult.OK) return;
+                    var bordlar = PbnOkuyucu.Oku(dlg.FileName);
+                    if (bordlar.Count == 0)
+                    {
+                        MessageBox.Show(this, "Bu dosyada okunabilir bord bulunamadı.", "Oluşturulmuş Dağılım", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    _uretilmisBordlar = new List<PbnBord>(bordlar);
+                }
+                DagiticiyiAyarla();
+                ManuelYenidenDagit();   // seçilen dosyanın ilgili bordu ile masayı yeniden kurar
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[BricOyna] Oluşturulmuş dağılım hatası: " + ex.Message);
+            }
+        }
+
         /// <summary>Dört eli açık (true) ya da yalnızca Güney'in elini açık (false) gösterir; zaten öyleyse dokunmaz.</summary>
         private void ElleriGosterAyarla(bool hepsi)
         {
@@ -274,6 +362,8 @@ namespace BricKartOyunu
             if (PratikModu) return KonvansiyonPratigi.Deste(PratikDagitimlari[_pratikIndeks]);
             if (_manuelDeste != null && _manuelDeste.Count == 52 && ManuelGirisModu()) return new List<string>(_manuelDeste);   // Kullanıcı Girişli Dağılım
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
+            var uretilmisBord = UretilmisBord();
+            if (uretilmisBord != null) return PbnOkuyucu.Deste(uretilmisBord);   // Oluşturulmuş El Dağılım: seçilen dosyadan
             DagitimProfili profil;
             int seed = _seed;
             switch (plan.DagitimKaynagi)
