@@ -437,20 +437,29 @@ namespace BricKartOyunu.Forms
                 f.StartPosition = FormStartPosition.CenterParent;
                 f.ShowInTaskbar = false;
                 f.MinimizeBox = false; f.MaximizeBox = false;
-                f.ClientSize = new Size(330, 230);
+                f.ClientSize = new Size(330, 240);
                 var std = new RadioButton { Text = "Standart (yüksek: çift, düşük: tek)", AutoSize = true, Location = new Point(14, 14), Checked = !_anlasma.UDCA };
                 var ud = new RadioButton { Text = "UDCA (yukarı-aşağı çağrı/atma)", AutoSize = true, Location = new Point(14, 42), Checked = _anlasma.UDCA };
                 var oe = new CheckBox { Text = "Tek-Çift atma (Odd/Even)", AutoSize = true, Location = new Point(14, 76), Checked = _anlasma.OddEvenDiscards };
                 var lv = new CheckBox { Text = "Lavinthal atma", AutoSize = true, Location = new Point(14, 104), Checked = _anlasma.Lavinthal };
                 var se = new CheckBox { Text = "Smith echo (SA)", AutoSize = true, Location = new Point(14, 132), Checked = _anlasma.SmithEcho };
-                var ok = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(144, 186), Size = new Size(80, 28) };
-                var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(234, 186), Size = new Size(80, 28) };
-                f.Controls.AddRange(new Control[] { std, ud, oe, lv, se, ok, iptal });
+                var ro = new CheckBox { Text = "Romen atma (tek: o rengi oyna; 2-4: küçük, 6-8: büyük rütbeli renk)", AutoSize = true, Location = new Point(14, 160), Checked = _anlasma.RomanDiscards };
+                // Atma yöntemleri birbirini dışlar
+                oe.CheckedChanged += (s2, e2) => { if (oe.Checked) { lv.Checked = false; ro.Checked = false; } };
+                lv.CheckedChanged += (s2, e2) => { if (lv.Checked) { oe.Checked = false; ro.Checked = false; } };
+                ro.CheckedChanged += (s2, e2) => { if (ro.Checked) { oe.Checked = false; lv.Checked = false; } };
+                var ok = new Button { Text = "Tamam", DialogResult = DialogResult.OK, Location = new Point(144, 194), Size = new Size(80, 28) };
+                var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(234, 194), Size = new Size(80, 28) };
+                f.Controls.AddRange(new Control[] { std, ud, oe, lv, se, ro, ok, iptal });
                 f.AcceptButton = ok; f.CancelButton = iptal;
                 if (f.ShowDialog(this) == DialogResult.OK)
                 {
                     _anlasma.UDCA = ud.Checked;
                     _anlasma.StandartSignal = std.Checked;
+                    _anlasma.OddEvenDiscards = oe.Checked;
+                    _anlasma.Lavinthal = lv.Checked;
+                    _anlasma.SmithEcho = se.Checked;
+                    _anlasma.RomanDiscards = ro.Checked;
                 }
             }
         }

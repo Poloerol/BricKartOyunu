@@ -10,13 +10,14 @@ namespace BricKartOyunu.Class
     /// </summary>
     public static class SinyalKurallari
     {
-        public enum AtmaYontemi { Standart, UDCA, TekCift, Lavinthal }
+        public enum AtmaYontemi { Standart, UDCA, TekCift, Lavinthal, Romen }
 
         static readonly string[] Siralama = { "Sinek", "Karo", "Kupa", "Maça" }; // düşükten yükseğe
 
         public static AtmaYontemi Yontem(Bidding.OrtaklikAnlasmasi a)
         {
             if (a == null) return AtmaYontemi.Standart;
+            if (a.RomanDiscards) return AtmaYontemi.Romen;
             if (a.OddEvenDiscards) return AtmaYontemi.TekCift;
             if (a.Lavinthal) return AtmaYontemi.Lavinthal;
             if (a.UDCA) return AtmaYontemi.UDCA;
@@ -59,6 +60,64 @@ namespace BricKartOyunu.Class
             }
         }
 
+        private static bool TekKart(int v) { return v == 3 || v == 5 || v == 7 || v == 9; }
+
+        /// <summary>
+        /// Romen atma (Roman discards): atılan kart ortağa hangi rengi oynamasını istediğimi söyler.
+        ///   Tek kart (3, 5, 7, 9) = atılan rengin kendisi.
+        ///   Küçük çift (2, 4)     = koz ve atılan kartın rengi dışındaki renklerden KÜÇÜK rütbeli olan (♣ < ♦ < ♥ < ♠).
+        ///   Büyük çift (6, 8)     = koz ve atılan kartın rengi dışındaki renklerden BÜYÜK rütbeli olan.
+        /// Onörler (10, J, Q, K, A) sinyal kartı sayılmaz.
+        /// atmaSirasi: atılacak renk adayları (en uygun atma rengi önde). yanRenkler: koz dışındaki kartlar.
+        /// Uygun kart bulunamazsa null (çağıran standart seçime döner).
+        /// </summary>
+        public static Card RomenAtma(List<string> atmaSirasi, List<Card> yanRenkler, string kozRengi, Func<Card, int> hcp, out string aciklama)
+        {
+            aciklama = null;
+            if (atmaSirasi == null || yanRenkler == null || yanRenkler.Count == 0) return null;
+            if (hcp == null) hcp = k => k.Value >= 11 ? k.Value - 10 : 0;
+
+            // 1) Tek kart: onör dizisi olan, 4+ kartlık bir renkten küçük tek kart atılırsa o rengi oynamasını isterim.
+            string iste = null; int istePuan = -1;
+            foreach (var g in yanRenkler.GroupBy(c => c.Suit))
+            {
+                if (g.Count() >= 4 && g.Count(k => k.Value >= 11) >= 2 && g.Any(k => TekKart(k.Value)))
+                {
+                    int p = g.Sum(k => hcp(k));
+                    if (p > istePuan) { istePuan = p; iste = g.Key; }
+                }
+            }
+            if (iste != null)
+            {
+                var tek = yanRenkler.Where(k => k.Suit == iste && TekKart(k.Value)).OrderBy(k => k.Value).First();
+                aciklama = "Romen atma: tek kart (" + tek.Value + ") = " + iste + " rengini oynayın";
+                return tek;
+            }
+
+            // 2) Çift kart: kalan renkler arasında en güçlü olanı küçük (2, 4) ya da büyük (6, 8) çiftle göster.
+            foreach (string renk in atmaSirasi)
+            {
+                var kartlar = yanRenkler.Where(k => k.Suit == renk).ToList();
+                if (kartlar.Count == 0) continue;
+                var kalan = Siralama.Where(s => s != renk && s != kozRengi).ToList();
+                string tercih = kalan.Where(s => yanRenkler.Any(k => k.Suit == s))
+                                     .OrderByDescending(s => yanRenkler.Where(k => k.Suit == s).Sum(k => hcp(k)))
+                                     .FirstOrDefault();
+                // büyük rütbeli renk istiyorsam büyük çift; yoksa (ya da tercih yoksa) küçük çift
+                bool yuksek = tercih != null && kalan.Count >= 2 &&
+                              Array.IndexOf(Siralama, tercih) == kalan.Max(s => Array.IndexOf(Siralama, s));
+                int[] istenen = yuksek ? new[] { 8, 6 } : new[] { 2, 4 };
+                Card kart = null;
+                foreach (int v in istenen) { kart = kartlar.FirstOrDefault(k => k.Value == v); if (kart != null) break; }
+                if (kart != null)
+                {
+                    aciklama = "Romen atma: " + (yuksek ? "büyük" : "küçük") + " çift (" + kart.Value + ") = " +
+                               (yuksek ? "büyük" : "küçük") + " rütbeli rengi (koz ve atılan renk dışında) oynayın";
+                    return kart;
+                }
+            }
+            return null;
+        }
         /// <summary>Smith echo: SA'da deklaran bir renge ilk kez oynayınca yüksek-düşük = ilk atağın rengini sürmeni isterim.</summary>
         public static Card SmithEcho(List<Card> kartlar, bool atakRengiIstiyorum, bool ilkKartMi)
         {

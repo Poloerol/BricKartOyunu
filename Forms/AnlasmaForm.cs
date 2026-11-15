@@ -374,7 +374,7 @@ namespace BricKartOyunu.Forms
                 "Zorluk Seviyesi: " + _secili.Anlasma.BeceriDuzeyi + " / 20",
                 "Agresiflik: müdahale " + AgrAdlari[_agr[0] + 2] + ", Blokatif " + AgrAdlari[_agr[1] + 2] + ", Açılış " + AgrAdlari[_agr[2] + 2], "" };
             foreach (var k in _kutular) { satirlar.Add(k.Baslik + ":"); satirlar.Add("   " + k.Ozet(_secili.Anlasma)); }
-            satirlar.Add("Sinyalleşme: " + Liste(_secili.Anlasma, "StandartSignal=Standart", "UDCA=UDCA", "OddEvenDiscards=Tek-Çift Atış", "Lavinthal=Lavinthal", "SmithEcho=Smith echo"));
+            satirlar.Add("Sinyalleşme: " + Liste(_secili.Anlasma, "StandartSignal=Standart", "UDCA=UDCA", "OddEvenDiscards=Tek-Çift Atış", "RomanDiscards=Romen Atış", "Lavinthal=Lavinthal", "SmithEcho=Smith echo"));
             try
             {
                 var pd = new PrintDocument();
@@ -583,7 +583,8 @@ namespace BricKartOyunu.Forms
             _v["SigAttitudeHigh"] = a.UDCA ? 1 : 0;
             if (a.Lavinthal) _v["SigFirstDiscard"] = 3;
             else if (a.OddEvenDiscards) _v["SigFirstDiscard"] = 2;
-            else if (_v["SigFirstDiscard"] >= 2 && _v["SigFirstDiscard"] != 4) _v["SigFirstDiscard"] = 0;
+            else if (a.RomanDiscards) _v["SigFirstDiscard"] = 5;
+            else if (_v["SigFirstDiscard"] >= 2 && _v["SigFirstDiscard"] != 4 && _v["SigFirstDiscard"] != 5) _v["SigFirstDiscard"] = 0;
             if (a.SmithEcho && _v["SigSmithPartner"] == 0) _v["SigSmithPartner"] = 1;
             if (!a.SmithEcho) _v["SigSmithPartner"] = 0;
 
@@ -623,6 +624,7 @@ namespace BricKartOyunu.Forms
             _a.StandartSignal = !_a.UDCA;
             _a.Lavinthal = _v["SigFirstDiscard"] == 3;
             _a.OddEvenDiscards = _v["SigFirstDiscard"] == 2;
+            _a.RomanDiscards = _v["SigFirstDiscard"] == 5;
             _a.SmithEcho = _v["SigSmithPartner"] != 0;
         }
 
@@ -677,7 +679,7 @@ namespace BricKartOyunu.Forms
             p.Controls.Add(Grup("Smith (Ortak)", new Rectangle(348, 6, 104, 100), "SigSmithPartner", "Yok", "Yüksek-Alçak", "Alçak-Yüksek"));
             p.Controls.Add(Grup("Sayı Sinyali", new Rectangle(4, 120, 104, 80), "SigCountHighLow", "Çift", "Tek"));
             p.Controls.Add(Grup("Rakibe Sayı", new Rectangle(112, 120, 124, 80), "SigCountOpp", "Evet", "Hayır"));
-            p.Controls.Add(Grup("İlk Atma Şekli", new Rectangle(240, 120, 104, 140), "SigFirstDiscard", "Tutum", "Sayı", "Tek/Çift", "Lavinthal", "Dönüşümlü"));
+            p.Controls.Add(Grup("İlk Atma Şekli", new Rectangle(240, 120, 104, 162), "SigFirstDiscard", "Tutum", "Sayı", "Tek/Çift", "Lavinthal", "Dönüşümlü", "Romen"));
             p.Controls.Add(Grup("Smith (Açıcı)", new Rectangle(348, 120, 104, 100), "SigSmithLeader", "Yok", "Yüksek-Alçak", "Alçak-Yüksek"));
             p.Controls.Add(Grup("Tutum (Yüksek)", new Rectangle(112, 234, 124, 80), "SigAttitudeHigh", "Teşvik eder", "Caydırır"));
             p.Controls.Add(Grup("Koz Sinyali", new Rectangle(348, 234, 104, 100), "SigTrump", "Vinje", "Yok", "3+ Yüks-Alç"));

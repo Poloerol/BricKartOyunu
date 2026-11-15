@@ -250,6 +250,7 @@ namespace BricKartOyunu.Class.Bidding
         public bool UDCA { get; set; } = false;
         public bool StandartSignal { get; set; } = true;
         public bool OddEvenDiscards { get; set; } = false;
+        public bool RomanDiscards { get; set; } = false;   // Romen atma: tek kart (3,5,7,9) = atılan rengi oyna; 2,4 = koz ve atılan renk dışındaki küçük rütbeli rengi, 6,8 = büyük rütbeli rengi oyna
         public bool Lavinthal { get; set; } = false;
         public bool SmithEcho { get; set; } = false;
 
@@ -262,7 +263,7 @@ namespace BricKartOyunu.Class.Bidding
         public int SigSmithLeader { get; set; } = 0;
         public int SigCountHighLow { get; set; } = 0;           // 0 çift, 1 tek
         public int SigCountOpp { get; set; } = 0;               // 0 evet, 1 hayır
-        public int SigFirstDiscard { get; set; } = 0;           // 0 tutum, 1 sayı, 2 tek/çift, 3 Lavinthal, 4 dönüşümlü
+        public int SigFirstDiscard { get; set; } = 0;           // 0 tutum, 1 sayı, 2 tek/çift, 3 Lavinthal, 4 dönüşümlü, 5 Romen
         public int SigAttitudeHigh { get; set; } = 0;           // 0 teşvik, 1 caydırır
         public int SigTrump { get; set; } = 2;                  // 0 Vinje, 1 yok, 2 3+ ile yüksek-alçak
         public int LeadSuitStyle { get; set; } = 1;            // 0 üçüncü/beşinci, 1 dördüncü
@@ -662,6 +663,7 @@ namespace BricKartOyunu.Class.Bidding
             if (UDCA) aktifler.Add("UDCA");
             else if (StandartSignal) aktifler.Add("Standart Signal");
             if (OddEvenDiscards) aktifler.Add("Tek-Çift atma");
+            if (RomanDiscards) aktifler.Add("Romen atma");
             if (Lavinthal) aktifler.Add("Lavinthal");
             if (SmithEcho) aktifler.Add("Smith echo");
 

@@ -1124,6 +1124,7 @@ namespace BricKartOyunu.Class
 
             Card secilen = null;
             double enIyi = double.MinValue;
+            var atmaSkorlari = new List<Tuple<string, double>>();   // renk -> atma puanı (Romen atma için sıralama)
             foreach (var g in yanRenkler.GroupBy(c => c.Suit))
             {
                 var c = g.OrderByDescending(k => k.Value).ToList();
@@ -1137,6 +1138,7 @@ namespace BricKartOyunu.Class
                 if (x.B.DummyEli != null && x.B.DummyEli.Count(k => k.Suit == g.Key) >= 4 && n <= 3)
                     s -= 12;                                          // dummy'nin uzun rengini açıkta bırakma
 
+                atmaSkorlari.Add(Tuple.Create(g.Key, s));
                 if (s > enIyi) { enIyi = s; secilen = c[n - 1]; }
             }
 
@@ -1145,7 +1147,15 @@ namespace BricKartOyunu.Class
             {
                 var an = x.B.AnlasmaOf(x.Ben);
                 var yon = SinyalKurallari.Yontem(an);
-                if (yon != SinyalKurallari.AtmaYontemi.Standart)
+                if (yon == SinyalKurallari.AtmaYontemi.Romen)
+                {
+                    // Romen atma: atılan kart ortağa hangi rengi oynamasını istediğimi söyler (tek = atılan renk, 2-4 = küçük, 6-8 = büyük kalan renk)
+                    string romenAciklama;
+                    var sira = atmaSkorlari.OrderByDescending(tp => tp.Item2).Select(tp => tp.Item1).ToList();
+                    var romen = SinyalKurallari.RomenAtma(sira, yanRenkler, x.Koz, k => HcpPuan(k), out romenAciklama);
+                    if (romen != null) { secilen = romen; neden = romenAciklama; }
+                }
+                else if (yon != SinyalKurallari.AtmaYontemi.Standart)
                 {
                     // ortağıma göstereceğim tercih: kalan yan renklerden en güçlüsü
                     string tercih = yanRenkler.Where(c => c.Suit != secilen.Suit).GroupBy(c => c.Suit)
