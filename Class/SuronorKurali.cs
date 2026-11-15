@@ -54,6 +54,9 @@ namespace BricKartOyunu.Class
             int yerEnBuyuk = yerK.Count > 0 ? yerK.Max() : 0;
             if (yerEnBuyuk < atilan) return ort;                      // yerde daha büyük kart yok: kazanır
 
+            // Yerde, üstüne koyacağım kartın üstünde iki ya da daha çok kart varsa (Q93 / AKJ854, 10 atağı) onör boşa gider: yer ucuz alır.
+            if (yerK.Count(v => v > ort) >= 2) return KucukVer;
+
             int yerOnor = yerK.Count(v => v >= 11);                   // yerdeki onörler (A K Q J)
             int benOnor = my.Count(v => v >= 10);                     // bende 10 ve üstü
             bool aday = yerOnor >= 2 || benOnor >= 2;

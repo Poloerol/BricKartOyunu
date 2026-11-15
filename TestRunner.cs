@@ -2839,6 +2839,7 @@ namespace BricKartOyunu
             kos(sur("K3", "AQT98", 'J', false) == SuronorKurali.KucukVer, "süronör: K3 / AQ1098, J → küçük");
             kos(sur("K53", "AQ987", 'J', false) == 13, "süronör: K53 / AQ987, J → rua");
             kos(sur("K95", "AJ3", 'T', false) == 13, "süronör: yerde iki onör → süronör");
+            kos(sur("Q93", "AKJ854", 'T', false) == SuronorKurali.KucukVer, "süronör: Q93 / AKJ854, 10 → küçük (yerde Q'nun üstünde iki kart)");
             kos(sur("K84", "A52", 'T', false) == SuronorKurali.KucukVer, "süronör: yerde tek onör, ilk tur → küçük");
             kos(sur("QJ6", "A52", 'T', false) == 11, "süronör: QJ6 / A52, 10 → vale");
             kos(sur("J52", "T63", 'T', true) == 11, "süronör: yer sağda, tek onör → süronör");
