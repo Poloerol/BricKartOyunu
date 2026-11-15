@@ -39,6 +39,9 @@ namespace BricKartOyunu.Tests
             T("N11 1C-(1D ortak overcall)-P: 4 kupa 3 karo 7hcp -> 1H (4+ kartlik yeni renk)", TestHelpers.ElOlustur("Q95", "J753", "J52", "K62"), "1♥", "1♣", "1♦", "Pas");
             T("N12 1C-(1D ortak overcall)-P: 4-4 major 7hcp -> 1H (ucuz olan)", TestHelpers.ElOlustur("Q953", "J753", "J52", "K6"), "1♥", "1♣", "1♦", "Pas");
             T("N13 1C-(1D ortak overcall)-P: 3-3 major, 4 karo 7hcp -> 2D (major yok)", TestHelpers.ElOlustur("Q95", "J75", "J852", "K62"), "2♦", "1♣", "1♦", "Pas");
+            // Rakip 1♦ açtı, ben 1♠ ile araya girdim (6'lı ♠), ortak 2NT (davet), sağdaki pas: 11 HP -> 4♠ (Pas değil); 7 HP -> 3♠
+            T("N14 1D-(1S ben, 6 maca)-P-2NT-P: 11hcp -> 4S (Pas degil)", TestHelpers.ElOlustur("KQ9843", "7", "K3", "K654"), "4♠", "1♦", "1♠", "Pas", "2NT", "Pas");
+            T("N15 1D-(1S ben, 6 maca)-P-2NT-P: 7hcp -> 3S", TestHelpers.ElOlustur("KJ9843", "7", "Q3", "J654"), "3♠", "1♦", "1♠", "Pas", "2NT", "Pas");
 
             // 1NT – 4♣ (Gerber) – cevap – soranın devamı
             T("G1 1NT-4C-4S: 4 as + 19hcp -> 6NT", TestHelpers.ElOlustur("AK2", "AQ3", "KJ4", "Q762"), "6NT", "1NT", "Pas", "4♣", "Pas", "4♠", "Pas");

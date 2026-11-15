@@ -331,6 +331,20 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             bool ortak2C = ilk.Oyuncu == d.Partner && ilk.Teklif == "2♣";
             bool benNTAcildi = ilk.Oyuncu == d.AktifOyuncu && ilk.Koz == "NT";
 
+            // Ben rakip açılışına 1 seviyede majörle araya girdim (6+ kart), ortak 2NT ile davet etti (11-12 HP, rakip rengi tutuyor),
+            // sağdaki pas: Pas yok. 10+ HP -> 4M (6'lı majör + davet), 7-9 HP -> 3M (asgari, ortak davet ederse oyun arar).
+            {
+                var benimIlkB = gercek.Where(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi).ToList();
+                var ortagimB = gercek.Where(h => h.Oyuncu == d.Partner && h.GercekTeklifMi).ToList();
+                if (benimIlkB.Count == 1 && ortagimB.Count == 1 && gercek.First().Oyuncu != d.AktifOyuncu && gercek.First().Oyuncu != d.Partner &&
+                    benimIlkB[0].Seviye == 1 && Major(benimIlkB[0].Koz) && son.Oyuncu == d.Partner && son.Teklif == "2NT" &&
+                    ElDegerlendirici.RenkUzunlugu(el, benimIlkB[0].Koz) >= 6 && hp >= 7)
+                {
+                    string mj = benimIlkB[0].Koz;
+                    return Seviye(d, mj, hp >= 10 ? 4 : 3);
+                }
+            }
+
             // Ben 1NT açtım, ortak minör transferi yaptı → transferi tamamla
             if (benNTAcildi && ilk.Teklif == "1NT" && sonOrtak && d.Anlasma != null && (d.Anlasma.MinorTransfer || d.Anlasma.NT1MinorBid == 3) &&
                 gercek.Count(h => h.Oyuncu == d.AktifOyuncu) == 1 && gercek.Count(h => h.Oyuncu == d.Partner) == 1 &&

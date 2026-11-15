@@ -526,6 +526,15 @@ namespace BricKartOyunu.Class.Bidding
                     gx[3].Seviye == 3 && gx[3].Koz == gx[1].Koz && teklif.EndsWith(KozYardimcisi.KozSembolu(gx[1].Koz))) return true;
             }
 
+            // Rakip açılışına 1M ile araya girdim (6+ kart), ortak 2NT ile davet etti (rakip pas): TemelMantik'in uzun majörde 3M/4M cevabı
+            // (1♦-(1♠)-P-2NT-P-4♠) ortağın 11-12 HP tahminiyle veto edilmesin; karar uzunluk + HCP'ye dayanır.
+            if (ad.StartsWith("Temel Mant") && teklif.Length == 2 && (teklif[0] == '3' || teklif[0] == '4') && teklif != "3NT" && teklif != "4NT")
+            {
+                var gz = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gz.Count == 3 && gz[0].Oyuncu != d.AktifOyuncu && gz[0].Oyuncu != d.Partner &&
+                    gz[1].Oyuncu == d.AktifOyuncu && gz[1].Seviye == 1 && (gz[1].Koz == "Kupa" || gz[1].Koz == "Maça") &&
+                    gz[2].Oyuncu == d.Partner && gz[2].Teklif == "2NT" && teklif.EndsWith(KozYardimcisi.KozSembolu(gz[1].Koz))) return true;
+            }
             // 1X-1Y-1NT-3Z (ortağın kendi rengiyle daveti) sonrası açıcının kabulü (3NT / 4M): HCP tahmini veto etmesin.
             if (ad.StartsWith("Temel Mant") && (teklif == "3NT" || (teklif.Length == 2 && teklif[0] == '4')))
             {
