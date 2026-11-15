@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BricKartOyunu.Class;
 using BricKartOyunu.Class.Bidding;
 
@@ -42,6 +43,20 @@ namespace BricKartOyunu.Tests
             // Rakip 1♦ açtı, ben 1♠ ile araya girdim (6'lı ♠), ortak 2NT (davet), sağdaki pas: 11 HP -> 4♠ (Pas değil); 7 HP -> 3♠
             T("N14 1D-(1S ben, 6 maca)-P-2NT-P: 11hcp -> 4S (Pas degil)", TestHelpers.ElOlustur("KQ9843", "7", "K3", "K654"), "4♠", "1♦", "1♠", "Pas", "2NT", "Pas");
             T("N15 1D-(1S ben, 6 maca)-P-2NT-P: 7hcp -> 3S", TestHelpers.ElOlustur("KJ9843", "7", "Q3", "J654"), "3♠", "1♦", "1♠", "Pas", "2NT", "Pas");
+            // Rakip 1♦ açtı, ortak pas: dengeli 15 HP (♦AQ durduruyor) -> 1NT (takeout kontra değil); tek kartlı 15 HP -> Dbl (değişmez)
+            T("N16 (1D) 15hcp 4432 ♦AQ durduruyor -> 1NT (Dbl degil)", TestHelpers.ElOlustur("KJ76", "A105", "AQ", "J642"), "1NT", "Pas", "1♦");
+            T("N17 (1D) 15hcp 4441 tek karo -> Dbl (degismez)", TestHelpers.ElOlustur("AKJ6", "KQ65", "3", "Q642"), "Dbl", "Pas", "1♦");
+            T("N18 (1D) 18hcp 4432 ♦AK durduruyor -> Dbl (1NT 15-17)", TestHelpers.ElOlustur("AQ76", "KJ5", "AK", "J642"), "Dbl", "Pas", "1♦");
+            T("N19 (1D) 17hcp 4432 ♦AK durduruyor -> 1NT", TestHelpers.ElOlustur("KJ76", "AJ5", "AK", "J642"), "1NT", "Pas", "1♦");
+
+            // Romen atma (SinyalKurallari.RomenAtma): tek kart = atılan rengi oyna; 2,4 = kalan küçük renk; 6,8 = kalan büyük renk
+            R("R1 NT: ♥AQ63 (4 kart, 2 onör, tek 3) -> ♥3 (kupa rengini oyna)", TestHelpers.ElOlustur("8763", "AQ63", "54", "K96"), null, new[] { "Maça", "Sinek", "Karo", "Kupa" }, 3, "Kupa");
+            R("R2 NT: onörlü uzun renk yok, tercih ♦ (küçük/orta) -> küçük çift ♥2", TestHelpers.ElOlustur("8763", "9852", "J64", "T9"), null, new[] { "Maça", "Kupa", "Karo", "Sinek" }, 2, "Kupa");
+            R("R3 koz ♠: tercih ♦ (kalan büyük renk) -> büyük çift ♥8", TestHelpers.ElOlustur("AKQ5", "863", "KJ42", "73"), "Maça", new[] { "Kupa", "Sinek", "Karo" }, 8, "Kupa");
+            R("R4 koz ♠: tercih ♣ (kalan küçük renk) -> küçük çift ♥2", TestHelpers.ElOlustur("AKQ5", "842", "963", "KJ7"), "Maça", new[] { "Kupa", "Karo", "Sinek" }, 2, "Kupa");
+            R("R5 uygun çift kart yok (yalnız 9,7,5,3,J,10) -> null (standart seçime dön)", TestHelpers.ElOlustur("975", "9753", "975", "JT3"), null, new[] { "Maça", "Kupa", "Karo", "Sinek" }, -1, null);
+            Rk("R6 Anlaşma: RomanDiscards -> Romen yöntemi", SinyalKurallari.Yontem(new OrtaklikAnlasmasi { RomanDiscards = true }) == SinyalKurallari.AtmaYontemi.Romen);
+            Rk("R7 Anlaşma: varsayılan -> Standart (değişmez)", SinyalKurallari.Yontem(OrtaklikAnlasmasi.Varsayilan()) == SinyalKurallari.AtmaYontemi.Standart);
 
             // 1NT – 4♣ (Gerber) – cevap – soranın devamı
             T("G1 1NT-4C-4S: 4 as + 19hcp -> 6NT", TestHelpers.ElOlustur("AK2", "AQ3", "KJ4", "Q762"), "6NT", "1NT", "Pas", "4♣", "Pas", "4♠", "Pas");
@@ -447,6 +462,21 @@ namespace BricKartOyunu.Tests
             _yaz((gecti ? "✅ " : "❌ ") + ad + " → " + r + (gecti ? "" : "   [beklenen: " + beklenen + "]"));
         }
 
+        private static void R(string ad, List<Card> el, string koz, string[] atmaSirasi, int beklenenDeger, string beklenenRenk)
+        {
+            var yan = el.Where(c => c.Suit != koz).ToList();
+            string acik;
+            Card k = SinyalKurallari.RomenAtma(atmaSirasi.ToList(), yan, koz, null, out acik);
+            bool gecti = beklenenDeger < 0 ? k == null : (k != null && k.Value == beklenenDeger && k.Suit == beklenenRenk);
+            if (gecti) _gecen++; else _kalan++;
+            _yaz((gecti ? "✅ " : "❌ ") + ad + " → " + (k == null ? "null" : k.Suit + " " + k.Value) + (gecti ? "" : "   [beklenen: " + (beklenenDeger < 0 ? "null" : beklenenRenk + " " + beklenenDeger) + "]"));
+        }
+
+        private static void Rk(string ad, bool kosul)
+        {
+            if (kosul) _gecen++; else _kalan++;
+            _yaz((kosul ? "✅ " : "❌ ") + ad);
+        }
         private static void T(string ad, List<Card> el, string beklenen, params string[] gecmis)
         {
             var durum = TestHelpers.DurumOlustur(el, Player.Guney, gecmis);
