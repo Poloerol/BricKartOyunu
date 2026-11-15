@@ -428,7 +428,8 @@ namespace BricKartOyunu
 
             var form = new IhaleYorumuForm(new List<string>(_sonIhaleGecmisi), _ihaleBaslangicOyuncusu);
             form.StartPosition = FormStartPosition.Manual;
-            form.Location = new Point(Math.Max(0, this.Right - form.Width - 20), this.Top + 80);   // sığmazsa form kendini ekrana toplar
+            var sol = this.PointToScreen(Point.Empty);   // gömülü masada Left/Top ekran koordinatı değildir
+            form.Location = new Point(Math.Max(0, sol.X + this.Width - form.Width - 20), sol.Y + 80);   // sığmazsa form kendini ekrana toplar
             form.Show(this);
         }
 

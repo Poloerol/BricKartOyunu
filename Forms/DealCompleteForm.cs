@@ -79,8 +79,7 @@ namespace BricKartOyunu.Forms
                 }
                 else if (_bricOyna != null)
                 {
-                    merkez = new System.Drawing.Point(
-                        _bricOyna.Left + _bricOyna.Width / 2, _bricOyna.Top + _bricOyna.Height / 2);
+                    merkez = _bricOyna.PointToScreen(new System.Drawing.Point(_bricOyna.Width / 2, _bricOyna.Height / 2));
                 }
                 else return;
 

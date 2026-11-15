@@ -117,6 +117,7 @@ namespace BricKartOyunu.Class
                 // Masa ortasinda acilan formlar (Deklarasyon, Elleri Degistir, Bord Sonucu): pencere boyutu
                 // degisince yeniden masanin (oyun alaninin) ortasina alinir; ekran disina tasmaz.
                 BricOyna oyna = sahip as BricOyna;
+                if (oyna == null && sahip is BricKartOyunu.Forms.AnaSayfa) oyna = Application.OpenForms.OfType<BricOyna>().FirstOrDefault();   // gömülü masa
                 if (!sadeceTasindi && oyna != null && (f is BricKartOyunu.Forms.DeklarasyonForm
                     || f is BricKartOyunu.Forms.ElleriDegistir || f is BricKartOyunu.Forms.DealCompleteForm))
                 {

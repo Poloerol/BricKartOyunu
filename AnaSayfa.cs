@@ -680,33 +680,140 @@ namespace BricKartOyunu.Forms
         }
 
         /// <summary>
-        /// BricOyna: AnaSayfa kapanır, BricOyna tek başına kalır.
-        /// Kapatınca AnaSayfa tekrar açılır ve durum sıfırlanır.
+        /// Oyun masası (BricOyna) AnaSayfa'nın içine gömülür; kapanınca ana sayfa geri gelir ve durum sıfırlanır.
+        /// Beklemez: bitince çalışacak kod itince ile verilir (ShowDialog dönüşü yok).
         /// </summary>
-        private void BricOynaAc()
+        private void BricOynaAc(Action bitince = null)
         {
-            // using: ShowDialog ile açılan form otomatik Dispose edilmez.
-            using (var bricOynaForm = new BricOyna
-            {
-                CurrentBackImage = currentBackImage
-            })
-            {
-                // Hide() yerine: oyun penceresi çizildikten sonra şeffaflaştır (geçişte ara kare/solma görünmesin)
-                bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
+            var oyun = new BricOyna { CurrentBackImage = currentBackImage };
+            OyunuGomuluAc(oyun, () => SonElBilgisiniGoster(oyun), bitince);
+        }
 
-                try
+        // ====================================================================
+        // TEK PENCERE: OYUN MASASI ANASAYFA'NIN İÇİNE GÖMÜLÜR
+        // ====================================================================
+        // Görev çubuğunda tek ve sabit düğme olsun diye oyun masası ayrı pencere açılmaz (Bridge Baron gibi):
+        // AnaSayfa'nın görünen tüm öğeleri gizlenir, BricOyna bu pencerenin içine tam boy yerleşir (menü, araç çubuğu ve
+        // durum çubuğu BricOyna'nınkiler görünür), başlık oyun başlığı olur. Oyun kapanınca her şey geri gelir.
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+        private static extern int GetWindowLongEx(IntPtr hWnd, int nIndex);
+        [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
+        private static extern int SetWindowLongEx(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        /// <summary>WS_EX_COMPOSITED'i çalışırken açıp kapatır (oyun masası onlarca kontrol içerir; bileşik çizim yavaşlatıyordu).</summary>
+        private void BilesikCizimAyarla(bool ac)
+        {
+            try
+            {
+                if (!IsHandleCreated) return;
+                int ex = GetWindowLongEx(this.Handle, -20 /* GWL_EXSTYLE */);
+                ex = ac ? (ex | 0x02000000) : (ex & ~0x02000000);
+                SetWindowLongEx(this.Handle, -20, ex);
+            }
+            catch { }
+        }
+
+        private BricOyna _gomuluOyun;                                                  // şu an gömülü açık oyun masası
+        private readonly List<Form> _simgedeGizlenenler = new List<Form>();           // simge durumu için gizlenen pencereler
+
+        /// <summary>
+        /// Oyun açıkken AnaSayfa simge durumuna alınınca, oyun sırasında açılan pencereler (Öğrenme Notları, Deklarasyon,
+        /// İhale yorumu vb.) masaüstünde açık kalmasın diye gizlenir; eski haline gelince geri gösterilir.
+        /// (Sahip zinciri Notlar → Deklarasyon → AnaSayfa bunu kendiliğinden yapmıyor.)
+        /// </summary>
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+            if (this.IsDisposed || _gomuluOyun == null) return;
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                foreach (Form f in Application.OpenForms.Cast<Form>().ToArray())
                 {
-                    bricOynaForm.ShowDialog();
-                }
-                finally
-                {
-                    SonElBilgisiniGoster(bricOynaForm);
-                    this.Opacity = 1;
-                    this.Show();
-                    this.Activate();
-                    ResetToInitialState();
+                    if (f == this || f == _gomuluOyun || f.IsDisposed || !f.Visible || f.Modal) continue;
+                    _simgedeGizlenenler.Add(f);
+                    f.Hide();
                 }
             }
+            else if (_simgedeGizlenenler.Count > 0)
+            {
+                foreach (var f in _simgedeGizlenenler.ToArray())
+                    if (!f.IsDisposed) f.Show();
+                _simgedeGizlenenler.Clear();
+            }
+        }
+        private void OyunuGomuluAc(BricOyna oyun, Action kapaninca, Action bitince)
+        {
+            Image oncekiResim = this.BackgroundImage;
+            Color oncekiRenk = this.BackColor;
+            string oncekiBaslik = this.Text;
+            var oncekiAcik = new HashSet<Form>(Application.OpenForms.Cast<Form>());
+            var gizlenenSahipli = this.OwnedForms.Cast<Form>().Where(f => f.Visible).ToList();
+            var gizlenenler = new List<Control>();
+
+            // Geçiş boyunca çizimi dondur: yarım çizilmiş (yırtık) kareler görünmesin; bitince bir kerede çizilir
+            EkranYardimci.CizimiDondur(this);
+            try
+            {
+            this.SuspendLayout();
+            foreach (var f in gizlenenSahipli) f.Hide();   // Konvansiyon/Briç Maçı menüsü gibi sahipli pencereler masanın üstünde kalmasın
+            BilesikCizimAyarla(false);
+            this.BackgroundImage = null;
+            this.BackColor = MasaRengi;
+            this.Text = oyun.Text;
+            oyun.TextChanged += (s, e) => { if (!this.IsDisposed) this.Text = oyun.Text; };
+
+            foreach (Control c in this.Controls)
+                if (c.Visible) { c.Visible = false; gizlenenler.Add(c); }
+
+            oyun.WindowState = FormWindowState.Normal;
+            oyun.TopLevel = false;
+            oyun.FormBorderStyle = FormBorderStyle.None;
+            oyun.Dock = DockStyle.Fill;
+            this.Controls.Add(oyun);
+            oyun.BringToFront();
+            _gomuluOyun = oyun;
+
+            oyun.FormClosed += (s, e) =>
+            {
+                // Uygulama kapanıyorsa (AnaSayfa yok ediliyor) ona dokunma
+                if (this.IsDisposed || this.Disposing) return;
+
+                _gomuluOyun = null;
+                _simgedeGizlenenler.Clear();
+                EkranYardimci.CizimiDondur(this);
+                try
+                {
+                this.SuspendLayout();
+                this.Controls.Remove(oyun);
+                // Oyun sırasında açılan (artık AnaSayfa'ya sahipli) Deklarasyon/İhale/Notlar gibi pencereleri kapat
+                foreach (Form f in Application.OpenForms.Cast<Form>().Where(x => !oncekiAcik.Contains(x) && x != oyun).ToArray())
+                {
+                    if (f.IsDisposed) continue;
+                    if (f is DeklarasyonForm dek) dek.IzinliKapat();
+                    else if (f is DekBasForm dekBas) dekBas.ProgramatikKapat();
+                    else f.Close();
+                }
+                this.BackgroundImage = oncekiResim;
+                this.BackColor = oncekiRenk;
+                this.Text = oncekiBaslik;
+                foreach (var c in gizlenenler) if (!c.IsDisposed) c.Visible = true;
+                foreach (var f in gizlenenSahipli) if (!f.IsDisposed) f.Show();
+                BilesikCizimAyarla(true);
+                this.ResumeLayout(true);
+
+                kapaninca?.Invoke();
+                this.Activate();
+                ResetToInitialState();
+                }
+                finally { EkranYardimci.CizimiAc(this); }
+                bitince?.Invoke();
+            };
+
+            oyun.Show();
+            this.ResumeLayout(true);
+            }
+            finally { EkranYardimci.CizimiAc(this); }
         }
 
         // ====================================================================
@@ -763,9 +870,9 @@ namespace BricKartOyunu.Forms
         }
 
         /// <summary>Maç Opsiyonları onaylanınca: oyun penceresi MacDurumu'ndaki ayarlarla açılır (maç bitene kadar bloklar).</summary>
-        public void MacOyunuBaslat()
+        public void MacOyunuBaslat(Action bitince = null)
         {
-            BricOynaAc();
+            BricOynaAc(bitince);
         }
 
         private void OrtaButon2_Click(object sender, EventArgs e)
@@ -795,66 +902,46 @@ namespace BricKartOyunu.Forms
         /// Konvansiyon pratiği: BricOyna'yı verilen dağıtımlarla açar (AnaSayfa gizlenir,
         /// BricOyna kapanınca geri gelir ve durum sıfırlanır).
         /// </summary>
-        public void PratikOyunuAc(List<PratikDagitim> liste, bool duyur)
+        public void PratikOyunuAc(List<PratikDagitim> liste, bool duyur, Action bitince = null)
         {
             if (liste == null || liste.Count == 0) return;
-            using (var bricOynaForm = new BricOyna
+            var oyun = new BricOyna
             {
                 CurrentBackImage = currentBackImage,
                 PratikDagitimlari = liste,
                 PratikDuyur = duyur
-            })
+            };
+            oyun.Text = "Konvansiyon Pratiği";
+            OyunuGomuluAc(oyun, () =>
             {
-                bricOynaForm.Hazir += (s2, e2) => this.Opacity = 0;
-                try
-                {
-                    bricOynaForm.ShowDialog(this);   // sahip AnaSayfa olsun: gizli Kart Dagitici sahip olursa gorev cubugundan geri donulemiyordu
-                }
-                finally
-                {
-                    // Pratiği başlatan Konvansiyon Pratiği formu açık kalmasın
-                    foreach (var kf in Application.OpenForms.Cast<Form>().Where(x => x is Konvansiyon).ToList())
-                        kf.Close();
-                    SonElBilgisiniGoster(bricOynaForm);
-                    this.Opacity = 1;
-                    this.Show();
-                    this.Activate();
-                    ResetToInitialState();
-                }
-            }
+                // Pratiği başlatan Konvansiyon Pratiği formu açık kalmasın
+                foreach (var kf in Application.OpenForms.Cast<Form>().Where(x => x is Konvansiyon).ToList())
+                    kf.Close();
+                SonElBilgisiniGoster(oyun);
+            }, bitince);
         }
-
         /// <summary>
         /// Dağılım Deposu: oyun masası (BricOyna) kartsız ve "Dağılım Deposu" başlığıyla açılır,
         /// üzerinde Dağılım Deposu penceresi gelir. Masa kapanınca AnaSayfa geri gelir ve durum sıfırlanır.
         /// </summary>
         private void DagilimDeposuAc()
         {
-            using (var bricOynaForm = new BricOyna
+            var oyun = new BricOyna
             {
                 CurrentBackImage = currentBackImage,
                 DepoModu = true
-            })
-            {
-                bricOynaForm.Hazir += (s2, e2) => { if (!this.IsDisposed) this.Opacity = 0; };
-                try
-                {
-                    bricOynaForm.ShowDialog(this);
-                }
-                finally
-                {
-                    // AnaSayfa masa açıkken kapanmış/yok edilmişse (uygulama kapanıyor) ona dokunma
-                    if (!this.IsDisposed && !this.Disposing)
-                    {
-                        this.Opacity = 1;
-                        this.Show();
-                        this.Activate();
-                        ResetToInitialState();
-                    }
-                }
-            }
+            };
+            OyunuGomuluAc(oyun, null, null);
         }
-
+        /// <summary>Alt formun açıldığı sayfanın pencere/görev çubuğu başlığı (null: başlığı değiştirme).</summary>
+        private static string SayfaBasligi(Form f)
+        {
+            if (f is Konvansiyon) return "Konvansiyon Öğrenme";
+            if (f is ZorEller) return "Zor Eller";
+            if (f is Turnuva) return "Turnuva";
+            if (f is KartDagitici) return "Kart Dağıtıcı";
+            return null;   // Briç Maçı menüsü başlığını MacMenusunuAc yönetir
+        }
         private void ShowChildForm(Form childForm)
         {
             if (childForm == null) return;
@@ -876,6 +963,16 @@ namespace BricKartOyunu.Forms
             // AnaSayfa'nın sahibi olarak ayarla → her zaman üstte kalır,
             // AnaSayfa kapanınca otomatik kapanır.
             childForm.Owner = this;
+
+            // Görev çubuğu düğmesi ve pencere başlığı açık sayfanın adını göstersin (Bridge Baron'daki "Learn Conventions" gibi);
+            // form kapanınca eski başlık geri gelir.
+            string sayfaBasligi = SayfaBasligi(childForm);
+            if (sayfaBasligi != null)
+            {
+                string oncekiBaslik = this.Text;
+                this.Text = sayfaBasligi;
+                childForm.FormClosed += (s, e) => { if (!this.IsDisposed && this.Text == sayfaBasligi) this.Text = oncekiBaslik; };
+            }
 
             // AnaSayfa'yı kapatma, sadece alt formu aç
             childForm.Show();

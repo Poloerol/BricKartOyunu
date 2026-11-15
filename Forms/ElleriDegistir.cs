@@ -73,15 +73,7 @@ namespace BricKartOyunu.Forms
             }
 
             // 3) En son BricOyna'yı kapat
-            if (this.Owner is BricOyna bric)
-            {
-                bric.Close();
-            }
-            else
-            {
-                var bricFromOpen = Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
-                bricFromOpen?.Close();
-            }
+            BricOyna.Bul(this)?.Close();
         }
 
         private void ElleriDegistir_Load(object sender, EventArgs e)
@@ -91,7 +83,8 @@ namespace BricKartOyunu.Forms
 
         private void BtnOK_Click(object sender, EventArgs e)
         {
-            if (this.Owner is BricOyna bricOyna)
+            BricOyna bricOyna = BricOyna.Bul(this);
+            if (bricOyna != null)
             {
                 Player secilenYon;
                 if (radioButton1.Checked) secilenYon = Player.Bati;

@@ -416,6 +416,25 @@ namespace BricKartOyunu
 
         /// <summary>Form tamamen çizilip görünür olduğunda (açılış geçişi bittiğinde) tetiklenir.</summary>
         public event EventHandler Hazir;
+
+        /// <summary>
+        /// Oyun masası AnaSayfa'nın içine gömülü açılır (TopLevel=false); diğer pencerelerin sahibi olarak
+        /// kullanılacak üst düzey pencere: gömülüyse AnaSayfa, değilse formun kendisi.
+        /// </summary>
+        public Form SahipPencere
+        {
+            get { return this.TopLevel ? this : ((this.Parent != null ? this.Parent.FindForm() : null) ?? this); }
+        }
+
+        /// <summary>
+        /// Bir pencerenin ilgili oyun masasını bulur. Gömülü masa için Show(this)/ShowDialog(this) çağrılarında
+        /// sahip AnaSayfa olduğundan Owner'a bakmak yetmez; açık formlar arasından da aranır.
+        /// </summary>
+        public static BricOyna Bul(Form f)
+        {
+            return ((f != null ? f.Owner : null) as BricOyna)
+                   ?? Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
+        }
         private Action _acilisSonrasi;
 
         public BricOyna()
@@ -441,11 +460,8 @@ namespace BricKartOyunu
                 // Oyun penceresi kapanınca (ana menüye dönüş, X, maç sonu) maç durumu sıfırlanır; bord sayısı 4'e döner
                 this.FormClosed += (s0, e0) => MacDurumu.Bitir();
 
-                // Başlık: Briç Maçı sırasında (maç bitene kadar) "Briç Maçı", normal oyunda "Briç Kart Oyunu"
-                this.Text = MacDurumu.Aktif ? "Briç Maçı" : "Briç Kart Oyunu";
-
-                // Tam çizilene kadar görünmez; böylece AnaSayfa ile karışan ara kare olmaz.
-                this.Opacity = 0;
+                // Başlık (görev çubuğu düğmesi de bunu gösterir): Briç Maçı sırasında "Briç Maçı", normal oyunda "Briç Oyna"
+                this.Text = MacDurumu.Aktif ? "Briç Maçı" : "Briç Oyna";
 
                 // Açılışta yarım çizilmiş ara kareler (beyaz zemin, kontrol çerçeveleri) görünmesin:
                 // form yüklenirken her şeyi örten masa renginde bir kapak durur, yükleme bitince kalkar.
@@ -471,7 +487,6 @@ namespace BricKartOyunu
                         _acilisKapagi = null;
                         this.Invalidate(true);
                         this.Update();
-                        this.Opacity = 1;
                         Hazir?.Invoke(this, EventArgs.Empty);
                         var sonra = _acilisSonrasi; _acilisSonrasi = null;
                         if (sonra != null) sonra();
@@ -824,10 +839,16 @@ namespace BricKartOyunu
         // MenuStrip/ToolStrip DIŞINDAKİ tüm doğrudan child kontroller etkilenir.
         public void SetGameControlsEnabled(bool enabled)
         {
-            foreach (Control c in this.Controls)
+            // Masa kapanırken / ana pencereden ayrılmışken (Deklarasyon penceresi o sırada kapanır) kontrollere dokunma:
+            // Enabled değişimi çizim tetikler ve ArgumentException ("Parametre geçerli değil") fırlatabiliyordu.
+            if (this.IsDisposed || this.Disposing || !this.IsHandleCreated) return;
+            if (!this.TopLevel && this.Parent == null) return;
+
+            foreach (Control c in this.Controls.Cast<Control>().ToArray())
             {
                 if (c is MenuStrip || c is ToolStrip) continue;
-                c.Enabled = enabled;
+                try { c.Enabled = enabled; }
+                catch (ArgumentException ex) { System.Diagnostics.Debug.WriteLine("[BricOyna] SetGameControlsEnabled: " + c.Name + ": " + ex.Message); }
             }
         }
 

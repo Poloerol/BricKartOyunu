@@ -33,6 +33,12 @@ namespace BricKartOyunu.Tests
             T("N7 1H cevap 9hcp 5S 7D -> 1S (2D degil)", TestHelpers.ElOlustur("QJT85", "", "AQ97653", "7"), "1♠", "Pas", "1♥", "Pas");
             T("N8 1H-1S 17hcp 4 maca destek -> 3S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "3♠", "Pas", "1♥", "Pas", "1♠", "Pas");
             T("N5 P-1H-2D 3 maca -> 3NT (degismez)", TestHelpers.ElOlustur("A93", "AT942", "K82", "AQ"), "3NT", "Pas", "Pas", "Pas", "1♥", "Pas", "2♦", "Pas");
+            // Rakip 1♣ açtı, ortak 1♦ ile araya girdi, sağdaki pas: 5'li ♥ ve 7 HP -> 1♥ (ortağın minörüne 3 kartla 2♦ demek yerine majör)
+            T("N9 1C-(1D ortak overcall)-P: 5 kupa 7hcp 3 karo -> 1H (2D degil)", TestHelpers.ElOlustur("Q95", "J7532", "J52", "K6"), "1♥", "1♣", "1♦", "Pas");
+            T("N10 1C-(1D ortak overcall)-P: 5 maca 7hcp -> 1S", TestHelpers.ElOlustur("J7532", "Q95", "J52", "K6"), "1♠", "1♣", "1♦", "Pas");
+            T("N11 1C-(1D ortak overcall)-P: 4 kupa 3 karo 7hcp -> 1H (4+ kartlik yeni renk)", TestHelpers.ElOlustur("Q95", "J753", "J52", "K62"), "1♥", "1♣", "1♦", "Pas");
+            T("N12 1C-(1D ortak overcall)-P: 4-4 major 7hcp -> 1H (ucuz olan)", TestHelpers.ElOlustur("Q953", "J753", "J52", "K6"), "1♥", "1♣", "1♦", "Pas");
+            T("N13 1C-(1D ortak overcall)-P: 3-3 major, 4 karo 7hcp -> 2D (major yok)", TestHelpers.ElOlustur("Q95", "J75", "J852", "K62"), "2♦", "1♣", "1♦", "Pas");
 
             // 1NT – 4♣ (Gerber) – cevap – soranın devamı
             T("G1 1NT-4C-4S: 4 as + 19hcp -> 6NT", TestHelpers.ElOlustur("AK2", "AQ3", "KJ4", "Q762"), "6NT", "1NT", "Pas", "4♣", "Pas", "4♠", "Pas");

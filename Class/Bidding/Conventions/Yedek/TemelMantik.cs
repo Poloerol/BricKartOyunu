@@ -1139,23 +1139,31 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         // 4. REKABET (son söz rakipte)
         // ═════════════════════════════════════════════════════════════════
         /// <summary>
-        /// Ortak minör açtı, ilk cevabım (rakip araya girmiş olabilir): 5+ kartlı yeni majör varsa minör fit'e atlamadan önce
+        /// Ortak minör açtı (ya da rakip açılışına 1 seviye minör araya girdi), ilk cevabım (rakip araya girmiş olabilir): 5+ kartlı yeni majör varsa minör fit'e atlamadan önce
         /// majörü söyle (1 seviyede 6+ HP, 2 seviyede 10+ HP; 6+ kartta 8+ HP). Yeni majör zorlayıcıdır, fit sonra bulunur.
         /// </summary>
         private string YeniMajorOnceligi(IhaleDurumu d, List<Card> el, int hp, string fit, List<IhaleHamlesi> gercek, List<string> rakipRenkleri)
         {
             if (fit == null || Major(fit) || fit == "NT") return null;
-            var ilk = gercek.First();
-            if (ilk.Oyuncu != d.Partner || ilk.Seviye != 1 || ilk.Koz != fit) return null;
+            // Ortağın ilk gerçek teklifi: minör açılış YA DA rakip açılışına 1 seviye minör araya girme (1♣–(1♦)–Pas: ben ilk kez konuşuyorum)
+            var ilk = gercek.FirstOrDefault(h => h.Oyuncu == d.Partner && h.GercekTeklifMi);
+            if (ilk == null || ilk.Seviye != 1 || ilk.Koz != fit) return null;
             if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi)) return null;
+            // Ortağın araya girmesine (overcall) 1 seviyede yeni renk 4+ kartla söylenir; ortağın minör açılışında 5+ aranır.
+            bool araya = gercek.First().Oyuncu != d.Partner;
+            int enAz = araya ? 4 : 5;
             string yeniMajor = null;
             foreach (var r in new[] { "Maça", "Kupa" })
             {
                 if (rakipRenkleri.Contains(r)) continue;
                 int u = ElDegerlendirici.RenkUzunlugu(el, r);
                 int ucMaj = Cheapest(d, r);
-                if (u >= 5 && ((ucMaj == 1 && hp >= 6) || (ucMaj == 2 && (hp >= 10 || (u >= 6 && hp >= 8)))) &&
-                    (yeniMajor == null || u > ElDegerlendirici.RenkUzunlugu(el, yeniMajor))) yeniMajor = r;
+                if (u >= enAz && ((ucMaj == 1 && hp >= 6) || (ucMaj == 2 && u >= 5 && (hp >= 10 || (u >= 6 && hp >= 8)))))
+                {
+                    int onceki = yeniMajor == null ? 0 : ElDegerlendirici.RenkUzunlugu(el, yeniMajor);
+                    // Eşit uzunlukta: 4-4 -> ucuz olan (♥, "yukarı doğru"), 5-5 -> yüksek olan (♠)
+                    if (yeniMajor == null || u > onceki || (u == onceki && u == 4 && r == "Kupa")) yeniMajor = r;
+                }
             }
             return yeniMajor == null ? null : Seviye(d, yeniMajor, Cheapest(d, yeniMajor));
         }

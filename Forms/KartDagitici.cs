@@ -588,8 +588,8 @@ namespace BricKartOyunu.Forms
             // Oyun penceresi açıkken dağıtıcı gizlenir; pratik bitince geri gelmez, doğrudan ana ekrana dönülür
             Hide();
             // duyur=true: her dağıtımda "Pratik n/N" duyurusu; liste bitince "Pratik tamamlandı" mesajı
-            try { anaSayfa.PratikOyunuAc(liste, true); }
-            finally { if (!IsDisposed) Close(); }   // ana ekranı PratikOyunuAc zaten geri getirir
+            // Pratik bitince (oyun masası gömülü, beklemez) dağıtıcı kapanır; ana ekranı PratikOyunuAc zaten geri getirir
+            anaSayfa.PratikOyunuAc(liste, true, () => { if (!IsDisposed) Close(); });
         }
 
         private void Cikis()

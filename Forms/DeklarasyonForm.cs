@@ -160,7 +160,7 @@ namespace BricKartOyunu.Forms
             _bricOyna = bricOyna;
             StartPosition = FormStartPosition.Manual;
 
-            if (_bricOyna != null) this.Owner = _bricOyna;
+            if (_bricOyna != null) this.Owner = _bricOyna.SahipPencere;   // gömülü masada üst düzey pencere
 
             this.DoubleBuffered = true;
             this.SetStyle(

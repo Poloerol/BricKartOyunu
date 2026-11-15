@@ -92,9 +92,8 @@ namespace BricKartOyunu.Forms
                 MacDurumu.Baslat(f.OyuncuAdi, f.BordSayisi, f.TopluTekrar, f.SeedRastgele, f.Seed, f.Puanlama);
             }
 
-            // Oyun penceresi seçilen maç ayarlarıyla açılır; maç bitince menü de kapanır
-            try { anaSayfa.MacOyunuBaslat(); }
-            finally { MacDurumu.Bitir(); this.Close(); }
+            // Oyun masası seçilen maç ayarlarıyla açılır (AnaSayfa'ya gömülü, beklemez); maç bitince maç durumu kapanır ve menü de kapanır
+            anaSayfa.MacOyunuBaslat(() => { MacDurumu.Bitir(); if (!IsDisposed) Close(); });
         }
 
         private void KayitliMaciYukle()
