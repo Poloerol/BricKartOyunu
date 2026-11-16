@@ -275,11 +275,8 @@ namespace BricKartOyunu.Class.Bidding
             // Jxxx (4+ kart) — standart durdurucu
             if (renkKartlari[0].Value == 11 && renkKartlari.Count >= 4) return true;
 
-            // QJ var mı?
-            if (renkKartlari.Count >= 2 &&
-                renkKartlari[0].Value == 12 &&
-                renkKartlari[1].Value == 11) return true;
-
+            // QJ ikilisi (2 kart) durdurucu değildir: A ve K'ya karşı iki turda düşer (QJx 3+ kart yukarıda Qxx olarak sayılır).
+            // Rakibin 5+ kartlı müdahale rengine karşı 3NT'yi bu elle söylemek hatalıydı (♦QJ, rakip ♦AK109654).
             return false;
         }
 
