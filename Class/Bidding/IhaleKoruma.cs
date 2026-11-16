@@ -554,6 +554,17 @@ namespace BricKartOyunu.Class.Bidding
                     teklif.EndsWith(KozYardimcisi.KozSembolu(gz[1].Koz))) return true;
             }
 
+            // 1M-2M-3M (ortak 1M açtı, ben 2M ile destekledim, o da 3M ile davet etti) sonrası cevapçının kabulü (4M):
+            // ortağın 3M daveti aralık tahminini (12-15) yanlış düşük tutuyordu ve 7-9 HP'lik kabulü veto ediyordu (çift dummy ölçümü: 7 HP'de 4M ~%70 yapar).
+            if (ad.StartsWith("Temel Mant") && teklif.Length == 2 && teklif[0] == '4')
+            {
+                var gr = (d.Gecmis ?? new List<IhaleHamlesi>()).Where(h => Gercek(h.Teklif)).ToList();
+                if (gr.Count == 3 && gr[0].Oyuncu == d.Partner && gr[0].Seviye == 1 && (gr[0].Koz == "Kupa" || gr[0].Koz == "Maça") &&
+                    gr[1].Oyuncu == d.AktifOyuncu && gr[1].Seviye == 2 && gr[1].Koz == gr[0].Koz &&
+                    gr[2].Oyuncu == d.Partner && gr[2].Seviye == 3 && gr[2].Koz == gr[0].Koz &&
+                    teklif.EndsWith(KozYardimcisi.KozSembolu(gr[0].Koz))) return true;
+            }
+
             if (ad == "1♥ Cevap Sistemi" && (teklif == "4♣" || teklif == "4♦")) return true;     // SAS 1♥ cevabı: ♣/♦ kısalık splinter (HCP tahminiyle veto edilmez)
             if (ad == "Jacoby 2NT" || ad == "Splinter Cevap" || ad == "Smolen") return true;     // anlaşmalı sistem cevapları (kısalık/asgari 4M; Smolen sonrası açıcı 4M/3NT) HCP tahminiyle veto edilmez
             if (ad == "Preempt Cevap" || ad == "Zayıf İki Cevap" || ad == "Zayıf İki Müdahale" || BricKartOyunu.Class.Bidding.Conventions.YeniKonvansiyonlar.Mu(ad))

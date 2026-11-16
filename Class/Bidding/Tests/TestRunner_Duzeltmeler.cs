@@ -49,6 +49,14 @@ namespace BricKartOyunu.Tests
             T("N18 (1D) 18hcp 4432 ♦AK durduruyor -> Dbl (1NT 15-17)", TestHelpers.ElOlustur("AQ76", "KJ5", "AK", "J642"), "Dbl", "Pas", "1♦");
             T("N19 (1D) 17hcp 4432 ♦AK durduruyor -> 1NT", TestHelpers.ElOlustur("KJ76", "AJ5", "AK", "J642"), "1NT", "Pas", "1♦");
             T("N21 (1C)-1D(ortak)-(1H): 6hcp ♦K9652 5 karo -> 2D (Pas degil)", TestHelpers.ElOlustur("Q64", "52", "K9652", "J98"), "2♦", "1♣", "1♦", "1♥");
+            T("N25 1H-P-2H-P-3H(davet): 8hcp 3 kart destek -> 4H (Pas degil)", TestHelpers.ElOlustur("AQT6532", "T54", "74", "Q"), "4♥", "1♥", "Pas", "2♥", "Pas", "3♥", "Pas");
+            T("N26 1H-P-2H-P-3H(davet): 6hcp asgari 3 kart destek -> Pas", TestHelpers.ElOlustur("QJ65", "T54", "874", "Q43"), "Pas", "1♥", "Pas", "2♥", "Pas", "3♥", "Pas");
+            T("N27 1H-P-2H-P-3H(davet): 7hcp 3 kart destek -> 4H (ölçüme göre %72 yapar)", TestHelpers.ElOlustur("K65", "J54", "Q743", "J43"), "4♥", "1♥", "Pas", "2♥", "Pas", "3♥", "Pas");
+            T("N28 1S-P-2S-P-3S(davet): 7hcp 3 kart destek -> 4S (IhaleKoruma vetosu yok)", TestHelpers.ElOlustur("J54", "K65", "Q743", "J43"), "4♠", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
+            T("N24 1H-P: 8hcp ♠AQ10653 2 (7 maca) ♥1054 -> 1S (2H destek degil)", TestHelpers.ElOlustur("AQT6532", "T54", "74", "Q"), "1♠", "1♥", "Pas");
+            Rk("N23 Durdurucu: ♦QJ ikili durdurucu degil", !ElDegerlendirici.StopperVar(TestHelpers.ElOlustur("K985", "A8", "QJ", "AKQT7"), "Karo"));
+            Rk("N23b Durdurucu: ♦QJ5 (3 kart) durdurucu", ElDegerlendirici.StopperVar(TestHelpers.ElOlustur("K985", "A8", "QJ5", "AKQT"), "Karo"));
+            Rk("N23c 1C-(1D)-1H-(P): 19hcp ♦QJ ikili -> 3NT degil", new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan()).TeklifVer(TestHelpers.DurumOlustur(TestHelpers.ElOlustur("K985", "A8", "QJ", "AKQT7"), Player.Guney, "1♣", "1♦", "1♥", "Pas")) != "3NT");
             T("N22 1D-P: 9hcp 5 sinek (♠84 ♥K73 ♦J42 ♣AJ975), 2/1 GF -> 1NT (2C degil)", TestHelpers.ElOlustur("84", "K73", "J42", "AJ975"), "1NT", "1♦", "Pas");
             T("N20 1D-P: 9hcp 5 sinek 4 kupa -> 1H (2C degil)", TestHelpers.ElOlustur("Q2", "AJ94", "42", "J6543"), "1♥", "1♦", "Pas");
 
@@ -122,7 +130,7 @@ namespace BricKartOyunu.Tests
             T("CT5 1♥-1♠-2♠, 11 hcp → 3♠ davet", TestHelpers.ElOlustur("KJ976", "32", "AQ5", "J86"), "3♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
             T("CT6 1♦-1♠-2♦, 9 hcp → 4. renk/davet yok (3NT/4♠ değil)", TestHelpers.ElOlustur("KJ984", "Q32", "JT", "Q76"), "2♠", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas");
             T("CT7 1♠-2♠-3♠, 10 hcp → 4♠", TestHelpers.ElOlustur("Q54", "J32", "KJ76", "K65"), "4♠", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
-            T("CT8 1♠-2♠-3♠, 8 hcp → Pas", TestHelpers.ElOlustur("Q54", "J32", "KJ76", "965"), "Pas", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
+            T("CT8 1♠-2♠-3♠, 6 hcp asgari → Pas (7+ HP kabul: çift dummy ölçümü)", TestHelpers.ElOlustur("Q54", "J32", "K76", "9653"), "Pas", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
             T("MK1 1♦-3♦ (limit), açıcı 18 hcp ♠ durdurucusuz → 5♦ (Pas değil)", TestHelpers.ElOlustur("98", "AK2", "AK63", "AT53"), "5♦", "1♦", "Pas", "3♦", "Pas");
             T("MK2 1♦-3♦, açıcı 21 hcp dengeli, dört renk tutuk → 3NT", TestHelpers.ElOlustur("KJ5", "AQ4", "AQ63", "K72"), "3NT", "1♦", "Pas", "3♦", "Pas");
             T("MK3 1♦-3♦, açıcı 12 hcp → Pas", TestHelpers.ElOlustur("852", "Q42", "AK63", "K72"), "Pas", "1♦", "Pas", "3♦", "Pas");

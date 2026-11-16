@@ -620,10 +620,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (fit != null && Major(fit) && sonOrtak && son.Koz == fit && son.Seviye == 3 && cur == 3 &&
                 gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == fit && h.Seviye == 2) &&
                 !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi) &&
-                ElDegerlendirici.RenkUzunlugu(el, fit) >= 4)
+                ElDegerlendirici.RenkUzunlugu(el, fit) >= 3)
             {
                 // Beyan edilen güce göre: asgari raise (12-14) gösterdiysem 13+ HP kabul eder; 3M sonrası 4M açıktır.
                 if (hp >= 13 || ElDegerlendirici.ToplamPuan(el, fit) >= 14) return Seviye(d, fit, 4);
+                // Basit destek (6-10 HP) aralığının üst yarısı (8+ HP), ortağın daveti (15+ HP, 6 kart) kabul edilir:
+                // 1♥–2♥–3♥, ♠AQ10653 ♥1054 (8 HP) → 4♥ (oyun yapar). 6-7 HP asgari: Pas.
+                // Ölçüm (80 çift dummy örneği, 1♥–2♥–3♥ sonrası, 3 kart destek): 4♥ yapma oranı 6 HP %54, 7 HP %72, 8 HP %58, 9 HP %96;
+                // 7+ HP (ya da dağılımla toplam puan 8+) kabul edilir, 6 HP ve düz el Pas.
+                if ((hp >= 7 || ElDegerlendirici.ToplamPuan(el, fit) >= 8) && gercek[0].Oyuncu == d.Partner) return Seviye(d, fit, 4);   // ortak açtı: benim raise'im 6-10 HP; ben açtıysam asgari raise 12-14 kalır
                 return "Pas";
             }
 
