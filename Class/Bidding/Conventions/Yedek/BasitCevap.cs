@@ -50,6 +50,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // Inverted Minors AÇIKSA 1m - 2m "10+ forcing" demektir; 6-9 HP ile
                 // 3-4 kartlık minör desteği 2m ile gösterilmez (yanlış anlam verir ve
                 // elde 4'lü yan renk varken onu atlar). Bu durumda doğrudan yeni renge bak.
+                bool ikiBirGF = durum.Anlasma != null && durum.Anlasma.IkiBirOyunZorlama;
                 bool inverted = durum.Anlasma != null && durum.Anlasma.InvertedMinors;
                 bool partnerMinor = partnerKozu == "Sinek" || partnerKozu == "Karo";
                 bool minorDestekAtla = inverted && partnerMinor;
@@ -89,7 +90,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                         if (he0 >= 4 && he0 >= sp0) return "1♥";
                         if (sp0 >= 4) return "1♠";
                     }
-                    if (hp >= 8) return "2" + yeniRenk.Substring(1);
+                    // 2/1 Game Force açıkken 2 seviyede yeni renk oyun zorlayıcıdır (12+ HP): 9 HP ile söylenmez (1NT'ye düşülür)
+                    if (hp >= 8 && !ikiBirGF) return "2" + yeniRenk.Substring(1);
                     yeniRenk = null;
                 }
 
@@ -117,6 +119,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     }
                 }
 
+                if (ikiBirGF && hp >= 8) return "1NT";   // 2/1 GF: zayıf (6-10) el, 2 seviye renk yok → 1NT
                 return "Pas";
             }
 

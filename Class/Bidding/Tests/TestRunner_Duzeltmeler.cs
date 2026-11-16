@@ -49,7 +49,8 @@ namespace BricKartOyunu.Tests
             T("N18 (1D) 18hcp 4432 ♦AK durduruyor -> Dbl (1NT 15-17)", TestHelpers.ElOlustur("AQ76", "KJ5", "AK", "J642"), "Dbl", "Pas", "1♦");
             T("N19 (1D) 17hcp 4432 ♦AK durduruyor -> 1NT", TestHelpers.ElOlustur("KJ76", "AJ5", "AK", "J642"), "1NT", "Pas", "1♦");
             T("N21 (1C)-1D(ortak)-(1H): 6hcp ♦K9652 5 karo -> 2D (Pas degil)", TestHelpers.ElOlustur("Q64", "52", "K9652", "J98"), "2♦", "1♣", "1♦", "1♥");
-            T("N201D-P: 9hcp 5 sinek 4 kupa -> 1H (2C degil)", TestHelpers.ElOlustur("Q2", "AJ94", "42", "J6543"), "1♥", "1♦", "Pas");
+            T("N22 1D-P: 9hcp 5 sinek (♠84 ♥K73 ♦J42 ♣AJ975), 2/1 GF -> 1NT (2C degil)", TestHelpers.ElOlustur("84", "K73", "J42", "AJ975"), "1NT", "1♦", "Pas");
+            T("N20 1D-P: 9hcp 5 sinek 4 kupa -> 1H (2C degil)", TestHelpers.ElOlustur("Q2", "AJ94", "42", "J6543"), "1♥", "1♦", "Pas");
 
             // Romen atma (SinyalKurallari.RomenAtma): tek kart = atılan rengi oyna; 2,4 = kalan küçük renk; 6,8 = kalan büyük renk
             R("R1 NT: ♥AQ63 (4 kart, 2 onör, tek 3) -> ♥3 (kupa rengini oyna)", TestHelpers.ElOlustur("8763", "AQ63", "54", "K96"), null, new[] { "Maça", "Sinek", "Karo", "Kupa" }, 3, "Kupa");
