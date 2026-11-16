@@ -498,6 +498,8 @@ namespace BricKartOyunu
             this.Resize += BricOyna_Resize;
             // Eylemler > Sonraki Dağılım: araç çubuğundaki Sonraki El düğmesiyle aynı akış (deklarasyon açıksa uyarır; Numaralı Rastgele Eller'de Dağılım Numarası penceresi açılır)
             sonrakiDağılımToolStripMenuItem.Click += (s, e) => BtnSonrakiEl_Click(s, e);
+            // Eylemler > Double Dummy Search: Çift Dummy Arama penceresi
+            doubleDummySearchToolStripMenuItem1.Click += (s, e) => DDAramaAc();
             this.LocationChanged += (s, e) => DekFormlariniHizala();
             BricKartOyunu.Class.EkranYardimci.AcikFormlariTakipEt(this);
 

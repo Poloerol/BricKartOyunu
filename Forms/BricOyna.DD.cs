@@ -54,6 +54,39 @@ namespace BricKartOyunu
             ust.DropDownItems.Add(karne);
         }
 
+        /// <summary>Eylemler > Double Dummy Search: oynanmakta olan eldeki pozisyonu çift dummy arama penceresine verir.</summary>
+        private void DDAramaAc()
+        {
+            if (_oyunAsamasi != OyunAsamasi.Oyun || string.IsNullOrEmpty(_kontrat))
+            {
+                MessageBox.Show(this, "Çift dummy arama için kart oynanmaya başlamış olmalı (ihale bitmeli).", "Çift Dummy Arama", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            // koltuk sırası (iç koltuklar): Kuzey, Doğu, Güney, Batı; kartlar: kalan eller (masadaki kartlar hariç)
+            var eller = new ulong[4];
+            var sira = new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            for (int k = 0; k < 4; k++)
+            {
+                var el = OyuncuEli(sira[k]);
+                if (el == null) continue;
+                foreach (var c in el) eller[k] |= 1UL << PimcOyuncu.Kod(c);
+            }
+            int masaSayisi = _buEldeOynananlar.Count;
+            if (masaSayisi >= 4) return;   // el tamamlanmış, sonuç bekleniyor
+            int lider = masaSayisi > 0 ? PimcOyuncu.Koltuk(_buEldeOynananlar[0].Oyuncu) : PimcOyuncu.Koltuk(activePlayer);
+            var masa = new int[4];
+            for (int i = 0; i < masaSayisi; i++) masa[i] = PimcOyuncu.Kod(_buEldeOynananlar[i].Kart);
+            string koz = KontratKozu();
+            int kozNo = koz == null ? -1 : Array.IndexOf(OyunKurallari.Renkler, koz);
+
+            using (var f = new DDAramaForm(eller, lider, masa, masaSayisi, kozNo, k => KoltukHaritasi.Ad(sira[k & 3])))
+            {
+                if (playZonePanel != null)
+                    f.MerkezEkran = playZonePanel.PointToScreen(new System.Drawing.Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
+                f.ShowDialog(this);
+            }
+        }
+
         private void DDAnalizAc()
         {
             if (_sonIhaleGecmisi == null || _sonIhaleGecmisi.Count == 0)

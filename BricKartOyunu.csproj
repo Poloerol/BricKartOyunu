@@ -579,6 +579,9 @@
     <Compile Include="Forms\MacOpsiyonlari.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\DDAramaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\ElNumarasiForm.cs">
       <SubType>Form</SubType>
     </Compile>
