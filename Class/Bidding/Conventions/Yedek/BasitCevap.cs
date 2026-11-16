@@ -57,7 +57,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
                 // 1) Partnerin rengine 3+ destek varsa → 2 seviyesinde basit destek
                 //    (majörde her zaman; minörde yalnızca Inverted Minors kapalıysa)
-                bool digerMajor4 = partnerMinor && (ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4 || ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4);   // majör önce
+                // 1♥ açılışına 6+ kartlı maça: 3 kartlık ♥ destekle 2♥ denmez, 1 seviyede maça söylenir (♠AQ10653 ♥1054, 8 HP → 1♠)
+                if (partnerKozu == "Kupa" && partnerSeviye == 1 && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 6 && ElDegerlendirici.RenkUzunlugu(el, "Kupa") < 4)
+                    return "1♠";
+
+                bool digerMajor4 = partnerMinor &&(ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4 || ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4);   // majör önce
                 if (!minorDestekAtla && !digerMajor4 && !string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
                 {
                     int destek = ElDegerlendirici.RenkUzunlugu(el, partnerKozu);
