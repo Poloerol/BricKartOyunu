@@ -20,7 +20,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   1♣ - 1♥ - 1NT - 2♣ (puppet) - 2♦ (zorunlu) - Pas (zayıf ♦) / 3♣ (zayıf ♣) / 2NT (davet)
     ///   1♦ - 1♠ - 1NT - 2♦ (GF) - 2♥/2♠ (3'lü destek) / 2NT (diğer) ...
     /// </summary>
-    public class TwoWayCheckback : IKonvansiyon
+    // IBilincliPas: bu konvansiyonun Pas'ı gerçek karardır (1NT'de kal / davete asgari ret); yoksa motor Pas'ı atlayıp
+    // Temel Mantık yedeğine düşer ve düz 8-9 HP ile 3NT (ya da açıcıda 3♣) çıkabilir.
+    public class TwoWayCheckback : IKonvansiyon, IBilincliPas
     {
         public string Ad => "İki Yönlü Checkback";
         public string Aciklama => "1NT rebid sonrası iki yönlü checkback";
@@ -50,6 +52,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Cevapçı, kendi 2♦ (oyun zorlayıcı) checkback'ine açıcının cevabı gelince oyuna kadar devam eder.
             if (CevapciDevamMi(durum, gercekTeklifler)) return true;
+            if (PuppetDevamMi(durum, gercekTeklifler)) return true;
             if (AciciIkiNTCevabi(durum, gercekTeklifler) != null) return true;
             if (AciciCheckbackCevapSirasi(durum, gercekTeklifler)) return true;
 
@@ -142,13 +145,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int n = ger.Count;
             if (n < 4) return null;
             if (ger[n - 1].Teklif != "2NT" || ger[n - 1].Oyuncu != durum.Partner) return null;
-            if (ger[n - 2].Teklif != "1NT" || ger[n - 2].Oyuncu != durum.AktifOyuncu) return null;
-            var cev = ger[n - 3];
+            // b: 1NT'den hemen sonraki teklifin indeksi (doğrudan 2NT ya da 2♣-2♦ puppet'tan sonra 2NT)
+            int b = n - 1;
+            if (b >= 3 && ger[b - 1].Teklif == "2♦" && ger[b - 1].Oyuncu == durum.AktifOyuncu
+                && ger[b - 2].Teklif == "2♣" && ger[b - 2].Oyuncu == durum.Partner) b -= 2;
+            if (b < 3) return null;
+            if (ger[b - 1].Teklif != "1NT" || ger[b - 1].Oyuncu != durum.AktifOyuncu) return null;
+            var cev = ger[b - 2];
             if (cev.Oyuncu != durum.Partner || cev.Seviye != 1) return null;
             if (cev.Koz != "Kupa" && cev.Koz != "Maça") return null;
-            var ac = ger[n - 4];
+            var ac = ger[b - 3];
             if (ac.Oyuncu != durum.AktifOyuncu || ac.Seviye != 1 || ac.Koz == "NT") return null;
-            if (OncedenTarafTeklifiVar(durum, ger, n - 4)) return null;
+            if (OncedenTarafTeklifiVar(durum, ger, b - 3)) return null;
             var el = durum.AktifOyuncuEli;
             if (el == null || el.Count != 13) return null;
             int hp = ElDegerlendirici.HCP(el);
@@ -157,7 +165,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // 3 kartlık destekle 3M düzeltmesi yapılmaz: cevapçının 1M cevabı 4 kartlı da olabilir (denetimde
             // bu düzeltmelerin ~%75'i 4-3 fit'e, 2NT'den kötü bir oyuna götürdü). Maksimum (14+) → 3NT, asgari → Pas.
             if (hp >= 14) return "3NT";
-            return null;
+            return "Pas";
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -178,6 +186,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int n = gercekTeklifler.Count;
 
             if (CevapciDevamMi(durum, gercekTeklifler)) return CevapciDevami(durum, el, gercekTeklifler);
+            if (PuppetDevamMi(durum, gercekTeklifler)) return PuppetDevami(el);
             var ikiNt = AciciIkiNTCevabi(durum, gercekTeklifler);
             if (ikiNt != null) return ikiNt;
 
@@ -332,6 +341,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     return "2" + sembol;
                 }
 
+                // 8-9 HP, 5'li majör/minör yok: açıcı 12-14 ise toplam en çok 23 → oyun yok, 1NT'de kal
+                // (2♣ puppet'ın devamında oynanacak uzun renk de yok; eskiden yedek kural 3NT'ye taşıyordu).
+                if (hp <= 9 && ElDegerlendirici.RenkUzunlugu(el, "Karo") < 5
+                    && ElDegerlendirici.RenkUzunlugu(el, "Sinek") < 5)
+                {
+                    return "Pas";
+                }
+
                 // Diğer davet elleri 2♣'den geçer
                 return "2♣";
             }
@@ -441,6 +458,36 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (y.Oyuncu != durum.AktifOyuncu || y.Seviye != 1 || (y.Koz != "Kupa" && y.Koz != "Maça")) return false;
             // Oyun seviyesine ulaşılmadıysa (2♦ GF olduğundan) devam zorunlu
             return cevap.Seviye <= 3 && !(cevap.Koz != "NT" && cevap.Seviye == 3 && false);
+        }
+
+        /// <summary>1X – 1Y – 1NT – 2♣ (puppet) – 2♦ (zorunlu): sıra puppet'ı söyleyen cevapçıda mı?</summary>
+        private static bool PuppetDevamMi(IhaleDurumu durum, List<IhaleHamlesi> g)
+        {
+            int n = g.Count;
+            if (n < 5) return false;
+            if (g.Any(h => durum.Rakipler.Contains(h.Oyuncu))) return false;
+            if (g[n - 1].Oyuncu != durum.Partner || g[n - 1].Teklif != "2♦") return false;
+            if (g[n - 2].Oyuncu != durum.AktifOyuncu || g[n - 2].Teklif != "2♣") return false;
+            if (g[n - 3].Oyuncu != durum.Partner || g[n - 3].Teklif != "1NT") return false;
+            var y = g[n - 4];
+            if (y.Oyuncu != durum.AktifOyuncu || y.Seviye != 1 || (y.Koz != "Kupa" && y.Koz != "Maça")) return false;
+            var x = g[n - 5];
+            if (x.Oyuncu != durum.Partner || x.Seviye != 1 || x.Koz == "NT") return false;
+            return !OncedenTarafTeklifiVar(durum, g, n - 5);
+        }
+
+        /// <summary>
+        /// 2♣ puppet + 2♦ sonrası cevapçı: 8-9 HP uzun ♦ → Pas, uzun ♣ → 3♣ (işaret kapama);
+        /// 10+ HP davet eli → 2NT (açıcı 14+ ise 3NT der).
+        /// </summary>
+        private string PuppetDevami(List<Card> el)
+        {
+            int hp = ElDegerlendirici.HCP(el);
+            int karo = ElDegerlendirici.RenkUzunlugu(el, "Karo");
+            int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
+            if (hp >= 10) return "2NT";
+            if (sinek >= 5 && sinek > karo) return "3♣";
+            return "Pas";
         }
 
         private string CevapciDevami(IhaleDurumu durum, List<Card> el, List<IhaleHamlesi> g)

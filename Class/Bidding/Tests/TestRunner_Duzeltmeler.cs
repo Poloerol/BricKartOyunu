@@ -53,6 +53,13 @@ namespace BricKartOyunu.Tests
             T("N26 1H-P-2H-P-3H(davet): 6hcp asgari 3 kart destek -> Pas", TestHelpers.ElOlustur("QJ65", "T54", "874", "Q43"), "Pas", "1♥", "Pas", "2♥", "Pas", "3♥", "Pas");
             T("N27 1H-P-2H-P-3H(davet): 7hcp 3 kart destek -> 4H (ölçüme göre %72 yapar)", TestHelpers.ElOlustur("K65", "J54", "Q743", "J43"), "4♥", "1♥", "Pas", "2♥", "Pas", "3♥", "Pas");
             T("N28 1S-P-2S-P-3S(davet): 7hcp 3 kart destek -> 4S (IhaleKoruma vetosu yok)", TestHelpers.ElOlustur("J54", "K65", "Q743", "J43"), "4♠", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
+            // Turnuva 1970 Mixed Pairs Bord 13: 1♣-1♠-1NT sonrası 9 HP düz el 2♣ puppet + 3NT diyordu (saha 9/9 1NT'de kaldı)
+            T("N29 1C-1S-1NT: 9hcp 4333 düz -> Pas (checkback yok)", TestHelpers.ElOlustur("QT75", "KQ", "T875", "Q63"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas");
+            T("N30 1C-1S-1NT-2C-2D: 8hcp 5 karo -> Pas (puppet devamı)", TestHelpers.ElOlustur("KT7", "92", "QJ875", "Q63"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas");
+            T("N31 1C-1S-1NT-2C-2D: 8hcp 5 sinek -> 3C (puppet devamı)", TestHelpers.ElOlustur("QT7", "K2", "875", "KJ863"), "3♣", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas");
+            T("N32 1D-1H-1NT-2C-2D: 11hcp dengesiz 5 sinek → 2NT davet", TestHelpers.ElOlustur("Q7", "J982", "43", "AKJ85"), "2NT", "1♦", "Pas", "1♥", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas");
+            T("N33 1C-1S-1NT-2C-2D-2NT: açıcı 14hcp -> 3NT", TestHelpers.ElOlustur("K42", "AJ3", "AJ2", "J982"), "3NT", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
+            T("N34 1C-1S-1NT-2C-2D-2NT: açıcı 12hcp -> Pas", TestHelpers.ElOlustur("K42", "A63", "QJ2", "J982"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
             T("N24 1H-P: 8hcp ♠AQ10653 2 (7 maca) ♥1054 -> 1S (2H destek degil)", TestHelpers.ElOlustur("AQT6532", "T54", "74", "Q"), "1♠", "1♥", "Pas");
             Rk("N23 Durdurucu: ♦QJ ikili durdurucu degil", !ElDegerlendirici.StopperVar(TestHelpers.ElOlustur("K985", "A8", "QJ", "AKQT7"), "Karo"));
             Rk("N23b Durdurucu: ♦QJ5 (3 kart) durdurucu", ElDegerlendirici.StopperVar(TestHelpers.ElOlustur("K985", "A8", "QJ5", "AKQT"), "Karo"));

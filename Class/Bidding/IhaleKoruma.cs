@@ -23,6 +23,17 @@ namespace BricKartOyunu.Class.Bidding
 
         private static int Sev(string t) => t[0] - '0';
 
+        /// <summary>i. teklif (ortağın 2NT'si) öncesinde: ben 1NT, ortak 2♣ (puppet), ben 2♦ dedim mi?</summary>
+        private static bool PuppetSonrasiMi(List<IhaleHamlesi> g, int i, Player ben, Player ort)
+        {
+            var onceki = g.Take(i).Where(x => Gercek(x.Teklif)).ToList();
+            int n = onceki.Count;
+            return n >= 3
+                && onceki[n - 1].Oyuncu == ben && onceki[n - 1].Teklif == "2♦"
+                && onceki[n - 2].Oyuncu == ort && onceki[n - 2].Teklif == "2♣"
+                && onceki[n - 3].Oyuncu == ben && onceki[n - 3].Teklif == "1NT";
+        }
+
         /// <summary>Ortağın teklifleri bugüne kadar ne kadar HCP gösteriyor.</summary>
         public static Aralik PartnerAraligi(IhaleDurumu d)
         {
@@ -128,7 +139,9 @@ namespace BricKartOyunu.Class.Bidding
                         !g.Any(x => x.Oyuncu != ben && x.Oyuncu != ort && Gercek(x.Teklif));
                     if (davetTekrar) { a.Min = Math.Max(a.Min, 10); a.Max = Math.Max(a.Min, Math.Min(a.Max, 12)); }
                     // 1X–1Y–1NT–2NT: açıcının 1NT rebid'inden sonra cevapçının 2NT'si 11-12 HP davettir (ilk cevabın 6-14 aralığı daralır)
-                    else if (renk == "NT" && s == 2 && !ayniRenk && g.Take(i).LastOrDefault(x => x.Oyuncu == ben && Gercek(x.Teklif))?.Teklif == "1NT")
+                    // (2♣ puppet + 2♦ zorunlu cevaptan sonra gelen 2NT de aynı davettir: 1X–1Y–1NT–2♣–2♦–2NT)
+                    else if (renk == "NT" && s == 2 && !ayniRenk && (g.Take(i).LastOrDefault(x => x.Oyuncu == ben && Gercek(x.Teklif))?.Teklif == "1NT"
+                        || PuppetSonrasiMi(g, i, ben, ort)))
                     { a.Min = Math.Max(a.Min, 11); a.Max = Math.Max(a.Min, Math.Min(a.Max, 12)); }
                     else if (a.Min < 6 || a.Max >= 40 || !ortakBirsekacildi) { a.Min = Math.Max(a.Min, lo); a.Max = hi; }
                     else if (s >= 4 && ayniRenk && majAcilis && a.Max <= 12) a.Min = Math.Max(a.Min, Math.Min(a.Max, 8));   // sınırlı raise sonrası oyun kabulü (1M–2M–3x–4M): yeni güç değil, üst yarı
