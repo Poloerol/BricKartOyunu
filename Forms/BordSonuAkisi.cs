@@ -200,14 +200,20 @@ namespace BricKartOyunu
                     {
                         if (c is ToolStrip) continue;   // MenuStrip ("Eylemler") ve araç çubukları bord sonunda da kullanılabilir
                         _girisDurumu[c] = c.Enabled;
-                        c.Enabled = false;
+                        // Tek bir kontrolün hatası (ör. görüntüsü geçersiz PictureBox: GDI+ ArgumentException) diğerlerini etkilemesin
+                        try { c.Enabled = false; } catch (ArgumentException) { }
                     }
                 }
                 else if (_girisDurumu != null)
                 {
-                    foreach (var kv in _girisDurumu)
-                        if (!kv.Key.IsDisposed) kv.Key.Enabled = kv.Value;
+                    var durum = _girisDurumu;
                     _girisDurumu = null;
+                    foreach (var kv in durum)
+                    {
+                        if (kv.Key.IsDisposed) continue;
+                        // Hata döngüyü kesip kalan kontrolleri kapalı bırakmasın
+                        try { kv.Key.Enabled = kv.Value; } catch (ArgumentException) { }
+                    }
                 }
             }
             catch { }
