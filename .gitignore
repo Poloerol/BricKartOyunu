@@ -363,3 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 # Akis Semasi Turkce ceviri sozlugu (Bridge Baron metinlerinden turetildi; depoya konmaz, yerelde kalir)
 Resources/AkisSemasi_TR.tsv
+
+# Olcum araclari: derleme ciktisi ve olcum dosyalari
+Tools/Olcum/out/
+Tools/Olcum/*.tsv
