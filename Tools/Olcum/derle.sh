@@ -4,7 +4,7 @@
 # Ortam değişkenleri (gerekirse): MSBUILD, CSC
 set -e
 KOK="$(cd "$(dirname "$0")/../.." && pwd)"
-OUT="$KOK/Tools/Olcum/out"
+OUT="${OUT:-$KOK/Tools/Olcum/out}"
 MSBUILD="${MSBUILD:-/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe}"
 CSC="${CSC:-/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe}"
 mkdir -p "$OUT"

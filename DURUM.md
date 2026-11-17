@@ -11,6 +11,12 @@
 - Güncel motor ortalama sapması: 5,1863 (30.000 bord, 17 Kasım tabanı; başlangıç 5,30); 18 Kasım düzeltmelerinden sonra yaklaşık 5,16. Temel Mantık yedeği Pas dışı tekliflerin yaklaşık %35'ini veriyor.
 - Yedek payı analizi: `Tools/Olcum/kume.awk` (bid kümeleri) ve `pas_sizinti.awk` (yedeğin son pasları). En büyük sızıntı: yedeğin Pas'ları (birleşik 25+ HP, parsiyel kontrat; ~2000 bord, ~7000 IMP fazla sapma).
 
+## Yedek mantık payı azaltma, 2. tur (2026-11-18 gece; yeni taban 5,16'lık motor, 30.000 bord, üç kısımda aynı yönde, toplam −381 IMP)
+- `MudahaleOyunCevap` genişletildi: (a) ortağın 3 seviye majör müdahalesine zayıf iki sonrası 3+ destek ve 8+ HP ile 4M (−82); (b) zayıf ikiye takeout kontra yapıp ortağın 3 seviye cevabından sonra 12+ HP ve rakip renginde durdurucuyla 3NT (−190).
+- Yeni `Açıcı 1NT Sonrası`: 1x-1NT'den sonra 18+ HP açıcı 3NT, 17 HP açıcı 2NT (5-5 ve 6+ kartlı eller hariç); yalnız 17+ → 3NT −131 idi, mevcut testlerle (N1, V84) uyum için 17 HP davet bırakıldı (−115).
+- Denenip eklenmeyenler: 2NT açılışına 3NT (tutarsız), kontra sonrası 5m ve 4M (kötü/tetiklenmedi), 3. seviye 5m.
+- Kalan en büyük sızıntılar: cevaplayanın 10-11 HP ile açıcının minimum tekrarına Pas'ı (2NT daveti kârsız çıkmıştı), `O:2H M:2NT P:3C [Pas]` ailesi, açıcının 2♦ rebid'i (291 bord, ort. sapma 7,0). Analiz: `kume.awk`, `pas_sizinti.awk`; deney: `varyant.sh` + `Deney.Al` (V ve OUT ortam değişkenleri veri ve çıktı klasörünü seçer).
+
 ## Oyun analizi ve teklif açıklamaları (2026-11-18)
 - Eylemler > **Oyun Analizi (hamle hamle)…**: o ana kadar oynanan her kartı çift dummy ile değerlendirir (kayıp löve, en iyi kart(lar); kırmızı deklaran tarafı, mavi savunma). Çekirdek `Class/DD/OyunAnalizi.cs` (`DDSolver.KartHedefeUlasir`: tek kart için "bu değere ulaşır mı" sorgusu; tam değer hesabına göre ~10 kat hızlı, bord başına 1-80 sn arka planda). Doğruluk kimliği (atak öncesi DD + savunma kaybı − deklaran kaybı = gerçek löve) testlerde (AN6, AN7, AN11) ve 13 bordluk elle taramada tutarlı. Not: çözücü değerleri kalan löveler cinsinden verir, tamamlanmış elleri analizde ayrıca sayarız.
 - Eylemler > **Teklif Açıklamaları…**: ihaleyi tüm ellerle yeniden oynatır; her teklif için konvansiyon adı, açıklaması ve elin özeti (HP, dağılım). Gerçek teklif motor önerisinden farklıysa sarı satır ve motorun önerisi. (İnsan teklifinin gerçek anlamı bilinemez; açıklama motorun o elle vereceği çağrıya aittir.)

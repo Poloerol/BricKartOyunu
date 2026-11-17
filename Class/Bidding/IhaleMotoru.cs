@@ -215,6 +215,7 @@ namespace BricKartOyunu.Class.Bidding
                 new TakeoutDoubleDevam(),
                 new TakeoutKontraYukseltme(),
                 new MudahaleOyunCevap(),
+                new AciciBirNTSonrasi(),
                 new XYZ(),
                 new MinorTransfer(),
                 new Serious3NT(),
@@ -899,4 +900,4 @@ namespace BricKartOyunu.Class.Bidding
     /// Kullanım: public class DopiRopi : IKonvansiyon, IBilincliPas
     /// </summary>
     public interface IBilincliPas { }
-}
+}

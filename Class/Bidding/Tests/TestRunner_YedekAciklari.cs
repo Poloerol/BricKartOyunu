@@ -37,6 +37,15 @@ namespace BricKartOyunu.Tests
             U("YA8 (2S)-3D-P 14hcp ♠ yok, 4 karo -> 5D", new MudahaleOyunCevap(), TestHelpers.ElOlustur("432", "AKJ4", "KJ82", "Q5"), "5♦", "2♠", "3♦", "Pas");
             U("YA9 (2S)-3D-P 5hcp -> Pas", new MudahaleOyunCevap(), TestHelpers.ElOlustur("T32", "J842", "Q82", "A54"), null, "2♠", "3♦", "Pas");
             U("YA10 (2H)-3C-P 10hcp ♥ durdurucu -> 3NT", new MudahaleOyunCevap(), TestHelpers.ElOlustur("J974", "KQJ2", "A632", "3"), "3NT", "2♥", "3♣", "Pas");
+            // 3 seviye majör müdahalesi: (2♠) - 3♥ (ortak) - Pas
+            U("YA11 (2S)-3H-P 9hcp 3 kupa -> 4H", new MudahaleOyunCevap(), TestHelpers.ElOlustur("T32", "KJ4", "Q852", "A94"), "4♥", "2♠", "3♥", "Pas");
+            U("YA12 (2S)-3H-P 9hcp 2 kupa -> Pas", new MudahaleOyunCevap(), TestHelpers.ElOlustur("T32", "K4", "QJ852", "A94"), null, "2♠", "3♥", "Pas");
+            // Zayıf ikiye takeout kontra: (2♥) - Dbl (ben) - Pas - 3♣ (ortak) - Pas
+            U("YA13 (2H)-X-P-3C-P 17hcp ♥ durdurucu -> 3NT", new MudahaleOyunCevap(), TestHelpers.ElOlustur("AQ98", "KJ4", "AT7", "K82"), "3NT", "2♥", "Dbl", "Pas", "3♣", "Pas");
+            U("YA14 (2H)-X-P-3C-P 17hcp ♥ yok -> uygun değil", new MudahaleOyunCevap(), TestHelpers.ElOlustur("AQJ8", "432", "AKT", "K82"), null, "2♥", "Dbl", "Pas", "3♣", "Pas");
+            // Açıcı 1NT sonrası: 1♦ - 1NT (ortak) - Pas
+            U("YA15 1D-1NT 20hcp dengeli -> 3NT", new AciciBirNTSonrasi(), TestHelpers.ElOlustur("AQ4", "KJ5", "AKJ3", "Q82"), "3NT", "1♦", "Pas", "1NT", "Pas");
+            U("YA16 1D-1NT 14hcp -> Pas", new AciciBirNTSonrasi(), TestHelpers.ElOlustur("KQ4", "J95", "AQJ32", "82"), null, "1♦", "Pas", "1NT", "Pas");
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
             return _kalan;
