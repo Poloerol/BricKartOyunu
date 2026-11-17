@@ -232,6 +232,7 @@
     <Compile Include="Class\Bidding\Conventions\Mudahale\NegativeDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\ResponsiveDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\ResponsiveDoubleCevap.cs" />
+    <Compile Include="Class\Bidding\Conventions\Mudahale\NegatifKontraDevam.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\Rubensohl.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\Sandwich1NT.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\SupportDouble.cs" />
@@ -431,6 +432,7 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_OneHeart.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_Gelisimler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_IkiBirOyunZorlama.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_NegatifKontraDevam.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Duzeltmeler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_DD.cs" />
     <Compile Include="Class\Bidding\Tests\ToplamIhaleDenetimi.cs" />
