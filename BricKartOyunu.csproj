@@ -163,6 +163,10 @@
     <Compile Include="Class\DD\IhaleDegerlendirme.cs" />
     <Compile Include="Class\DD\IhaleSonucu.cs" />
     <Compile Include="Class\DD\MotorKarnesi.cs" />
+    <Compile Include="Class\AkisSemasi.cs" />
+    <Compile Include="Forms\AkisSemasiForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\DDAnalizForm.cs">
       <SubType>Form</SubType>
     </Compile>

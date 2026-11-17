@@ -527,9 +527,22 @@ namespace BricKartOyunu.Forms
         }
 
 
+        private AkisSemasiForm _akisSemasiForm;
+
         private void BtnFlowcharts_Click(object sender, EventArgs e)
         {
-            // Akış Şeması gösterimi
+            // Akış Şeması: modsuz pencere (ihale sürerken açık kalabilir); açıksa öne getirilir
+            if (_akisSemasiForm != null && !_akisSemasiForm.IsDisposed)
+            {
+                if (_akisSemasiForm.WindowState == FormWindowState.Minimized) _akisSemasiForm.WindowState = FormWindowState.Normal;
+                _akisSemasiForm.Activate();
+                return;
+            }
+            var f = new AkisSemasiForm();
+            if (!f.Hazirla()) { f.Dispose(); return; }
+            _akisSemasiForm = f;
+            f.FormClosed += (s, a) => { if (_akisSemasiForm == f) _akisSemasiForm = null; };
+            f.Show(this);
         }
 
         /// <summary>
