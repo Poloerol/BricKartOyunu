@@ -213,6 +213,7 @@ namespace BricKartOyunu.Class.Bidding
                 new TakeoutDouble(),
                 new TakeoutDoubleCevap(),
                 new TakeoutDoubleDevam(),
+                new TakeoutKontraYukseltme(),
                 new XYZ(),
                 new MinorTransfer(),
                 new Serious3NT(),
@@ -732,6 +733,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Takeout Double": return _anlasma.TakeoutDouble;
                 case "Takeout Double Cevap": return _anlasma.TakeoutDouble;
                 case "Takeout Double Devam": return _anlasma.TakeoutDouble;
+                case "Takeout Double Yükseltme": return _anlasma.TakeoutDouble;
                 case "Support Double": return _anlasma.SupportDouble;
                 case "Support Double Cevap": return _anlasma.SupportDouble;
                 case "Responsive Double Cevap": return _anlasma.ResponsiveDouble;

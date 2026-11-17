@@ -32,7 +32,7 @@ namespace BricKartOyunu.Tests
             T("N4 P-1H-2D 17hcp 5H4S -> 2S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "2♠", "Pas", "Pas", "Pas", "1♥", "Pas", "2♦", "Pas");
             T("N6 1H-2D (Bord 5 gercek ihale, G dagitici) 17hcp 5H4S -> 2S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "2♠", "Pas", "1♥", "Pas", "2♦", "Pas");
             T("N7 1H cevap 9hcp 5S 7D -> 1S (2D degil)", TestHelpers.ElOlustur("QJT85", "", "AQ97653", "7"), "1♠", "Pas", "1♥", "Pas");
-            T("N8 1H-1S 17hcp 4 maca destek -> 3S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "3♠", "Pas", "1♥", "Pas", "1♠", "Pas");
+            T("N8 1H-1S 17hcp 4 maca destek -> 4S (karne ölçümü: davet yerine oyun)", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "4♠", "Pas", "1♥", "Pas", "1♠", "Pas");
             T("N5 P-1H-2D 3 maca -> 3NT (degismez)", TestHelpers.ElOlustur("A93", "AT942", "K82", "AQ"), "3NT", "Pas", "Pas", "Pas", "1♥", "Pas", "2♦", "Pas");
             // Rakip 1♣ açtı, ortak 1♦ ile araya girdi, sağdaki pas: 5'li ♥ ve 7 HP -> 1♥ (ortağın minörüne 3 kartla 2♦ demek yerine majör)
             T("N9 1C-(1D ortak overcall)-P: 5 kupa 7hcp 3 karo -> 1H (2D degil)", TestHelpers.ElOlustur("Q95", "J7532", "J52", "K6"), "1♥", "1♣", "1♦", "Pas");
@@ -142,7 +142,7 @@ namespace BricKartOyunu.Tests
             T("CT2 1♦-1♠-1NT, 12 hcp → 2NT", TestHelpers.ElOlustur("AT95", "QJ92", "KQ8", "65"), "2NT", "1♦", "Pas", "1♠", "Pas", "1NT", "Pas");
             T("CT3 1♥-1♠-2♥, 15 hcp → 4♥", TestHelpers.ElOlustur("AKT76", "K3", "A74", "J86"), "4♥", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
             T("CT4 1♥-1♠-2♠, 13 hcp → 4♠", TestHelpers.ElOlustur("AQ876", "32", "KJ5", "K32"), "4♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
-            T("CT5 1♥-1♠-2♠, 11 hcp → 3♠ davet", TestHelpers.ElOlustur("KJ976", "32", "AQ5", "J86"), "3♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
+            T("CT5 1♥-1♠-2♠, 11 hcp → 4♠ (karne ölçümü: davet yerine oyun)", TestHelpers.ElOlustur("KJ976", "32", "AQ5", "J86"), "4♠", "1♥", "Pas", "1♠", "Pas", "2♠", "Pas");
             T("CT6 1♦-1♠-2♦, 9 hcp → 4. renk/davet yok (3NT/4♠ değil)", TestHelpers.ElOlustur("KJ984", "Q32", "JT", "Q76"), "2♠", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas");
             T("CT7 1♠-2♠-3♠, 10 hcp → 4♠", TestHelpers.ElOlustur("Q54", "J32", "KJ76", "K65"), "4♠", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");
             T("CT8 1♠-2♠-3♠, 6 hcp asgari → Pas (7+ HP kabul: çift dummy ölçümü)", TestHelpers.ElOlustur("Q54", "J32", "K76", "9653"), "Pas", "1♠", "Pas", "2♠", "Pas", "3♠", "Pas");

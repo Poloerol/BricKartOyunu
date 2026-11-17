@@ -1675,8 +1675,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (Major(fit))
             {
                 if (est >= 36) return 6;
-                if (est >= 28.5) return 4;
-                if (est >= 25.5) return 3;
+                if (est >= 24.5) return 4; // Motor Karnesi (30.000 bord): majör oyun eşiği 28,5 -> 24,5 (-3.300 IMP); 22,5'te kazanç geriledi
+                if (est >= 23.5) return 3;
                 return 2;
             }
             // minör

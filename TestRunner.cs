@@ -3821,7 +3821,7 @@ namespace BricKartOyunu
                 new Card { Suit = "Karo", Value = 14 },
                 new Card { Suit = "Karo", Value = 9 }
             };
-            SeviyeTesti("TEST 11.18 — 1♣–1♥–(1♠) 18 HP + 4'lü ♥ desteği → 3♥ (sıçramalı)", guney, Player.Guney,
+            SeviyeTesti("TEST 11.18 — 1♣–1♥–(1♠) 18 HP + 4'lü ♥ desteği → 4♥ (karne ölçümü: davet yerine oyun)", guney, Player.Guney,
                 new List<IhaleHamlesi>
                 {
                     new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "Pas", Sira = 1, GecerliMi = true },
@@ -3829,7 +3829,7 @@ namespace BricKartOyunu
                     new IhaleHamlesi { Oyuncu = Player.Bati, Teklif = "Pas", Sira = 3, GecerliMi = true },
                     new IhaleHamlesi { Oyuncu = Player.Kuzey, Teklif = "1♥", Sira = 4, GecerliMi = true },
                     new IhaleHamlesi { Oyuncu = Player.Dogu, Teklif = "1♠", Sira = 5, GecerliMi = true },
-                }, "3♥");
+                }, "4♥");
             var kuzey = new List<Card>
             {
                 new Card { Suit = "Maça", Value = 9 },

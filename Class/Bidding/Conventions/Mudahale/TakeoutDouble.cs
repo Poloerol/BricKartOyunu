@@ -82,7 +82,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 8. Şikan (void) veya 5'li yan renk varsa → DBL (doğal müdahale yerine)
             //    Aksi halde 5'li yan renk varsa doğal müdahale tercih edilir.
-            if (rakipRenkUzunluk == 0) return true; // Şikan → DBL her zaman
+            if (rakipRenkUzunluk == 0)
+            {
+                // Şikan → DBL; ancak 17 HP altında 6+ kartlı yan renk varsa doğal müdahale (Motor Karnesi / ekran görüntüsü: ♠void 7 sinek 12 HP)
+                if (hp < 17 && new[] { "Maça", "Kupa", "Karo", "Sinek" }.Any(r => r != rakipKozu && ElDegerlendirici.RenkUzunlugu(durum.AktifOyuncuEli, r) >= 6)) return false;
+                return true;
+            }
 
             // 15-17 HP dengeli el ve rakip renginde durdurucu (ör. ♦AQ): 1NT müdahalesi (TemelMantik) kontradan önceliklidir;
             // durdurucu tutan iki kartlık renk "kısa renk" sayılmaz. (Tek kartlı / dengesiz eller kontra yapmaya devam eder.)
