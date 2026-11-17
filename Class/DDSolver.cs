@@ -93,6 +93,20 @@ namespace BricKartOyunu.Class
             kartlar = kl.ToArray(); degerler = dg.ToArray();
         }
 
+        /// <summary>
+        /// Tek bir yasal kart için evet/hayır sorusu: bu kartı oynayınca çift koltuklar (K-G) toplamda en az "hedef" löve alır mı?
+        /// Tüm kartların tam değerini hesaplamaktan çok daha hızlıdır (dar pencereli arama).
+        /// </summary>
+        public bool KartHedefeUlasir(ulong[] eller, int lider, int[] el, int elSayisi, int kart, int hedef)
+        {
+            for (int i = 0; i < 4; i++) _h[i] = eller[i];
+            _leader = lider; _k = elSayisi;
+            for (int i = 0; i < elSayisi; i++) _tc[i] = el[i];
+            if (_tt.Count > TabloSiniri) _tt.Clear();
+            int mover = (_leader + _k) & 3;
+            return Oyna(kart, mover, hedef - 1, hedef, 1) >= hedef;
+        }
+
         /// <summary>Pozisyonun değeri (çift sayılı koltukların alacağı löve).</summary>
         public int Coz(ulong[] eller, int lider, int[] el, int elSayisi)
         {

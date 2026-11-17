@@ -371,3 +371,4 @@ Tools/Olcum/*.tsv
 # Olcum calistirma ciktilari
 Tools/Olcum/out2/
 Tools/Olcum/veri/
+Tools/Olcum/out3/

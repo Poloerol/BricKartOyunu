@@ -52,6 +52,12 @@ namespace BricKartOyunu
             ust.DropDownItems.Add(new ToolStripSeparator());
             ust.DropDownItems.Add(analiz);
             ust.DropDownItems.Add(karne);
+            var ihaleAciklama = new ToolStripMenuItem("Teklif Açıklamaları…");
+            ihaleAciklama.Click += (s, e) => IhaleAciklamaAc();
+            ust.DropDownItems.Add(ihaleAciklama);
+            var oyunAnaliz = new ToolStripMenuItem("Oyun Analizi (hamle hamle)…");
+            oyunAnaliz.Click += (s, e) => OyunAnaliziAc();
+            ust.DropDownItems.Add(oyunAnaliz);
             var oynama = new ToolStripMenuItem("Oynama Karnesi…");
             oynama.Click += (s, e) => { using (var f = new OynamaKarneForm()) f.ShowDialog(this); };
             ust.DropDownItems.Add(oynama);
@@ -88,6 +94,67 @@ namespace BricKartOyunu
                     f.MerkezEkran = playZonePanel.PointToScreen(new System.Drawing.Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
                 f.ShowDialog(this);
             }
+        }
+
+        /// <summary>Eylemler > Teklif Açıklamaları: son ihaleyi tüm ellerle yeniden oynatıp her teklifin anlamını gösterir.</summary>
+        private void IhaleAciklamaAc()
+        {
+            if (_sonIhaleGecmisi == null || _sonIhaleGecmisi.Count == 0)
+            {
+                MessageBox.Show(this, "Önce bir bord dağıtılıp ihale yapılmalı.", "Teklif Açıklamaları", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            var eller = new Dictionary<Player, List<Card>>();
+            foreach (var p in new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati })
+            {
+                var liste = new List<Card>();
+                var el = OyuncuEli(p);
+                if (el != null) liste.AddRange(el);
+                foreach (var k in _oynananTumEller.Where(t => t.Oyuncu == p).Select(t => t.Kart))
+                    if (!liste.Contains(k)) liste.Add(k);
+                foreach (var k in _buEldeOynananlar.Where(t => t.Oyuncu == p).Select(t => t.Kart))
+                    if (!liste.Contains(k)) liste.Add(k);
+                eller[p] = liste;
+            }
+            if (eller.Values.Any(l => l.Count != 13))
+            {
+                MessageBox.Show(this, "Eller tam değil (13'er kart bulunamadı); açıklama yapılamıyor.", "Teklif Açıklamaları", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            using (var f = new IhaleAciklamaForm(new List<string>(_sonIhaleGecmisi), IcOyuncu(_ihaleBaslangicOyuncusu), eller, p => KoltukHaritasi.Ad(p), "Bord " + _currentTour))
+                f.ShowDialog(this);
+        }
+
+        /// <summary>Eylemler > Oyun Analizi: o ana kadar oynanan her kartı çift dummy ile değerlendirir (hamle hamle kayıp).</summary>
+        private void OyunAnaliziAc()
+        {
+            var oynananlar = new List<Tuple<Player, Card>>();
+            foreach (var t in _oynananTumEller) oynananlar.Add(Tuple.Create(t.Oyuncu, t.Kart));
+            foreach (var t in _buEldeOynananlar) oynananlar.Add(Tuple.Create(t.Oyuncu, t.Kart));
+            if (oynananlar.Count == 0 || string.IsNullOrEmpty(_kontrat))
+            {
+                MessageBox.Show(this, "Oyun analizi için en az bir kart oynanmış olmalı (ihale bitip atak yapılmalı).", "Oyun Analizi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            // oyun başlamadan önceki eller = eldeki kartlar + oynanmış kartlar (iç koltuklar; DD yalnız çift/tek koltuk ilişkisini kullanır)
+            var eller = new Dictionary<Player, List<Card>>();
+            foreach (var p in new[] { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati })
+            {
+                var liste = new List<Card>();
+                var el = OyuncuEli(p);
+                if (el != null) liste.AddRange(el);
+                foreach (var k in oynananlar.Where(t => t.Item1 == p).Select(t => t.Item2))
+                    if (!liste.Contains(k)) liste.Add(k);
+                eller[p] = liste;
+            }
+            if (eller.Values.Any(l => l.Count != 13))
+            {
+                MessageBox.Show(this, "Eller tam değil (13'er kart bulunamadı); analiz yapılamıyor.", "Oyun Analizi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            string baslik = "Bord " + _currentTour + " — " + _kontrat;
+            using (var f = new OyunAnaliziForm(eller, oynananlar, KontratKozu(), _kontratDeklaran, baslik, p => KoltukHaritasi.Ad(p)))
+                f.ShowDialog(this);
         }
 
         private void DDAnalizAc()

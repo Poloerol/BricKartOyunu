@@ -18,6 +18,7 @@ namespace BricKartOyunu.Class
         public int Imp;             // deklaran gözüyle IMP farkı (SkorGercek - SkorDd); negatif = deklaran tarafı kaybetti
         public string Oynanis;      // oynanan kartlar (el el, "K:♠A D:..." biçiminde)
         public string AtakKarti;    // açılış atağı
+        public List<Tuple<Player, Card>> Kartlar = new List<Tuple<Player, Card>>();   // oynanan kartlar, oynanış sırasıyla
     }
 
     /// <summary>Oynama karnesi toplamı.</summary>
@@ -69,6 +70,7 @@ namespace BricKartOyunu.Class
             int deklLove = 0;
             var oynanis = new StringBuilder();
             string atakKarti = null;
+            var kartlar = new List<Tuple<Player, Card>>();
 
             for (int el = 0; el < 13; el++)
             {
@@ -103,6 +105,7 @@ namespace BricKartOyunu.Class
                     }
                     elim.Remove(sec);
                     masa.Add((p, sec));
+                    kartlar.Add(Tuple.Create(p, sec));
                     if (k == 0) atakRengi = sec.Suit;
                     if (el == 0 && k == 0) atakKarti = KartMetni(sec);
                     p = OyunKurallari.Sonraki(p);
@@ -126,7 +129,7 @@ namespace BricKartOyunu.Class
                 BordNo = b.BordNo, Sonuc = s, DdLove = ddLove, GercekLove = deklLove,
                 SkorDd = skorDd, SkorGercek = skorGercek,
                 Imp = MacDurumu.Imp(fark),
-                Oynanis = oynanis.ToString(), AtakKarti = atakKarti
+                Oynanis = oynanis.ToString(), AtakKarti = atakKarti, Kartlar = kartlar
             };
         }
 

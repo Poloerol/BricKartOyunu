@@ -11,6 +11,10 @@
 - Güncel motor ortalama sapması: 5,1863 (30.000 bord, 17 Kasım tabanı; başlangıç 5,30); 18 Kasım düzeltmelerinden sonra yaklaşık 5,16. Temel Mantık yedeği Pas dışı tekliflerin yaklaşık %35'ini veriyor.
 - Yedek payı analizi: `Tools/Olcum/kume.awk` (bid kümeleri) ve `pas_sizinti.awk` (yedeğin son pasları). En büyük sızıntı: yedeğin Pas'ları (birleşik 25+ HP, parsiyel kontrat; ~2000 bord, ~7000 IMP fazla sapma).
 
+## Oyun analizi ve teklif açıklamaları (2026-11-18)
+- Eylemler > **Oyun Analizi (hamle hamle)…**: o ana kadar oynanan her kartı çift dummy ile değerlendirir (kayıp löve, en iyi kart(lar); kırmızı deklaran tarafı, mavi savunma). Çekirdek `Class/DD/OyunAnalizi.cs` (`DDSolver.KartHedefeUlasir`: tek kart için "bu değere ulaşır mı" sorgusu; tam değer hesabına göre ~10 kat hızlı, bord başına 1-80 sn arka planda). Doğruluk kimliği (atak öncesi DD + savunma kaybı − deklaran kaybı = gerçek löve) testlerde (AN6, AN7, AN11) ve 13 bordluk elle taramada tutarlı. Not: çözücü değerleri kalan löveler cinsinden verir, tamamlanmış elleri analizde ayrıca sayarız.
+- Eylemler > **Teklif Açıklamaları…**: ihaleyi tüm ellerle yeniden oynatır; her teklif için konvansiyon adı, açıklaması ve elin özeti (HP, dağılım). Gerçek teklif motor önerisinden farklıysa sarı satır ve motorun önerisi. (İnsan teklifinin gerçek anlamı bilinemez; açıklama motorun o elle vereceği çağrıya aittir.)
+
 ## Oynama karnesi (2026-11-18, ilk ölçüm: 299 bord, boards 1-300)
 - Araç: `Class/DD/OynamaKarnesi.cs`, arayüzde Eylemler > Oynama Karnesi…, arayüzsüz `Tools/Olcum/OynamaOlc.exe`. İhale motorunun kontratını kart oynama motoru dört elde oynar; fark = deklaran tarafının gerçek lövesi − çift dummy lövesi.
 - PIMC açık (900 ms): ortalama |fark| 0,90 löve; DD ile aynı %38 (fark −1: %24, +1: %19, ±2+: %17); deklaran eksik 96 / savunma eksik 89 bord; ortalama fark +0,03 (iki taraf dengeli).

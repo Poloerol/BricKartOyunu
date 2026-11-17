@@ -44,3 +44,9 @@ Ana proje `Tools/Olcum/out/` içine derlenir (`bin\Debug`'a değil; çalışan u
 - `OynamaOlc.exe ilk adet cikti.tsv [pimcMs] [dunya]`: ihale motorunun kontratını kart oynama motoruyla oynatır (dört el, hepsi motor), deklaran tarafının löveyi çift dummy lövesiyle karşılaştırır.
   pimcMs 0 = PIMC kapalı (yalnız kurallar). Çıktı: bord, kontrat, deklaran, atak, DD, gerçek, fark, IMP. Bord başına ~8 sn (PIMC 900 ms), PIMC kapalıyken ~0,5 sn.
 - Arayüzde: Eylemler > Oynama Karnesi… (aynı işi yapar; satıra çift tıklayınca oynanış görünür).
+
+## Oyun analizi
+- `AnalizOlc.exe bord [pimcMs]`: bir bordun ihalesini ve oynanışını motorla üretir, hamle bazlı çift dummy analizini yazar (kayıplı hamleler, en iyi kartlar) ve tutarlılık kimliğini doğrular:
+  atak öncesi DD + savunmanın kaybı − deklaran tarafının kaybı = gerçek löve.
+- Arayüzde: Eylemler > Oyun Analizi (hamle hamle)… ve Eylemler > Teklif Açıklamaları…
+- Not: Derleme araçları (`derle.sh`) eski `csc` ile derlenir; tuple söz dizimi (C# 7) gereken araçlar için `MSBuild\Current\Bin\Roslyn\csc.exe` kullanın.
