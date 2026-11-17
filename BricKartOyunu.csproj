@@ -749,7 +749,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="BricKartOyunu.ico" />
-    <Content Include="Resources\AkisSemasi_TR.tsv">
+    <Content Include="Resources\AkisSemasi_TR.tsv" Condition="Exists('Resources\AkisSemasi_TR.tsv')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Backgrounds\AnaCover.png">

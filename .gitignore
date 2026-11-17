@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Akis Semasi Turkce ceviri sozlugu (Bridge Baron metinlerinden turetildi; depoya konmaz, yerelde kalir)
+Resources/AkisSemasi_TR.tsv
