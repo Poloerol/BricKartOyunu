@@ -214,6 +214,7 @@ namespace BricKartOyunu.Class.Bidding
                 new TakeoutDoubleCevap(),
                 new TakeoutDoubleDevam(),
                 new TakeoutKontraYukseltme(),
+                new MudahaleOyunCevap(),
                 new XYZ(),
                 new MinorTransfer(),
                 new Serious3NT(),

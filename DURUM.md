@@ -8,9 +8,11 @@
 ## Ölçüm yöntemi (Motor Karnesi, arayüzsüz)
 - Araçlar repoda: `Tools/Olcum/` (README'ye bak). `Tools/Olcum/derle.sh` ana projeyi ayrı klasöre derler ve araçları yapar: `Taban` (taban çizgisi), `Measure` (tabana göre değişen bordların sapma farkı), `PbnRun` (PBN bordlarını motorla oynat), `Probe`, `Seeds`, `Attr`.
 - Kural: her değişikliği 30.000 bordda ölç, üç 10.000'lik kısımda aynı yönde olmasını doğrula. DD bakış açısı iyimserdir; masada gerçek kazanç biraz daha az olabilir.
-- Güncel motor ortalama sapması: yaklaşık 5,19 (30.000 bord; başlangıç 5,30). Temel Mantık yedeği son tekliflerin yaklaşık %54'ünü hâlâ veriyor.
+- Güncel motor ortalama sapması: 5,1863 (30.000 bord, 17 Kasım tabanı; başlangıç 5,30); 18 Kasım düzeltmelerinden sonra yaklaşık 5,16. Temel Mantık yedeği Pas dışı tekliflerin yaklaşık %35'ini veriyor.
+- Yedek payı analizi: `Tools/Olcum/kume.awk` (bid kümeleri) ve `pas_sizinti.awk` (yedeğin son pasları). En büyük sızıntı: yedeğin Pas'ları (birleşik 25+ HP, parsiyel kontrat; ~2000 bord, ~7000 IMP fazla sapma).
 
 ## Son yapılanlar (Kasım 2026)
+- 18 Kasım, yedek payı azaltma (30.000 bord, üç 10.000'likte de aynı yönde; toplam ~−718 IMP): (1) `CevapciIkinciTur`: açıcının 2x tekrarından sonra 12-13 HP ile Pas/2NT yerine 3NT (−310); (2) `OyunDavetiKabul`: 1M-1NT-3M sonrası 7+ HP ile 4M (−54); (3) yeni `Müdahale Oyun Cevabı`: zayıf iki açılışına ortağın 3 seviye minör müdahalesinden sonra 9+ HP ile 3NT (durdurucu varsa) / 5m (3+ destek) (−352). Denenip eklenmeyenler: 2 seviye majör müdahalesine 4M (−8, anlamsız), atlamalı rebid eşiği 17 (16: −668, 18: −692, 17: −718 en iyi). Testler: `TestRunner_YedekAciklari` (YA1-YA10), M1 beklentisi 3NT; toplam 862 test geçti.
 - Majör oyun eşiği 28,5 → 24,5, davet 23,5 (`TemelMantik.HedefFit`): 30.000 bordda yaklaşık −3.484 IMP.
 - Yeni konvansiyonlar: `Negatif Kontra Devam` (açıcı ortağın negatif kontrasını pas geçmez, −780 IMP), `Takeout Double Yükseltme` (kontra yapan ortağın majör cevabını yükseltir).
 - `TakeoutDouble`: rakip renginde void ve 6+ kartlı yan renk (17 HP altı) varsa kontra yok.

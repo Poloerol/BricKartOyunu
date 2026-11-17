@@ -352,7 +352,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (hp >= 12)
                 {
                     if (Major(x) && xLen >= 3) return "3" + Sem(x);
-                    return null;   // 2NT daveti açıcının minimum rebidinden sonra veriler ışığında kârsız
+                    // Motor Karnesi (30.000 bord): 12-13 HP ile Pas yerine 3NT -310 IMP (üç 10.000'likte de kazanç;
+                    // 11 HP -288, 13 HP -267). 2NT daveti açıcının minimum rebidinden sonra kârsızdı.
+                    return "3NT";
                 }
                 return null;
             }
@@ -407,6 +409,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (g[0].Oyuncu != d.Partner || g[1].Oyuncu != d.AktifOyuncu || g[2].Oyuncu != d.Partner) return null;
             string m = g[0].Koz;
             if (m != "Maça" && m != "Kupa") return null;
+            // 1M-1NT-3M (açıcının daveti): 1NT 6-9 OP gösterdi; 7+ HP ile 4M (Motor Karnesi: 8 → -40, 7 → -54, 6 → -62 IMP; 7 seçildi)
+            if (g[0].Seviye == 1 && g[1].Seviye == 1 && g[1].Koz == "NT" && g[2].Seviye == 3 && g[2].Koz == m)
+                return ElDegerlendirici.HCP(d.AktifOyuncuEli) >= 7 ? "4" + (m == "Maça" ? "♠" : "♥") : null;
             if (g[0].Seviye != 1 || g[1].Seviye != 2 || g[1].Koz != m) return null;
             if (g[2].Seviye != 3 || g[2].Koz != m) return null;
             if (ElDegerlendirici.HCP(d.AktifOyuncuEli) < 10) return null;

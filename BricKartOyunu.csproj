@@ -164,6 +164,7 @@
     <Compile Include="Class\DD\IhaleSonucu.cs" />
     <Compile Include="Class\DD\MotorKarnesi.cs" />
     <Compile Include="Class\AkisSemasi.cs" />
+    <Compile Include="Class\Bidding\Deney.cs" />
     <Compile Include="Forms\AkisSemasiForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -238,6 +239,7 @@
     <Compile Include="Class\Bidding\Conventions\Mudahale\ResponsiveDoubleCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\NegatifKontraDevam.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\TakeoutKontraYukseltme.cs" />
+    <Compile Include="Class\Bidding\Conventions\Mudahale\MudahaleOyunCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\Rubensohl.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\Sandwich1NT.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\SupportDouble.cs" />
@@ -438,6 +440,7 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_OneClub_Gelisimler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_IkiBirOyunZorlama.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_NegatifKontraDevam.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_YedekAciklari.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Duzeltmeler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_DD.cs" />
     <Compile Include="Class\Bidding\Tests\ToplamIhaleDenetimi.cs" />
@@ -649,6 +652,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestRunner.cs" />
+    <EmbeddedResource Include="Forms\AkisSemasiForm.resx">
+      <DependentUpon>AkisSemasiForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\AnlasmaForm.resx">
       <DependentUpon>AnlasmaForm.cs</DependentUpon>
     </EmbeddedResource>

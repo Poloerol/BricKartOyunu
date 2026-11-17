@@ -367,3 +367,7 @@ Resources/AkisSemasi_TR.tsv
 # Olcum araclari: derleme ciktisi ve olcum dosyalari
 Tools/Olcum/out/
 Tools/Olcum/*.tsv
+
+# Olcum calistirma ciktilari
+Tools/Olcum/out2/
+Tools/Olcum/veri/

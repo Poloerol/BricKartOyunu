@@ -174,7 +174,8 @@ namespace BricKartOyunu.Tests
             T("F2 1D-1S-2D-3C-3H, kupa tutuk yok -> 3NT degil", TestHelpers.ElOlustur("A9764", "9532", "Q42", "A"), "3♠", "1♦", "Pas", "1♠", "Pas", "2♦", "Pas", "3♣", "Pas", "3♥", "Pas");
 
             // 1♥ – 1♠ – 2♥ (ortak majörü tekrarladı): cevapçı 11+ HP ile pas geçmez
-            T("M1 1H-1S-2H, 12hcp dengeli 2 kupa -> 2NT", TestHelpers.ElOlustur("Q8765", "A7", "KJ7", "QT5"), "2NT", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
+            // Motor Karnesi (30.000 bord): açıcının minimum tekrarından sonra 12-13 HP ile 2NT daveti yerine 3NT -310 IMP
+            T("M1 1H-1S-2H, 12hcp dengeli 2 kupa -> 3NT", TestHelpers.ElOlustur("Q8765", "A7", "KJ7", "QT5"), "3NT", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
             T("M2 1H-1S-2H, 14hcp 3 kupa -> 4H", TestHelpers.ElOlustur("AKQ86", "J42", "KJ4", "43"), "4♥", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
             T("M3 1H-1S-2H, 8hcp -> Pas", TestHelpers.ElOlustur("Q8765", "J42", "KJ4", "43"), "Pas", "1♥", "Pas", "1♠", "Pas", "2♥", "Pas");
 
