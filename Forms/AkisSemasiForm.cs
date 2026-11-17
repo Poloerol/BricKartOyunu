@@ -64,6 +64,7 @@ namespace BricKartOyunu.Forms
         public AkisSemasiForm()
         {
             Text = "Akış Şeması";
+            ShowInTaskbar = false;       // görev çubuğunda ayrı düğme olmasın (sahip form üzerinden açılır)
             StartPosition = FormStartPosition.CenterParent;
             Font = new Font("Segoe UI", 9.5F);
             Size = new Size(1100, 720);
