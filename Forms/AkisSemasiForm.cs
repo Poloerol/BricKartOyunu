@@ -34,6 +34,7 @@ namespace BricKartOyunu.Forms
         private readonly ListBox _lst = new ListBox();
         private readonly Label _lblKlasor = new Label();
         private readonly Button _btnKlasor = new Button();
+        private readonly CheckBox _chkTurkce = new CheckBox();
         private readonly TabControl _sekmeler = new TabControl();
 
         // Adım adım
@@ -194,7 +195,19 @@ namespace BricKartOyunu.Forms
                 var o = _lst.SelectedItem as Oge;
                 if (o != null) SemaSec(o.Sema);
             };
-            var alt = new Panel { Dock = DockStyle.Bottom, Height = 54 };
+            var alt = new Panel { Dock = DockStyle.Bottom, Height = 80 };
+            _chkTurkce.Text = "Türkçe metin (kapalıyken orijinal İngilizce)";
+            _chkTurkce.Dock = DockStyle.Top;
+            _chkTurkce.Height = 26;
+            _chkTurkce.Checked = AkisSemasi.TurkceKullan;
+            _chkTurkce.CheckedChanged += delegate
+            {
+                AkisSemasi.TurkceKullan = _chkTurkce.Checked;
+                string secili = _sema == null ? null : _sema.DosyaAdi;
+                if (!SemalariYukle()) return;
+                var yeni = _hepsi.FirstOrDefault(x => x.Sema.DosyaAdi == secili);
+                if (yeni != null && _lst.Items.Contains(yeni)) _lst.SelectedItem = yeni;
+            };
             _btnKlasor.Text = "Klasör seç…";
             _btnKlasor.Dock = DockStyle.Right;
             _btnKlasor.Width = 96;
@@ -208,6 +221,7 @@ namespace BricKartOyunu.Forms
             _lblKlasor.TextAlign = ContentAlignment.MiddleLeft;
             alt.Controls.Add(_lblKlasor);
             alt.Controls.Add(_btnKlasor);
+            alt.Controls.Add(_chkTurkce);
             ana.Panel1.Controls.Add(_lst);
             ana.Panel1.Controls.Add(alt);
             ana.Panel1.Controls.Add(_txtAra);

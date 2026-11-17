@@ -59,11 +59,11 @@ namespace BricKartOyunu.Class
             var sema = new AkisSemasi();
             sema.DosyaAdi = Path.GetFileNameWithoutExtension(yol);
             sema.KisaAd = Sat().Trim();
-            sema.Baslik = Sat().Trim();
+            sema.Baslik = Cevir(Sat().Trim());
             int girisSatir = Say();
             var giris = new List<string>();
             for (int k = 0; k < girisSatir; k++) giris.Add(Sat());
-            sema.Giris = Paragraflar(giris);
+            sema.Giris = CevirParagraflar(Paragraflar(giris));
 
             int kutuSayisi = Say();
             var kutular = new List<Kutu>();
@@ -80,7 +80,7 @@ namespace BricKartOyunu.Class
                 int tmp;
                 if (i < s.Length && s[i].Trim().Length > 0 && !int.TryParse(s[i].Trim(), out tmp)) hedef = s[i++].Trim();
                 if (i < s.Length && s[i].Trim().Length == 0) i++;      // kutu ayırıcı boş satır
-                kutular.Add(new Kutu { Etiket = string.Join(" ", etiket.Where(x => x.Length > 0)), Aciklama = Paragraflar(acik), Hedef = hedef });
+                kutular.Add(new Kutu { Etiket = Cevir(string.Join(" ", etiket.Where(x => x.Length > 0))), Aciklama = CevirParagraflar(Paragraflar(acik)), Hedef = hedef });
             }
 
             int satirSayisi = Say();
@@ -125,6 +125,43 @@ namespace BricKartOyunu.Class
             }
             Bitir();
             return string.Join("\n", sonuc);
+        }
+
+        // ── Türkçe çeviri sözlüğü: Resources\AkisSemasi_TR.tsv (İngilizce metin TAB Türkçe metin; satır başına bir parça).
+        // Anahtar, ayrıştırılmış parçadır (başlık, kutu etiketi, giriş/açıklama paragrafı). Sözlükte yoksa metin İngilizce kalır.
+        private static Dictionary<string, string> _sozluk;
+        public static bool TurkceKullan = true;
+
+        private static Dictionary<string, string> SozlukYukle()
+        {
+            var d = new Dictionary<string, string>(StringComparer.Ordinal);
+            try
+            {
+                string yol = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "AkisSemasi_TR.tsv");
+                if (File.Exists(yol))
+                    foreach (string satir in File.ReadAllLines(yol, Encoding.UTF8))
+                    {
+                        int t = satir.IndexOf('\t');
+                        if (t <= 0 || t == satir.Length - 1) continue;
+                        d[satir.Substring(0, t)] = satir.Substring(t + 1);
+                    }
+            }
+            catch { }
+            return d;
+        }
+
+        public static string Cevir(string metin)
+        {
+            if (!TurkceKullan || string.IsNullOrEmpty(metin)) return metin;
+            if (_sozluk == null) _sozluk = SozlukYukle();
+            string tr;
+            return _sozluk.TryGetValue(metin, out tr) ? tr : metin;
+        }
+
+        private static string CevirParagraflar(string paragraflar)
+        {
+            if (string.IsNullOrEmpty(paragraflar)) return paragraflar;
+            return string.Join("\n", paragraflar.Split('\n').Select(Cevir));
         }
 
         /// <summary>$C $D $H $S → ♣ ♦ ♥ ♠ (ekranda gösterim için).</summary>
