@@ -855,11 +855,48 @@ namespace BricKartOyunu
             if (this.IsDisposed || this.Disposing || !this.IsHandleCreated) return;
             if (!this.TopLevel && this.Parent == null) return;
 
+            // Enabled değişimi tüm alt kontrollerin yeniden çizimini tetikler; çizim WndProc içinde olduğundan
+            // aşağıdaki try/catch bu hatayı yakalayamaz. Bu yüzden önce Dispose edilmiş (geçersiz) resimleri temizle.
+            BozukResimleriTemizle(this);
+
             foreach (Control c in this.Controls.Cast<Control>().ToArray())
             {
                 if (c is MenuStrip || c is ToolStrip) continue;
                 try { c.Enabled = enabled; }
                 catch (ArgumentException ex) { System.Diagnostics.Debug.WriteLine("[BricOyna] SetGameControlsEnabled: " + c.Name + ": " + ex.Message); }
+            }
+        }
+
+        /// <summary>
+        /// Kontrol ağacında Dispose edilmiş bir Image/BackgroundImage varsa (çizimde "Parametre geçerli değil"
+        /// ArgumentException'ı verir) onu null yapar. Hangi kontrolün bozuk olduğu Debug çıktısına yazılır.
+        /// </summary>
+        private static void BozukResimleriTemizle(Control kok)
+        {
+            Func<Image, bool> bozukMu = img =>
+            {
+                if (img == null) return false;
+                try { int w = img.Width; return false; }
+                catch (ArgumentException) { return true; }
+            };
+            foreach (Control c in kok.Controls.Cast<Control>().ToArray())
+            {
+                try
+                {
+                    var pb = c as PictureBox;
+                    if (pb != null && bozukMu(pb.Image))
+                    {
+                        System.Diagnostics.Debug.WriteLine("[BricOyna] Bozuk resim temizlendi: PictureBox " + pb.Name);
+                        pb.Image = null;
+                    }
+                    var lbl = c as Label;
+                    if (lbl != null && bozukMu(lbl.Image)) { System.Diagnostics.Debug.WriteLine("[BricOyna] Bozuk resim temizlendi: Label " + lbl.Name); lbl.Image = null; }
+                    var btn = c as ButtonBase;
+                    if (btn != null && bozukMu(btn.Image)) { System.Diagnostics.Debug.WriteLine("[BricOyna] Bozuk resim temizlendi: Button " + btn.Name); btn.Image = null; }
+                    if (bozukMu(c.BackgroundImage)) { System.Diagnostics.Debug.WriteLine("[BricOyna] Bozuk arka plan temizlendi: " + c.GetType().Name + " " + c.Name); c.BackgroundImage = null; }
+                }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[BricOyna] BozukResimleriTemizle: " + ex.Message); }
+                if (c.HasChildren) BozukResimleriTemizle(c);
             }
         }
 
