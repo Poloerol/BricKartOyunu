@@ -11,6 +11,13 @@
 - Güncel motor ortalama sapması: 5,1863 (30.000 bord, 17 Kasım tabanı; başlangıç 5,30); 18 Kasım düzeltmelerinden sonra yaklaşık 5,16. Temel Mantık yedeği Pas dışı tekliflerin yaklaşık %35'ini veriyor.
 - Yedek payı analizi: `Tools/Olcum/kume.awk` (bid kümeleri) ve `pas_sizinti.awk` (yedeğin son pasları). En büyük sızıntı: yedeğin Pas'ları (birleşik 25+ HP, parsiyel kontrat; ~2000 bord, ~7000 IMP fazla sapma).
 
+## Oynama karnesi (2026-11-18, ilk ölçüm: 299 bord, boards 1-300)
+- Araç: `Class/DD/OynamaKarnesi.cs`, arayüzde Eylemler > Oynama Karnesi…, arayüzsüz `Tools/Olcum/OynamaOlc.exe`. İhale motorunun kontratını kart oynama motoru dört elde oynar; fark = deklaran tarafının gerçek lövesi − çift dummy lövesi.
+- PIMC açık (900 ms): ortalama |fark| 0,90 löve; DD ile aynı %38 (fark −1: %24, +1: %19, ±2+: %17); deklaran eksik 96 / savunma eksik 89 bord; ortalama fark +0,03 (iki taraf dengeli).
+- PIMC kapalı (yalnız kurallar): ortalama |fark| 0,94; DD ile aynı %40; ortalama fark −0,10 (deklaran tarafı biraz geride). PIMC'nin net katkısı küçük (~0,13 löve/bord, esas olarak deklaran oyununda).
+- Zayıf nokta NT kontratlar: ortalama |fark| 1,28 (PIMC açık) / 1,53 (kapalı); suit kontratlarda 0,70-0,79. NT'de fark +0,27: savunma (özellikle atak) DD'nin gerisinde kalıyor.
+- Yorum: DD ile aynı olma oranı %40 civarı beklenen aralıkta (motor saklı elleri görmüyor); asıl ölçü, ayarlar değişince |fark| ve ortalama IMP'nin düşmesi. Sıradaki iş: NT atak/savunma kuralları (`OyunZekasi` atak seçimi) ve oyun sonrası analizle hamle bazlı hataları bulmak.
+
 ## Son yapılanlar (Kasım 2026)
 - 18 Kasım, yedek payı azaltma (30.000 bord, üç 10.000'likte de aynı yönde; toplam ~−718 IMP): (1) `CevapciIkinciTur`: açıcının 2x tekrarından sonra 12-13 HP ile Pas/2NT yerine 3NT (−310); (2) `OyunDavetiKabul`: 1M-1NT-3M sonrası 7+ HP ile 4M (−54); (3) yeni `Müdahale Oyun Cevabı`: zayıf iki açılışına ortağın 3 seviye minör müdahalesinden sonra 9+ HP ile 3NT (durdurucu varsa) / 5m (3+ destek) (−352). Denenip eklenmeyenler: 2 seviye majör müdahalesine 4M (−8, anlamsız), atlamalı rebid eşiği 17 (16: −668, 18: −692, 17: −718 en iyi). Testler: `TestRunner_YedekAciklari` (YA1-YA10), M1 beklentisi 3NT; toplam 862 test geçti.
 - Majör oyun eşiği 28,5 → 24,5, davet 23,5 (`TemelMantik.HedefFit`): 30.000 bordda yaklaşık −3.484 IMP.

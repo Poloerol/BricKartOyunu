@@ -52,6 +52,9 @@ namespace BricKartOyunu
             ust.DropDownItems.Add(new ToolStripSeparator());
             ust.DropDownItems.Add(analiz);
             ust.DropDownItems.Add(karne);
+            var oynama = new ToolStripMenuItem("Oynama Karnesi…");
+            oynama.Click += (s, e) => { using (var f = new OynamaKarneForm()) f.ShowDialog(this); };
+            ust.DropDownItems.Add(oynama);
         }
 
         /// <summary>Eylemler > Double Dummy Search: oynanmakta olan eldeki pozisyonu çift dummy arama penceresine verir.</summary>

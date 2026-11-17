@@ -39,3 +39,8 @@ Ana proje `Tools/Olcum/out/` içine derlenir (`bin\Debug`'a değil; çalışan u
   yeniden derlemeden `BK_ADI=değer` ile denenir. Eşik netleşince sabit yazılır, `Deney.Al` çağrısı kaldırılır.
 - `Testler.exe [cikti.txt]`: tüm ihale testlerini arayüzsüz çalıştırır, geçen/kalan sayısını ve başarısızları yazar.
 - Taban dosyaları `Tools/Olcum/veri/` altına konur (git'e girmez): `taban_a|b|c.tsv` (1-10000, 10001-20000, 20001-30000).
+
+## Oynama karnesi
+- `OynamaOlc.exe ilk adet cikti.tsv [pimcMs] [dunya]`: ihale motorunun kontratını kart oynama motoruyla oynatır (dört el, hepsi motor), deklaran tarafının löveyi çift dummy lövesiyle karşılaştırır.
+  pimcMs 0 = PIMC kapalı (yalnız kurallar). Çıktı: bord, kontrat, deklaran, atak, DD, gerçek, fark, IMP. Bord başına ~8 sn (PIMC 900 ms), PIMC kapalıyken ~0,5 sn.
+- Arayüzde: Eylemler > Oynama Karnesi… (aynı işi yapar; satıra çift tıklayınca oynanış görünür).
