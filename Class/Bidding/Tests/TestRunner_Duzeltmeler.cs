@@ -59,6 +59,14 @@ namespace BricKartOyunu.Tests
             T("N31 1C-1S-1NT-2C-2D: 8hcp 5 sinek -> 3C (puppet devamı)", TestHelpers.ElOlustur("QT7", "K2", "875", "KJ863"), "3♣", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas");
             T("N32 1D-1H-1NT-2C-2D: 11hcp dengesiz 5 sinek → 2NT davet", TestHelpers.ElOlustur("Q7", "J982", "43", "AKJ85"), "2NT", "1♦", "Pas", "1♥", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas");
             T("N33 1C-1S-1NT-2C-2D-2NT: açıcı 14hcp -> 3NT", TestHelpers.ElOlustur("K42", "AJ3", "AJ2", "J982"), "3NT", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
+            // Turnuva 1970 Mixed Pairs Bord 24: 1♥-2♠(sıçrama)-3♥-4♣-4♥ sonrası ♠ koz sayılıyor, 4NT/6♠ ile 3 batıyordu (6♥ 12 löve yapar)
+            Rk("N35 1H-2S(sıçrama)-3H-4C-4H: anlaşılan koz Kupa (ortağın sıçramalı majörü değil)",
+                TestHelpers.DurumOlustur(TestHelpers.ElOlustur("KJ96", "K", "AK75", "AQ64"), Player.Guney,
+                    new[] { "Pas", "1♥", "Pas", "2♠", "Pas", "3♥", "Pas", "4♣", "Pas", "4♥", "Pas" }).AnlasilanKoz() == "Kupa");
+            T("N36 1H-2S-3H-4C-4H-4NT-5C: 6♥ (6♠ degil)", TestHelpers.ElOlustur("KJ96", "K", "AK75", "AQ64"), "6♥", "Pas", "1♥", "Pas", "2♠", "Pas", "3♥", "Pas", "4♣", "Pas", "4♥", "Pas", "4NT", "Pas", "5♣", "Pas");
+            // Turnuva 1970 Mixed Pairs Bord 12: 1♥-(1♠)-Dbl(negatif)-(2♠): 15 HP açıcı Pas diyordu, saha 3♥/4♥ oynayıp 9-10 löve aldı
+            T("N37 1H-(1S)-Dbl-(2S): 15hcp 5 kupa -> 3H rekabet", TestHelpers.ElOlustur("A8", "KQJ53", "AT", "KT52"), "3♥", "Pas", "1♥", "1♠", "Dbl", "2♠");
+            T("N38 1H-(1S)-Dbl-(2S): 12hcp asgari -> Pas", TestHelpers.ElOlustur("82", "KQ953", "A74", "QJ2"), "Pas", "Pas", "1♥", "1♠", "Dbl", "2♠");
             T("N34 1C-1S-1NT-2C-2D-2NT: açıcı 12hcp -> Pas", TestHelpers.ElOlustur("K42", "A63", "QJ2", "J982"), "Pas", "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
             T("N24 1H-P: 8hcp ♠AQ10653 2 (7 maca) ♥1054 -> 1S (2H destek degil)", TestHelpers.ElOlustur("AQT6532", "T54", "74", "Q"), "1♠", "1♥", "Pas");
             Rk("N23 Durdurucu: ♦QJ ikili durdurucu degil", !ElDegerlendirici.StopperVar(TestHelpers.ElOlustur("K985", "A8", "QJ", "AKQT7"), "Karo"));

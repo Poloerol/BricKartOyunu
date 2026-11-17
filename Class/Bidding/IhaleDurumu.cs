@@ -400,8 +400,13 @@ namespace BricKartOyunu.Class.Bidding
                         if (!gercekler.Any(h => h.Oyuncu == sahip && h.Koz == r && h.Seviye >= 3)) continue;
                     }
                     string[] s = { "Sinek", "Karo", "Kupa", "Maça" };
-                    bool kontrolVar = gercekler.Any(h => h.Oyuncu == diger && h.Seviye == 4 && h.Koz != "NT" &&
-                                                         h.Koz != r && Array.IndexOf(s, h.Koz) < Array.IndexOf(s, r));
+                    // Koz yalnızca ortağın sıçramalı majörüne (tek söyleyiş) dayanıyorsa kontrol teklifi YENİ bir renk olmalı:
+                    // diğerinin daha önce söylediği rengi 4 seviyede tekrarı (1♥–2♠–3♥–4♣–4♥) kontrol değil kendi rengidir
+                    // ve destek göstermeyen ortağın sıçramalı majörünü koz yapmaz.
+                    bool kontrolVar = gercekler.Select((h, ix) => new { h, ix }).Any(p =>
+                        p.h.Oyuncu == diger && p.h.Seviye == 4 && p.h.Koz != "NT" &&
+                        p.h.Koz != r && Array.IndexOf(s, p.h.Koz) < Array.IndexOf(s, r) &&
+                        (!sicrama || !gercekler.Take(p.ix).Any(x => x.Oyuncu == diger && x.Koz == p.h.Koz)));
                     if (!kontrolVar) continue;
                     return r;
                 }

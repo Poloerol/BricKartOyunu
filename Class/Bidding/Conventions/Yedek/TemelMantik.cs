@@ -1400,6 +1400,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (u <= 2 || (u >= 4 && ust >= 2)) return "Dbl";
             }
 
+            // (D) Ortak negatif kontra yaptı (başka teklifi yok: 6+ HP gösterdi), rakip müdahale rengini destekledi (1♥–(1♠)–Dbl–(2♠)):
+            // 15+ HP ve 5+ kartlı açış rengimle 3 seviyede rekabete gir. Pas = rakibe 2M'yi bırakmak; ortakla ≥21 HP varken
+            // saha 3M/4M oynayıp 9-10 löve almış (1970 Mixed Pairs Bord 12).
+            if (!ortakKonustu && hp >= 15 && acilis != "NT" && son.Koz != "NT" && son.Koz != acilis &&
+                d.Rakipler.Contains(son.Oyuncu) && son.Seviye <= 2 &&
+                gercek.Count(h => d.Rakipler.Contains(h.Oyuncu) && h.Koz == son.Koz) >= 2 &&
+                d.Gecmis.Any(h => h.Oyuncu == d.Partner && h.Teklif == "Dbl") &&
+                ElDegerlendirici.RenkUzunlugu(el, acilis) >= 5 && Cheapest(d, acilis) == 3)
+                return Seviye(d, acilis, 3);
+
             return "Pas";
         }
 
