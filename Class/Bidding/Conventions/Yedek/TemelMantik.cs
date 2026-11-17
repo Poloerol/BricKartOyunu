@@ -1073,7 +1073,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // Açıcının ikinci teklifi: ortak 1 seviyede yeni renk dedi, rakip konuşmadı, 17+ HP ve 6+ kartlık
                 // kendi rengim var → sıçrama rebid (1♦–1♠–3♦ = 17-18 HP, davet); asgari 2♦ güçlü eli gösteremez.
                 // 7+ kartlık renkte her fazla kart 1 dağılım puanı: 16 HP + 7'li renk = 17 değer
-                int degerSic = hp + (uzLen >= 7 ? uzLen - 6 : 0);
+                int degerSic = hp + (uzLen >= 7 ? uzLen - 6 : 0) + (uzLen >= 7 && el.Count(c => c.Suit == uz && c.Value >= 10) >= 4 ? 1 : 0);   // 7'li renkte 4+ büyük honör (AKQT...): +1 (vugraph bord 9)
                 if (degerSic >= 17 && u == 2 && gercek.Count == 2 && gercek[0].Oyuncu == d.AktifOyuncu &&
                     gercek[0].Koz == uz && gercek[0].Seviye == 1 && gercek[1].Oyuncu == d.Partner &&
                     gercek[1].Seviye == 1 && gercek[1].Koz != "NT" && gercek[1].Koz != uz)
