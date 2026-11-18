@@ -101,6 +101,7 @@ namespace BricKartOyunu
             UpdateInfoBoard(_dealer);
             OyunBilgiPaneliniGuncelle();
             KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, _seed);
+            PbnAdlariniUygula(bord);   // PBN'deki oyuncu adları ellerin altındaki rozetlere
             this.Refresh();
 
             var cevap = MessageBox.Show(this, "Eller girildiği gibi ihale edilip oynansın mı?", "Dağılım Deposu",

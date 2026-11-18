@@ -156,6 +156,8 @@ namespace BricKartOyunu.Forms
         public bool DagiticiVar;
         public Player Dagitici;                      // fiziksel koltuk
         public string[] El = new string[4];          // fiziksel Kuzey, Doğu, Güney, Batı: "S.H.D.C"
+        /// <summary>[North]/[East]/[South]/[West] etiketlerindeki oyuncu adları (fiziksel Kuzey, Doğu, Güney, Batı); yoksa boş.</summary>
+        public string[] Oyuncu = { "", "", "", "" };
     }
 
     /// <summary>Basit PBN okuyucu: [Deal], [Dealer], [Event] etiketlerini okur.</summary>
@@ -172,6 +174,7 @@ namespace BricKartOyunu.Forms
             if (_onbellek != null && _yol == yol && _zaman == z) return _onbellek;
 
             string ad = "", deal = null, dealer = null, acik = "";
+            var adlar = new[] { "", "", "", "" };
             foreach (var satir in File.ReadAllLines(yol))
             {
                 var m = Etiket.Match(satir.Trim());
@@ -180,21 +183,32 @@ namespace BricKartOyunu.Forms
                 if ((tag == "Event" || tag == "Deal") && deal != null)
                 {
                     var b = Coz(deal, dealer, ad, acik);
-                    if (b != null) liste.Add(b);
-                    ad = ""; deal = null; dealer = null; acik = "";
+                    if (b != null) { b.Oyuncu = adlar; liste.Add(b); }
+                    ad = ""; deal = null; dealer = null; acik = ""; adlar = new[] { "", "", "", "" };
                 }
                 if (tag == "Event") ad = deger;
                 else if (tag == "Description") acik = deger;
                 else if (tag == "Dealer") dealer = deger;
                 else if (tag == "Deal") deal = deger;
+                else if (tag == "North") adlar[0] = OyuncuAdiTemizle(deger);
+                else if (tag == "East") adlar[1] = OyuncuAdiTemizle(deger);
+                else if (tag == "South") adlar[2] = OyuncuAdiTemizle(deger);
+                else if (tag == "West") adlar[3] = OyuncuAdiTemizle(deger);
             }
             if (deal != null)
             {
                 var b = Coz(deal, dealer, ad, acik);
-                if (b != null) liste.Add(b);
+                if (b != null) { b.Oyuncu = adlar; liste.Add(b); }
             }
             _yol = yol; _zaman = z; _onbellek = liste;
             return liste;
+        }
+
+        /// <summary>PBN'de bilinmeyen oyuncu "-" ya da "?" yazılır: boş sayılır.</summary>
+        private static string OyuncuAdiTemizle(string s)
+        {
+            s = (s ?? "").Trim();
+            return s == "-" || s == "?" ? "" : s;
         }
 
         private static int KoltukNo(char c)

@@ -635,7 +635,7 @@ namespace BricKartOyunu
                 CreateBadge(out lblN_Dir, out lblN_Name, "N", "Oyuncu 3", 0, 0);
                 CreateBadge(out lblS_Dir, out lblS_Name, "G", "Siz", 0, 0);
                 CreateBadge(out lblW_Dir, out lblW_Name, "B", "Oyuncu 2", 0, 0);
-                CreateBadge(out lblE_Dir, out lblE_Name, "E", "Oyuncu 4", 0, 0);
+                CreateBadge(out lblE_Dir, out lblE_Name, "D", "Oyuncu 4", 0, 0);
             }
 
             int bosluk = 1;
@@ -682,6 +682,29 @@ namespace BricKartOyunu
             lblS_Dir.Text = KoltukHaritasi.Harf(KoltukHaritasi.Fiz(Player.Guney));
             lblW_Dir.Text = KoltukHaritasi.Harf(KoltukHaritasi.Fiz(Player.Bati));
             lblE_Dir.Text = KoltukHaritasi.Harf(KoltukHaritasi.Fiz(Player.Dogu));
+        }
+
+        private string[] _rozetVarsayilanAdlari;   // Kuzey, Doğu, Güney, Batı rozetlerinin PBN dışındaki adları
+
+        /// <summary>
+        /// PBN bordundaki [North]/[East]/[South]/[West] adlarını ellerin altındaki ad rozetlerine yazar.
+        /// Bord null ya da ad yoksa rozet varsayılan adına döner. Rozet adı sığacak kadar genişler.
+        /// </summary>
+        private void PbnAdlariniUygula(PbnBord bord)
+        {
+            Label[] rozetler = { lblN_Name, lblE_Name, lblS_Name, lblW_Name };
+            if (rozetler.Any(r => r == null)) return;
+            if (_rozetVarsayilanAdlari == null) _rozetVarsayilanAdlari = rozetler.Select(r => r.Text).ToArray();
+            Player[] oyuncular = { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            for (int i = 0; i < 4; i++)
+            {
+                int fizIdx = Array.IndexOf(oyuncular, KoltukHaritasi.Fiz(oyuncular[i]));
+                string ad = bord != null && bord.Oyuncu != null && fizIdx >= 0 ? bord.Oyuncu[fizIdx] : "";
+                string yazi = string.IsNullOrWhiteSpace(ad) ? _rozetVarsayilanAdlari[i] : ad;
+                rozetler[i].Text = yazi;
+                int genislik = TextRenderer.MeasureText(yazi, rozetler[i].Font).Width + 10;
+                rozetler[i].Width = Math.Max(80, genislik);
+            }
         }
 
         /// <summary>Oyun Planı'ndaki insan koltuğunu uygular (yeni bord başında / açılışta).</summary>

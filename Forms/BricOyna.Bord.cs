@@ -400,6 +400,7 @@ namespace BricKartOyunu
         private List<string> DagitimiUret()
         {
             if (_depoDeste != null) return _depoDeste;   // Dağılım Deposu bordu (yeni bord başlayınca silinir)
+            PbnAdlariniUygula(UretilmisBord());          // Oluşturulmuş dağılım dosyasındaki oyuncu adları (yoksa varsayılan adlar)
             if (PratikModu) return KonvansiyonPratigi.Deste(PratikDagitimlari[_pratikIndeks]);
             if (_manuelDeste != null && _manuelDeste.Count == 52 && ManuelGirisModu()) return new List<string>(_manuelDeste);   // Kullanıcı Girişli Dağılım
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();

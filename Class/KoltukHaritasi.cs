@@ -64,7 +64,7 @@ namespace BricKartOyunu.Class
             switch (fiz)
             {
                 case Player.Kuzey: return "N";
-                case Player.Dogu: return "E";
+                case Player.Dogu: return "D";
                 case Player.Guney: return "G";
                 default: return "B";
             }
