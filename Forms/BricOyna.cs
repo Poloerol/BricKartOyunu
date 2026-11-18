@@ -883,6 +883,7 @@ namespace BricKartOyunu
             foreach (Control c in this.Controls.Cast<Control>().ToArray())
             {
                 if (c is MenuStrip || c is ToolStrip) continue;
+                if (c == seedPanel) { SeedPaneliDurumunuGuncelle(); continue; }   // seed paneli dağıtım kaynağına göre (ihale sırasında kapanmaz)
                 try { c.Enabled = enabled; }
                 catch (ArgumentException ex) { System.Diagnostics.Debug.WriteLine("[BricOyna] SetGameControlsEnabled: " + c.Name + ": " + ex.Message); }
             }

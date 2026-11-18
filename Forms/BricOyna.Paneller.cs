@@ -244,9 +244,22 @@ namespace BricKartOyunu
 
             this.Controls.Add(seedPanel);
             seedPanel.BringToFront();
+            SeedPaneliDurumunuGuncelle();
 
             System.Diagnostics.Debug.WriteLine(
                 "[SetupSeedPanel] Seed paneli oluşturuldu.");
+        }
+
+        /// <summary>
+        /// Seed Yönetimi (ComboBox + Sil / Dağıt): yalnızca Ayarlar > Oyun Planı > Dağıtım Kaynağı "Numaralı Rastgele Eller"
+        /// seçiliyken aktif (ihale sırasında da); diğer kaynaklarda pasif.
+        /// </summary>
+        private void SeedPaneliDurumunuGuncelle()
+        {
+            if (seedPanel == null || seedPanel.IsDisposed) return;
+            var plan = AnaSayfa.OyunPlani;
+            bool numarali = plan != null && plan.DagitimKaynagi == DagitimKaynagi.NumaraliRastgele;
+            if (seedPanel.Enabled != numarali) seedPanel.Enabled = numarali;
         }
 
         /// <summary>
