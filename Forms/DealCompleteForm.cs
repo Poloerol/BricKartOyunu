@@ -122,12 +122,15 @@ namespace BricKartOyunu.Forms
             if (BricKartOyunu.Class.MacDurumu.SonBord)
             {
                 // Maç bitti → "Briç Maçı Skoru" (oyun sayfasının ortasında açılır)
-                using (var m = new MacSkorForm(_bricOyna))
-                    m.ShowDialog(this);
+                // Modal değil: açıkken İhale Geçmişi / Oynanan Eller / menüler kullanılabilir. Zaten açıksa öne getirilir.
+                var acikMac = System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.OfType<MacSkorForm>(Application.OpenForms));
+                if (acikMac != null) { acikMac.BringToFront(); acikMac.Activate(); return; }
+                new MacSkorForm(_bricOyna).Show(this);
                 return;
             }
-            using (var f = new DuplicateSkorForm(_bricOyna))
-                f.ShowDialog(this);
+            var acik = System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.OfType<DuplicateSkorForm>(Application.OpenForms));
+            if (acik != null) { acik.BringToFront(); acik.Activate(); return; }
+            new DuplicateSkorForm(_bricOyna).Show(this);
         }
 
         private void BtnReplay_Click(object sender, EventArgs e)

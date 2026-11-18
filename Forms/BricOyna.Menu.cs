@@ -463,10 +463,15 @@ namespace BricKartOyunu
                 return;
             }
 
-            using (IhaleGecmisiForm form = new IhaleGecmisiForm(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu))
+            // Modal değil: açıkken Oynanan Eller / menüler ve Deal Complete kullanılabilir.
+            var acik = Application.OpenForms.OfType<IhaleGecmisiForm>().FirstOrDefault();
+            if (acik != null)
             {
-                form.ShowDialog(this);
+                acik.Guncelle(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu);
+                acik.Show(); acik.BringToFront(); acik.Activate();
+                return;
             }
+            new IhaleGecmisiForm(_sonIhaleGecmisi, _ihaleBaslangicOyuncusu).Show(this);
         }
 
         private void IhaleYorumuToolStripMenuItem_Click(object sender, EventArgs e)
