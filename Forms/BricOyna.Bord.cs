@@ -236,9 +236,9 @@ namespace BricKartOyunu
         /// Tamam'da numara değişmişse eller o numarayla yeniden dağıtılır; "Tüm elleri göster" işaretliyse dört el açılır.
         /// Pencere kapanınca (X dahil) normal akış sürer ve DekBasForm açılır.
         /// </summary>
-        private void ElNumarasiSor()
+        private bool ElNumarasiSor()
         {
-            if (!NumaraliKaynakMi()) return;
+            if (!NumaraliKaynakMi()) return true;
             try
             {
                 using (var f = new ElNumarasiForm(_seed))
@@ -248,7 +248,12 @@ namespace BricKartOyunu
                         f.MerkezEkran = playZonePanel.PointToScreen(new Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
                     // "Tüm elleri göster" kutusu anında yansır: işaretli -> dört el açık, değil -> yalnızca Güney'in eli
                     f.TumElleriDegisti += gost => ElleriGosterAyarla(gost);
-                    if (f.ShowDialog(this) != DialogResult.OK) return;
+                    if (f.ShowDialog(this) != DialogResult.OK)
+                    {
+                        // X (ya da Esc) ile kapatıldı: oyun açılmaz, AnaSayfa'ya dönülür
+                        Close();
+                        return false;
+                    }
                     if (f.Numara != _seed)
                     {
                         KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, f.Numara);   // yeniden dağıtım gösterimi sıfırlar
@@ -263,6 +268,7 @@ namespace BricKartOyunu
             {
                 System.Diagnostics.Debug.WriteLine("[BricOyna] El Numarası penceresi hatası: " + ex.Message);
             }
+            return true;
         }
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
         private struct RECT { public int Left, Top, Right, Bottom; }
@@ -442,7 +448,7 @@ namespace BricKartOyunu
             else KartlariDagitRastgele(AnaSayfa.SeciliKartSeti);
 
             // 8) Numaralı Rastgele Eller: önce Dağılım Numarası penceresi; sonra yeni DekBasForm aç
-            ElNumarasiSor();
+            if (!ElNumarasiSor()) return;
             PratikDuyurusu();
             YeniDekBasFormAc();
         }
@@ -846,7 +852,7 @@ namespace BricKartOyunu
             // 🔹 YENİ: Bilgi panelini güncelle (yeni Dealer ve Zon görünsün)
             OyunBilgiPaneliniGuncelle();
 
-            ElNumarasiSor();   // Numaralı Rastgele Eller: önce Dağılım Numarası penceresi, Tamam'dan sonra DekBasForm
+            if (!ElNumarasiSor()) return;   // Numaralı Rastgele Eller: önce Dağılım Numarası penceresi, Tamam'dan sonra DekBasForm
             PratikDuyurusu();
             YeniDekBasFormAc();
         }
