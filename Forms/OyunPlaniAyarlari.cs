@@ -378,12 +378,9 @@ namespace BricKartOyunu.Forms
             return 0;
         }
 
-        private bool _yukleniyor;
-
         private void Yukle(OyunPlaniSecenekleri o)
         {
-            _yukleniyor = true;
-            try { YukleIc(o); } finally { _yukleniyor = false; }
+            YukleIc(o);
         }
 
         /// <summary>PBN dosyası seçtirir; en az bir geçerli bord varsa true.</summary>

@@ -143,8 +143,14 @@ namespace BricKartOyunu
 
         private void BtnOtoOyna_Click(object sender, EventArgs e)
         {
+            // Otomatik oynatma sürerken düğmeye tekrar basmak onu durdurur: kalan kartlar elle oynanır
+            if (_tumAI)
+            {
+                OtomatikOynatmayiDurdurVeElleDevamEt();
+                return;
+            }
             // Yalnızca yer oyunu (kart oynama) aşamasında çalışır
-            if (_oyunAsamasi != OyunAsamasi.Oyun || _tumAI) return;
+            if (_oyunAsamasi != OyunAsamasi.Oyun) return;
             if (_oynananToplamEl >= 13) return;
 
             DialogResult sonuc;
@@ -156,6 +162,20 @@ namespace BricKartOyunu
             if (sonuc == DialogResult.Yes) OtomatikOyna(true);
             else if (sonuc == DialogResult.No) OtomatikOyna(false);
             // pencere X ile kapatıldıysa hiçbir şey yapma
+        }
+
+        /// <summary>
+        /// Otomatik oynatmayı keser; bekleyen AI hamlesi iptal edilir. Sıra insan oyuncudaysa (Güney / dummy)
+        /// kullanıcı oynar, sıra AI'daysa normal oyundaki gibi AI kendi kartını oynar.
+        /// </summary>
+        private void OtomatikOynatmayiDurdurVeElleDevamEt()
+        {
+            TumAIyiDurdur();
+            _aiTimer?.Stop();
+            _aiTimer?.Dispose();
+            _aiTimer = null;
+            GeriAlIleriAlButonlariniGuncelle();
+            if (!_elBittiBekliyor && _oyunAsamasi == OyunAsamasi.Oyun) AITetikle();   // sıra AI'daysa normal akışla oynar
         }
 
         private void OtomatikOyna(bool duraklamasiz)
