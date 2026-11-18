@@ -117,7 +117,7 @@ namespace BricKartOyunu
                     var ana = AnaSayfaBul();
                     if (ana != null) islem();
                 };
-                ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, oge);
+                ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count, oge);
             };
 
             ekle("Oyun Ayarları", () => AnaSayfaBul().OyunAyarlariToolStripMenuItem_Click(this, EventArgs.Empty), false);
@@ -125,7 +125,7 @@ namespace BricKartOyunu
             ekle("E/W Ortaklık Ayarları", () => AnaSayfaBul().OrtaklikProfiliAc(Taraf.EW), true);
             ekle("Basit N/S Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.NS), true);
             ekle("Basit E/W Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.EW), true);
-            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count, new ToolStripSeparator());
             ekle("Ayarları Sıfırla", () =>
             {
                 AnaSayfaBul().AyarlariSifirla();
@@ -134,8 +134,8 @@ namespace BricKartOyunu
                 PlayZoneRenginiGuncelle();
             }, false);
             var cikistaKaydet = new ToolStripMenuItem("Ayarları Çıkışta Kaydet") { CheckOnClick = true, Checked = true };
-            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, cikistaKaydet);
-            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count, cikistaKaydet);
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count, new ToolStripSeparator());
             ekle("Kaydetme Seçenekleri", () =>
             {
                 bool tamam = AnaSayfa.OyunPlani.Kaydet();
@@ -147,7 +147,7 @@ namespace BricKartOyunu
                 AnaSayfa.OyunPlani = OyunPlaniSecenekleri.Yukle();
                 MessageBox.Show(this, "Oyun ayarları kayıtlı dosyadan yüklendi.", "Ayarlar", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }, false);
-            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count, new ToolStripSeparator());
         }
         private void MasaRengiToolStripMenuItem_Click(object sender, EventArgs e)
         {
