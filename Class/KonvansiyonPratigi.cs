@@ -97,7 +97,7 @@ namespace BricKartOyunu.Class
         {
             new KeyValuePair<string, string[]>("Açılışlar", new[] {
                 "1♣ Açılış Sistemi", "1♦ Açılış Sistemi", "1♣ Cevap Sistemi", "1♦ Cevap Sistemi", "1♥ Cevap Sistemi", "1♠ Cevap Sistemi", "1NT Cevap Sistemi", "2♣ Açıcı Tekrarı", "Sıçrama Sonrası Açıcı", "2♣ Cevap Sistemi", "2♦ Açılış Sistemi", "2♥ Cevap Sistemi", "2♠ Cevap Sistemi", "2NT Cevap Sistemi", "2♣ Röle Sistemi", "Araya Giriş Cevapları", "İki Renkli Araya Girişler", "5'li Majör", "Strong NT", "2♣ Güçlü", "Benjamin Two-Bids",
-                "Zayıf İki", "Zayıf İki Cevap", "Zayıf İki Müdahale", "Multi 2♦", "Preempt", "Preempt Cevap", "Namyats",
+                "Zayıf İki", "Zayıf İki Cevap", "Zayıf İki Müdahale", "Zayıf İki Müdahale Cevabı", "Multi 2♦", "Preempt", "Preempt Cevap", "Namyats",
                 "Ogust", "Feature Asking 2NT", "Gambling 3NT", "Mini-Roman 2D", "Flannery" }),
             new KeyValuePair<string, string[]>("1NT Çevresi", new[] {
                 "Stayman", "Jacoby Transfer", "Minor Transfer", "Puppet Stayman", "Smolen", "Extended Stayman", "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Lebensohl",

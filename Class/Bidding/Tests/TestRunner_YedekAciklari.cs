@@ -75,6 +75,11 @@ namespace BricKartOyunu.Tests
             M("YA37 1♣-2♠, 19 HP oynanmamış 4'lü karo -> 3♦ (3NT değil)", TestHelpers.ElOlustur("KJ", "K", "QJ83", "AKQT43"), "3♦", "1♣", "Pas", "2♠", "Pas");
             M("YA38 1♣-2♠, 3 maça destek -> 3♠", TestHelpers.ElOlustur("KJ4", "K", "QJ8", "AKQT43"), "3♠", "1♣", "Pas", "2♠", "Pas");
             M("YA39 1♣-2♠, destek yok, 4'lü renk yok, 6'lı sinek -> 3♣", TestHelpers.ElOlustur("K2", "Q3", "J32", "AKQ943"), "3♣", "1♣", "Pas", "2♠", "Pas");
+            // Rakibin zayıf iki açılışına ortağın 2NT müdahalesi sonrası doğal cevap
+            M("YA40 (2♦)-2NT-(Pas), 13 HP dengeli -> 3NT", TestHelpers.ElOlustur("KQ85", "AQ4", "873", "Q94"), "3NT", "Pas", "2♦", "2NT", "Pas");
+            M("YA41 (2♦)-2NT-(Pas), 11 HP 6'lı maça -> 4♠", TestHelpers.ElOlustur("KJT984", "AT962", "K", "5"), "4♠", "Pas", "2♦", "2NT", "Pas");
+            M("YA42 (2♥)-2NT-(Pas), 5 HP dengeli -> Pas", TestHelpers.ElOlustur("9852", "Q94", "K862", "Q9"), "Pas", "Pas", "2♥", "2NT", "Pas");
+            M("YA43 (2♠)-2NT-(Pas), 19 HP dengeli -> 6NT", TestHelpers.ElOlustur("A5", "AKQ4", "KJ86", "KQ4"), "6NT", "Pas", "2♠", "2NT", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

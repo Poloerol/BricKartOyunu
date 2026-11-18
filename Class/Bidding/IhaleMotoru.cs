@@ -170,6 +170,7 @@ namespace BricKartOyunu.Class.Bidding
                 new PreemptCevap(),          // ortağın 3'lü bozucu açılışına cevap
                 new ZayifIkiCevap(),         // ortağın zayıf iki açılışına cevap
                 new ZayifIkiMudahale(),      // rakibin zayıf iki açılışına müdahale
+                new ZayifIkiMudahaleCevap(), // ortağın 2NT müdahalesine doğal cevap
                 new Lebensohl_Reverse(),
                 new Lebensohl_WeakTwo(),
                 new Lebensohl(),
@@ -673,6 +674,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Preempt Cevap": return _anlasma.Preempt;
                 case "Zayıf İki Cevap": return _anlasma.ZayifIki && !_anlasma.Multi2D;
                 case "Zayıf İki Müdahale": return _anlasma.ZayifIki && !_anlasma.Multi2D;
+                case "Zayıf İki Müdahale Cevabı": return _anlasma.ZayifIki && !_anlasma.Multi2D;
                 case "Namyats": return _anlasma.Namyats;
 
                 case "1♣ Cevap Sistemi": return _anlasma.OneClub_AnswerSistemi;

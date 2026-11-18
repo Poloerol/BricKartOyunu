@@ -265,6 +265,7 @@
     <Compile Include="Class\Bidding\Conventions\Mudahale\Unusual2NT.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\WeakJumpOvercalls.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\ZayifIkiMudahale.cs" />
+    <Compile Include="Class\Bidding\Conventions\Mudahale\ZayifIkiMudahaleCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\NT\ExitTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\NT\ExtendedStayman.cs" />
     <Compile Include="Class\Bidding\Conventions\NT\JacobyTransfer.cs" />
