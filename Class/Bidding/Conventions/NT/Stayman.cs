@@ -222,6 +222,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (smolenAcik && hp >= 10 && kupa == 5 && maca == 4) return "3♠"; // Smolen
 
                     if (hp >= 8 && hp <= 9) return "2NT";
+                    if (hp >= 17) return "6NT";   // 1NT (15-17) + 17+ HP: şlem bölgesi (ölçüm: eşik 18 -45, 17 -68 IMP; 30.000 bord), majör fiti yok
                     if (hp >= 10) return "3NT";
 
                     return "Pas";   // 8 HP altı (garbage Stayman): 2♦'de dur; 2NT daveti 8-9 HP ister
@@ -242,6 +243,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
                     // Açıcı 4'lü maçası olsaydı 2♠ derdi → maça fiti yok, NT'de bitir (5'li maça varsa doğal 2♠)
                     if (maca >= 5) return "2♠";
+                    if (hp >= 17) return "6NT";   // 1NT (15-17) + 17+ HP: şlem bölgesi (ölçüm: eşik 18 -45, 17 -68 IMP; 30.000 bord), majör fiti yok
                     if (hp >= 10) return "3NT";
                     if (hp >= 8) return "2NT";
                     return "Pas";
@@ -259,6 +261,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                         return "Pas";   // 8 HP altı: 2♠'de dur (3♠ daveti 8-9 HP ister)
                     }
 
+                    if (hp >= 17) return "6NT";   // 1NT (15-17) + 17+ HP: şlem bölgesi (ölçüm: eşik 18 -45, 17 -68 IMP; 30.000 bord), majör fiti yok
                     if (hp >= 10) return "3NT";
                     if (hp >= 8) return "2NT";
                     return "Pas";

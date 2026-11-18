@@ -50,6 +50,10 @@ namespace BricKartOyunu.Tests
             M("YA17 4NT'ye 1 kilit kart (♠A) + ♣ void -> 5♣ (1430: 1/4)", TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), "5♣", "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas", "4NT", "Pas");
             M("YA18 4NT'ye 2 kilit kart (♠A, ♠K; ♠Q yok) + ♣ void -> 5♥", TestHelpers.ElOlustur("AK765", "KQT87", "QJ2", ""), "5♥", "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas", "4NT", "Pas");
             M("YA19 4NT'ye 3 kilit kart (♠A, ♠K, ♥A) + ♣ void -> 5♦ (1430: 0/3)", TestHelpers.ElOlustur("AK765", "AQT87", "QJ2", ""), "5♦", "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas", "4NT", "Pas");
+            // Stayman devamı: majör fiti yoksa 17+ HP ile 3NT yerine 6NT (1NT 15-17 ile birleşik şlem bölgesi)
+            M("YA21 1NT-2♣-2♥, 18 HP kupa fiti yok -> 6NT", TestHelpers.ElOlustur("A973", "AK9", "K843", "A7"), "6NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas");
+            M("YA22 1NT-2♣-2♥, 17 HP kupa fiti yok -> 6NT", TestHelpers.ElOlustur("A973", "AK9", "K843", "K7"), "6NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas");
+            M("YA23 1NT-2♣-2♥, 16 HP kupa fiti yok -> 3NT", TestHelpers.ElOlustur("A973", "AK9", "K843", "Q7"), "3NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";
