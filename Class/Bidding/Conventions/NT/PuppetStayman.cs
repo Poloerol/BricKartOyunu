@@ -58,6 +58,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 int maca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
                 int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
+                // 5+ kartlık majör Puppet Stayman'ın işi değil (IkiNTMajorCevap: 5'li doğal 3M, 6+ fit/oyun/slam)
+                if (maca >= 5 || kupa >= 5) return false;
                 if (maca >= 4 || kupa >= 4) return true;
 
                 // 3'lü majör + oyun gücü (2NT 20-21 + en az 5 HP = 25+): açıcıda 5'li majör

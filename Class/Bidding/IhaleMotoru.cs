@@ -150,6 +150,7 @@ namespace BricKartOyunu.Class.Bidding
                 new WolffSignoff(),
                 new Quantitative4NT(),
                 new TexasTransfers(),
+                new IkiNTMajorCevap(),
                 new MinorStayman(),
                 new Flannery(),
                 new Kokish(),

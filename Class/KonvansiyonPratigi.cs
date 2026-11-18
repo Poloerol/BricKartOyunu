@@ -101,7 +101,7 @@ namespace BricKartOyunu.Class
                 "Ogust", "Feature Asking 2NT", "Gambling 3NT", "Mini-Roman 2D", "Flannery" }),
             new KeyValuePair<string, string[]>("1NT Çevresi", new[] {
                 "Stayman", "Jacoby Transfer", "Minor Transfer", "Puppet Stayman", "Smolen", "Extended Stayman", "Quantitative 4NT", "Texas Transfers", "Minor Stayman", "Lebensohl",
-                "Puppet Stayman (1NT)", "Minor Relay (1NT-2♠)", "Stayman (2NT)" }),
+                "Puppet Stayman (1NT)", "Minor Relay (1NT-2♠)", "Stayman (2NT)", "2NT Majör Cevabı" }),
             new KeyValuePair<string, string[]>("Cevaplar ve Oyun Denemeleri", new[] {
                 "Inverted Minors", "Forcing NT", "2/1 Game Force", "Jacoby 2NT", "Splinter", "Splinter Cevap", "Drury", "Bergen Raises", "Inverted Bergen Raises",
                 "Trial Bid", "Long & Short Game Tries", "İki Yönlü Checkback", "New Minor Forcing", "Wolff Signoff", "Fit Cue-Bid", "Semi-Forcing 1NT",

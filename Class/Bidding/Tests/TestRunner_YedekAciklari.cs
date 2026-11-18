@@ -56,6 +56,12 @@ namespace BricKartOyunu.Tests
             M("YA23 1NT-2♣-2♥, 16 HP kupa fiti yok -> 3NT", TestHelpers.ElOlustur("A973", "AK9", "K843", "Q7"), "3NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas");
             // Ortak 2NT (18-19) dedi, fit minörde ama el dengeli: 6♦ yerine 6NT (aynı löve, daha çok puan)
             M("YA24 1♦-1♥-2NT, 17 HP dengeli karo fiti -> 6NT (6♦ değil)", TestHelpers.ElOlustur("K2", "QJT3", "AQJT", "KJ6"), "6NT", "1♦", "Pas", "1♥", "Pas", "2NT", "Pas");
+            // 2NT açılışına uzun majörlü cevaplar (açıcıda her renkte en az 2 kart): 5'li = doğal 3M, 6+ = fit (slam değerinde 6M)
+            M("YA25 2NT-?, 5'li kupa 8 HP -> 3♥ (Puppet Stayman değil)", TestHelpers.ElOlustur("2", "AKQ96", "J87", "KJ76"), "3♥", "2NT", "Pas");
+            M("YA26 2NT-?, 7'li kupa 14 HP -> 6♥ (fit bulundu, slam)", TestHelpers.ElOlustur("", "AKQ9632", "J8", "KJ76"), "6♥", "2NT", "Pas");
+            M("YA27 2NT-3♥, açıcıda 3 kupa -> 4♥", TestHelpers.ElOlustur("A82", "K32", "J87", "KJ76"), "4♥", "2NT", "Pas", "3♥", "Pas");
+            M("YA28 2NT-3♥, açıcıda 2 kupa -> 3NT", TestHelpers.ElOlustur("A82", "K3", "J872", "KJ76"), "3NT", "2NT", "Pas", "3♥", "Pas");
+            M("YA29 2NT-3♠, açıcıda 3 maça -> 4♠", TestHelpers.ElOlustur("A82", "A32", "J87", "KJ76"), "4♠", "2NT", "Pas", "3♠", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";
