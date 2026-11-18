@@ -656,6 +656,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (fit != null && fit != "NT")
             {
                 int T = HedefFit(fit, est, dengeli && NTOlur(el, rakipRenkleri), dar, fitToplam);
+                // Ortak NT dedi (ör. 1♦-1♥-2NT), minör slam hedefi + dengeli el (NT durdurucuları tam): 6NT (aynı löve, 6m yerine daha çok puan; ikili turnuvada fark sıralamayı değiştirir). Tüm minör slamlarda +28 IMP kötü, yalnız ortak NT dedikten sonra nötr.
+                if (!Major(fit) && T >= 6 && dengeli && NTOlur(el, rakipRenkleri) && Cheapest(d, "NT") <= 6 &&
+                    sonOrtak && gercek.Count > 0 && gercek[gercek.Count - 1].Koz == "NT")
+                    return Seviye(d, "NT", 6);
                 // Bergen açıkken 3 kartlık destekle ilk cevapta 3M sıçraması yapılmaz: 5+ kartlık yan renk varsa onu söyle.
                 if (T >= 3 && d.Anlasma != null && d.Anlasma.BergenRaises && !d.Anlasma.InvertedBergenRaises &&
                     Major(fit) && gercek.Count == 1 && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 &&

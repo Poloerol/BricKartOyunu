@@ -54,6 +54,8 @@ namespace BricKartOyunu.Tests
             M("YA21 1NT-2♣-2♥, 18 HP kupa fiti yok -> 6NT", TestHelpers.ElOlustur("A973", "AK9", "K843", "A7"), "6NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas");
             M("YA22 1NT-2♣-2♥, 17 HP kupa fiti yok -> 6NT", TestHelpers.ElOlustur("A973", "AK9", "K843", "K7"), "6NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas");
             M("YA23 1NT-2♣-2♥, 16 HP kupa fiti yok -> 3NT", TestHelpers.ElOlustur("A973", "AK9", "K843", "Q7"), "3NT", "1NT", "Pas", "2♣", "Pas", "2♥", "Pas");
+            // Ortak 2NT (18-19) dedi, fit minörde ama el dengeli: 6♦ yerine 6NT (aynı löve, daha çok puan)
+            M("YA24 1♦-1♥-2NT, 17 HP dengeli karo fiti -> 6NT (6♦ değil)", TestHelpers.ElOlustur("K2", "QJT3", "AQJT", "KJ6"), "6NT", "1♦", "Pas", "1♥", "Pas", "2NT", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";
