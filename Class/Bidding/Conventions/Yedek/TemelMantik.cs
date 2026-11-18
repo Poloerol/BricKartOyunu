@@ -541,6 +541,17 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (fit != null && fit != "NT" && sonOrtak && son.Koz != fit && son.Koz != "NT" && son.Seviye >= 3 && Cheapest(d, fit) <= 5)
                 zorunlu = true;   // ortak kontrol (cue) teklifi verdi: fit renginde oyuna git
 
+            // 4NT'me ortak void'li cevap verdi (kozdan düşük renkte 6x): o renkte 6+ kartım varsa 6x'te pas, yoksa 6 koz.
+            if (sonOrtak && son.Seviye == 6 && son.Koz != "NT" && gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT"))
+            {
+                string kz = d.AnlasilanKoz();
+                if (kz != null && kz != "NT" && son.Koz != kz && RenkSira(son.Koz) < RenkSira(kz))
+                {
+                    if (ElDegerlendirici.RenkUzunlugu(el, son.Koz) >= 6) return "Pas";
+                    if (Cheapest(d, kz) <= 6) return Seviye(d, kz, 6);
+                }
+            }
+
             // Kendi 4NT (RKCB) sorumun cevabı geldi: toplam kilit kartı say, slam karar ver.
             if (sonOrtak && son.Seviye == 5 && son.Koz != "NT" &&
                 gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT"))

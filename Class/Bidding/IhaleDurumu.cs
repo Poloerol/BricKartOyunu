@@ -377,6 +377,17 @@ namespace BricKartOyunu.Class.Bidding
             var ortakRenkler = benimRenkler.Intersect(partnerRenkler).ToList();
             if (ortakRenkler.Count > 0)
             {
+                // Zaten anlaşılmış bir majör varken, ortağın doğal rengine 4. seviyede yapılan teklif (void/kontrol bildirimi)
+                // kozu değiştirmez: 1♠–2♣–2♥–3♠–4♣ dizisinde koz maçadır, sinek değil.
+                string[] sr = { "Sinek", "Karo", "Kupa", "Maça" };
+                string sonOrtak = ortakRenkler.Last();
+                if (sonOrtak != "Maça" && sonOrtak != "Kupa")
+                {
+                    string majorKoz = ortakRenkler.LastOrDefault(r => r == "Maça" || r == "Kupa");
+                    if (majorKoz != null && Gecmis.Any(h => h.GercekTeklifMi && h.Koz == sonOrtak && h.Seviye == 4 &&
+                                                            Array.IndexOf(sr, sonOrtak) < Array.IndexOf(sr, majorKoz)))
+                        return majorKoz;
+                }
                 // En son anlaşılan rengi al
                 return ortakRenkler.Last();
             }

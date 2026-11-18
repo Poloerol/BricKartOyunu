@@ -153,6 +153,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         private string BlackwoodCevabi(IhaleDurumu durum, List<Card> el, string koz)
         {
+            // Kozdan düşük bir yan renkte void + en az 1 kilit kart: o rengin 6 seviyesine sıçra (void bildirimi)
+            string voidCevap = RKCB.VoidCevabi(el, koz, durum);
+            if (voidCevap != null) return voidCevap;
+
             // RKCB aktif mi?
             bool rkcbAktif = durum.Anlasma.RKCB;
             bool rkcb1430 = durum.Anlasma.RKCB1430;

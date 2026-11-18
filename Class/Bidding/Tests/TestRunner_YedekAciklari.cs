@@ -46,9 +46,26 @@ namespace BricKartOyunu.Tests
             // Açıcı 1NT sonrası: 1♦ - 1NT (ortak) - Pas
             U("YA15 1D-1NT 20hcp dengeli -> 3NT", new AciciBirNTSonrasi(), TestHelpers.ElOlustur("AQ4", "KJ5", "AKJ3", "Q82"), "3NT", "1♦", "Pas", "1NT", "Pas");
             U("YA16 1D-1NT 14hcp -> Pas", new AciciBirNTSonrasi(), TestHelpers.ElOlustur("KQ4", "J95", "AQJ32", "82"), null, "1♦", "Pas", "1NT", "Pas");
+            // 4NT'ye void'li cevap: 1♠-2♣-2♥-3♠-4♣-4NT; Güney ♠A (1 kilit kart) ve sinekte void → 6♣ (koz maça kalır, sinek değil)
+            M("YA17 4NT'ye 1 kilit kart + ortak rengi ♣'te void -> 6♣", TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), "6♣", "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas", "4NT", "Pas");
+            M("YA18 void cevabına (6♣) sinekte 6+ kartla Pas", TestHelpers.ElOlustur("T43", "", "AKT4", "AKQ742"), "Pas", "Pas", "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas", "4NT", "Pas", "6♣", "Pas");
+            var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
+            string koz = kozDurum.AnlasilanKoz();
+            bool kozTamam = koz == "Maça";
+            if (kozTamam) _gecen++; else _kalan++;
+            _yaz((kozTamam ? "✅ " : "❌ ") + "YA19 4. seviye 4♣ (ortağın doğal rengi) kozu değiştirmez → " + koz + (kozTamam ? "" : "   [beklenen: Maça]"));
             sonucEkle("  ÖZET: ✅ " + _gecen + " geçti, ❌ " + _kalan + " başarısız");
             sonucEkle("════════════════════════════════════════");
             return _kalan;
+        }
+
+        private static void M(string ad, List<Card> el, string beklenen, params string[] gecmis)
+        {
+            var durum = TestHelpers.DurumOlustur(el, Player.Guney, gecmis);
+            string r = new IhaleMotoru(OrtaklikAnlasmasi.Varsayilan()).TeklifVer(durum);
+            bool gecti = r == beklenen;
+            if (gecti) _gecen++; else _kalan++;
+            _yaz((gecti ? "✅ " : "❌ ") + ad + " → " + (r ?? "(null)") + (gecti ? "" : "   [beklenen: " + beklenen + "]"));
         }
 
         private static void U(string ad, IKonvansiyon k, List<Card> el, string beklenen, params string[] gecmis)
