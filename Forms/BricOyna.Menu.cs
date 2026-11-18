@@ -107,9 +107,11 @@ namespace BricKartOyunu
 
         private void AyarlarMenusunuKur()
         {
-            Action<string, Action> ekle = (ad, islem) =>
+            // Bridge Baron düzeni: masa açıkken Oyun Ayarları, Ayarları Sıfırla ve Kaydetme/Yükleme Seçenekleri pasif;
+            // ortaklık ayarları ve "Ayarları Çıkışta Kaydet" aktif.
+            Action<string, Action, bool> ekle = (ad, islem, aktif) =>
             {
-                var oge = new ToolStripMenuItem(ad);
+                var oge = new ToolStripMenuItem(ad) { Enabled = aktif };
                 oge.Click += (s, e) =>
                 {
                     var ana = AnaSayfaBul();
@@ -118,11 +120,11 @@ namespace BricKartOyunu
                 ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, oge);
             };
 
-            ekle("Oyun Ayarları", () => AnaSayfaBul().OyunAyarlariToolStripMenuItem_Click(this, EventArgs.Empty));
-            ekle("N/S Ortaklık Ayarları", () => AnaSayfaBul().OrtaklikProfiliAc(Taraf.NS));
-            ekle("E/W Ortaklık Ayarları", () => AnaSayfaBul().OrtaklikProfiliAc(Taraf.EW));
-            ekle("Basit N/S Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.NS));
-            ekle("Basit E/W Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.EW));
+            ekle("Oyun Ayarları", () => AnaSayfaBul().OyunAyarlariToolStripMenuItem_Click(this, EventArgs.Empty), false);
+            ekle("N/S Ortaklık Ayarları", () => AnaSayfaBul().OrtaklikProfiliAc(Taraf.NS), true);
+            ekle("E/W Ortaklık Ayarları", () => AnaSayfaBul().OrtaklikProfiliAc(Taraf.EW), true);
+            ekle("Basit N/S Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.NS), true);
+            ekle("Basit E/W Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.EW), true);
             ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
             ekle("Ayarları Sıfırla", () =>
             {
@@ -130,7 +132,7 @@ namespace BricKartOyunu
                 this.BackColor = AnaSayfa.MasaRengi;
                 DurumCubuguRenginiSabitle();
                 PlayZoneRenginiGuncelle();
-            });
+            }, false);
             var cikistaKaydet = new ToolStripMenuItem("Ayarları Çıkışta Kaydet") { CheckOnClick = true, Checked = true };
             ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, cikistaKaydet);
             ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
@@ -139,12 +141,12 @@ namespace BricKartOyunu
                 bool tamam = AnaSayfa.OyunPlani.Kaydet();
                 MessageBox.Show(this, tamam ? "Oyun ayarları kaydedildi." : "Ayarlar dosyaya kaydedilemedi.", "Ayarlar",
                     MessageBoxButtons.OK, tamam ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
-            });
+            }, false);
             ekle("Yükleme Seçenekleri", () =>
             {
                 AnaSayfa.OyunPlani = OyunPlaniSecenekleri.Yukle();
                 MessageBox.Show(this, "Oyun ayarları kayıtlı dosyadan yüklendi.", "Ayarlar", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            });
+            }, false);
             ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
         }
         private void MasaRengiToolStripMenuItem_Click(object sender, EventArgs e)
