@@ -634,6 +634,9 @@ namespace BricKartOyunu.Forms
             }
         }
 
+        /// <summary>BricOyna menüsünden / araç çubuğundan İpucu: İpucu düğmesiyle aynı işi yapar.</summary>
+        public void IpucuGoster() { BtnHint_Click(this, EventArgs.Empty); }
+
         private void BtnHint_Click(object sender, EventArgs e)
         {
             // İpucu: sırası gelen oyuncu için ihale motorunun önerdiği teklif

@@ -117,7 +117,7 @@ namespace BricKartOyunu.Forms
         // MENÜ — ORTAKLIK ANLAŞMASI VE ÖĞRENME MODU
         // ====================================================================
 
-        private void OrtaklikProfiliAc(Taraf taraf)
+        internal void OrtaklikProfiliAc(Taraf taraf)
         {
             AnlasmaForm.Goster(this, taraf);
         }
@@ -126,7 +126,7 @@ namespace BricKartOyunu.Forms
         /// Ayarlar > Ayarları Sıfırla: uyarı gösterilir; Tamam'a basılınca ortaklık profilleri, oyun planı,
         /// kart seti, masa rengi ve kart arka yüzü varsayılan değerlere döner (kalıcı depoya da yazılır).
         /// </summary>
-        private void AyarlariSifirla()
+        internal void AyarlariSifirla()
         {
             MessageBox.Show(this, "Seçenekleriniz varsayılan değerlere sıfırlandı!", "Briç Kart Oyunu",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -145,7 +145,7 @@ namespace BricKartOyunu.Forms
                     "Ayarlar kaydedilemedi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
-        private void BasitAnlasmaUygula(Taraf taraf)
+        internal void BasitAnlasmaUygula(Taraf taraf)
         {
             BasitAnlasmaForm.Goster(this, taraf);
         }
@@ -170,7 +170,7 @@ namespace BricKartOyunu.Forms
             set { _oyunPlani = value ?? new OyunPlaniSecenekleri(); }
         }
 
-        private void OyunAyarlariToolStripMenuItem_Click(object sender, EventArgs e)
+        internal void OyunAyarlariToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (var form = new OyunPlaniAyarlari(OyunPlani))
             {

@@ -96,6 +96,57 @@ namespace BricKartOyunu
         {
             Application.Exit();
         }
+
+        // ====================================================================
+        // AYARLAR MENÜSÜ (AnaSayfa'daki ayar ekranlarını masadan açar)
+        // ====================================================================
+        private AnaSayfa AnaSayfaBul()
+        {
+            return (Owner as AnaSayfa) ?? Application.OpenForms.OfType<AnaSayfa>().FirstOrDefault();
+        }
+
+        private void AyarlarMenusunuKur()
+        {
+            Action<string, Action> ekle = (ad, islem) =>
+            {
+                var oge = new ToolStripMenuItem(ad);
+                oge.Click += (s, e) =>
+                {
+                    var ana = AnaSayfaBul();
+                    if (ana != null) islem();
+                };
+                ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, oge);
+            };
+
+            ekle("Oyun Ayarları", () => AnaSayfaBul().OyunAyarlariToolStripMenuItem_Click(this, EventArgs.Empty));
+            ekle("N/S Ortaklık Ayarları", () => AnaSayfaBul().OrtaklikProfiliAc(Taraf.NS));
+            ekle("E/W Ortaklık Ayarları", () => AnaSayfaBul().OrtaklikProfiliAc(Taraf.EW));
+            ekle("Basit N/S Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.NS));
+            ekle("Basit E/W Ortaklık Ayarları", () => AnaSayfaBul().BasitAnlasmaUygula(Taraf.EW));
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
+            ekle("Ayarları Sıfırla", () =>
+            {
+                AnaSayfaBul().AyarlariSifirla();
+                this.BackColor = AnaSayfa.MasaRengi;
+                DurumCubuguRenginiSabitle();
+                PlayZoneRenginiGuncelle();
+            });
+            var cikistaKaydet = new ToolStripMenuItem("Ayarları Çıkışta Kaydet") { CheckOnClick = true, Checked = true };
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, cikistaKaydet);
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
+            ekle("Kaydetme Seçenekleri", () =>
+            {
+                bool tamam = AnaSayfa.OyunPlani.Kaydet();
+                MessageBox.Show(this, tamam ? "Oyun ayarları kaydedildi." : "Ayarlar dosyaya kaydedilemedi.", "Ayarlar",
+                    MessageBoxButtons.OK, tamam ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+            });
+            ekle("Yükleme Seçenekleri", () =>
+            {
+                AnaSayfa.OyunPlani = OyunPlaniSecenekleri.Yukle();
+                MessageBox.Show(this, "Oyun ayarları kayıtlı dosyadan yüklendi.", "Ayarlar", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            });
+            ayarlarToolStripMenuItem.DropDownItems.Insert(ayarlarToolStripMenuItem.DropDownItems.Count - 1, new ToolStripSeparator());
+        }
         private void MasaRengiToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (ColorDialog cd = new ColorDialog())

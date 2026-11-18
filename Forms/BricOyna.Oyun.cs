@@ -971,7 +971,9 @@ namespace BricKartOyunu
         {
             if (_oyunAsamasi != OyunAsamasi.Oyun)
             {
-                // İhale sırasında ipucu, deklarasyon penceresindeki İpucu düğmesinden alınır
+                // İhale sırasında ipucu, deklarasyon penceresindeki İpucu düğmesiyle aynıdır (önerilen teklif + kural)
+                var dekForm = Application.OpenForms.OfType<DeklarasyonForm>().FirstOrDefault(f => f.Visible);
+                if (dekForm != null) dekForm.IpucuGoster();
                 return;
             }
             if (_elBittiBekliyor || _oynananToplamEl >= 13) return;

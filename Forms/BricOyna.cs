@@ -512,6 +512,7 @@ namespace BricKartOyunu
             // (deklarasyon açıksa son teklif, değilse son oynanan kart); düğme pasifse işlem yapmaz.
             geriAlBidKartToolStripMenuItem.Click += (s, e) => { if (BtnGeriAl != null && BtnGeriAl.Enabled) BtnGeriAl_Click(s, e); };
             ileriAlBidKartToolStripMenuItem.Click += (s, e) => { if (BtnileriAl != null && BtnileriAl.Enabled) BtnileriAl_Click(s, e); };
+            AyarlarMenusunuKur();
             eylmlerToolStripMenuItem.DropDownOpening += (s, e) => MenuDurumlariniGuncelle();
             görünümToolStripMenuItem.DropDownOpening += (s, e) => MenuDurumlariniGuncelle();
 
