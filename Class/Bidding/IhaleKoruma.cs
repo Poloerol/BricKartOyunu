@@ -644,9 +644,7 @@ namespace BricKartOyunu.Class.Bidding
 
             // Ortağın sorusuna zorunlu cevap: ortağın son teklifi soru gibiyse seviye sınırı yok
             var ortSon = SonGercek(d, true);
-            // (void cevabı: 4NT'ye 6x sıçraması da bu kapsamda, Blackwood/RKCB)
-            if (ortSon != null && SoruKonv.Contains(ad) && Sev(ortSon.Teklif) >= 4 &&
-                (sev <= Sev(ortSon.Teklif) + 1 || (ortSon.Teklif == "4NT" && sev == 6 && (ad == "Blackwood" || ad == "RKCB"))))
+            if (ortSon != null && SoruKonv.Contains(ad) && Sev(ortSon.Teklif) >= 4 && sev <= Sev(ortSon.Teklif) + 1)
             {
                 string oRenk = KozYardimcisi.TekliftenKozCikar(ortSon.Teklif);
                 if (ortSon.Teklif == "4NT" || ortSon.Teklif == "5NT") return true;

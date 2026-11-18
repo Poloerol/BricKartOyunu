@@ -90,29 +90,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return "4NT";
         }
 
-        /// <summary>
-        /// Void'li cevap: 4NT'ye (Blackwood/RKCB) cevap verenin en az 1 kilit kartı var ve kozdan düşük sıralı bir yan renkte
-        /// void'i varsa (ve ortak o rengi doğal teklif etmişse), 5'li cevap yerine o rengin 6 seviyesine sıçrar ("6x" = x'te void, slam ilgisi var).
-        /// Soran taraf devam eder: x'te 6+ kartı varsa pas, yoksa 6 koz. Void ya da kilit kart yoksa null (normal cevap).
-        /// </summary>
-        public static string VoidCevabi(List<Card> el, string koz, IhaleDurumu durum = null)
-        {
-            if (el == null || string.IsNullOrEmpty(koz) || koz == "NT") return null;
-            string[] sira = { "Sinek", "Karo", "Kupa", "Maça" };
-            int kozSira = System.Array.IndexOf(sira, koz);
-            if (kozSira <= 0) return null;
-            if (ElDegerlendirici.KilitKartSayisi(el, koz) < 1) return null;
-            for (int i = 0; i < kozSira; i++)
-                if (ElDegerlendirici.RenkUzunlugu(el, sira[i]) == 0 && durum != null && durum.Gecmis.Any(h => h.Oyuncu == durum.Partner && h.GercekTeklifMi && h.Koz == sira[i]))
-                    return "6" + KozYardimcisi.KozSembolu(sira[i]);
-            return null;
-        }
-
         private static string KilitKartCevabi(IhaleDurumu durum, List<Card> el, string koz)
         {
-            string voidCevap = VoidCevabi(el, koz, durum);
-            if (voidCevap != null) return voidCevap;
-
             int kilitKart = ElDegerlendirici.KilitKartSayisi(el, koz);
             bool kozQVar = ElDegerlendirici.KizVar(el, koz);
             bool rkcb1430 = durum.Anlasma == null || durum.Anlasma.RKCB1430;
