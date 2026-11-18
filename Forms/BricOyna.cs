@@ -815,6 +815,20 @@ namespace BricKartOyunu
                     return;
                 }
 
+                // Oyun Planı > Oyun > "Her zaman kontrat için ihale": başlangıç penceresi (DekBasForm) açılmaz,
+                // Deklarasyon penceresi doğrudan masanın ortasında açılır.
+                if (AnaSayfa.OyunPlani != null && AnaSayfa.OyunPlani.HerZamanKontratIcinIhale)
+                {
+                    var dek = new DeklarasyonForm(this) { StartPosition = FormStartPosition.Manual };
+                    Point merkez = playZonePanel.PointToScreen(new Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
+                    dek.Location = new Point(merkez.X - dek.Width / 2, merkez.Y - dek.Height / 2);
+                    DeklarasyonAsamasindaButonlariAktifEt();
+                    dek.Show(this);
+                    dek.BringToFront();
+                    dek.Activate();
+                    return;
+                }
+
                 DekBasForm dekForm = new DekBasForm(this)
                 {
                     StartPosition = FormStartPosition.Manual
