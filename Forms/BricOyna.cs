@@ -873,7 +873,7 @@ namespace BricKartOyunu
         {
             // Masa kapanırken / ana pencereden ayrılmışken (Deklarasyon penceresi o sırada kapanır) kontrollere dokunma:
             // Enabled değişimi çizim tetikler ve ArgumentException ("Parametre geçerli değil") fırlatabiliyordu.
-            if (this.IsDisposed || this.Disposing || !this.IsHandleCreated) return;
+            if (this.IsDisposed || this.Disposing || !this.IsHandleCreated || Kapaniyor) return;
             if (!this.TopLevel && this.Parent == null) return;
 
             // Enabled değişimi tüm alt kontrollerin yeniden çizimini tetikler; çizim WndProc içinde olduğundan
@@ -892,7 +892,7 @@ namespace BricKartOyunu
         /// Kontrol ağacında Dispose edilmiş bir Image/BackgroundImage varsa (çizimde "Parametre geçerli değil"
         /// ArgumentException'ı verir) onu null yapar. Hangi kontrolün bozuk olduğu Debug çıktısına yazılır.
         /// </summary>
-        private static void BozukResimleriTemizle(Control kok)
+        internal static void BozukResimleriTemizle(Control kok)
         {
             Func<Image, bool> bozukMu = img =>
             {

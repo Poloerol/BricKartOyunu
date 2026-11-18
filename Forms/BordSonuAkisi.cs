@@ -191,7 +191,11 @@ namespace BricKartOyunu
         {
             try
             {
-                if (_oyna.IsDisposed) return;
+                // Masa kapanırken (X ile) sahip olunan DealCompleteForm da kapanır ve buraya düşer: bu aşamada Enabled
+                // değiştirmek çizim tetikler ve GDI+ "Parametre geçerli değil" hatası verir; kontrollere dokunma.
+                if (_oyna.IsDisposed || _oyna.Disposing || !_oyna.IsHandleCreated || _oyna.Kapaniyor) { _girisDurumu = null; return; }
+                // Dispose edilmiş (geçersiz) resimler çizimde hata verir; Enabled değişmeden önce temizle.
+                BricOyna.BozukResimleriTemizle(_oyna);
                 if (!acik)
                 {
                     if (_girisDurumu != null) return;

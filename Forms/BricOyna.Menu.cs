@@ -227,8 +227,12 @@ namespace BricKartOyunu
             this.Close();
         }
 
+        /// <summary>Masa kapanmaya başladı (X, Ana Menü vb.): bu aşamada kontrollerin Enabled/Image'ine dokunulmaz (çizimde GDI+ hatası verir).</summary>
+        internal bool Kapaniyor { get; private set; }
+
         private void BricOyna_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (!e.Cancel) Kapaniyor = true;
             // Timer'ları temizle (kapanışta hata vermemesi için)
             _aiTimer?.Stop();
             _aiTimer?.Dispose();
