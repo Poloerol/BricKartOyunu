@@ -236,39 +236,74 @@ namespace BricKartOyunu
         /// Tamam'da numara değişmişse eller o numarayla yeniden dağıtılır; "Tüm elleri göster" işaretliyse dört el açılır.
         /// Pencere kapanınca (X dahil) normal akış sürer ve DekBasForm açılır.
         /// </summary>
-        private bool ElNumarasiSor()
+        private ElNumarasiForm _elNoForm;
+        private bool _elNoSessiz;
+
+        /// <summary>Açık Dağılım Numarası penceresini oyun akışını sürdürmeden (devam çağrılmadan, AnaSayfa'ya dönmeden) kapatır.</summary>
+        private void ElNumarasiPenceresiniKapat()
         {
-            if (!NumaraliKaynakMi()) return true;
+            var f = _elNoForm;
+            if (f == null || f.IsDisposed) { _elNoForm = null; return; }
+            _elNoSessiz = true;
+            try { f.Close(); } catch { }
+            _elNoSessiz = false;
+            _elNoForm = null;
+        }
+
+        /// <summary>
+        /// Numaralı Rastgele Eller seçiliyse Dağılım Numarası penceresini MODAL OLMADAN açar (Seed Yönetimi paneli açıkken de kullanılır).
+        /// Tamam: numara/ "Tüm elleri göster" uygulanır ve devam çalışır (PratikDuyurusu + DekBasForm). X/Esc: oyun açılmaz, AnaSayfa'ya dönülür.
+        /// Numaralı kaynak değilse devam hemen çalışır.
+        /// </summary>
+        private void ElNumarasiSor(Action devam)
+        {
+            if (!NumaraliKaynakMi()) { devam(); return; }
+            ElNumarasiPenceresiniKapat();
             try
             {
-                using (var f = new ElNumarasiForm(_seed))
+                var f = new ElNumarasiForm(_seed);
+                // Masa panelinin tam ortasında açılır (DekBasForm gibi)
+                if (playZonePanel != null)
+                    f.MerkezEkran = playZonePanel.PointToScreen(new Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
+                // "Tüm elleri göster" kutusu anında yansır: işaretli -> dört el açık, değil -> yalnızca Güney'in eli
+                f.TumElleriDegisti += gost => ElleriGosterAyarla(gost);
+                f.FormClosed += (s, e) =>
                 {
-                    // Masa panelinin tam ortasında açılır (DekBasForm gibi)
-                    if (playZonePanel != null)
-                        f.MerkezEkran = playZonePanel.PointToScreen(new Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
-                    // "Tüm elleri göster" kutusu anında yansır: işaretli -> dört el açık, değil -> yalnızca Güney'in eli
-                    f.TumElleriDegisti += gost => ElleriGosterAyarla(gost);
-                    if (f.ShowDialog(this) != DialogResult.OK)
+                    bool sessiz = _elNoSessiz;
+                    if (ReferenceEquals(_elNoForm, f)) _elNoForm = null;
+                    if (sessiz || this.IsDisposed || this.Disposing || Kapaniyor) return;
+                    if (f.DialogResult != DialogResult.OK)
                     {
                         // X (ya da Esc) ile kapatıldı: oyun açılmaz, AnaSayfa'ya dönülür
                         Close();
-                        return false;
+                        return;
                     }
-                    if (f.Numara != _seed)
+                    try
                     {
-                        KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, f.Numara);   // yeniden dağıtım gösterimi sıfırlar
-                        UpdateInfoBoard(_dealer);
-                        UpdatePlayerBadges();
-                        OyunBilgiPaneliniGuncelle();
+                        if (f.Numara != _seed)
+                        {
+                            KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, f.Numara);   // yeniden dağıtım gösterimi sıfırlar
+                            UpdateInfoBoard(_dealer);
+                            UpdatePlayerBadges();
+                            OyunBilgiPaneliniGuncelle();
+                        }
+                        ElleriGosterAyarla(f.TumElleriGoster);
                     }
-                    ElleriGosterAyarla(f.TumElleriGoster);
-                }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[BricOyna] El Numarası uygulama hatası: " + ex.Message);
+                    }
+                    devam();
+                };
+                _elNoForm = f;
+                f.Show(this);
+                SeedPaneliDurumunuGuncelle();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("[BricOyna] El Numarası penceresi hatası: " + ex.Message);
+                devam();
             }
-            return true;
         }
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
         private struct RECT { public int Left, Top, Right, Bottom; }
@@ -448,9 +483,7 @@ namespace BricKartOyunu
             else KartlariDagitRastgele(AnaSayfa.SeciliKartSeti);
 
             // 8) Numaralı Rastgele Eller: önce Dağılım Numarası penceresi; sonra yeni DekBasForm aç
-            if (!ElNumarasiSor()) return;
-            PratikDuyurusu();
-            YeniDekBasFormAc();
+            ElNumarasiSor(() => { PratikDuyurusu(); YeniDekBasFormAc(); });
         }
 
         private Image GetBackImage()
@@ -852,9 +885,7 @@ namespace BricKartOyunu
             // 🔹 YENİ: Bilgi panelini güncelle (yeni Dealer ve Zon görünsün)
             OyunBilgiPaneliniGuncelle();
 
-            if (!ElNumarasiSor()) return;   // Numaralı Rastgele Eller: önce Dağılım Numarası penceresi, Tamam'dan sonra DekBasForm
-            PratikDuyurusu();
-            YeniDekBasFormAc();
+            ElNumarasiSor(() => { PratikDuyurusu(); YeniDekBasFormAc(); });   // Numaralı Rastgele Eller: önce Dağılım Numarası penceresi, Tamam'dan sonra DekBasForm
         }
 
         private void BtnSonrakiEl_Click(object sender, EventArgs e)

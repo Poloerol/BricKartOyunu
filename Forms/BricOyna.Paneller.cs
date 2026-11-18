@@ -399,6 +399,9 @@ namespace BricKartOyunu
 
             if (cevap != DialogResult.Yes) return;
 
+            // Dağılım Numarası penceresi açıksa sessizce kapat (bu düğme zaten yeni dağıtım + DekBasForm akışını başlatır)
+            ElNumarasiPenceresiniKapat();
+
             KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, seciliSeed);
 
             _oyunAsamasi = OyunAsamasi.Baslangic;
