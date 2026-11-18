@@ -104,6 +104,13 @@ namespace BricKartOyunu.Forms
             ayarlarıSıfırlaToolStripMenuItem.Click += (s, e) => AyarlariSifirla();
             kartDağıtıcıToolStripMenuItem.Click += (s, e) => ShowChildForm(new KartDagitici());
             briçMaçıToolStripMenuItem.Click += (s, e) => MacMenusunuAc();
+
+            // Açılış sayfasında masa/oyun gerektiren menüler pasif (bunlar Briç Oyna masasının kendi menüsünde çalışır).
+            eylemlerToolStripMenuItem.Enabled = false;
+            değerlendirmeToolStripMenuItem.Enabled = false;
+            ellerToolStripMenuItem.Enabled = false;
+            ipucuToolStripMenuItem.Enabled = false;
+            sonHamleyiGösterToolStripMenuItem.Enabled = false;
         }
 
         // ====================================================================
