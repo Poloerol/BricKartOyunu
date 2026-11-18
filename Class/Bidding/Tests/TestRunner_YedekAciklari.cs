@@ -62,6 +62,10 @@ namespace BricKartOyunu.Tests
             M("YA27 2NT-3♥, açıcıda 3 kupa -> 4♥", TestHelpers.ElOlustur("A82", "K32", "J87", "KJ76"), "4♥", "2NT", "Pas", "3♥", "Pas");
             M("YA28 2NT-3♥, açıcıda 2 kupa -> 3NT", TestHelpers.ElOlustur("A82", "K3", "J872", "KJ76"), "3NT", "2NT", "Pas", "3♥", "Pas");
             M("YA29 2NT-3♠, açıcıda 3 maça -> 4♠", TestHelpers.ElOlustur("A82", "A32", "J87", "KJ76"), "4♠", "2NT", "Pas", "3♠", "Pas");
+            // 2♣-2♦-2NT (açıcı dengeli 23+, oyuna kadar zorlayıcı): 5'li majör = doğal 3M, 6+ majör = oyun (4M) ya da 9+ HP ile 6M
+            M("YA30 2♣-2♦-2NT, 5'li kupa -> 3♥", TestHelpers.ElOlustur("J8", "QJ974", "832", "J76"), "3♥", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
+            M("YA31 2♣-2♦-2NT, 7'li kupa 3 HP -> 4♥ (fit bulundu, oyun)", TestHelpers.ElOlustur("J87", "QJ9742", "32", "J7"), "4♥", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas");
+            M("YA32 2♣-2♦-2NT-3♥, açıcıda 3 kupa -> 4♥", TestHelpers.ElOlustur("AK3", "KQ2", "AQ4", "QJ52"), "4♥", "2♣", "Pas", "2♦", "Pas", "2NT", "Pas", "3♥", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

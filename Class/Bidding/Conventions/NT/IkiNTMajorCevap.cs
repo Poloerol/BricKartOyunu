@@ -20,23 +20,27 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             if (z.D != null && z.D.Anlasma != null && z.D.Anlasma.TwoNT_AnswerSistemi) return null;
 
+            // 2♣ (güçlü) - 2♦ (bekleme) - 2NT: açıcı kesin dengeli 23+ HP, dizi oyuna kadar zorlayıcı
+            bool ikiSinek = z.Es("O:2♣", "B:2♦", "O:2NT");
+
             // Cevapçı: 2NT sonrası
-            if (z.Es("O:2NT"))
+            if (z.Es("O:2NT") || ikiSinek)
             {
-                if (z.Hp < 4) return null;
+                if (!ikiSinek && z.Hp < 4) return null;
                 int m = Math.Max(z.Maca, z.Kupa);
                 string renk = z.Kupa >= z.Maca ? "♥" : "♠";
                 if (m >= 6)
                 {
-                    if (z.Hp >= 12) return "6" + renk;   // 20+12: şlem (ölçüm: eşik 12 ve 13 eşit, 30.000 bordda -194 IMP)
-                    return null;   // oyun değeri: Texas transferi (4♦/4♥ anlaşmaya göre) ya da yedek mantık; doğrudan 4M Texas ile çakışır
+                    if (z.Hp >= (ikiSinek ? 9 : 12)) return "6" + renk;   // 20+12 / 23+9: şlem
+                    // 2NT açılışında oyun değeri: Texas (4♦/4♥) ya da yedek mantık, doğrudan 4M Texas ile çakışır; 2♣ dizisinde Texas yok: doğrudan 4M
+                    return ikiSinek ? "4" + renk : null;
                 }
                 if (m == 5) return "3" + renk;
                 return null;
             }
             // Açıcı: cevapçı doğal 3M dedi
-            if (z.Es("B:2NT", "O:3♥")) return z.Kupa >= 3 ? "4♥" : "3NT";
-            if (z.Es("B:2NT", "O:3♠")) return z.Maca >= 3 ? "4♠" : "3NT";
+            if (z.Es("B:2NT", "O:3♥") || z.Es("B:2♣", "O:2♦", "B:2NT", "O:3♥")) return z.Kupa >= 3 ? "4♥" : "3NT";
+            if (z.Es("B:2NT", "O:3♠") || z.Es("B:2♣", "O:2♦", "B:2NT", "O:3♠")) return z.Maca >= 3 ? "4♠" : "3NT";
             return null;
         }
     }
