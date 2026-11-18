@@ -43,7 +43,7 @@
 
 ## Açık noktalar
 - **Denenmedi:** `BricOyna.BozukResimleriTemizle` (commit `ef94e34`): ihale penceresi açılırken `SetGameControlsEnabled` içinde "Parametre geçerli değil" `ArgumentException`'ı için koruma. Hata WndProc içinde oluştuğundan eski try/catch yakalamıyordu. Kullanıcı uygulamada deneyecek; hâlâ çıkarsa "Çağrı Yığınını Göster" çıktısı gerekli.
-- Bord 3 (Doğu 1♠ sonra karoda void ile 2NT) ve Bord 12 (3♠ yükseltmesi sonrası 4♠ batıyor) düzeltilmedi.
+- Bord 3 ve Bord 12 (1970 Mixed Pairs PBN) güncel motorla yeniden denendi: Bord 3 4♠ ile par (sapma 0), Bord 12 3♥ ile sapma 1 IMP; ikisi de çözülmüş sayılır.
 - Temel Mantık yedeğinin payı yüksek: en sık düştüğü durumlar `Attr` ile ölçülüp tablo/konvansiyonla kapatılabilir.
 - 4-4 majörde ♦'de uyum yoksa motor 1♠ diyor (♥ önceliği yalnızca minör uyum varken uygulanıyor).
 - Zayıf 2♦ için anlaşma seçeneği (forcing değil / bir tur forcing / oyun forcing) istenirse eklenecek.
