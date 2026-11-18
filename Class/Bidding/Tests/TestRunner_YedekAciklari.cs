@@ -71,6 +71,10 @@ namespace BricKartOyunu.Tests
             M("YA34 2♣-2♦, 25 HP 5-4-3-1 5♥ -> 2♥", TestHelpers.ElOlustur("6", "AKQ95", "AK3", "AKQ4"), "2♥", "2♣", "Pas", "2♦", "Pas");
             M("YA35 2♣-2♦, 17 HP 6♠ (AKQJ96) -> 3♠", TestHelpers.ElOlustur("AKQJ96", "3", "K42", "A76"), "3♠", "2♣", "Pas", "2♦", "Pas");
             M("YA36 2♣-2♦, 24 HP 5-3-3-2 5♠ dengeli -> 2NT", TestHelpers.ElOlustur("AKQ95", "AKJ", "Q43", "KQ"), "2NT", "2♣", "Pas", "2♦", "Pas");
+            // 1♣/1♦ + sıçramalı yeni renk (18+ HP) sonrası açıcı: BB akış şeması "Rebid after jump shift"
+            M("YA37 1♣-2♠, 19 HP oynanmamış 4'lü karo -> 3♦ (3NT değil)", TestHelpers.ElOlustur("KJ", "K", "QJ83", "AKQT43"), "3♦", "1♣", "Pas", "2♠", "Pas");
+            M("YA38 1♣-2♠, 3 maça destek -> 3♠", TestHelpers.ElOlustur("KJ4", "K", "QJ8", "AKQT43"), "3♠", "1♣", "Pas", "2♠", "Pas");
+            M("YA39 1♣-2♠, destek yok, 4'lü renk yok, 6'lı sinek -> 3♣", TestHelpers.ElOlustur("K2", "Q3", "J32", "AKQ943"), "3♣", "1♣", "Pas", "2♠", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

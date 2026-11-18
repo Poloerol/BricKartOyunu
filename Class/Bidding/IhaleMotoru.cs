@@ -161,6 +161,7 @@ namespace BricKartOyunu.Class.Bidding
                 new IkiBirOyunZorlama(),
 
                 new IkiliSinekGuclu(),
+                new SicramaSonrasiAcici(),
                 new IkiSinekAciciTekrar(),
                 new ZayifIki(),
                 new Multi2D(),
