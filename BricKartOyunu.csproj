@@ -198,6 +198,7 @@
     <Compile Include="Class\Bidding\Conventions\Acilis\Flannery.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\Gambling3NT.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\IkiliSinekGuclu.cs" />
+    <Compile Include="Class\Bidding\Conventions\Acilis\IkiSinekAciciTekrar.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\MiniRoman2D.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\Multi2D.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\Namyats.cs" />

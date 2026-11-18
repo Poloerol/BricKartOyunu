@@ -161,6 +161,7 @@ namespace BricKartOyunu.Class.Bidding
                 new IkiBirOyunZorlama(),
 
                 new IkiliSinekGuclu(),
+                new IkiSinekAciciTekrar(),
                 new ZayifIki(),
                 new Multi2D(),
                 new Namyats(),
@@ -664,6 +665,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Strong NT": return true;   // aralık (12-14 … 16-18) NTA.Lo1/Hi1 ile belirlenir
                 case "Weak NT": return !_anlasma.StrongNT;
                 case "2♣ Güçlü": return _anlasma.IkiliSinekGuclu && !_anlasma.BenjaminTwoBids;
+                case "2♣ Açıcı Tekrarı": return _anlasma.IkiliSinekGuclu && !_anlasma.BenjaminTwoBids;
                 case "Zayıf İki": return _anlasma.ZayifIki && !_anlasma.Multi2D;
                 case "Multi 2♦": return _anlasma.Multi2D;
                 case "Preempt": return _anlasma.Preempt;
