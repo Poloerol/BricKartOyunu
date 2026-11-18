@@ -79,6 +79,26 @@ namespace BricKartOyunu
             GeriAlIleriAlButonlariniGuncelle();
         }
 
+        // Eylemler / Görünüm menüleri açılırken öğelerin açık-kapalı durumunu anlık oyun aşamasına göre ayarlar.
+        // (Bridge Baron düzeni: ihale sürerken İhaleyi/Oyunu Göster, Yorumu Oku, Double Dummy Search, Claim, Son Hamleyi Göster ve kart zorlama kapalı.)
+        private void MenuDurumlariniGuncelle()
+        {
+            bool oyun = _oyunAsamasi == OyunAsamasi.Oyun;
+            bool ihale = _oyunAsamasi == OyunAsamasi.Deklarasyon;
+            bool kartOynandi = oyun && _oyunGecmisi != null && _oyunGecmisi.Count > 0;
+
+            ihaleGösterToolStripMenuItem.Enabled = oyun;
+            oynananElleriGösterToolStripMenuItem.Enabled = kartOynandi;
+            yorumuOkuToolStripMenuItem.Enabled = oyun;
+            doubleDummySearchToolStripMenuItem1.Enabled = oyun;
+            claimToolStripMenuItem.Enabled = oyun && BtnClaim != null && BtnClaim.Enabled;
+            geriAlBidKartToolStripMenuItem.Enabled = BtnGeriAl != null && BtnGeriAl.Enabled;
+            ileriAlBidKartToolStripMenuItem.Enabled = BtnileriAl != null && BtnileriAl.Enabled;
+            forsingDeklareToolStripMenuItem.Enabled = ihale;
+            zonForsingiToolStripMenuItem.Enabled = oyun;
+            sonHamleToolStripMenuItem.Enabled = oyun && _kazanilanElNS + _kazanilanElEW > 0;
+        }
+
         public void GeriAlIleriAlButonlariniGuncelle()
         {
             if (BtnGeriAl == null || BtnileriAl == null) return;
