@@ -211,6 +211,7 @@ namespace BricKartOyunu.Class.Bidding
                 new StrongNT(),
                 new NegativeDouble(),
                 new NegatifKontraDevam(),
+                new NegatifKontraRekabet(),
                 new ResponsiveDouble(),
                 new ResponsiveDoubleCevap(),
                 new Unusual2NT(),
@@ -738,6 +739,7 @@ namespace BricKartOyunu.Class.Bidding
 
                 case "Negative Double": return _anlasma.NegativeDouble;
                 case "Negatif Kontra Devam": return _anlasma.NegativeDouble;
+                case "Negatif Kontra Rekabet": return _anlasma.NegativeDouble;
                 case "Takeout Double": return _anlasma.TakeoutDouble;
                 case "Takeout Double Cevap": return _anlasma.TakeoutDouble;
                 case "Takeout Double Devam": return _anlasma.TakeoutDouble;

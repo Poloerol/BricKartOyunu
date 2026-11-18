@@ -80,6 +80,9 @@ namespace BricKartOyunu.Tests
             M("YA41 (2♦)-2NT-(Pas), 11 HP 6'lı maça -> 4♠", TestHelpers.ElOlustur("KJT984", "AT962", "K", "5"), "4♠", "Pas", "2♦", "2NT", "Pas");
             M("YA42 (2♥)-2NT-(Pas), 5 HP dengeli -> Pas", TestHelpers.ElOlustur("9852", "Q94", "K862", "Q9"), "Pas", "Pas", "2♥", "2NT", "Pas");
             M("YA43 (2♠)-2NT-(Pas), 19 HP dengeli -> 6NT", TestHelpers.ElOlustur("A5", "AKQ4", "KJ86", "KQ4"), "6NT", "Pas", "2♠", "2NT", "Pas");
+            // Negatif kontradan sonra rakip müdahale rengini yükseltince açıcı, kontranın gösterdiği majöre fit varsa onu söyler
+            M("YA44 1♦-(1♠)-Kontra-(2♠), 19 HP 4'lü kupa -> 4♥", TestHelpers.ElOlustur("QJT", "AKQT", "AKT8", "32"), "4♥", "1♦", "1♠", "Dbl", "2♠");
+            M("YA45 1♦-(1♠)-Kontra-(2♠), 13 HP 4'lü kupa -> 3♥", TestHelpers.ElOlustur("QJ5", "KT74", "AKT82", "3"), "3♥", "1♦", "1♠", "Dbl", "2♠");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

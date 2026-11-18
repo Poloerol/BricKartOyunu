@@ -251,6 +251,7 @@
     <Compile Include="Class\Bidding\Conventions\Mudahale\ResponsiveDouble.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\ResponsiveDoubleCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\NegatifKontraDevam.cs" />
+    <Compile Include="Class\Bidding\Conventions\Mudahale\NegatifKontraRekabet.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\TakeoutKontraYukseltme.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\MudahaleOyunCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\AciciBirNTSonrasi.cs" />
