@@ -2013,7 +2013,7 @@ namespace BricKartOyunu
             Yaz("════════════════════════════════════════");
             Yaz("TEST 9.7 — Puppet Aşama 4: Kontrol gösterme");
             Yaz("════════════════════════════════════════");
-
+            // Güney'in eli: 4'lü ♠ + ♣ A + slam değeri (13 HP; 12 HP altında fit sonrası doğrudan oyuna gidilir)
             // 2NT (Kuzey) - 3♣ (Güney) - 3♦ (Kuzey) - 3♥ (Güney) - 3♠ (Kuzey) - ? (Güney)
             // Güney'in eli: 4'lü ♠ + ♣ A var
             var guneyEli = new List<Card>
@@ -2024,8 +2024,8 @@ namespace BricKartOyunu
         new Card { Suit = "Maça", Value = 7 },
         new Card { Suit = "Maça", Value = 5 },
         // 3'lü ♥
-        new Card { Suit = "Kupa", Value = 9 },
-        new Card { Suit = "Kupa", Value = 6 },
+        new Card { Suit = "Kupa", Value = 13 },
+        new Card { Suit = "Kupa", Value = 12 },
         new Card { Suit = "Kupa", Value = 3 },
         // 3'lü ♦
         new Card { Suit = "Karo", Value = 10 },
@@ -10116,12 +10116,12 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             var el = new List<Card>
     {
         new Card { Suit = "Kupa",  Value = 14 }, // A = 4
-        new Card { Suit = "Kupa",  Value = 11 }, // J = 1
+        new Card { Suit = "Kupa",  Value = 13 }, // K = 3
         new Card { Suit = "Kupa",  Value = 9 },
         new Card { Suit = "Kupa",  Value = 7 },
         new Card { Suit = "Kupa",  Value = 5 },
         new Card { Suit = "Kupa",  Value = 3 },
-        new Card { Suit = "Maça",  Value = 12 }, // Q = 2
+        new Card { Suit = "Maça",  Value = 10 },
         new Card { Suit = "Maça",  Value = 8 },
         new Card { Suit = "Maça",  Value = 6 },
         new Card { Suit = "Karo",  Value = 12 }, // Q = 2
@@ -10129,7 +10129,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         new Card { Suit = "Sinek", Value = 9 },
         new Card { Suit = "Sinek", Value = 4 },
     };
-            // HCP: 4+1+2+2 = 9 ✓
+            // HCP: 4+3+2 = 9 ✓ (koz dışı renklerde en fazla 2 HP)
 
             var durum = new IhaleDurumu
             {
@@ -10169,10 +10169,10 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         new Card { Suit = "Kupa",  Value = 11 }, // J = 1
         new Card { Suit = "Kupa",  Value = 7 },
         new Card { Suit = "Kupa",  Value = 4 },
-        new Card { Suit = "Sinek", Value = 12 }, // Q = 2
+        new Card { Suit = "Sinek", Value = 10 },
         new Card { Suit = "Sinek", Value = 5 },
     };
-            // HCP: 3+2+1+2 = 8 ✓
+            // HCP: 3+2+1 = 6 ✓ (koz dışı renklerde en fazla 2 HP)
 
             var durum = new IhaleDurumu
             {
@@ -16014,4 +16014,4 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
         }
 
     }
-}
+}

@@ -151,6 +151,7 @@ namespace BricKartOyunu.Class.Bidding
                 new Quantitative4NT(),
                 new TexasTransfers(),
                 new IkiNTMajorCevap(),
+                new NTMudahaleTransfer(),
                 new MinorStayman(),
                 new Flannery(),
                 new Kokish(),
@@ -705,6 +706,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Helvic": return _anlasma.NT1RunoutX == 4 && !_anlasma.Robinson && !_anlasma.ExitTransfer;
                 case "D.O.N.T. Escape": return _anlasma.NT1RunoutX == 3 && !_anlasma.Robinson && !_anlasma.ExitTransfer;
                 case "Jacoby Transfer": return _anlasma.JacobyTransfer;
+                case "NT Müdahale Transfer": return _anlasma.JacobyTransfer;
                 case "Puppet Stayman": return _anlasma.PuppetStayman;
                 case "Smolen": return _anlasma.Smolen;
                 case "Minor Transfer": return ((_anlasma.MinorTransfer && _anlasma.NT1MinorBid != 2) || _anlasma.NT1MinorBid == 3) && !_anlasma.MinorStayman;

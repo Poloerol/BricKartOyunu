@@ -7,7 +7,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     /// <summary>
     /// 2NT (20-21, dengeli) açılışına uzun majörlü cevaplar. Açıcıda her renkte en az 2 kart vardır:
     ///  • 6+ kartlık majör = fit bulunmuş demektir: slam değerinde (12+ HP) doğrudan 6M; daha azında Texas/yedek mantık (4M çağrısı Texas 4♦/4♥ ile çakışır).
-    ///  • Tam 5 kartlık majör: doğal 3M (oyuna kadar zorlayıcı); açıcı 3+ destekle 4M, yoksa 3NT der.
+    ///  • 5+ kartlık majör: Jacoby transfer 3♦ = ♥, 3♥ = ♠ (açıcı kabul eder; sonra 0-3 HP Pas, 4+ HP 5 kartla 3NT / 6 kartla 4M; açıcı 3NT sonrası 3+ destekle 4M, yoksa Pas). 2♣-2♦-2NT dizisinde doğal 3M.
     ///  • 4'lü majörler Puppet Stayman'ın işidir (5+ kartlık majörde Puppet Stayman kullanılmaz).
     /// </summary>
     internal sealed class IkiNTMajorCevap : YeniKonvTaban
@@ -22,6 +22,36 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // 2♣ (güçlü) - 2♦ (bekleme) - 2NT: açıcı kesin dengeli 23+ HP, dizi oyuna kadar zorlayıcı
             bool ikiSinek = z.Es("O:2♣", "B:2♦", "O:2NT");
+
+            // 2NT'de Jacoby transfer: 3♦ = 5+♥, 3♥ = 5+♠. Açıcı kabul eder (3♥ / 3♠); cevapçı sonra
+            // 0-3 HP Pas, 4-11 HP 5 kartla 3NT (açıcı 3+ destekle 4M, yoksa Pas), 6+ kartla 4M.
+            if (!ikiSinek)
+            {
+                if (z.Es("B:2NT", "O:3♦")) return "3♥";
+                if (z.Es("B:2NT", "O:3♥")) return "3♠";
+                if (z.Es("O:2NT", "B:3♦", "O:3♥") || z.Es("O:2NT", "B:3♥", "O:3♠"))
+                {
+                    bool kupaTr = z.Es("O:2NT", "B:3♦", "O:3♥");
+                    int uz = kupaTr ? z.Kupa : z.Maca;
+                    string rk = kupaTr ? "♥" : "♠";
+                    if (z.Hp < 4) return "Pas";
+                    return uz >= 6 ? "4" + rk : "3NT";
+                }
+                if (z.Es("B:2NT", "O:3♦", "B:3♥", "O:3NT")) return z.Kupa >= 3 ? "4♥" : "Pas";
+                if (z.Es("B:2NT", "O:3♥", "B:3♠", "O:3NT")) return z.Maca >= 3 ? "4♠" : "Pas";
+                if (z.Es("O:2NT"))
+                {
+                    int m5 = Math.Max(z.Maca, z.Kupa);
+                    if (m5 >= 5)
+                    {
+                        string r5 = z.Kupa >= z.Maca ? "♥" : "♠";
+                        if (m5 >= 6 && z.Hp >= 12) return "6" + r5;     // slam değeri: doğrudan (eski kural)
+                        if (m5 >= 6 && z.Hp >= 4) return null;          // oyun değeri 6+: Texas (4♦/4♥)
+                        return z.Kupa >= z.Maca ? "3♦" : "3♥";           // transfer
+                    }
+                    return null;
+                }
+            }
 
             // Cevapçı: 2NT sonrası
             if (z.Es("O:2NT") || ikiSinek)

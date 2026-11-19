@@ -279,6 +279,7 @@
     <Compile Include="Class\Bidding\Conventions\NT\Stayman.cs" />
     <Compile Include="Class\Bidding\Conventions\NT\TexasTransfers.cs" />
     <Compile Include="Class\Bidding\Conventions\NT\IkiNTMajorCevap.cs" />
+    <Compile Include="Class\Bidding\Conventions\NT\NTMudahaleTransfer.cs" />
     <Compile Include="Class\Bidding\Conventions\Ortak\Dz.cs" />
     <Compile Include="Class\Bidding\Conventions\Ortak\YeniKonvansiyonlar.cs" />
     <Compile Include="Class\Bidding\Conventions\Ortak\YeniKonvTaban.cs" />

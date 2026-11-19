@@ -43,7 +43,30 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 var e = durum.AktifOyuncuEli;
                 return ElDegerlendirici.RenkUzunlugu(e, "Maça") == 6 || ElDegerlendirici.RenkUzunlugu(e, "Kupa") == 6;
             }
-            return ZayifRenkVarMi(durum.AktifOyuncuEli);
+            if (!ZayifRenkVarMi(durum.AktifOyuncuEli)) return false;
+            return KaliteliRenkVarMi(durum);
+        }
+
+        // Oyun stili (Motor Karnesi, 30.000 bord: -628 IMP): 6-10 HP, majör açılışında diğer majörde 4+ kart yok,
+        // puanlar mümkün olduğunca koz renginde (koz dışı renklerde toplam en fazla 2 HP).
+        private static bool KaliteliRenkVarMi(IhaleDurumu d)
+        {
+            var el = d.AktifOyuncuEli;
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp < 6) return false;
+            foreach (var r in new[] { "Maça", "Kupa", "Karo" })
+            {
+                if (ElDegerlendirici.RenkUzunlugu(el, r) != 6) continue;
+                if (r == "Maça" || r == "Kupa")
+                {
+                    string diger = r == "Maça" ? "Kupa" : "Maça";
+                    if (ElDegerlendirici.RenkUzunlugu(el, diger) >= 4) continue;
+                }
+                int kozHp = el.Where(c => c.Suit == r).Sum(c => c.Value == 14 ? 4 : c.Value == 13 ? 3 : c.Value == 12 ? 2 : c.Value == 11 ? 1 : 0);
+                if (hp - kozHp > 2) continue;
+                return true;
+            }
+            return false;
         }
 
         public string TeklifVer(IhaleDurumu durum)

@@ -47,7 +47,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ─────────────────────────────────────────────────────
             if (durum.PartnerTeklifleri.Count > 0 &&
                 durum.PartnerTeklifleri.Last() == "2NT" &&
-                durum.KendiTeklifleri.Count == 0)
+                durum.KendiGercekTeklifSayisi == 0)
             {
                 // Rakip müdahale etmedi
                 bool rakipGercekTeklifVerdi = durum.Gecmis.Any(h =>
@@ -157,7 +157,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // DURUM 1: Ben 3♣ soruyorum (partner 2NT açtı)
             // ─────────────────────────────────────────────────────
             if (durum.PartnerTeklifleri.Last() == "2NT" &&
-                durum.KendiTeklifleri.Count == 0)
+                durum.KendiGercekTeklifSayisi == 0)
             {
                 return "3♣";
             }
@@ -293,6 +293,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             {
                 // Okunan renk hangisi?
                 string okunanRenk = durum.KendiTeklifleri.Contains("3♥") ? "Maça" : "Kupa";
+
+                // Slam değeri yoksa (2NT 20-21 + <12 HP) kontrol turu yok: fit bulundu, oyuna git (4♠ / 4♥)
+                if (NTA.HcpStd(durum, el) < 12)
+                    return okunanRenk == "Kupa" ? "Pas" : "4♠";   // ortak ♥'de zaten 4♥ dedi: pas
 
                 // Önce ♣ kontrolü var mı?
                 if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 1 &&
