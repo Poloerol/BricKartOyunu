@@ -342,9 +342,24 @@ namespace BricKartOyunu
         private void UretilmisDosyaSor()
         {
             _uretilmisBordlar = null;
+            MacDurumu.UretilmisBordSayisi = 0;
             if (!UretilmisKaynakMi()) return;
             try
             {
+                // Oyun Planı'nda PBN dosyası zaten seçilmişse "Aç" penceresi gösterilmez: o dosyadan oynanır
+                var planPbn = AnaSayfa.OyunPlani;
+                if (planPbn != null && !string.IsNullOrEmpty(planPbn.PbnYolu) && System.IO.File.Exists(planPbn.PbnYolu))
+                {
+                    var kayitli = PbnOkuyucu.Tekil(PbnOkuyucu.Oku(planPbn.PbnYolu));
+                    if (kayitli.Count > 0)
+                    {
+                        _uretilmisBordlar = new List<PbnBord>(kayitli);
+                        MacDurumu.UretilmisBordSayisi = kayitli.Count;
+                        DagiticiyiAyarla();
+                        ManuelYenidenDagit();
+                        return;
+                    }
+                }
                 string klasor = DagilimDepo.DepoKlasoru;
                 try { System.IO.Directory.CreateDirectory(klasor); } catch (Exception) { }
                 using (var dlg = new OpenFileDialog())
@@ -374,13 +389,15 @@ namespace BricKartOyunu
                     DialogResult sonuc = dlg.ShowDialog(this);
                     zamanlayici.Stop();
                     if (sonuc != DialogResult.OK) return;
-                    var bordlar = PbnOkuyucu.Oku(dlg.FileName);
+                    var bordlar = PbnOkuyucu.Tekil(PbnOkuyucu.Oku(dlg.FileName));
                     if (bordlar.Count == 0)
                     {
                         MessageBox.Show(this, "Bu dosyada okunabilir bord bulunamadı.", "Oluşturulmuş Dağılım", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
                     _uretilmisBordlar = new List<PbnBord>(bordlar);
+                    MacDurumu.UretilmisBordSayisi = bordlar.Count;   // 16'dan çok bordlu dosyada 17, 18... de oynanır
+                    if (planPbn != null) planPbn.PbnYolu = dlg.FileName;   // seçilen dosya hatırlanır: sonraki açılışta tekrar sorulmaz
                 }
                 DagiticiyiAyarla();
                 ManuelYenidenDagit();   // seçilen dosyanın ilgili bordu ile masayı yeniden kurar

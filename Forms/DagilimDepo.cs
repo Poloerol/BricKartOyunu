@@ -280,7 +280,7 @@ namespace BricKartOyunu.Forms
         /// "Oynanacak Bord Seç" penceresi: dosyadaki bordları (numara, ad, açıklama) listeler, altta bulunan bord sayısı yazar.
         /// Seçilen bordun sıfır tabanlı indeksini döndürür; İptal'de -1.
         /// </summary>
-        private int BordSec(List<PbnBord> bordlar)
+        private int BordSec(List<PbnBord> bordlar, Action<int> onizle = null)
         {
             string[] dagiticiAdi = { "Kuzey", "Doğu", "Güney", "Batı" };
             var satirlar = new List<string[]>();
@@ -291,11 +291,11 @@ namespace BricKartOyunu.Forms
                             : "";
                 satirlar.Add(new[] { b.Ad, acik });
             }
-            return BordSec("Oynanacak Bord Seç", satirlar);
+            return BordSec("Oynanacak Bord Seç", satirlar, onizle);
         }
 
         /// <summary>Bord listesi penceresi (satır: ad, açıklama). Seçilen bordun sıfır tabanlı indeksi; İptal'de -1.</summary>
-        private int BordSec(string baslik, List<string[]> bordlar)
+        private int BordSec(string baslik, List<string[]> bordlar, Action<int> onizle = null)
         {
             using (var f = new Form())
             {
@@ -324,6 +324,8 @@ namespace BricKartOyunu.Forms
                 f.Controls.AddRange(new Control[] { tamam, iptal });
                 f.AcceptButton = tamam; f.CancelButton = iptal;
                 lv.DoubleClick += (s, e) => { if (lv.SelectedIndices.Count == 1) f.DialogResult = DialogResult.OK; };
+                // Seçilen bord masaya hemen dağıtılır (Bridge Baron gibi): seçim değiştikçe eller yenilenir
+                if (onizle != null) lv.SelectedIndexChanged += (s, e) => { if (lv.SelectedIndices.Count == 1) onizle(lv.SelectedIndices[0]); };
                 lv.Items[0].Selected = true;
 
                 if (f.ShowDialog(this) != DialogResult.OK || lv.SelectedIndices.Count != 1) return -1;
@@ -400,12 +402,11 @@ namespace BricKartOyunu.Forms
             }
 
             // "Oynanacak Bord Seç" penceresi: dosyada tek bord varsa da gösterilir
-            int secilen = BordSec(bordlar);
-            if (secilen < 0) return;
-
-            // Seçilen bord oyun masasına dağıtılır; bu pencere (ve diğer depo pencereleri) kapanır, masa
-            // "Eller girildiği gibi ihale edilip oynansın mı?" diye sorar.
             var masa = (this.Owner as BricOyna) ?? Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
+            int secilen = BordSec(bordlar, masa == null ? (Action<int>)null : (i => masa.DepoBordunuOnizle(bordlar[i], i + 1)));
+            if (secilen < 0) { if (masa != null) masa.DepoOnizlemeyiIptalEt(); return; }
+
+            // Seçilen bord masaya zaten dağıtıldı; bu pencere (ve diğer depo pencereleri) kapanır, Deklarasyon penceresi açılır.
             if (masa == null)
             {
                 MessageBox.Show(this, "Bord yalnızca oyun masasından (Araçlar > Dağılım Deposu) yüklenebilir.", "Dağılım Deposu",

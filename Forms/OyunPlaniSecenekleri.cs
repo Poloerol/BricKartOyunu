@@ -35,6 +35,8 @@ namespace BricKartOyunu.Forms
         public EnIyiEl EnIyiEl = Forms.EnIyiEl.Herhangi;
         public DagiticiSecimi Dagitici = DagiticiSecimi.Donusumlu;
         public bool YeniBordNumaralari = false;
+        /// <summary>Bord numarasının en fazla alabileceği değer (kulüp oturumundaki bord sayısı); sonrasında numara 1'e döner. Zon 16'lık döngüde kalır.</summary>
+        public int BordSayisi = 16;
         /// <summary>"Kullanıcı girişi" kaynağında oynanacak bordların okunduğu PBN dosyası.</summary>
         public string PbnYolu = "";
         /// <summary>PBN dosyasında oyuna başlanacak bordun sıfır tabanlı indeksi (Dağılım Deposu'ndan seçilen bord).</summary>
@@ -92,6 +94,7 @@ namespace BricKartOyunu.Forms
         /// <summary>Elle düzenlenmiş ya da eski dosyalardaki geçersiz değerleri onarır.</summary>
         private void Duzelt()
         {
+            if (BordSayisi < 1 || BordSayisi > 99) BordSayisi = 16;
             if (InsanMi == null || InsanMi.Length != 4)
             {
                 var yeni = new bool[] { false, false, true, false };
@@ -202,6 +205,19 @@ namespace BricKartOyunu.Forms
             }
             _yol = yol; _zaman = z; _onbellek = liste;
             return liste;
+        }
+
+        /// <summary>
+        /// Turnuva çıktısı PBN'lerinde aynı bord her masada ayrı kayıt olarak tekrarlanır (234 kayıt, ~26 bord).
+        /// Sıralı oynarken aynı dağılımın art arda gelmemesi için her dağılımın ilk kaydı tutulur, sıra korunur.
+        /// </summary>
+        public static List<PbnBord> Tekil(List<PbnBord> bordlar)
+        {
+            var gorulen = new HashSet<string>();
+            var sonuc = new List<PbnBord>();
+            foreach (var b in bordlar)
+                if (gorulen.Add(string.Join("|", b.El))) sonuc.Add(b);
+            return sonuc;
         }
 
         /// <summary>PBN'de bilinmeyen oyuncu "-" ya da "?" yazılır: boş sayılır.</summary>

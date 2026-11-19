@@ -72,14 +72,24 @@ namespace BricKartOyunu
         }
 
         /// <summary>
-        /// Depodan seçilen bordu masaya dağıtır, "Eller girildiği gibi ihale edilip oynansın mı?" diye sorar.
-        /// Evet: DeklarasyonForm açılır ve bordun en yüksek oynanabilir kontratı ihale edilir.
-        /// Hayır: normal akış (DekBasForm → Deklarasyon) devam eder.
+        /// Depodan seçilen bordu masaya dağıtır (Bridge Baron gibi): "Oynanacak Bord Seç" penceresinde seçim değiştikçe
+        /// eller hemen yenilenir. Hiçbir pencere açmaz.
         /// </summary>
-        public void DepoBordunuYukle(PbnBord bord, int bordNo)
+        public void DepoBordunuOnizle(PbnBord bord, int bordNo)
         {
-            if (bord == null || this.IsDisposed) return;
+            DepoBordunuDagit(bord, bordNo);
+        }
 
+        /// <summary>Bord seçimi iptal edilince masa boş Dağılım Deposu görünümüne döner.</summary>
+        public void DepoOnizlemeyiIptalEt()
+        {
+            if (this.IsDisposed) return;
+            _depoDeste = null;
+            DepoKapagiKoy();
+        }
+
+        private Player DepoBordunuDagit(PbnBord bord, int bordNo)
+        {
             var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
             Player fizDagitici = bord.DagiticiVar ? bord.Dagitici : plan.FizikselDagitici(bordNo);
 
@@ -103,36 +113,28 @@ namespace BricKartOyunu
             KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, _seed);
             PbnAdlariniUygula(bord);   // PBN'deki oyuncu adları ellerin altındaki rozetlere
             this.Refresh();
+            return fizDagitici;
+        }
 
-            var cevap = MessageBox.Show(this, "Eller girildiği gibi ihale edilip oynansın mı?", "Dağılım Deposu",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (this.IsDisposed) return;
+        /// <summary>
+        /// Depodan seçilen bordu masaya dağıtır ve Deklarasyon penceresini doğrudan açar (Bridge Baron akışı:
+        /// dosya seç → bord seç (eller hemen dağılır) → Tamam → ihale penceresi).
+        /// </summary>
+        public void DepoBordunuYukle(PbnBord bord, int bordNo)
+        {
+            if (bord == null || this.IsDisposed) return;
+            DepoBordunuDagit(bord, bordNo);
 
-            if (cevap != DialogResult.Yes)
-            {
-                YeniDekBasFormAc();   // normal deklarasyon süreci
-                return;
-            }
-
-            List<string> ihale;
-            try { ihale = DepoMaksimumIhale(bord, fizDagitici); }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, "En yüksek kontrat hesaplanamadı, normal ihale başlatılıyor:\n" + ex.Message,
-                    "Dağılım Deposu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                YeniDekBasFormAc();
-                return;
-            }
-
-            var dek = new DeklarasyonForm(this) { SenaryoIhalesi = new Queue<string>(ihale) };
+            var dek = new DeklarasyonForm(this) { StartPosition = FormStartPosition.Manual };
             if (playZonePanel != null)
             {
-                Point ekran = playZonePanel.PointToScreen(Point.Empty);
-                Size boyut = playZonePanel.Size;
-                dek.Location = new Point(ekran.X + (boyut.Width - dek.Width) / 2, ekran.Y + (boyut.Height - dek.Height) / 2);
+                Point merkez = playZonePanel.PointToScreen(new Point(playZonePanel.Width / 2, playZonePanel.Height / 2));
+                dek.Location = new Point(merkez.X - dek.Width / 2, merkez.Y - dek.Height / 2);
             }
             DeklarasyonAsamasindaButonlariAktifEt();
             dek.Show(this);
+            dek.BringToFront();
+            dek.Activate();
         }
 
         /// <summary>

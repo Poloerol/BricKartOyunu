@@ -29,8 +29,17 @@ namespace BricKartOyunu.Class
     public static class MacDurumu
     {
         public const int VarsayilanBordSayisi = 4;
-        /// <summary>Bord numaraları (kart dağıtıcı + zon döngüsü) 16'dan sonra 1'e döner.</summary>
-        public const int EnFazlaBordNo = 16;
+        /// <summary>Zon/dağıtıcı döngüsü 16 bordluktur; bord numaraları normalde 16'dan sonra 1'e döner.</summary>
+        public const int ZonDongusu = 16;
+        /// <summary>"Oluşturulmuş El Dağılım" dosyasındaki bord sayısı (dosya seçili değilse 0).</summary>
+        public static int UretilmisBordSayisi = 0;
+        /// <summary>
+        /// Bord numarasının en fazla alabileceği değer: 16, ama seçilen PBN dosyasında daha çok bord varsa dosyadaki bord sayısı
+        /// (zon ve dağıtıcı yine 16'lık döngüden hesaplanır).
+        /// </summary>
+        public static int EnFazlaBordNo { get { return Math.Max(Math.Max(1, AyarliBordSayisi), UretilmisBordSayisi); } }
+        /// <summary>Oyun Planı'ndaki "Bord sayısı" ayarı (varsayılan 16; kulüp oturumları için 1-99).</summary>
+        public static int AyarliBordSayisi = ZonDongusu;
 
         public static bool Aktif { get; private set; }
         public static string OyuncuAdi { get; private set; } = "İnsan Oyuncu";

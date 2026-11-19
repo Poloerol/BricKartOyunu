@@ -164,10 +164,10 @@ namespace BricKartOyunu.Forms
         {
             get
             {
-                if (_oyunPlani == null) _oyunPlani = OyunPlaniSecenekleri.Yukle();
+                if (_oyunPlani == null) { _oyunPlani = OyunPlaniSecenekleri.Yukle(); MacDurumu.AyarliBordSayisi = _oyunPlani.BordSayisi; }
                 return _oyunPlani;
             }
-            set { _oyunPlani = value ?? new OyunPlaniSecenekleri(); }
+            set { _oyunPlani = value ?? new OyunPlaniSecenekleri(); MacDurumu.AyarliBordSayisi = _oyunPlani.BordSayisi; }
         }
 
         internal void OyunAyarlariToolStripMenuItem_Click(object sender, EventArgs e)

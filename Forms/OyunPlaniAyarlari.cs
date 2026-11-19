@@ -24,6 +24,7 @@ namespace BricKartOyunu.Forms
         // Dağıtım
         private RadioButton[] _rbKaynak, _rbEnIyi, _rbDagitici;
         private CheckBox _chkYeniNo;
+        private NumericUpDown _nudBord;
         private string _pbnYolu = "";
         // Oyun
         private RadioButton[] _rbOyunTuru, _rbGecikme;
@@ -82,9 +83,9 @@ namespace BricKartOyunu.Forms
             MinimizeBox = false;
             ShowInTaskbar = false;
             AutoScaleMode = AutoScaleMode.None;
-            Size = new Size(406, 280);
+            Size = new Size(406, 306);
 
-            _sekmeler = new TabControl { Left = 6, Top = 6, Width = 378, Height = 196, Font = _yazi };
+            _sekmeler = new TabControl { Left = 6, Top = 6, Width = 378, Height = 222, Font = _yazi };
             Controls.Add(_sekmeler);
 
             DagitimSekmesi();
@@ -93,16 +94,16 @@ namespace BricKartOyunu.Forms
             OyuncuTurleriSekmesi();
             ResimlerSekmesi();
 
-            _btnVarsayilan = Dugme("Varsayılan", 6, 208);
+            _btnVarsayilan = Dugme("Varsayılan", 6, 234);
             _btnVarsayilan.Width = 84;
             _btnVarsayilan.Click += (s, e) =>
             {
                 // Formdaki seçimleri varsayılana çevirir; kalıcı olması için Tamam'a basılmalı
                 Yukle(new OyunPlaniSecenekleri());
             };
-            _btnTamam = Dugme("Tamam", 137, 208);
-            _btnIptal = Dugme("İptal", 221, 208);
-            _btnYardim = Dugme("Yardım", 308, 208);
+            _btnTamam = Dugme("Tamam", 137, 234);
+            _btnIptal = Dugme("İptal", 221, 234);
+            _btnYardim = Dugme("Yardım", 308, 234);
             _btnTamam.Click += (s, e) =>
             {
                 int insanSayisi = 0;
@@ -197,6 +198,10 @@ namespace BricKartOyunu.Forms
                 8, 16, 17, 80);
 
             _chkYeniNo = Onay(s, "Yeni Bord Numaralarını Kullan", 274, 114, 92, 52);
+
+            s.Controls.Add(new Label { Text = "Bord sayısı (bu sayıdan sonra numara 1'e döner):", Left = 8, Top = 172, Width = 250, Height = 18, Font = _yazi });
+            _nudBord = new NumericUpDown { Left = 262, Top = 168, Width = 52, Minimum = 1, Maximum = 99, Value = 16, Font = _yazi };
+            s.Controls.Add(_nudBord);
         }
 
         private void OyunSekmesi()
@@ -412,6 +417,7 @@ namespace BricKartOyunu.Forms
             Sec(_rbEnIyi, (int)o.EnIyiEl);
             Sec(_rbDagitici, (int)o.Dagitici);
             _chkYeniNo.Checked = o.YeniBordNumaralari;
+            _nudBord.Value = Math.Max(1, Math.Min(99, o.BordSayisi));
 
             Sec(_rbOyunTuru, (int)o.OyunTuru);
             _chkGorunmez.Checked = o.TekrarGorunmez;
@@ -451,6 +457,7 @@ namespace BricKartOyunu.Forms
             o.EnIyiEl = (EnIyiEl)Secili(_rbEnIyi);
             o.Dagitici = (DagiticiSecimi)Secili(_rbDagitici);
             o.YeniBordNumaralari = _chkYeniNo.Checked;
+            o.BordSayisi = (int)_nudBord.Value;
 
             o.OyunTuru = (OyunTuru)Secili(_rbOyunTuru);
             o.TekrarGorunmez = _chkGorunmez.Checked;
