@@ -56,7 +56,7 @@ namespace BricKartOyunu
             if (_depoGizli == null) _depoGizli = new List<Control>();
             foreach (Control c in this.Controls)
             {
-                if (c is MenuStrip || c is ToolStrip || c is StatusStrip || !c.Visible) continue;
+                if (c is MenuStrip || c is ToolStrip || c is StatusStrip || !c.Visible || c == _acilisKapagi) continue;
                 _depoGizli.Add(c);
                 c.Visible = false;
             }

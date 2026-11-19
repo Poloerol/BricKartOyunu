@@ -482,6 +482,7 @@ namespace BricKartOyunu
                     {
                         t.Stop(); t.Dispose();
                         if (this.IsDisposed || _acilisKapagi == null) return;
+                        if (DepoModu) DepoKapagiKoy();   // kapak kalkmadan masayı boşalt: dağıtılmış kartlar bir an bile görünmesin
                         this.Controls.Remove(_acilisKapagi);
                         _acilisKapagi.Dispose();
                         _acilisKapagi = null;
