@@ -74,3 +74,15 @@
 3. Oyun sonrası analiz (her hamle DD'ye göre) ve teklif açıklamaları (alert).
 4. Kayıt/geçmiş ve PBN dışa aktarma; duplicate maç akışı.
 5. Test altyapısı: MSTest/NUnit + GitHub Actions.
+
+## Yarın yapılacaklar (19 Kasım gecesi notu)
+1. **Push**: yerelde `e113f19` (ihale motoru), `b437f66` (arayüz), `fadfcb4` (Depo açılış kapağı) bekliyor; kullanıcı Visual Studio'da yeniden yükleyip derledikten sonra denesin, sonra "Push yap".
+2. **Arayüzde denenecekler** (derlendi ama elle denenmedi): Dağılım Deposu → bord seçince eller hemen dağılıyor + Tamam'da Deklarasyon açılıyor; Oyun Planı → Dağıtım sekmesinde "Bord sayısı" (27 bordlu kulüp oturumu), seçili PBN dosyası tekrar sorulmuyor, tekrarlı PBN dağılımları atlanıyor (1970-MixedPairs: 234 kayıt → ~26 bord), PBN oyuncu adları rozetlerde.
+3. **Slam arama** (en pahalı küme: Slam kaçırıldı 201 bord ort. 11,7 IMP, Büyük slam 75 bord ort. 14,3 IMP): PBN bord 10 (1♦-1♥-1♠-4♥, par 7♣) gibi 14+ HP + 6'lı renk elinde doğrudan 4M yerine zorlayıcı ikinci tur / kontrol turu. BB'nin yolu: 1♦-1♥-1♠-2♣-2♦-2♥-3♥-4♣-4♦-4♥-4♠-4NT-5♠-6♣-6NT-7♥-7NT.
+4. **Zon**: motor ihale sırasında zonu görmüyor (`DeklarasyonForm.IhaleDurumuOlustur` "TODO: BricOyna'dan al", ölçüm araçlarında da false). Zonu bağlayıp zona bağlı kuralları (zayıf iki, müdahale) ölçmek.
+5. **Zayıf iki**: kullanıcı stili uygulandı (−628). "Hiç açma" −1059 çıktı; kullanıcı zayıf iki yan renkte 0 HP (−948) ya da hiç açmama seçeneklerini de görmek isterse bu sayılar `DURUM.md`'de. Yanıtlar (zayıf iki cevabı, 2NT özellik sorma) ayrıca ölçülebilir: zayıf ikinin kendisi mi yoksa cevap sistemi mi kaybettiriyor?
+6. **Ortağın doğal 1NT müdahalesi sonrası Stayman (2♣)**: şu an yalnızca Jacoby transfer var; Stayman / 3NT / davet yok.
+7. **1M-1NT-... ve 3 kartlık destek**: PBN bord 8 (12 HP, 3 kartlık kupa) basit 2♥ + açıcı 3♥ daveti par'a gitti; 3M/yeni renk varyantları ölçülmedi (kodlandı, eklenmedi).
+8. **Puppet Stayman geri kalan basamakları**: DURUM 6/7 (4♣ "6 key-card" vb.) hâlâ karmaşık; slam değerli (12+ HP) ellerin devamı ölçülmedi.
+9. **Dağılım Deposu**: "Eller girildiği gibi ihale edilip oynansın mı?" sorusu kaldırıldı (kod `DepoMaksimumIhale` duruyor); istenirse DekBasForm'a ya da Oyun Planı'na seçenek olarak geri eklenebilir.
+10. **PBN okuyucu**: `[Event]`siz PBN'lerde (ad etiketleri `[Deal]`dan önce gelirse) oyuncu adları önceki bordla karışabilir; gerçek dosyada görülürse düzeltilecek.
