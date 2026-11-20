@@ -120,7 +120,7 @@ namespace BricKartOyunu.Forms
                 "InvisibleCueBids=Görünmez Cue-bid", "LimitPlusCueBids=Limit-üstü Cue-bid",
                 "GoodBad2NT=Good-Bad 2NT", "InvertedDbl=Inverted DBL", "MixedRaise=Mixed Raise", "FSJS=FSJS",
                 "LeapingMichaels=Leaping Michaels", "LightnerDouble=Lightner DBL"));
-            Ekle("Precision / Güçlü Kulüp", a => Liste(a, "OneClub_AnswerSistemi=1♣ Cevap Sistemi"));
+            Ekle("Precision / Güçlü Kulüp", a => Liste(a, "OneClub_AnswerSistemi=1♣ Cevap Sistemi", "OneDiamond_AnswerSistemi=1♦ Cevap Sistemi", "OneHeart_AnswerSistemi=1♥ Cevap Sistemi", "OneSpade_AnswerSistemi=1♠ Cevap Sistemi", "OneNT_AnswerSistemi=1NT Cevap Sistemi", "TwoClub_AnswerSistemi=2♣ Cevap Sistemi", "TwoDiamond_AnswerSistemi=2♦ Açılış Sistemi", "TwoHeart_AnswerSistemi=2♥ Cevap Sistemi", "TwoSpade_AnswerSistemi=2♠ Cevap Sistemi", "TwoNT_AnswerSistemi=2NT Cevap Sistemi", "Role2C_AnswerSistemi=2♣ Röle Sistemi", "Araya_AnswerSistemi=Araya Giriş Cevapları", "IkiRenk_AnswerSistemi=İki Renkli Araya Girişler"));
         }
 
         private void Ekle(string baslik, Func<OrtaklikAnlasmasi, string> ozet)
