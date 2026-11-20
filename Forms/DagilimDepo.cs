@@ -403,7 +403,9 @@ namespace BricKartOyunu.Forms
 
             // "Oynanacak Bord Seç" penceresi: dosyada tek bord varsa da gösterilir
             var masa = (this.Owner as BricOyna) ?? Application.OpenForms.OfType<BricOyna>().FirstOrDefault();
+            this.Opacity = 0;   // "Oynanacak Bord Seç" açıkken Dağılım Deposu penceresi görünmez (sahip olarak kalır, iptalde geri gelir)
             int secilen = BordSec(bordlar, masa == null ? (Action<int>)null : (i => masa.DepoBordunuOnizle(bordlar[i], i + 1)));
+            this.Opacity = 1;
             if (secilen < 0) { if (masa != null) masa.DepoOnizlemeyiIptalEt(); return; }
 
             // Seçilen bord masaya zaten dağıtıldı; bu pencere (ve diğer depo pencereleri) kapanır, Deklarasyon penceresi açılır.
@@ -416,7 +418,11 @@ namespace BricKartOyunu.Forms
             var bord = bordlar[secilen];
             int bordNo = secilen + 1;
             this.Close();
-            masa.BeginInvoke(new Action(() => masa.DepoBordunuYukle(bord, bordNo)));
+            masa.BeginInvoke(new Action(() =>
+            {
+                masa.UretilmisSeriBelirle(bordlar, yol);   // Oluşturulmuş El Dağılım seçiliyse dosyadaki bordlar sırayla oynanır
+                masa.DepoBordunuYukle(bord, bordNo);
+            }));
         }
 
         /// <summary>Depodan seçilen dosyayı onay alarak siler; oyun planında kullanılıyorsa kaynağı rastgeleye döndürür.</summary>

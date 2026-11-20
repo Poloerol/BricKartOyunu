@@ -327,6 +327,45 @@ namespace BricKartOyunu
             return plan != null && plan.DagitimKaynagi == DagitimKaynagi.Uretilmis;
         }
 
+        /// <summary>
+        /// Dağılım Deposu'ndan bir PBN dosyası yüklenince (Oyun Planı: Oluşturulmuş El Dağılım): dosyadaki bordlar sırayla oynanır.
+        /// Başka kaynakta (normal Dağılım Deposu) seri kapalıdır.
+        /// </summary>
+        public void UretilmisSeriBelirle(List<PbnBord> bordlar, string yol)
+        {
+            if (bordlar == null || bordlar.Count == 0 || !UretilmisKaynakMi())
+            {
+                _uretilmisBordlar = null;
+                MacDurumu.UretilmisBordSayisi = 0;
+                return;
+            }
+            _uretilmisBordlar = new List<PbnBord>(bordlar);
+            MacDurumu.UretilmisBordSayisi = bordlar.Count;
+            var plan = AnaSayfa.OyunPlani;
+            if (plan != null && !string.IsNullOrEmpty(yol)) plan.PbnYolu = yol;
+        }
+
+        /// <summary>
+        /// Oluşturulmuş El Dağılım'da son bord oynandıysa sorar ("başka turnuva yüklemek ister misiniz?"): Evet → Dağılım Deposu yeniden açılır,
+        /// Hayır → masa kapanır. true dönerse yeni bord başlatılmaz.
+        /// </summary>
+        private bool UretilmisTurnuvaBitti()
+        {
+            if (_uretilmisBordlar == null || _uretilmisBordlar.Count == 0 || !UretilmisKaynakMi()) return false;
+            if (_currentTour < _uretilmisBordlar.Count) return false;
+            var cevap = MessageBox.Show(this, "Bu turnuvanın tüm bordlarını oynadınız.\nBaşka bir turnuva yüklemek ister misiniz?",
+                "Oluşturulmuş El Dağılım", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            _uretilmisBordlar = null;
+            MacDurumu.UretilmisBordSayisi = 0;
+            if (cevap == DialogResult.Yes)
+            {
+                DepoOnizlemeyiIptalEt();   // masa boşaltılır
+                DepoPenceresiAc();
+            }
+            else Close();
+            return true;
+        }
+
         /// <summary>Bu bordun seçilen dosyadaki karşılığı (dosya seçilmediyse null).</summary>
         private PbnBord UretilmisBord()
         {
@@ -472,6 +511,7 @@ namespace BricKartOyunu
                 "[YeniBord] Yeni bord başlatılıyor...");
 
             if (!MacSonrakiBordaHazirla()) return;   // maç bittiyse yeni bord yok
+            if (UretilmisTurnuvaBitti()) return;     // Oluşturulmuş El Dağılım: dosyadaki tüm bordlar oynandı
 
             PratikIlerlet();
             _depoDeste = null;   // depodan yüklenen bord yalnızca o bord için geçerli
@@ -878,6 +918,7 @@ namespace BricKartOyunu
         {
             if (MacDurumu.Aktif) MacDurumu.PasYaz(_seed);   // dört pas / atlanan bord: 0
             if (!MacSonrakiBordaHazirla()) return;
+            if (UretilmisTurnuvaBitti()) return;     // Oluşturulmuş El Dağılım: dosyadaki tüm bordlar oynandı
 
             PratikIlerlet();
             _depoDeste = null;   // depodan yüklenen bord yalnızca o bord için geçerli

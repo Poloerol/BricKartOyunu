@@ -31,6 +31,12 @@ namespace BricKartOyunu
             this.Resize += (s, e) => { if (_depoGizli != null) DepoKapagiKoy(); };
             this.Activated += (s, e) => { if (_depoGizli != null) DepoKapagiKoy(); };
 
+            DepoPenceresiAc();
+        }
+
+        /// <summary>Dağılım Deposu penceresini ekranın ortasında açar.</summary>
+        private void DepoPenceresiAc()
+        {
             var depo = new DagilimDepo();
             depo.StartPosition = FormStartPosition.Manual;
             Rectangle alan = Screen.FromControl(this).WorkingArea;   // ekranın tam ortası

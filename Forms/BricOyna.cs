@@ -795,7 +795,16 @@ namespace BricKartOyunu
                     if (!ManuelGirisAl()) { Close(); return; }
                     ManuelYenidenDagit();
                 }
-                UretilmisDosyaSor();   // Oluşturulmuş El Dağılım: önce "Aç" penceresi
+                // Oluşturulmuş El Dağılım: masa boş açılır, Dağılım Deposu'ndan PBN dosyası ve başlangıç bordu seçilir;
+                // dosyadaki bordlar sırayla oynanır, bitince "başka turnuva yüklemek ister misiniz?" sorulur
+                if (UretilmisKaynakMi())
+                {
+                    _uretilmisBordlar = null;
+                    MacDurumu.UretilmisBordSayisi = 0;
+                    DepoAcilisi();
+                    return;
+                }
+                UretilmisDosyaSor();   // (yedek) Oluşturulmuş El Dağılım: "Aç" penceresi
                 ElNumarasiSor(() => { PratikDuyurusu(); YeniDekBasFormAc(); });   // Numaralı Rastgele Eller: önce El Numarası penceresi, Tamam'dan sonra DekBasForm
             };
         }
