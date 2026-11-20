@@ -41,6 +41,8 @@ namespace BricKartOyunu.Forms
         public string PbnYolu = "";
         /// <summary>PBN dosyasında oyuna başlanacak bordun sıfır tabanlı indeksi (Dağılım Deposu'ndan seçilen bord).</summary>
         public int PbnBaslangic = 0;
+        /// <summary>Oyuna başlanacak bord numarası (1 tabanlı; 0 = kaldığı yerden). Briç Oyna açılırken bir kez kullanılır, sonra sıfırlanır.</summary>
+        public int IlkBordNo = 0;
 
         // Oyun sekmesi
         public OyunTuru OyunTuru = Forms.OyunTuru.Duplicate;

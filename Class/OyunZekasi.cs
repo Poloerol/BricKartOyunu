@@ -1126,6 +1126,15 @@ namespace BricKartOyunu.Class
             double enIyi = double.MinValue;
             var atmaSkorlari = new List<Tuple<string, double>>();   // renk -> atma puanı (Romen atma için sıralama)
             foreach (var g in yanRenkler.GroupBy(c => c.Suit))
+                // Deklaran tarafı, ikinci el: bu renkte diğer elde tek kart (ya da kart yok) ve elimde As var →
+                // As ile kazan; alçak kartla kazanmaya çalışmak rakibin K/10'una löveyi bedavaya bırakır, renk sonra geliştirilemez
+                // (el uzunlukları kısa: ortağın kartı en fazla bir). 9♥ yerine A♥ (dummy A-Q-J-9, deklaranda tek kupa): +0,9 löve ortalama.
+                if (x.DeklaranTarafi && x.B.OrtakEli != null && kazananlar.Any(c => c.Value == 14) &&
+                    x.B.OrtakEli.Count(c => c.Suit == atak) <= 1)
+                {
+                    neden = "2. el: ortakta ≤1 kart, As ile al (" + atak + ")";
+                    return kazananlar.First(c => c.Value == 14);
+                }
             {
                 var c = g.OrderByDescending(k => k.Value).ToList();
                 int n = c.Count;
