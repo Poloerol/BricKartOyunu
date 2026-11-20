@@ -24,6 +24,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         protected override string Karar(Dz z)
         {
             if (z.D != null && z.D.Anlasma != null && z.D.Anlasma.WeakJumpShiftResp) return null;   // zayıf sıçrama anlaşması: sıçrama 18+ HP değil (WeakJumpShiftResp)
+            if (z.D != null && z.D.Anlasma != null && z.D.Anlasma.OneClub_AnswerSistemi && z.Hepsi.Count > 0 && z.Hepsi[0] == "B:1♣") return null;   // 1♣ cevap sistemi açık: 2♦/2♥/2♠ yapay (Flannery, minör vb.), 18+ sıçrama değil; OneClub_* gelişimi bakar
             if (z.Hepsi.Count != 2 || !z.Hepsi[0].StartsWith("B:1") || !z.Hepsi[1].StartsWith("O:2")) return null;
             string acis = z.Hepsi[0].Substring(3);
             string cevap = z.Hepsi[1].Substring(3);

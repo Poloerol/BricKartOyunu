@@ -433,6 +433,7 @@ namespace BricKartOyunu.Class.Bidding
         {
             SonKonvansiyonAdi = null;
             if (durum == null) return "Pas";
+            durum.Anlasma = _anlasma;   // konvansiyonlar durumdaki anlaşmaya bakar: motorun gerçek anlaşması geçerli olsun (1♣ sistemi vb.)
             SirayiHazirla();
 
             // 0. Aşama: Ek konvansiyonlar (Bridge Baron listesi; ortaklık anlaşmasında açıksa) — açılış sistemlerinden önce
