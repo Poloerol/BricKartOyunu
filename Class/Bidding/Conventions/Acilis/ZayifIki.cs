@@ -53,7 +53,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         {
             var el = d.AktifOyuncuEli;
             int hp = ElDegerlendirici.HCP(el);
-            if (hp < 6) return false;
+            // Kötü zon (biz zonda, rakip değil): 8+ HP ve koz dışında HP yok (30.000 bord, kontrole göre -140 IMP, üç dilimde de iyi).
+            // İyi zonda gevşetmek (daha zayıf el, yan renkte HP) kötü çıktı (+15..+84), olduğu gibi bırakıldı.
+            bool kotuZon = d.BenZondayim && !d.RakipZonda;
+            int hpMin = kotuZon ? 8 : 6;
+            int yanLim = kotuZon ? 0 : 2;
+            if (hp < hpMin) return false;
             foreach (var r in new[] { "Maça", "Kupa", "Karo" })
             {
                 if (ElDegerlendirici.RenkUzunlugu(el, r) != 6) continue;
@@ -63,7 +68,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (ElDegerlendirici.RenkUzunlugu(el, diger) >= 4) continue;
                 }
                 int kozHp = el.Where(c => c.Suit == r).Sum(c => c.Value == 14 ? 4 : c.Value == 13 ? 3 : c.Value == 12 ? 2 : c.Value == 11 ? 1 : 0);
-                if (hp - kozHp > 2) continue;
+                if (hp - kozHp > yanLim) continue;
                 return true;
             }
             return false;

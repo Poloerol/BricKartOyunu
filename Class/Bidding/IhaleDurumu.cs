@@ -74,6 +74,12 @@ namespace BricKartOyunu.Class.Bidding
         /// </summary>
         public bool ZonEW { get; set; }
 
+        /// <summary>Aktif oyuncunun tarafı zonda mı?</summary>
+        public bool BenZondayim { get { return AktifOyuncu == Player.Kuzey || AktifOyuncu == Player.Guney ? ZonNS : ZonEW; } }
+
+        /// <summary>Rakip taraf zonda mı?</summary>
+        public bool RakipZonda { get { return AktifOyuncu == Player.Kuzey || AktifOyuncu == Player.Guney ? ZonEW : ZonNS; } }
+
         /// <summary>
         /// Bord numarası (Tur numarası).
         /// </summary>

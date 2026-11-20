@@ -497,6 +497,9 @@ namespace BricKartOyunu
         /// Belirtilen oyuncunun elini döndürür.
         /// (Ihale motoru için.)
         /// </summary>
+        /// <summary>İhale motoru için zon durumu (iç Kuzey-Güney / Doğu-Batı çiftleri; ekranda çiftler yer değiştirdiyse düzeltilmiş).</summary>
+        public void IhaleZonu(out bool ns, out bool ew) { ZonDurumu(out ns, out ew); }
+
         public List<Card> GetOyuncuEli(Player oyuncu)
         {
             switch (oyuncu)

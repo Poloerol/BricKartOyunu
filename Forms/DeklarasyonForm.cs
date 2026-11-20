@@ -1502,13 +1502,15 @@ namespace BricKartOyunu.Forms
         /// </summary>
         private IhaleDurumu IhaleDurumuOlustur()
         {
+            bool zonNs = false, zonEw = false;
+            if (_bricOyna != null) _bricOyna.IhaleZonu(out zonNs, out zonEw);
             var durum = new IhaleDurumu
             {
                 AktifOyuncu = OyuncuyaCevir(_aktifOyuncu),
                 Anlasma = _anlasma,
                 TurNo = 1,
-                ZonNS = false,   // TODO: BricOyna'dan al
-                ZonEW = false,   // TODO: BricOyna'dan al
+                ZonNS = zonNs,
+                ZonEW = zonEw,
                 AktifOyuncuEli = _bricOyna?.GetOyuncuEli(OyuncuyaCevir(_aktifOyuncu))
             };
 

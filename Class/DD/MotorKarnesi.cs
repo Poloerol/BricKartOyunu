@@ -64,6 +64,7 @@ namespace BricKartOyunu.Class
                     AktifOyuncu = p,
                     AktifOyuncuEli = eller[p],
                     Anlasma = m.Anlasma,
+                    ZonNS = b.NsZon, ZonEW = b.EwZon,
                     Gecmis = new List<IhaleHamlesi>(gecmis)
                 };
                 string t = m.TeklifVer(d);
