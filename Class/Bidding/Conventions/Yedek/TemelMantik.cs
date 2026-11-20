@@ -261,7 +261,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (t != "Pas") return t;
                 }
             }
-            if (sev >= 3 || hp < 8 + fark) return "Pas";
+            bool mKotu = d.BenZondayim && !d.RakipZonda;
+            int mZon = mKotu ? 4 : 0;   // kötü zonda müdahale sıkı (ölçüm: 3 dilimde de kazanç)
+            if (sev >= 3 || hp < 8 + fark + mZon) return "Pas";
 
             // Dengeli 15-18 HP, rakibin rengini durduruyor: NT müdahalesi (1♦ – (1NT), 2♥ – (2NT) = 15-18).
             // Güçlü 2♣ açılışına karşı uygulanmaz.
