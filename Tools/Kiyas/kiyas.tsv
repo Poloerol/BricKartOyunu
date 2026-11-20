@@ -1,0 +1,11 @@
+# BB - BKO kıyas defteri. Her satır bir bord. Alanlar TAB ile ayrılır.
+# Skorlar KUZEY-GÜNEY açısından (NS lehine +, aleyhine −). İki programda da aynı tarafta oturup aynı bordu oynayın.
+# Kategori (kaybın/kazancın sebebi): ihale, slam, rekabet, atak, oynama, savunma, diger
+# Örnek satırlar (silin, gerçek satırlarla değiştirin):
+# bord	bko_skor_NS	bb_skor_NS	kategori	not
+# 5	620	650	oynama	4S: BB +1 savunma hatası, BKO DD'ye eşit
+# 10	-680	-1440	slam	BKO 4H durdu, BB 7NT batmadı ama 6NT yapılırdı
+bord	bko_skor_NS	bb_skor_NS	kategori	not
+6	-630	-660	oynama	3NT E: BKO +1, BB +2 (BB savunma hatası, DD 10 el)
+8	420	-50	oynama	4H: BKO 10 el (DD), BB 9 el
+10	-680	100	slam	BKO 4H+2 (par 7C); BB 7NT -1 (12 el): ikisi de slam arayışında yanlış
