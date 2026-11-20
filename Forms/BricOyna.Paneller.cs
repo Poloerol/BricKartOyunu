@@ -403,6 +403,7 @@ namespace BricKartOyunu
             ElNumarasiPenceresiniKapat();
 
             KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, seciliSeed);
+            BordDurumunuSifirla();   // masadaki oynanmış kartlar, löve/skor sayaçları ve oyun geçmişi temizlenir (önceki bordun kartı masada kalıyordu)
 
             _oyunAsamasi = OyunAsamasi.Baslangic;
             _currentTour++;
