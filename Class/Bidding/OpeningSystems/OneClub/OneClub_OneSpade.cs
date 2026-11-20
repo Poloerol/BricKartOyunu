@@ -15,6 +15,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
         protected override string Cevap { get { return "1♠"; } }
         public override string Aciklama { get { return "1♣-1♠ gelişimi"; } }
 
+        internal override bool AciciRebidTanimli(OcEl e) { return AciciRebid(e) != null; }
         internal override string AciciRebid(OcEl e)
         {
             int hcp = e.Hcp, s = e.S, h = e.H, d = e.D, c = e.C;
@@ -46,8 +47,12 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (hcp >= 11 && hcp <= 16 && s < 3 && (c >= 6 || (c == 5 && (d >= 4 || h >= 4) && hcp >= 14))) return "2♣";
             // 2♠: 3+♠ 11-15 (15 HCP ise ♠ 3'lü)
             if (s >= 3 && hcp >= 11 && hcp <= 15) return "2♠";
+            // 1NT açamamış dengeli eller: 18-19 doğrudan 3NT, 15-17 2NT (davet)
+            bool dengeli = e.Dengeli;
+            if (dengeli && hcp >= 18 && hcp <= 19) return "3NT";
+            if (dengeli && hcp >= 15 && hcp <= 17) return "2NT";
             // 1NT: dengeli 11-14 veya ♠ singleton'lı 1-4-4-4 / 1-4-3-5 / 1-3-4-5
-            return "1NT";
+            return hcp <= 14 ? "1NT" : null;   // 15+ HP başka satıra uymayan el: tanımsız, genel motor sürdürür
         }
 
         internal override string CevapciDevam(OcEl e, string rebid)

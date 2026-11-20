@@ -25,6 +25,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
         }
 
         // ───────── AÇANIN YENİDEN TEKLİFİ ─────────
+        internal override bool AciciRebidTanimli(OcEl e) { return AciciRebid(e) != null; }
         internal override string AciciRebid(OcEl e)
         {
             int hcp = e.Hcp, s = e.S, h = e.H, d = e.D, c = e.C;
@@ -47,8 +48,10 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             // 11-14: 4+♣4♦ → 2♦ (SEÇİM: 15-17 HCP 4♣4♦ de 2♦), 6+♣ → 2♣
             if (c >= 4 && d >= 4) return "2♦";
             if (c >= 6) return "2♣";
-            if (hcp >= 18) return "2NT";     // SEÇİM: kitapta tanımsız güçlü dengeli el
-            return "1NT";
+            if (hcp >= 18 && hcp <= 19 && Duz(e)) return "3NT";   // dengeli 18-19: doğrudan oyun
+            if (hcp >= 15 && hcp <= 17 && (Duz(e) || e.Dengeli)) return "2NT";   // 1NT açamamış dengeli 15-17: davet
+            if (hcp >= 18) return "2NT";     // SEÇİM: kitapta tanımsız güçlü el
+            return hcp <= 14 ? "1NT" : null;   // 15+ HP başka satıra uymayan el: tanımsız, genel motor sürdürür
         }
 
         // ───────── CEVAPÇININ DEVAMI ─────────
