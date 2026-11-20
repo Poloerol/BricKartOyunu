@@ -8,7 +8,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
 {
     /// <summary>
     /// 1♣ ⇒ 1NT GELİŞİMİ (SAS kitabı s.21). Cevapçı 7-11 HCP, 4'lü majör yok.
-    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ dengesiz 11-16, 2♦/2♥/2♠/3♣ reverse gücünde 17+ (2♦ 4+♦ sinek uzun; 2♥/2♠ 5+♣ 4M; 3♣ 6+♣), 2NT 15-17 dengesiz (1NT açamayan; cevapçı pas/3NT), 3NT dengeli 16-19,
+    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ dengesiz 11-16, 2♦/2♥/2♠/3♣ reverse gücünde 17+ (2♦ 4+♦ sinek uzun; 2♥/2♠ 5+♣ 4M; 3♣ 6+♣), 2NT 15-17 dengesiz (1NT açamayan; cevapçı pas/3NT), 3NT dengeli 18-19 (2NT 1NT açamayan dengeli 15-17 elleri de kapsar),
     /// 3♦/3♥/3♠ 6+♣ 5x. Cevapçı "min" 7-8, "max" 9-11 HCP.
     /// </summary>
     public class OneClub_OneNT : OneClub_GelisimTabani
@@ -22,12 +22,12 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
                 K("2♥", x => x.Hcp >= 17 && x.C >= 5 && x.H >= 4),
                 K("2♠", x => x.Hcp >= 17 && x.C >= 5 && x.S >= 4),
                 K("2♦", x => x.Hcp >= 17 && x.D >= 4 && x.C > x.D),                  // reverse: önce ucuz renk (♣), sonra pahalı renk (♦); karo sinekten kısa
-                K("3NT", x => x.Hcp >= 16 && x.Hcp <= 19 && x.Dengeli),   // dengeli 16-19 (1NT açılışı kapsamı dışında): oyun; 2NT dengesiz 15-17 için
+                K("3NT", x => x.Hcp >= 18 && x.Hcp <= 19 && x.Dengeli),   // dengeli 18-19: doğrudan oyun (2NT 15-17 davetiyle karışmasın)
                 K("3♦", x => x.C >= 6 && x.D >= 5),
                 K("3♥", x => x.C >= 6 && x.H >= 5),
                 K("3♠", x => x.C >= 6 && x.S >= 5),
                 K("3♣", x => x.Hcp >= 17 && x.C >= 6),                                 // reverse gücünde (17+), zorlayıcı
-                K("2NT", x => x.Hcp >= 15 && x.Hcp <= 17 && x.C < 6),   // 15-17 HP ama 1NT açamayan (dengesiz) el: cevapçı puanına bakıp pas ya da 3NT der
+                K("2NT", x => x.Hcp >= 15 && x.Hcp <= 17 && (x.C < 6 || x.Dengeli)),   // 15-17 HP ama 1NT açamayan (dengesiz) el: cevapçı puanına bakıp pas ya da 3NT der
                 K("2♣", x => x.Hcp >= 11 && x.Hcp <= 16 && x.C >= 6 && !x.Dengeli),
             }, e, "Pas");
         }

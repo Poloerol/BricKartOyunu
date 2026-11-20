@@ -131,9 +131,9 @@ namespace BricKartOyunu.Tests
                 new[] { "1♣", "Pas", "1NT", "Pas", "2NT", "Pas" }, Player.Kuzey, "3NT",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("1NT A4: 17 HCP dengeli (5-3-3-2) → 3NT (pas değil)", new OneClub_OneNT(),
+            Test("1NT A4: 17 HCP dengeli (5-3-3-2, 1NT açamamış) → 2NT (pas değil)", new OneClub_OneNT(),
                 TestHelpers.ElOlustur("AK", "Q63", "J32", "AQJ94"),
-                new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "3NT",
+                new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "2NT",
                 sonucEkle, ref gecen, ref kalan);
 
             Test("1NT A3: 19 HCP dengeli 4♥ → 3NT (majör uzunluğu önemsiz)", new OneClub_OneNT(),
@@ -141,7 +141,7 @@ namespace BricKartOyunu.Tests
                 new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "3NT",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("1NT A2: 19 HCP 5♣ dengeli 3-3-2-5 → 3NT (dengeli 16-19)", new OneClub_OneNT(),
+            Test("1NT A2: 19 HCP 5♣ dengeli 3-3-2-5 → 3NT (dengeli 18-19)", new OneClub_OneNT(),
                 TestHelpers.ElOlustur("AT5", "A65", "KQ", "AQT86"),
                 new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "3NT",
                 sonucEkle, ref gecen, ref kalan);
