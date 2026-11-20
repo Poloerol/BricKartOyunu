@@ -357,7 +357,7 @@ namespace BricKartOyunu
         private void PratikIlerlet()
         {
             if (PratikDagitimlari == null) return;
-            _pratikIndeks++;
+            if (_pratikHedef >= 0) { _pratikIndeks = _pratikHedef; _pratikHedef = -1; } else _pratikIndeks++;
             if (_pratikIndeks >= PratikDagitimlari.Count)
             {
                 PratikDagitimlari = null;
