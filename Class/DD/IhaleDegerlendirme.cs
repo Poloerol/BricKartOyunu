@@ -109,11 +109,11 @@ namespace BricKartOyunu.Class
                 if (!r.Par.Pas && r.Par.Taraf == rk)
                 {
                     int ps = r.Par.Seviye;
-                    if (r.Par.Fedakar) { r.Hata = IhaleHatasi.RakipFedakarlik2; r.Baslik = "Rakip fedakârlık yapmalıydı"; }
+                    if (r.Par.Fedakar) { r.Hata = IhaleHatasi.RakipFedakarlik2; r.Baslik = "Rakip baraj yapmadı"; }
                     else if (ps == 7) { r.Hata = IhaleHatasi.RakipBuyukSlam; r.Baslik = "Rakip büyük slamı kaçırdı"; }
                     else if (ps == 6) { r.Hata = IhaleHatasi.RakipSlam; r.Baslik = "Rakip slamı kaçırdı"; }
-                    else if (SeviyeOyunMu(ps, r.Par.Koz)) { r.Hata = IhaleHatasi.RakipOyun; r.Baslik = "Rakip oyunu kaçırdı"; }
-                    else { r.Hata = IhaleHatasi.RakipRekabet; r.Baslik = "Rakip parskor rekabetinde geri kaldı"; }
+                    else if (SeviyeOyunMu(ps, r.Par.Koz)) { r.Hata = IhaleHatasi.RakipOyun; r.Baslik = "Rakip zonu kaçırdı"; }
+                    else { r.Hata = IhaleHatasi.RakipRekabet; r.Baslik = "Rakip yarışmada pasif kaldı"; }
                 }
                 return r;
             }
@@ -133,7 +133,7 @@ namespace BricKartOyunu.Class
             if (r.Par.Taraf != taraf && !r.Par.Pas)
             {
                 r.Hata = IhaleHatasi.RakipFedakarlik;
-                r.Baslik = "Rakibin kontratı par'dı";
+                r.Baslik = "Rakip par kontrata ulaştı";
                 r.Notlar.Add("Par kontratını " + (r.Par.Taraf == 0 ? "N/S" : "E/W") + " oynuyor; bu taraf kontratı yapsa da par'ın gerisinde kalıyor");
                 return r;
             }

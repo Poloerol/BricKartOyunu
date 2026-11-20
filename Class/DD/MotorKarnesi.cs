@@ -151,13 +151,13 @@ namespace BricKartOyunu.Class
                 case IhaleHatasi.SlamKacirildi: return "Slam kaçırıldı";
                 case IhaleHatasi.BuyukSlamKacirildi: return "Büyük slam kaçırıldı";
                 case IhaleHatasi.YanlisKoz: return "Yanlış koz";
-                case IhaleHatasi.RakipFedakarlik: return "Rakip kontratı par";
+                case IhaleHatasi.RakipFedakarlik: return "Rakip par kontrata ulaştı";
                 case IhaleHatasi.ParUstu: return "Rakip hatası (diğer)";
                 case IhaleHatasi.RakipBuyukSlam: return "Rakip büyük slamı kaçırdı";
                 case IhaleHatasi.RakipSlam: return "Rakip slamı kaçırdı";
-                case IhaleHatasi.RakipOyun: return "Rakip oyunu kaçırdı";
-                case IhaleHatasi.RakipFedakarlik2: return "Rakip fedakârlık yapmadı";
-                case IhaleHatasi.RakipRekabet: return "Rakip rekabette geri";
+                case IhaleHatasi.RakipOyun: return "Rakip zonu kaçırdı";
+                case IhaleHatasi.RakipFedakarlik2: return "Rakip baraj yapmadı";
+                case IhaleHatasi.RakipRekabet: return "Rakip yarışmada pasif kaldı";
                 default: return "Küçük fark";
             }
         }
