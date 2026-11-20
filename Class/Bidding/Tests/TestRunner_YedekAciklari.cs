@@ -97,6 +97,9 @@ namespace BricKartOyunu.Tests
             M("YA53 (1♦)-1NT-(Pas), 4'lü maça 8 HP -> 2♣ Stayman", TestHelpers.ElOlustur("KJ84", "962", "A53", "654"), "2♣", "Pas", "1♦", "1NT", "Pas");
             M("YA54 (1♦)-1NT-(Pas)-2♣: 4'lü kupa -> 2♥", TestHelpers.ElOlustur("AQT", "KJ72", "KQ5", "J96"), "2♥", "Pas", "Pas", "Pas", "1♦", "1NT", "Pas", "2♣", "Pas");
             M("YA55 (1♦)-1NT-(Pas)-2♣-2♠: 4'lü maça 11 HP -> 4♠", TestHelpers.ElOlustur("KJ84", "962", "A53", "KQ4"), "4♠", "Pas", "1♦", "1NT", "Pas", "2♣", "Pas", "2♠", "Pas");
+            // 1♠-1NT-2♥ sonrası cevapçı: ♥'da 1 kart, ♠'da 2 kart → 2♠ (ilk renge tercih; Pas 4-1 uyumda kalmaktı)
+            M("YA57 1♠-1NT-2♥, ♥ tek ♠ çift, 6♣ 9 HP -> 2♠ (tercih)", TestHelpers.ElOlustur("T5", "T", "Q976", "AQJT32"), "2♠", "Pas", "1♠", "Pas", "1NT", "Pas", "2♥", "Pas");
+            M("YA58 1♠-1NT-2♥, 3 kupa -> Pas (uyum)", TestHelpers.ElOlustur("T5", "QT7", "Q97", "AQJ32"), "Pas", "Pas", "1♠", "Pas", "1NT", "Pas", "2♥", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

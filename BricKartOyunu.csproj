@@ -209,6 +209,7 @@
     <Compile Include="Class\Bidding\Conventions\Cevap\BergenRaises.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\Drury.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\ForcingNT.cs" />
+    <Compile Include="Class\Bidding\Conventions\Cevap\ForcingNTDevam.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\InvertedBergenRaises.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\InvertedMinors.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\IkiBirOyunZorlama.cs" />

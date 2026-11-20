@@ -181,6 +181,7 @@ namespace BricKartOyunu.Class.Bidding
                 new InvertedMinors(),
                 new ForcingNT(),
                 new Stayman(),
+                new ForcingNTDevam(),
                 new BergenRaises(),
                 new Cappelletti(),
                 new Dont(),
@@ -701,6 +702,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Forcing NT": return _anlasma.ForcingNT;
                 case "Stayman": return _anlasma.Stayman && _anlasma.NT1Puppet != 1;
                 case "Puppet Stayman (1NT)": return _anlasma.Stayman && _anlasma.NT1Puppet == 1;
+                case "Forcing NT Devam": return _anlasma.ForcingNT;
                 case "Minor Relay (1NT-2♠)": return _anlasma.NT1MinorBid == 2 && !_anlasma.MinorStayman;
                 case "Brozel": return _anlasma.NT1DefenseX == 1;
                 case "Astro": return _anlasma.NT1DefenseX == 2;
