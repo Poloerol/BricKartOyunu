@@ -86,3 +86,14 @@
 8. **Puppet Stayman geri kalan basamakları**: DURUM 6/7 (4♣ "6 key-card" vb.) hâlâ karmaşık; slam değerli (12+ HP) ellerin devamı ölçülmedi.
 9. **Dağılım Deposu**: "Eller girildiği gibi ihale edilip oynansın mı?" sorusu kaldırıldı (kod `DepoMaksimumIhale` duruyor); istenirse DekBasForm'a ya da Oyun Planı'na seçenek olarak geri eklenebilir.
 10. **PBN okuyucu**: `[Event]`siz PBN'lerde (ad etiketleri `[Deal]`dan önce gelirse) oyuncu adları önceki bordla karışabilir; gerçek dosyada görülürse düzeltilecek.
+
+## Oyun planı öğretmeni (kullanıcı isteği, 20 Kasım; yarın kullanıcı yönlendirecek)
+Kullanıcı yer oyununu (deklaran) geliştirmek istiyor ("yer oyununun kitabı yok"; ihaleyi sisteme sadık oynuyor, zayıf yönü deklaran planı). İpucu: **ihale bitti, dummy açıldı, ilk kart oynandı** anında bir "Oyun Planı" ekranı açılsın ve plan yapmayı öğretsin.
+Önerilen tasarım (henüz kodlanmadı, kullanıcının yarınki yönlendirmesini bekle):
+1. Öğretici sıra: kontrat + gereken löve → **kullanıcı önce kendi sayımını girer** (kesin löveler, kayıplar), sonra program gösterir ve farkı açıklar.
+2. Sayım: NT'de üst löveler + uzun renk lövesi; renkli kontratta üst löveler + kesme (dummy'de kısa renk) + uzun renk; kayıp sayımı.
+3. Fırsat listesi: finesse, uzun renk kurma, kesme (dummy'den), koz çekme/çekmeme kararı, geçiş (giriş) sorunları.
+4. Plan sırası önerisi (klasik kural: önce say, sonra planı seç) + "neden" açıklaması.
+5. El sonrası düzeltme: kaybedilen lövenin hangi kararla (sıra, kart, koz zamanı) kaybedildiğini DD ile bulup tek cümle yaz.
+Mevcut altyapı: oyun motoru (PIMC), OynamaKarnesi (DD'ye göre hamle başına löve kaybı), Çift Dummy Analizi penceresi. Sınır: iki ekran (plan paneli + el sonrası), yeni konvansiyon değil.
+Çıkış ölçütü önerisi (bekliyor): 30.000 bordda ihale sapması: ≤5 IMP oranı %55,8 → hedef %65; 11+ IMP kayıp oranı %18,2 → hedef <%12; kıyas defteri (Tools/Kiyas) 100 bordda BB'ye karşı ortalama.
