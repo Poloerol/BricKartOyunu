@@ -8,8 +8,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
 {
     /// <summary>
     /// 1♣ ⇒ 1NT GELİŞİMİ (SAS kitabı s.21). Cevapçı 7-11 HCP, 4'lü majör yok.
-    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ dengesiz 11-16, 2♦/2♥/2♠/3♣ reverse gücünde 17+ (2♦ 4+♦ sinek uzun; 2♥/2♠ 5+♣ 4M; 3♣ 6+♣), 2NT 18-19 dengeli (4M yok) ya da 18-19 dengeli 6+♣,
-    /// 3♣ 6+♣ 14-17, 3♦/3♥/3♠ 6+♣ 5x. Cevapçı "min" 7-8, "max" 9-11 HCP.
+    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ dengesiz 11-16, 2♦/2♥/2♠/3♣ reverse gücünde 17+ (2♦ 4+♦ sinek uzun; 2♥/2♠ 5+♣ 4M; 3♣ 6+♣), 2NT 18-19 dengeli (limit; kaptan cevapçı),
+    /// 3♦/3♥/3♠ 6+♣ 5x. Cevapçı "min" 7-8, "max" 9-11 HCP.
     /// </summary>
     public class OneClub_OneNT : OneClub_GelisimTabani
     {
@@ -19,8 +19,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
         internal override string AciciRebid(OcEl e)
         {
             return Sec(new[] {
-                K("2NT", x => x.Hcp >= 18 && x.Hcp <= 19 && x.Dengeli && x.S < 4 && x.H < 4),   // 18-19 dengeli, 4'lü majör yok
-                K("2NT", x => x.Hcp >= 18 && x.Hcp <= 19 && x.C >= 6 && x.Dengeli),
+                K("2NT", x => x.Hcp >= 18 && x.Hcp <= 19 && x.Dengeli),   // limit bildirimi: dengeli 18-19 (majör uzunluğu önemsiz); kaptan cevapçı
                 K("2♥", x => x.Hcp >= 17 && x.C >= 5 && x.H >= 4),
                 K("2♠", x => x.Hcp >= 17 && x.C >= 5 && x.S >= 4),
                 K("2♦", x => x.Hcp >= 17 && x.D >= 4 && x.C > x.D),                  // reverse: önce ucuz renk (♣), sonra pahalı renk (♦); karo sinekten kısa
