@@ -8,7 +8,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
     /// 1♣ AÇIŞINA CEVAPLAR (Kuvvetli 1♣ / Polish Club hibrit).
     /// Tablodaki kurallara tam uyumludur.
     /// </summary>
-    public class OneClub_Answer : IKonvansiyon
+    public class OneClub_Answer : IKonvansiyon, IBilincliPas
     {
         public string Ad => "1♣ Cevap Sistemi";
         public string Aciklama => "Kuvvetli 1♣ açışına cevap sistemi";
@@ -131,8 +131,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             if (h >= 7 && ElDegerlendirici.IyiRenk(el, "Kupa")) return "4♥";
             if (s >= 7 && ElDegerlendirici.IyiRenk(el, "Maça")) return "4♠";
 
-            // ─── 12) Fallback ───
-            return "Pas";
+            // ─── 12) Fallback ─── 4 HP altı: bilinçli Pas (genel mantığın destek vermesi yanlış); 4+ HP ve tablo dışı: genel mantık
+            return hcp < 4 ? "Pas" : null;
         }
     }
 }
