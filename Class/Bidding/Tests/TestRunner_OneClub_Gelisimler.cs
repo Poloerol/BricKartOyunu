@@ -121,6 +121,11 @@ namespace BricKartOyunu.Tests
                 new[] { "1♣", "Pas", "1NT", "Pas", "2NT", "Pas" }, Player.Kuzey, "4NT",
                 sonucEkle, ref gecen, ref kalan);
 
+            Test("1NT A4: 17 HCP dengeli (5-3-3-2) → 3NT (pas değil)", new OneClub_OneNT(),
+                TestHelpers.ElOlustur("AK", "Q63", "J32", "AQJ94"),
+                new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "3NT",
+                sonucEkle, ref gecen, ref kalan);
+
             Test("1NT A3: 19 HCP dengeli 4♥ → 2NT (majör uzunluğu önemsiz)", new OneClub_OneNT(),
                 TestHelpers.ElOlustur("AK5", "AQ63", "K82", "QJ4"),
                 new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "2NT",

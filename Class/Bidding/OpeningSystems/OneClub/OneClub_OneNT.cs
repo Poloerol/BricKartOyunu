@@ -23,6 +23,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
                 K("2♥", x => x.Hcp >= 17 && x.C >= 5 && x.H >= 4),
                 K("2♠", x => x.Hcp >= 17 && x.C >= 5 && x.S >= 4),
                 K("2♦", x => x.Hcp >= 17 && x.D >= 4 && x.C > x.D),                  // reverse: önce ucuz renk (♣), sonra pahalı renk (♦); karo sinekten kısa
+                K("3NT", x => x.Hcp >= 16 && x.Hcp <= 17 && x.Dengeli),   // 1NT açamamış dengeli 16-17: pasa düşmesin; 2NT 18-19 olarak net kalır
                 K("3♦", x => x.C >= 6 && x.D >= 5),
                 K("3♥", x => x.C >= 6 && x.H >= 5),
                 K("3♠", x => x.C >= 6 && x.S >= 5),
