@@ -111,6 +111,16 @@ namespace BricKartOyunu.Tests
                 new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "2NT",
                 sonucEkle, ref gecen, ref kalan);
 
+            Test("1NT: 2♦ reverse sonrası 4♦ 7 HCP → 3♦ (uyum)", new OneClub_OneNT(),
+                TestHelpers.ElOlustur("K32", "J85", "Q832", "J87"),
+                new[] { "1♣", "Pas", "1NT", "Pas", "2♦", "Pas" }, Player.Kuzey, "3♦",
+                sonucEkle, ref gecen, ref kalan);
+
+            Test("1NT: 2NT (18-19 dengeli) sonrası 11 HCP → 4NT (slam daveti)", new OneClub_OneNT(),
+                TestHelpers.ElOlustur("K32", "J85", "QJ32", "KJ7"),
+                new[] { "1♣", "Pas", "1NT", "Pas", "2NT", "Pas" }, Player.Kuzey, "4NT",
+                sonucEkle, ref gecen, ref kalan);
+
             Test("1NT A3: 19 HCP dengeli 4♥ → 2NT (majör uzunluğu önemsiz)", new OneClub_OneNT(),
                 TestHelpers.ElOlustur("AK5", "AQ63", "K82", "QJ4"),
                 new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "2NT",
@@ -121,9 +131,9 @@ namespace BricKartOyunu.Tests
                 new[] { "1♣", "Pas", "1NT", "Pas" }, Player.Guney, "2NT",
                 sonucEkle, ref gecen, ref kalan);
 
-            Test("1NT B: 2♦ röle sonrası 7 HCP → 2♥ (min)", new OneClub_OneNT(),
+            Test("1NT B: 2♦ reverse sonrası 4♦ 7 HCP → 3♦ (uyum)", new OneClub_OneNT(),
                 TestHelpers.ElOlustur("J32", "K32", "Q432", "J32"),
-                new[] { "1♣", "Pas", "1NT", "Pas", "2♦", "Pas" }, Player.Kuzey, "2♥",
+                new[] { "1♣", "Pas", "1NT", "Pas", "2♦", "Pas" }, Player.Kuzey, "3♦",
                 sonucEkle, ref gecen, ref kalan);
 
             Test("2♣ A: dengeli 14 HCP → 2♦ (min)", new OneClub_TwoClub(),
