@@ -417,6 +417,8 @@ namespace BricKartOyunu.Forms
             }
             var bord = bordlar[secilen];
             int bordNo = secilen + 1;
+            // Form.Close() de CloseReason.UserClosing bildirir; bayrak kalkmazsa FormClosing masayı kapatıp AnaSayfa'ya döner
+            _anaSayfayaDonuluyor = true;
             this.Close();
             masa.BeginInvoke(new Action(() =>
             {
