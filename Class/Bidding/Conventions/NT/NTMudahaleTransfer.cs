@@ -13,7 +13,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     internal sealed class NTMudahaleTransfer : YeniKonvTaban
     {
         public override string Ad { get { return "NT Müdahale Transfer"; } }
-        public override string Aciklama { get { return "Ortağın 1NT müdahalesine Jacoby transfer (2♦ = ♥, 2♥ = ♠)"; } }
+        public override string Aciklama { get { return "Ortağın 1NT müdahalesine Jacoby transfer (2♦ = ♥, 2♥ = ♠) ve Stayman (2♣)"; } }
 
         // Rakibin açılış rengi (♣/♦/♥/♠) ya da null
         private static string Acilis(string cagri)
@@ -37,6 +37,28 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 bool macaOlur = a == "♣";
                 if (kupaOlur && z.Kupa >= 5 && z.Kupa >= z.Maca) return "2♦";
                 if (macaOlur && z.Maca >= 5 && z.Maca > z.Kupa) return "2♥";
+                if (z.Hp >= 8 && z.Kupa < 5 && z.Maca < 5 && ((z.Kupa == 4 && a != "♥") || (z.Maca == 4 && a != "♠"))) return "2♣";   // Stayman
+                return null;
+            }
+
+            // Müdahaleci cevabı: R:1x – B:1NT – (pas) – O:2♣
+            if (z.Hepsi.Count == 3 && z.Hepsi[0].StartsWith("R:") && z.Hepsi[1] == "B:1NT" && z.Hepsi[2] == "O:2♣")
+            {
+                string a = Acilis(z.Hepsi[0]);
+                if (a == null) return null;
+                if (z.Kupa == 4 && a != "♥") return "2♥";
+                if (z.Maca == 4 && a != "♠") return "2♠";
+                return "2♦";
+            }
+
+            // Cevapçı, Stayman cevabından sonra: L:1x – O:1NT – B:2♣ – O:2♦/2♥/2♠
+            if (z.Hepsi.Count == 4 && z.Hepsi[0].StartsWith("L:") && z.Hepsi[1] == "O:1NT" && z.Hepsi[2] == "B:2♣")
+            {
+                string c = z.Hepsi[3];
+                bool davet = z.Hp >= 10;
+                if (c == "O:2♥" && z.Kupa >= 4) return davet ? "4♥" : "3♥";
+                if (c == "O:2♠" && z.Maca >= 4) return davet ? "4♠" : "3♠";
+                if (c == "O:2♦" || c == "O:2♥" || c == "O:2♠") return davet ? "3NT" : "Pas";
                 return null;
             }
 

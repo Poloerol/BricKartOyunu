@@ -93,6 +93,10 @@ namespace BricKartOyunu.Tests
             // Ortağın 1NT müdahalesine (rakip 1♠ açtı) Jacoby transfer: 5'li kupa → 2♦, müdahaleci 2♥ ile tamamlar
             M("YA47 (1♠)-1NT-(Pas), 5'li kupa 4 HP -> 2♦ transfer", TestHelpers.ElOlustur("942", "A9852", "843", "75"), "2♦", "Pas", "1♠", "1NT", "Pas");
             M("YA48 (1♠)-1NT-(Pas)-2♦: müdahaleci 2♥ ile tamamlar", TestHelpers.ElOlustur("AQT", "QJ7", "T965", "KQJ"), "2♥", "Pas", "Pas", "Pas", "1♠", "1NT", "Pas", "2♦", "Pas");
+            // Ortağın 1NT müdahalesine Stayman (2♣): 4'lü majör, 9 HP; müdahaleci 4'lü majörünü söyler; uyumda 3M/4M
+            M("YA53 (1♦)-1NT-(Pas), 4'lü maça 8 HP -> 2♣ Stayman", TestHelpers.ElOlustur("KJ84", "962", "A53", "654"), "2♣", "Pas", "1♦", "1NT", "Pas");
+            M("YA54 (1♦)-1NT-(Pas)-2♣: 4'lü kupa -> 2♥", TestHelpers.ElOlustur("AQT", "KJ72", "KQ5", "J96"), "2♥", "Pas", "Pas", "Pas", "1♦", "1NT", "Pas", "2♣", "Pas");
+            M("YA55 (1♦)-1NT-(Pas)-2♣-2♠: 4'lü maça 11 HP -> 4♠", TestHelpers.ElOlustur("KJ84", "962", "A53", "KQ4"), "4♠", "Pas", "1♦", "1NT", "Pas", "2♣", "Pas", "2♠", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";
