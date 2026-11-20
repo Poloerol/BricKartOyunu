@@ -8,7 +8,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
 {
     /// <summary>
     /// 1♣ ⇒ 1NT GELİŞİMİ (SAS kitabı s.21). Cevapçı 7-11 HCP, 4'lü majör yok.
-    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ 11-14, 2♦ röle 16+, 2♥/2♠ 5+♣ 4M 17+, 2NT 18-19 dengeli (4M yok) ya da 18-19 dengeli 6+♣,
+    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ dengesiz 11-16, 2♦/2♥/2♠/3♣ reverse gücünde 17+ (2♦ 4+♦ sinek uzun; 2♥/2♠ 5+♣ 4M; 3♣ 6+♣), 2NT 18-19 dengeli (4M yok) ya da 18-19 dengeli 6+♣,
     /// 3♣ 6+♣ 14-17, 3♦/3♥/3♠ 6+♣ 5x. Cevapçı "min" 7-8, "max" 9-11 HCP.
     /// </summary>
     public class OneClub_OneNT : OneClub_GelisimTabani
@@ -23,12 +23,12 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
                 K("2NT", x => x.Hcp >= 18 && x.Hcp <= 19 && x.C >= 6 && x.Dengeli),
                 K("2♥", x => x.Hcp >= 17 && x.C >= 5 && x.H >= 4),
                 K("2♠", x => x.Hcp >= 17 && x.C >= 5 && x.S >= 4),
-                K("2♦", x => x.Hcp >= 16 && x.D >= 4 && x.C > x.D),                  // reverse: önce ucuz renk (♣), sonra pahalı renk (♦); karo sinekten kısa
+                K("2♦", x => x.Hcp >= 17 && x.D >= 4 && x.C > x.D),                  // reverse: önce ucuz renk (♣), sonra pahalı renk (♦); karo sinekten kısa
                 K("3♦", x => x.C >= 6 && x.D >= 5),
                 K("3♥", x => x.C >= 6 && x.H >= 5),
                 K("3♠", x => x.C >= 6 && x.S >= 5),
-                K("3♣", x => x.Hcp >= 14 && x.Hcp <= 17 && x.C >= 6),
-                K("2♣", x => x.Hcp >= 11 && x.Hcp <= 14 && x.C >= 6 && !x.Dengeli),
+                K("3♣", x => x.Hcp >= 17 && x.C >= 6),                                 // reverse gücünde (17+), zorlayıcı
+                K("2♣", x => x.Hcp >= 11 && x.Hcp <= 16 && x.C >= 6 && !x.Dengeli),
             }, e, "Pas");
         }
 
