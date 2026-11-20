@@ -85,6 +85,9 @@ namespace BricKartOyunu.Tests
             // Negatif kontradan sonra rakip müdahale rengini yükseltince açıcı, kontranın gösterdiği majöre fit varsa onu söyler
             M("YA44 1♦-(1♠)-Kontra-(2♠), 19 HP 4'lü kupa -> 4♥", TestHelpers.ElOlustur("QJT", "AKQT", "AKT8", "32"), "4♥", "1♦", "1♠", "Dbl", "2♠");
             M("YA45 1♦-(1♠)-Kontra-(2♠), 13 HP 4'lü kupa -> 3♥", TestHelpers.ElOlustur("QJ5", "KT74", "AKT82", "3"), "3♥", "1♦", "1♠", "Dbl", "2♠");
+            // 1m-(Pas)-1M-(1NT): açıcı 6+ kartlı rengini tekrarlar; 7'li renk ve 14+ HP ile 3 seviyede davet (Pas felaketti)
+            M("YA51 1♣-Pas-1♥-(1NT), 14 HP 7'li sinek -> 3♣", TestHelpers.ElOlustur("T3", "A4", "A7", "KQJ9875"), "3♣", "1♣", "Pas", "1♥", "1NT");
+            M("YA52 1♣-Pas-1♥-(1NT), 13 HP 6'lı sinek -> 2♣", TestHelpers.ElOlustur("T3", "K4", "A73", "KQJ985"), "2♣", "1♣", "Pas", "1♥", "1NT");
             // Daha önce pas geçmiş cevapçı da ortağın 2NT açılışına Puppet Stayman (3♣) ile devam eder (KendiTeklifleri Pas'ı da sayıyordu)
             M("YA46 Pas-Pas-2NT-Pas, 4'lü maça 7 HP -> 3♣ (Puppet)", TestHelpers.ElOlustur("AJ84", "96", "653", "Q965"), "3♣", "Pas", "Pas", "2NT", "Pas");
             // Ortağın 1NT müdahalesine (rakip 1♠ açtı) Jacoby transfer: 5'li kupa → 2♦, müdahaleci 2♥ ile tamamlar
