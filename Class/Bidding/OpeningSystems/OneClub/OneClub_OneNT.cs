@@ -8,7 +8,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
 {
     /// <summary>
     /// 1♣ ⇒ 1NT GELİŞİMİ (SAS kitabı s.21). Cevapçı 7-11 HCP, 4'lü majör yok.
-    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ dengesiz 11-16, 2♦/2♥/2♠/3♣ reverse gücünde 17+ (2♦ 4+♦ sinek uzun; 2♥/2♠ 5+♣ 4M; 3♣ 6+♣), 2NT 18-19 dengeli (limit; kaptan cevapçı),
+    /// Açan: Pas (11-14 dengeli), 2♣ 6+♣ dengesiz 11-16, 2♦/2♥/2♠/3♣ reverse gücünde 17+ (2♦ 4+♦ sinek uzun; 2♥/2♠ 5+♣ 4M; 3♣ 6+♣), 2NT 15-17 dengesiz (1NT açamayan; cevapçı pas/3NT), 3NT dengeli 16-19,
     /// 3♦/3♥/3♠ 6+♣ 5x. Cevapçı "min" 7-8, "max" 9-11 HCP.
     /// </summary>
     public class OneClub_OneNT : OneClub_GelisimTabani
@@ -19,15 +19,15 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
         internal override string AciciRebid(OcEl e)
         {
             return Sec(new[] {
-                K("2NT", x => x.Hcp >= 18 && x.Hcp <= 19 && x.Dengeli),   // limit bildirimi: dengeli 18-19 (majör uzunluğu önemsiz); kaptan cevapçı
                 K("2♥", x => x.Hcp >= 17 && x.C >= 5 && x.H >= 4),
                 K("2♠", x => x.Hcp >= 17 && x.C >= 5 && x.S >= 4),
                 K("2♦", x => x.Hcp >= 17 && x.D >= 4 && x.C > x.D),                  // reverse: önce ucuz renk (♣), sonra pahalı renk (♦); karo sinekten kısa
-                K("3NT", x => x.Hcp >= 16 && x.Hcp <= 17 && x.Dengeli),   // 1NT açamamış dengeli 16-17: pasa düşmesin; 2NT 18-19 olarak net kalır
+                K("3NT", x => x.Hcp >= 16 && x.Hcp <= 19 && x.Dengeli),   // dengeli 16-19 (1NT açılışı kapsamı dışında): oyun; 2NT dengesiz 15-17 için
                 K("3♦", x => x.C >= 6 && x.D >= 5),
                 K("3♥", x => x.C >= 6 && x.H >= 5),
                 K("3♠", x => x.C >= 6 && x.S >= 5),
                 K("3♣", x => x.Hcp >= 17 && x.C >= 6),                                 // reverse gücünde (17+), zorlayıcı
+                K("2NT", x => x.Hcp >= 15 && x.Hcp <= 17 && x.C < 6),   // 15-17 HP ama 1NT açamayan (dengesiz) el: cevapçı puanına bakıp pas ya da 3NT der
                 K("2♣", x => x.Hcp >= 11 && x.Hcp <= 16 && x.C >= 6 && !x.Dengeli),
             }, e, "Pas");
         }
@@ -57,10 +57,8 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
                     return Sec(new[] {
                         K("3NT", x => x.Hcp >= 8),
                     }, e, "4♣");
-                case "2NT":  // dengeli 18-19: 7-10 HP 3NT, 11 HP (29-30) niceliksel 4NT (slam daveti)
-                    return Sec(new[] {
-                        K("4NT", x => x.Hcp >= 11),
-                    }, e, "3NT");
+                case "2NT":  // açıcı 15-17 HP (1NT açamayan dengesiz el): 9+ HP ile 3NT, aksi halde pas
+                    return e.Hcp >= 9 ? "3NT" : "Pas";
                 default:     // 2♣, 3♦, 3♥, 3♠: gelişim natürel
                     return "Pas";
             }
@@ -81,9 +79,6 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
                 case "2♠":
                     if (devam == "3♠") return "4♠";
                     if (devam == "3♣" || devam == "2NT") return "3NT";
-                    return null;
-                case "2NT":
-                    if (devam == "4NT") return e.Hcp >= 19 ? "6NT" : "Pas";   // 29-30 puan: 19 ile slam, 18 ile pas
                     return null;
                 default:
                     return null;
