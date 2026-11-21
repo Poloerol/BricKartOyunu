@@ -51,6 +51,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 && sonTeklif.Seviye == 1
                 && (sonTeklif.Koz == "Kupa" || sonTeklif.Koz == "Maça"))
             {
+                // Cevapçı, kendisi hiç gerçek teklif vermemiş olmalı (1♥-1♠ sonrası açıcı kendisi bu bloğa düşmesin)
+                if (gercekTeklifler.Any(h => h.Oyuncu == durum.AktifOyuncu)) return false;
+
                 // Rakip araya girmiş mi?
                 if (durum.RakipActiMi()) return false;
 

@@ -100,6 +100,7 @@ namespace BricKartOyunu.Tests
             // 1♠-1NT-2♥ sonrası cevapçı: ♥'da 1 kart, ♠'da 2 kart → 2♠ (ilk renge tercih; Pas 4-1 uyumda kalmaktı)
             M("YA57 1♠-1NT-2♥, ♥ tek ♠ çift, 6♣ 9 HP -> 2♠ (tercih)", TestHelpers.ElOlustur("T5", "T", "Q976", "AQJT32"), "2♠", "Pas", "1♠", "Pas", "1NT", "Pas", "2♥", "Pas");
             M("YA58 1♠-1NT-2♥, 3 kupa -> Pas (uyum)", TestHelpers.ElOlustur("T5", "QT7", "Q97", "AQJ32"), "Pas", "Pas", "1♠", "Pas", "1NT", "Pas", "2♥", "Pas");
+            M("YA59 1♥-1♠ sonrası açıcı 5-5 (♥+♦) -> 2♦ (Forcing NT cevapçı bloğuna düşmez)", TestHelpers.ElOlustur("76", "Q10965", "AKJ107", "Q"), "2♦", "1♥", "Pas", "1♠", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";
