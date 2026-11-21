@@ -683,6 +683,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return Seviye(d, fit, Math.Min(hedef, 6));
             }
 
+                if (!zorunlu && hp < 5 && fitToplam <= 8 && gercek.Count > 0 && gercek[0].Oyuncu == d.Partner && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi)) return "Pas";   // ölçüm (30.000 bord, 3 dilimde de iyi): ortağın açılışına 8 kartlık uyumda çok zayıf el 2 seviyede destek vermez
             // ── Fit yok: NT / uzun renk ──
             return FitsizDevam(d, el, hp, dengeli, est, cur, rakipRenkleri, gercek, zorunlu, benNTAcildi, dar);
         }
