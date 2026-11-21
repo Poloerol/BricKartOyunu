@@ -24,7 +24,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
     ///   Cevapçı ♠ A veya K tutuyorsa → 4♥
     ///   Cevapçı ♠'de 3 küçük kart tutuyorsa → 3♥
     /// </summary>
-    public class TrialBid : IKonvansiyon
+    public class TrialBid : IKonvansiyon, IBilincliPas
     {
         public string Ad => "Trial Bid";
         public string Aciklama => "Majör desteği sonrası yardım rengi denemesi";
@@ -54,6 +54,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // B) Cevapçının Trial Bid cevap verme sırası (Trial sonrası)
 
             if (AciTrialBidBaslatmaMi(durum, gercekTeklifler))
+                return true;
+
+            if (AciciTrialSonrasiMi(durum, gercekTeklifler))
                 return true;
 
             if (CevapciTrialCevapMi(durum, gercekTeklifler))
@@ -151,6 +154,38 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return true;
         }
 
+        /// <summary>
+        /// Açıcı kendi trial bid'inin cevabını aldı: 1M (biz) - 2M (ortak) - trial (biz) - 3M/4M (ortak).
+        /// 3M = yardım yok, reddetti → pas (oyun denemesi sonuçsuz). 4M = kabul → oyun tamam, pas.
+        /// (Bu blok olmadan genel mantık yine 4M'ye çıkıyordu.)
+        /// </summary>
+        private bool AciciTrialSonrasiMi(IhaleDurumu durum,
+            List<IhaleHamlesi> gercekTeklifler)
+        {
+            int n = gercekTeklifler.Count;
+            if (n < 4) return false;
+
+            var cevap = gercekTeklifler[n - 1];
+            if (cevap.Oyuncu != durum.Partner) return false;
+            if (cevap.Seviye < 3 || cevap.Seviye > 4) return false;
+
+            var ort = gercekTeklifler
+                .Where(h => h.Oyuncu == durum.AktifOyuncu || h.Oyuncu == durum.Partner)
+                .ToList();
+            if (ort.Count != 4) return false;
+
+            var acilis = ort[0];
+            var destek = ort[1];
+            var trial = ort[2];
+            if (acilis.Oyuncu != durum.AktifOyuncu || acilis.Seviye != 1) return false;
+            if (acilis.Koz != "Kupa" && acilis.Koz != "Maça") return false;
+            if (destek.Oyuncu != durum.Partner || destek.Seviye != 2 || destek.Koz != acilis.Koz) return false;
+            if (trial.Oyuncu != durum.AktifOyuncu || trial.Seviye < 2 || trial.Seviye > 3) return false;
+            if (trial.Koz == "NT" || trial.Koz == acilis.Koz) return false;
+
+            return cevap.Koz == acilis.Koz;
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         // TEKLİF VER
         // ═══════════════════════════════════════════════════════════════════
@@ -166,13 +201,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Açıcı mıyız? (Trial Bid başlatacağız)
             if (AciTrialBidBaslatmaMi(durum, gercekTeklifler))
-                return AciTrialBid(durum, el, gercekTeklifler);
+                { string t = AciTrialBid(durum, el, gercekTeklifler); return t == "Pas" ? null : t; }   // zayıf elde Pas: genel mantık sürdürsün (eski davranış)
 
             // Cevapçı mıyız? (Trial Bid cevabı vereceğiz)
             if (CevapciTrialCevapMi(durum, gercekTeklifler))
                 return CevapciTrialCevap(durum, el, gercekTeklifler);
 
-            return "Pas";
+            // Kendi denememizin cevabı geldi (3M ret / 4M kabul): oyun denemesi bitti, bilinçli Pas
+            if (AciciTrialSonrasiMi(durum, gercekTeklifler)) return "Pas";
+
+            return null;
         }
 
         // ═══════════════════════════════════════════════════════════════════
