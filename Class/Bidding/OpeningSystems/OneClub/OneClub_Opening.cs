@@ -58,8 +58,7 @@ namespace BricKartOyunu.Class.Bidding.OpeningSystems.OneClub
             int sinek = ElDegerlendirici.RenkUzunlugu(el, "Sinek");
             int hp = ElDegerlendirici.HCP(el);
             if (ZayifNT(durum) && hp >= 14 && hp <= 17 && ZayifNTSinekDengeli(el)) return false;
-            bool kisaSinek = durum != null && durum.Anlasma != null && durum.Anlasma.MinorShortClub == 1;
-            return kisaSinek ? (karo >= 4 && karo >= sinek) : (karo > sinek || (karo == sinek && karo >= 4));   // en iyi minör / kısa sinek
+            return karo >= 4 && karo >= sinek;   // 1♦ = 4+ karo: en iyi minör (4-4'te karo); 3 karo + kısa sinek 1♣ açar
         }
 
         public string TeklifVer(List<Card> el, IhaleDurumu durum)

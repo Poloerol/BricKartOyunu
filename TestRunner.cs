@@ -4161,7 +4161,7 @@ namespace BricKartOyunu
             var el5332b = mk("S:KQ974 H:A83 D:Q52 C:J84");
             kontrol("TEST 12.31 — yarı zorlayıcı 1NT: 5-3-3-2 12 HP açıcı → Pas", teklif(el5332b, Player.Guney, yarim, a => a.NTSemiForcing = 1), r => r == "Pas", "Pas");
             var elMin = mk("S:KQ43 H:K853 D:K62 C:Q3");
-            kontrol("TEST 12.33 — en iyi minör: 3♦ 2♣ → 1♦", teklif(elMin, Player.Guney, bos, a => a.MinorShortClub = 0), r => r == "1♦", "1♦");
+            kontrol("TEST 12.33 — 1♦ = 4+ karo: 3♦ 2♣ → 1♣ (en iyi minör ayarında da)", teklif(elMin, Player.Guney, bos, a => a.MinorShortClub = 0), r => r == "1♣", "1♣");
             kontrol("TEST 12.34 — kısa sinek: 3♦ 2♣ → 1♣", teklif(elMin, Player.Guney, bos, a => a.MinorShortClub = 1), r => r == "1♣", "1♣");
             var negH = new List<IhaleHamlesi> { h(Player.Kuzey, "1♦", 1), h(Player.Dogu, "2♥", 2) };
             var elNeg = mk("S:KQ72 H:83 D:J52 C:A942");
