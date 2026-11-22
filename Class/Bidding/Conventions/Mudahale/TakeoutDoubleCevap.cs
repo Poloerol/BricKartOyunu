@@ -81,6 +81,47 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             return true;
         }
 
+
+        /// <summary>
+        /// Rekabetli dizi: Rakip 1x - Partner Dbl - Rakip 2y (yükseltme ya da yeni renk) - ?
+        /// 0-11 HP ve 4+ yan majör varsa majörü en ucuz seviyede söyler (2 seviyede her zaman, 3 seviyede 9+ HP ile);
+        /// 12+ HP ya da majör yoksa genel mantığa bırakır (null). (Bu blok olmadan genel mantık Pas diyordu.)
+        /// </summary>
+        private static string RekabetTeklif(IhaleDurumu durum)
+        {
+            if (durum == null || durum.Gecmis == null || durum.AktifOyuncuEli == null || durum.AktifOyuncuEli.Count != 13) return null;
+            var liste = durum.Gecmis.ToList();
+            if (liste.Count < 3) return null;
+            var son = liste[liste.Count - 1];
+            if (!durum.Rakipler.Contains(son.Oyuncu) || son.Teklif == "Pas") return null;
+
+            var gercek = liste.Where(h => h.Teklif != "Pas").ToList();
+            if (gercek.Count != 3 || !ReferenceEquals(gercek[2], son)) return null;
+            if (!durum.Rakipler.Contains(gercek[0].Oyuncu) || KozYardimcisi.TekliftenSeviyeCikar(gercek[0].Teklif) != 1) return null;
+            if (gercek[1].Oyuncu != durum.Partner || gercek[1].Teklif != "Dbl") return null;
+
+            string acilisRenk = KozYardimcisi.TekliftenKozCikar(gercek[0].Teklif);
+            string sonKoz = KozYardimcisi.TekliftenKozCikar(son.Teklif);
+            if (string.IsNullOrEmpty(acilisRenk) || acilisRenk == "NT" || Sira(acilisRenk) < 0) return null;
+            if (string.IsNullOrEmpty(sonKoz) || sonKoz == "NT" || Sira(sonKoz) < 0) return null;
+            if (KozYardimcisi.TekliftenSeviyeCikar(son.Teklif) != 2) return null;
+
+            var el = durum.AktifOyuncuEli;
+            int hp = ElDegerlendirici.HCP(el);
+            if (hp >= 12) return null;
+
+            string en = null; int enUz = 0, enSeviye = 0;
+            foreach (string r in new[] { "Kupa", "Maça" })   // eşit uzunlukta yüksek renk kalır
+            {
+                if (r == acilisRenk || r == sonKoz) continue;
+                int u = ElDegerlendirici.RenkUzunlugu(el, r);
+                if (u < 4) continue;
+                int seviye = 2 + (Sira(r) > Sira(sonKoz) ? 0 : 1);
+                if (seviye == 3 && hp < 9) continue;
+                if (u >= enUz) { en = r; enUz = u; enSeviye = seviye; }
+            }
+            return en == null ? null : Teklif(enSeviye, en);
+        }
         public bool UygunMu(IhaleDurumu durum)
         {
             if (durum == null) return false;
@@ -89,13 +130,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (durum.IhaleBittiMi()) return false;
 
             string rakipRenk;
-            return DiziUygunMu(durum, out rakipRenk);
+            return DiziUygunMu(durum, out rakipRenk) || RekabetTeklif(durum) != null;
         }
 
         public string TeklifVer(IhaleDurumu durum)
         {
             string rakipRenk;
-            if (!DiziUygunMu(durum, out rakipRenk)) return "Pas";
+            if (!DiziUygunMu(durum, out rakipRenk)) return RekabetTeklif(durum) ?? "Pas";
 
             var el = durum.AktifOyuncuEli;
             int hp = ElDegerlendirici.HCP(el);

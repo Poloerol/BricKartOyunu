@@ -110,6 +110,16 @@ namespace BricKartOyunu.Tests
                 if (g61) _gecen++; else _kalan++;
                 _yaz((g61 ? "✅ " : "❌ ") + "YA61 NMF 1♣-1♠-1NT-2♦-2♥ sonrası 5♠ 11 HP -> 2NT (davet) → " + (r61 ?? "(null)") + (g61 ? "" : "   [beklenen: 2NT]"));
             }
+            {   // YA62: Sandwich 1NT açıkken (1♣)-Pas-(1♠)-1NT ortağın aralığı 8-15 HP (doğal 1NT müdahalesi 15-18 değil)
+                var an62 = OrtaklikAnlasmasi.Varsayilan(); an62.Sandwich1NT = true;
+                var du62 = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("K107", "Q1082", "J92", "853"), Player.Guney, "Pas", "Pas", "1♣", "Pas", "1♠", "1NT", "3♠");
+                du62.Anlasma = an62;
+                var ar62 = IhaleKoruma.PartnerAraligi(du62);
+                bool g62 = ar62.Min == 8 && ar62.Max == 15;
+                if (g62) _gecen++; else _kalan++;
+                _yaz((g62 ? "✅ " : "❌ ") + "YA62 Sandwich 1NT ortağın aralığı 8-15 HP → " + ar62.Min + "-" + ar62.Max + (g62 ? "" : "   [beklenen: 8-15]"));
+            }
+            M("YA63 1♣-Dbl-(2♣): 9 HP 4♠ AKJ9 -> 2♠ (rekabette takeout kontraya cevap, Pas değil)", TestHelpers.ElOlustur("AKJ9", "653", "J654", "42"), "2♠", "1♣", "Dbl", "2♣");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

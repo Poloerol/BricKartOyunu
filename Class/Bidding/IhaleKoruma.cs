@@ -213,6 +213,14 @@ namespace BricKartOyunu.Class.Bidding
                     else if (s == 3) { lo = 5; hi = 11; }
                     else { lo = 5; hi = 12; }
                     if (renk == "NT") { if (s == 1) { lo = 15; hi = 18; } else { lo = 5; hi = 11; } }   // 2NT müdahale: Unusual (5-5 minör)
+                    // Sandwich 1NT (anlaşmada açıksa): (1x)–Pas–(1y)–1NT = kalan iki renk (5-4+), 8-15 HP; 15-18 doğal 1NT müdahalesi değil
+                    if (renk == "NT" && s == 1 && d.Anlasma != null && d.Anlasma.Sandwich1NT)
+                    {
+                        var onceki = g.Take(i).Where(x => Gercek(x.Teklif)).ToList();
+                        if (onceki.Count == 2 && onceki.All(x => x.Oyuncu != ort && x.Oyuncu != ben && Sev(x.Teklif) == 1 && KozYardimcisi.TekliftenKozCikar(x.Teklif) != "NT") &&
+                            KozYardimcisi.TekliftenKozCikar(onceki[0].Teklif) != KozYardimcisi.TekliftenKozCikar(onceki[1].Teklif))
+                        { lo = 8; hi = 15; }
+                    }
                     // Weak Jump Overcalls (anlaşmada açıksa): rakibin 1 seviye açılışına sıçramalı 2♦/2♥/2♠ = 6 kart, 5-9 HP
                     if (renk != "NT" && s == 2 && d.Anlasma != null && d.Anlasma.WeakJumpOvercalls)
                     {

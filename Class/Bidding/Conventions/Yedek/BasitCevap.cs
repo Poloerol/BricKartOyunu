@@ -161,11 +161,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 }
 
                 if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 5)
-                    return "2♥";
+                    return SicramaKontrolu("2♥", partnerKozu, partnerSeviye, hp);   // 1♦–2♥ sıçramalıdır: 18 HP altında 1 seviyeden
                 if (partnerKozu != "Karo" && ElDegerlendirici.RenkUzunlugu(el, "Karo") >= 5)
-                    return "2♦";
+                    return SicramaKontrolu("2♦", partnerKozu, partnerSeviye, hp);   // 1♣–2♦ sıçramalıdır: 18 HP altında 1♦
                 if (partnerKozu != "Sinek" && ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 5)
-                    return "2♣";
+                    return SicramaKontrolu("2♣", partnerKozu, partnerSeviye, hp);
 
                 // Majör açılışına 3'lü destekle 2NT söylenmez: açıcı bunu Jacoby 2NT (4+ destek, GF) sanar.
                 if (durum.Anlasma != null && durum.Anlasma.Jacoby2NT && partnerSeviye == 1 && (partnerKozu == "Maça" || partnerKozu == "Kupa")
