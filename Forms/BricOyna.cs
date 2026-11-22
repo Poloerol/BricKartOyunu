@@ -441,7 +441,6 @@ namespace BricKartOyunu
         {
             InitializeComponent();
             DDMenuKur();
-            OyunPlaniYardimcisiMenusunuKur();
             if (!DesignMode)
             {
                 this.DoubleBuffered = true;

@@ -189,15 +189,6 @@
       <DependentUpon>BricOyna.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Class\Plan\OyunPlanAnalizi.cs" />
-    <Compile Include="Class\Plan\SavunmaPlanAnalizi.cs" />
-    <Compile Include="Class\Plan\OyunPlaniDurumu.cs" />
-    <Compile Include="Forms\OyunPlaniYardimcisiForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\BricOyna.OyunPlani.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="AppState.cs" />
     <Compile Include="Class\AtakKurallari.cs" />
     <Compile Include="Class\Bidding\BiddingPresenter.cs" />
