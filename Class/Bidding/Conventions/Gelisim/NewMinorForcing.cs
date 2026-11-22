@@ -43,7 +43,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 string c = YK.Cagri(z.Hepsi[4]);
                 if (c == YK.T(2, y)) return z.Hp >= 13 ? YK.T(4, y) : YK.T(3, y);
                 string diger = y == "Kupa" ? "Maça" : "Kupa";
-                if (c == YK.T(2, diger)) return z.Uz(diger) >= 4 ? YK.T(4, diger) : "3NT";
+                if (c == YK.T(2, diger)) return z.Uz(diger) >= 4 ? YK.T(4, diger) : (z.Hp >= 13 ? "3NT" : "2NT");   // 11-12 HP: davet (açıcı 12-14 ile toplam 23-26), 13+ oyun
                 if (c == "2NT") return z.Hp >= 13 ? "3NT" : "Pas";
             }
             return null;

@@ -102,6 +102,14 @@ namespace BricKartOyunu.Tests
             M("YA58 1♠-1NT-2♥, 3 kupa -> Pas (uyum)", TestHelpers.ElOlustur("T5", "QT7", "Q97", "AQJ32"), "Pas", "Pas", "1♠", "Pas", "1NT", "Pas", "2♥", "Pas");
             M("YA59 1♥-1♠ sonrası açıcı 5-5 (♥+♦) -> 2♦ (Forcing NT cevapçı bloğuna düşmez)", TestHelpers.ElOlustur("76", "Q10965", "AKJ107", "Q"), "2♦", "1♥", "Pas", "1♠", "Pas");
             M("YA60 1♥-2♥-2♠(deneme)-3♥ (yardım yok) -> açıcı Pas (4♥ değil)", TestHelpers.ElOlustur("T86", "AQJ97", "AQ", "A42"), "Pas", "1♥", "Pas", "2♥", "Pas", "2♠", "Pas", "3♥", "Pas");
+            {   // YA61: New Minor Forcing açıkken 1♣-1♠-1NT-2♦-2♥ sonrası 5♠ 11 HP cevapçı davet eder (2NT), oyuna (3NT) atlamaz
+                var an61 = OrtaklikAnlasmasi.Varsayilan(); an61.NewMinorForcing = true;
+                var du61 = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("KQJ107", "J52", "KJ9", "83"), Player.Guney, "1♣", "Pas", "1♠", "Pas", "1NT", "Pas", "2♦", "Pas", "2♥", "Pas");
+                string r61 = new IhaleMotoru(an61).TeklifVer(du61);
+                bool g61 = r61 == "2NT";
+                if (g61) _gecen++; else _kalan++;
+                _yaz((g61 ? "✅ " : "❌ ") + "YA61 NMF 1♣-1♠-1NT-2♦-2♥ sonrası 5♠ 11 HP -> 2NT (davet) → " + (r61 ?? "(null)") + (g61 ? "" : "   [beklenen: 2NT]"));
+            }
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";
