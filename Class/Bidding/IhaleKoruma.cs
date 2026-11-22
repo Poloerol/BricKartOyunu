@@ -213,6 +213,15 @@ namespace BricKartOyunu.Class.Bidding
                     else if (s == 3) { lo = 5; hi = 11; }
                     else { lo = 5; hi = 12; }
                     if (renk == "NT") { if (s == 1) { lo = 15; hi = 18; } else { lo = 5; hi = 11; } }   // 2NT müdahale: Unusual (5-5 minör)
+                    // Weak Jump Overcalls (anlaşmada açıksa): rakibin 1 seviye açılışına sıçramalı 2♦/2♥/2♠ = 6 kart, 5-9 HP
+                    if (renk != "NT" && s == 2 && d.Anlasma != null && d.Anlasma.WeakJumpOvercalls)
+                    {
+                        int pL3 = 0, pR3 = -1;
+                        for (int j = i - 1; j >= 0; j--)
+                            if (Gercek(g[j].Teklif)) { pL3 = Sev(g[j].Teklif); pR3 = KozSiraAl(KozYardimcisi.TekliftenKozCikar(g[j].Teklif)); break; }
+                        int ucuz3 = pL3 + (KozSiraAl(renk) > pR3 ? 0 : 1);
+                        if (pL3 == 1 && s - ucuz3 >= 1 && renk != "Sinek") { lo = 5; hi = 9; }
+                    }
                     }
                     if (!ortakBirsekacildi) { a.Min = lo; a.Max = hi; ortakBirsekacildi = true; }
                     else a.Min = Math.Max(a.Min, lo);
