@@ -368,6 +368,46 @@ namespace BricKartOyunu
             anaSayfa.PratikOyunuAc(liste, _chkDuyur.Checked);
         }
 
+        /// <summary>
+        /// Pratik dağıtımlarını PBN olarak üretir (Oyun Planı > PBN seçimiyle tekrar oynanabilir).
+        /// Eller seed'den üretilen gerçek dağıtımdır; dağıtıcı pratikteki gibidir. Yakın kaçış bilgisi açıklamaya yazılmaz.
+        /// </summary>
+        private static string PbnMetni(List<PratikDagitim> liste)
+        {
+            const string nl = "\r\n";
+            var sb = new StringBuilder();
+            sb.Append("% PBN 2.1" + nl + nl);
+            string[] koltukHarf = { "N", "E", "S", "W" };
+            Player[] sira = { Player.Kuzey, Player.Dogu, Player.Guney, Player.Bati };
+            int no = 1;
+            foreach (var p in liste)
+            {
+                var eller = KonvansiyonPratigi.DestedenEller(KonvansiyonPratigi.Deste(p));
+                string deal = "N:" + string.Join(" ", sira.Select(k => PbnEli(eller[k])));
+                string dagitici = koltukHarf[Array.IndexOf(sira, KonvansiyonPratigi.Dagitici(p.Seed))];
+                sb.Append("[Event \"Konvansiyon pratiği\"]" + nl);
+                sb.Append("[Board \"" + no + "\"]" + nl);
+                sb.Append("[Dealer \"" + dagitici + "\"]" + nl);
+                sb.Append("[Deal \"" + deal + "\"]" + nl);
+                sb.Append("[Description \"" + p.Konvansiyon.Replace("\"", "'") + "\"]" + nl + nl);
+                no++;
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>"S.H.D.C" biçimi: renkler Maça, Kupa, Karo, Sinek; kartlar büyükten küçüğe, onlu T.</summary>
+        private static string PbnEli(List<Card> el)
+        {
+            const string rank = "23456789TJQKA";
+            var parcalar = new List<string>();
+            foreach (var renk in new[] { "Maça", "Kupa", "Karo", "Sinek" })
+            {
+                string s = string.Concat(el.Where(c => c.Suit == renk).OrderByDescending(c => c.Value).Select(c => rank[c.Value - 2]));
+                parcalar.Add(s.Length == 0 ? "-" : s);   // PBN'de boş renk "-"
+            }
+            return string.Join(".", parcalar);
+        }
+
         private void BtnKaydet_Click(object sender, EventArgs e)
         {
             var liste = PratikListesi();
@@ -375,14 +415,21 @@ namespace BricKartOyunu
             using (var dlg = new SaveFileDialog
             {
                 Title = "Elleri Kaydet",
-                Filter = "Metin dosyası (*.txt)|*.txt",
-                FileName = "konvansiyon_pratigi.txt"
+                Filter = "Metin dosyası (*.txt)|*.txt|PBN dosyası (*.pbn)|*.pbn",
+                FileName = "konvansiyon_pratigi",
+                DefaultExt = "txt",
+                AddExtension = true
             })
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
                 try
                 {
-                    File.WriteAllLines(dlg.FileName, liste.Select(p => p.Konvansiyon + ";" + p.Seed + ";" + p.Profil + ";" + p.Varyant), new UTF8Encoding(true));
+                    // Seçilen uzantı belirler (dosya adına elle .pbn yazılmış olabilir)
+                    bool pbn = string.Equals(Path.GetExtension(dlg.FileName), ".pbn", StringComparison.OrdinalIgnoreCase);
+                    if (pbn)
+                        File.WriteAllText(dlg.FileName, PbnMetni(liste), new UTF8Encoding(false));
+                    else
+                        File.WriteAllLines(dlg.FileName, liste.Select(p => p.Konvansiyon + ";" + p.Seed + ";" + p.Profil + ";" + p.Varyant), new UTF8Encoding(true));
                 }
                 catch (Exception ex)
                 {
