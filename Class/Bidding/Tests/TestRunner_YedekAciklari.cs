@@ -124,6 +124,9 @@ namespace BricKartOyunu.Tests
             // Cevapçıda iki 4'lü majör: önce ucuz renk (1♥); 5-5'te önce pahalı (1♠)
             M("YA65 1♦-?, 12 HP ♠9642 ♥KJ54 4-4 majör -> 1♥", TestHelpers.ElOlustur("9642", "KJ54", "K", "KQ43"), "1♥", "Pas", "1♦", "Pas");
             M("YA66 1♦-?, 12 HP ♠KJ642 ♥Q9754 5-5 majör -> 1♠", TestHelpers.ElOlustur("KJ642", "Q9754", "K", "43"), "1♠", "Pas", "1♦", "Pas");
+            // Reverse sonrası 9+ HP cevap: 3 kart destekle (4-3 fit) reverse rengini söyle; fit yok ve durdurucular tamsa 3NT
+            M("YA67 1♦-1♥-2♠-?, 11 HP ♠Q62 ♥J953 (3 kart maça desteği) -> 3♠", TestHelpers.ElOlustur("Q62", "J953", "KQ7", "QJ5"), "3♠", "Pas", "1♦", "Pas", "1♥", "Pas", "2♠", "Pas");
+            M("YA68 1♣-1♥-2♠-?, 10 HP ♠32 ♥KJ843 fit yok, durdurucular tam -> 3NT", TestHelpers.ElOlustur("32", "KJ843", "K64", "QJ5"), "3NT", "Pas", "1♣", "Pas", "1♥", "Pas", "2♠", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

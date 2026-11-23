@@ -130,6 +130,19 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 string revIsim = revKoz == "♥" ? "Kupa" : revKoz == "♠" ? "Maça" : null;
                 if (revIsim != null && ElDegerlendirici.RenkUzunlugu(el, revIsim) >= 4)
                     return "3" + revKoz;
+                // 3 kart destek de fit sayılır (açıcı reverse'ü 4+ kartla yapar: 4-3 fit). Ölçüm: 30.000 bordda 3 dilimde de kazanç (-19/-4/-56)
+                if (Deney.Al("BK_LRFIT", 1) > 0 && revIsim != null && ElDegerlendirici.RenkUzunlugu(el, revIsim) == 3)
+                    return "3" + revKoz;
+                // Reverse rengiyle fit yok, açıcının göstermediği renklerde durdurucu var, 6+ kartlık renk yok: 3NT
+                if (Deney.Al("BK_LR3NT", 2) > 0 &&
+                    !new[] { "Maça", "Kupa", "Karo", "Sinek" }.Any(r => ElDegerlendirici.RenkUzunlugu(el, r) >= 6))
+                {
+                    var og = durum.PartnerTeklifleri.Where(t => t != "Pas").Take(2).Select(t => t.Substring(1)).ToList();
+                    bool tamam = true;
+                    foreach (var kv in new[] { Tuple.Create("♠", "Maça"), Tuple.Create("♥", "Kupa"), Tuple.Create("♦", "Karo"), Tuple.Create("♣", "Sinek") })
+                        if (!og.Contains(kv.Item1) && !ElDegerlendirici.StopperVar(el, kv.Item2)) tamam = false;
+                    if (tamam) return "3NT";
+                }
                 // 4+ ♣
                 if (ElDegerlendirici.RenkUzunlugu(el, "Sinek") >= 4) return "3♣";
                 // 4+ ♦
