@@ -121,6 +121,9 @@ namespace BricKartOyunu.Tests
             }
             M("YA63 1♣-Dbl-(2♣): 9 HP 4♠ AKJ9 -> 2♠ (rekabette takeout kontraya cevap, Pas değil)", TestHelpers.ElOlustur("AKJ9", "653", "J654", "42"), "2♠", "1♣", "Dbl", "2♣");
             M("YA64 Açılış: 21 HP ♥KQJ10973 (7 kart, 3 büyük onör) -> 4♥ (1♥ ortağın Pas'ıyla oyunu kaçırır)", TestHelpers.ElOlustur("AJ", "KQJ10973", "K10", "AK"), "4♥");
+            // Cevapçıda iki 4'lü majör: önce ucuz renk (1♥); 5-5'te önce pahalı (1♠)
+            M("YA65 1♦-?, 12 HP ♠9642 ♥KJ54 4-4 majör -> 1♥", TestHelpers.ElOlustur("9642", "KJ54", "K", "KQ43"), "1♥", "Pas", "1♦", "Pas");
+            M("YA66 1♦-?, 12 HP ♠KJ642 ♥Q9754 5-5 majör -> 1♠", TestHelpers.ElOlustur("KJ642", "Q9754", "K", "43"), "1♠", "Pas", "1♦", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

@@ -91,7 +91,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     if (partnerMinor)
                     {
                         int sp0 = ElDegerlendirici.RenkUzunlugu(el, "Maça"), he0 = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-                        if (he0 >= 4 && he0 >= sp0) return "1♥";
+                        if (he0 >= 4 && (he0 > sp0 || (he0 == sp0 && he0 < 5))) return "1♥";
                         if (sp0 >= 4) return "1♠";
                     }
                     // 2/1 Game Force açıkken 2 seviyede yeni renk oyun zorlayıcıdır (12+ HP): 9 HP ile söylenmez (1NT'ye düşülür)
@@ -103,7 +103,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (string.IsNullOrEmpty(yeniRenk) && partnerMinor)
                 {
                     int sp = ElDegerlendirici.RenkUzunlugu(el, "Maça"), he = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
-                    if (sp >= 4 && sp > he) return "1♠";
+                    if (sp >= 4 && (sp > he || (sp == he && sp >= 5))) return "1♠";
                     if (he >= 4) return "1♥";
                 }
 
@@ -134,10 +134,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 if (hp <= 12 && partnerSeviye == 1 && (partnerKozu == "Maça" || partnerKozu == "Kupa")
                     && ElDegerlendirici.RenkUzunlugu(el, partnerKozu) >= 4)
                     return "3" + KozYardimcisi.KozSembolu(partnerKozu);
-                if (partnerKozu != "Maça" && ElDegerlendirici.RenkUzunlugu(el, "Maça") >= 4)
-                    return "1♠";
-                if (partnerKozu != "Kupa" && ElDegerlendirici.RenkUzunlugu(el, "Kupa") >= 4)
-                    return "1♥";
+                // İki majör de 4+ ise: 4-4 önce ucuz (♥), 5-5 önce pahalı (♠), aksi halde uzun olan
+                {
+                    int spM = ElDegerlendirici.RenkUzunlugu(el, "Maça"), heM = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
+                    bool spOk = partnerKozu != "Maça" && spM >= 4, heOk = partnerKozu != "Kupa" && heM >= 4;
+                    if (spOk && heOk) return (spM > heM || (spM == heM && spM >= 5)) ? "1♠" : "1♥";
+                    if (spOk) return "1♠";
+                    if (heOk) return "1♥";
+                }
 
                 if (!string.IsNullOrEmpty(partnerKozu) && partnerSeviye == 1)
                 {
