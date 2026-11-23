@@ -12500,7 +12500,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             Yaz("════════════════════════════════════════");
             Yaz("TEST 39.1 — Koz Q Sorusu: 5NT soruluyor");
             Yaz("Senaryo: 1♠ - 3♠ - 4NT - 5♥ - Pas - ?");
-            Yaz("Beklenen: 5NT (Koz Q sorusu)");
+            Yaz("Beklenen: 6♠ (5 kilit kartın hepsi bizde, koz kızı yok; kendi 4NT sonrası körü körüne 5NT sorulmaz)");
             Yaz("────────────────────────────────────────");
 
             var el = new List<Card>
@@ -12543,7 +12543,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             var motor = new IhaleMotoru(durum.Anlasma);
             string sonuc = motor.TeklifVer(durum);
             Yaz($"Motor → {sonuc}");
-            Yaz(sonuc == "5NT" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 5NT)");
+            Yaz(sonuc == "6♠" ? "✅ DOĞRU" : $"❌ YANLIŞ (beklenen 6♠)");
             Yaz("════════════════════════════════════════");
         }
 

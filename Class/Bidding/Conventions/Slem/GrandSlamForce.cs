@@ -48,6 +48,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             if (durum.KendiTeklifleri.Contains("5NT")) return false;
 
+            // Kendi 4NT'm ve ortağın cevabı varsa karar KozQSorusu.SoranKarar'ındır (eksik kilit kart varken 5NT sorulmaz)
+            if (durum.KendiTeklifleri.Contains("4NT")) return false;
+
             return true;
         }
 
