@@ -120,6 +120,7 @@ namespace BricKartOyunu.Tests
                 _yaz((g62 ? "✅ " : "❌ ") + "YA62 Sandwich 1NT ortağın aralığı 8-15 HP → " + ar62.Min + "-" + ar62.Max + (g62 ? "" : "   [beklenen: 8-15]"));
             }
             M("YA63 1♣-Dbl-(2♣): 9 HP 4♠ AKJ9 -> 2♠ (rekabette takeout kontraya cevap, Pas değil)", TestHelpers.ElOlustur("AKJ9", "653", "J654", "42"), "2♠", "1♣", "Dbl", "2♣");
+            M("YA64 Açılış: 21 HP ♥KQJ10973 (7 kart, 3 büyük onör) -> 4♥ (1♥ ortağın Pas'ıyla oyunu kaçırır)", TestHelpers.ElOlustur("AJ", "KQJ10973", "K10", "AK"), "4♥");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

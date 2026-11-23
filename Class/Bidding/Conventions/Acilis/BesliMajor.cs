@@ -71,6 +71,18 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int macca = ElDegerlendirici.RenkUzunlugu(el, "Maça");
             int kupa = ElDegerlendirici.RenkUzunlugu(el, "Kupa");
 
+            // 19-21 HP, 7+ kartlık majör ve en az üç büyük onör (A/K/Q/J): doğrudan 4M (1M, ortağın Pas'ıyla oyunu kaçırır;
+            // 22+ HP 2♣ güçlü açılışına gider). Ölçüm: 30.000 bordda 3 dilimde de kazanç (-9/-13/-19)
+            {
+                int hpG = ElDegerlendirici.HCP(el);
+                foreach (var r in new[] { "Kupa", "Maça" })
+                {
+                    if (ElDegerlendirici.RenkUzunlugu(el, r) >= 7 && hpG >= 19 && hpG <= 21 &&
+                        el.Count(c => c.Suit == r && c.Value >= 11) >= 3)
+                        return "4" + KozYardimcisi.KozSembolu(r);
+                }
+            }
+
             // Maça 5+ mi?
             bool besliMacca = macca >= 5;
             bool besliKupa = kupa >= 5;
