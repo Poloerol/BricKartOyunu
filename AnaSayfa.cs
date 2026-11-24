@@ -104,6 +104,13 @@ namespace BricKartOyunu.Forms
             ayarlarıSıfırlaToolStripMenuItem.Click += (s, e) => AyarlariSifirla();
             kartDağıtıcıToolStripMenuItem.Click += (s, e) => ShowChildForm(new KartDagitici());
             briçMaçıToolStripMenuItem.Click += (s, e) => MacMenusunuAc();
+            
+            // Yardım menüsü: konu dosyaları (Yardim*.md); F1 kısayolu
+            var yardimKonulari = new ToolStripMenuItem("Yardım Konuları") { ShortcutKeys = Keys.F1 };
+            yardimKonulari.Click += (s, e) => { using (var f = new BricKartOyunu.Forms.YardimForm()) f.ShowDialog(this); };
+            var hakkinda = new ToolStripMenuItem("Hakkında");
+            hakkinda.Click += (s, e) => { using (var f = new BricKartOyunu.Forms.YardimForm("hakkinda")) f.ShowDialog(this); };
+            yardımToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { yardimKonulari, hakkinda });
 
             // Açılış sayfasında masa/oyun gerektiren menüler pasif (bunlar Briç Oyna masasının kendi menüsünde çalışır).
             eylemlerToolStripMenuItem.Enabled = false;
