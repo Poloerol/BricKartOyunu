@@ -62,10 +62,6 @@ namespace BricKartOyunu.Forms
                 if (btnMainMenu != null) btnMainMenu.Text = "Ana Menüye Dön";
             }
 
-            // Tek El: yalnızca bu bord oynanır; sonraki bord yok (Replay, analiz ve Ana Menü açık)
-            if (_bricOyna != null && _bricOyna.TekElMi() && btnNextDeal != null)
-                btnNextDeal.Enabled = false;
-
             System.Diagnostics.Debug.WriteLine(
                 "[DealComplete] Buton event'leri bağlandı.");
         }

@@ -22,7 +22,7 @@ namespace BricKartOyunu
             return null;
         }
 
-        /// <summary>Oyun planında "Tek El" seçili mi (tek bord, duplicate puanı, sonraki bord yok).</summary>
+        /// <summary>Oyun planında "Tek El" seçili mi (bordlar tek tek oynanır, duplicate puanı, puan taşınmaz).</summary>
         public bool TekElMi()
         {
             var plan = AnaSayfa.OyunPlani;
