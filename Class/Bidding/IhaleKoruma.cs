@@ -94,7 +94,10 @@ namespace BricKartOyunu.Class.Bidding
                     else if (!ortakBirsey)
                     {
                         // Pas: ortak ya açmadı ya da cevap vermedi
-                        a = new Aralik { Min = 0, Max = (ortakAcilis ? a.Max : benAcilis ? 5 : 9) };
+                        // Rakip araya girdiyse (teklif/kontra) ortağın Pas'ı 6-9 HP de olabilir: 0-5 sanılmaz
+                        bool araGirildi = benAcilis &&
+                            g.Take(i).Any(x => x.Oyuncu != ben && x.Oyuncu != ort && (Gercek(x.Teklif) || x.Teklif == "Dbl" || x.Teklif == "Kontr"));
+                        a = new Aralik { Min = 0, Max = (ortakAcilis ? a.Max : benAcilis ? (araGirildi ? 9 : 5) : 9) };
                     }
                     continue;
                 }
