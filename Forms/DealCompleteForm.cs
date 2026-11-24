@@ -128,6 +128,14 @@ namespace BricKartOyunu.Forms
                 new MacSkorForm(_bricOyna).Show(this);
                 return;
             }
+            var puanTuru = _bricOyna.AktifPuanTuru();
+            if (puanTuru.HasValue)
+            {
+                var acikKlasik = System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.OfType<KlasikSkorForm>(Application.OpenForms));
+                if (acikKlasik != null) { acikKlasik.BringToFront(); acikKlasik.Activate(); return; }
+                new KlasikSkorForm(_bricOyna, puanTuru.Value).Show(this);
+                return;
+            }
             var acik = System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.OfType<DuplicateSkorForm>(Application.OpenForms));
             if (acik != null) { acik.BringToFront(); acik.Activate(); return; }
             new DuplicateSkorForm(_bricOyna).Show(this);

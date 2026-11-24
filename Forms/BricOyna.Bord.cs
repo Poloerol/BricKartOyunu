@@ -131,6 +131,7 @@ namespace BricKartOyunu
         {
             var akis = BordSonuAkisiniHazirla();
             MacBordSonucunuKaydet();
+            PuanOturumunaKaydet();
             akis.Baslat();
         }
 

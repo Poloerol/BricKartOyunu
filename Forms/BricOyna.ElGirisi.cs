@@ -108,6 +108,13 @@ namespace BricKartOyunu
                 ew = (_manuelZon.Value & 2) != 0;
                 return;
             }
+            var puanTuru = AktifPuanTuru();
+            if (puanTuru.HasValue)
+            {
+                // Rubber: oyun kazanmış taraf zonda; Chicago: 4 bordluk döngü (oturum puanlarına bakar)
+                PuanOturumu.Zon(puanTuru.Value, _currentTour, KoltukHaritasi.Fiz(_dealer), out ns, out ew);
+                return;
+            }
             int boardMod = ((_currentTour - 1) % 16) + 1;
             ns = (boardMod == 2 || boardMod == 5 || boardMod == 12 || boardMod == 15 ||
                   boardMod == 4 || boardMod == 7 || boardMod == 10 || boardMod == 16);

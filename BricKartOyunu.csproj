@@ -460,6 +460,12 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_IkiBirOyunZorlama.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_NegatifKontraDevam.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_YedekAciklari.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_Puanlama.cs" />
+    <Compile Include="Class\KlasikSkor.cs" />
+    <Compile Include="Forms\BricOyna.Puanlama.cs" />
+    <Compile Include="Forms\KlasikSkorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Class\Bidding\Tests\TestRunner_Analiz.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Duzeltmeler.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_DD.cs" />
