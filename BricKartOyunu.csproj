@@ -492,6 +492,10 @@
       <DependentUpon>BricOyna.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\BricOyna.Yardim.cs" />
+    <Compile Include="Forms\YardimForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\BricOyna.Menu.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
       <SubType>Form</SubType>
@@ -779,6 +783,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="BricKartOyunu.ico" />
+    <Content Include="Yardim\*.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\AkisSemasi_TR.tsv" Condition="Exists('Resources\AkisSemasi_TR.tsv')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

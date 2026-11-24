@@ -94,6 +94,8 @@
             this.konvansiyonPratiğiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.zorEllerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.yardımToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.yardimKonulariToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.hakkindaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.BrnKartArka = new System.Windows.Forms.ToolStripButton();
             this.BtnMasaRenk = new System.Windows.Forms.ToolStripButton();
@@ -594,9 +596,27 @@
             // 
             // yardımToolStripMenuItem
             // 
+            this.yardımToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.yardimKonulariToolStripMenuItem,
+            this.hakkindaToolStripMenuItem});
             this.yardımToolStripMenuItem.Name = "yardımToolStripMenuItem";
             this.yardımToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
             this.yardımToolStripMenuItem.Text = "Yardım";
+            // 
+            // yardimKonulariToolStripMenuItem
+            // 
+            this.yardimKonulariToolStripMenuItem.Name = "yardimKonulariToolStripMenuItem";
+            this.yardimKonulariToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
+            this.yardimKonulariToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.yardimKonulariToolStripMenuItem.Text = "Yardım Konuları";
+            this.yardimKonulariToolStripMenuItem.Click += new System.EventHandler(this.YardimKonulariToolStripMenuItem_Click);
+            // 
+            // hakkindaToolStripMenuItem
+            // 
+            this.hakkindaToolStripMenuItem.Name = "hakkindaToolStripMenuItem";
+            this.hakkindaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.hakkindaToolStripMenuItem.Text = "Hakkında";
+            this.hakkindaToolStripMenuItem.Click += new System.EventHandler(this.HakkindaToolStripMenuItem_Click);
             // 
             // toolStrip1
             // 
@@ -838,6 +858,8 @@
         private System.Windows.Forms.ToolStripMenuItem ipucuToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem programToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem yardımToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem yardimKonulariToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem hakkindaToolStripMenuItem;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton BrnKartArka;
         private System.Windows.Forms.ToolStripButton BtnMasaRenk;
