@@ -29,7 +29,19 @@ namespace BricKartOyunu.Forms
 
         public static string YardimKlasoru
         {
-            get { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Yardim"); }
+            get
+            {
+                // exe yanındaki klasör; boşsa (geliştirmede kopyalama olmamışsa) proje klasörüne kadar yukarı bak
+                string ilk = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Yardim");
+                if (Directory.Exists(ilk) && Directory.GetFiles(ilk, "*.md").Length > 0) return ilk;
+                var d = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+                for (int i = 0; i < 5 && d != null; i++, d = d.Parent)
+                {
+                    string aday = Path.Combine(d.FullName, "Yardim");
+                    if (Directory.Exists(aday) && Directory.GetFiles(aday, "*.md").Length > 0) return aday;
+                }
+                return ilk;
+            }
         }
 
         public YardimForm(string baslangicKonu = null)
@@ -128,9 +140,9 @@ namespace BricKartOyunu.Forms
             _icerik.Clear();
             if (k == null)
             {
-                Ekle(Directory.Exists(YardimKlasoru)
+                Ekle(_konular.Count > 0
                     ? "Aramayla eşleşen konu yok."
-                    : "Yardım klasörü bulunamadı:\n" + YardimKlasoru, 10F, false);
+                    : "Yardım konusu bulunamadı. Aranan klasör (içinde .md dosyaları olmalı):\n" + YardimKlasoru, 10F, false);
                 return;
             }
             foreach (string ham in k.Metin.Replace("\r", "").Split('\n'))
