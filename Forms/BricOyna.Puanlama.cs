@@ -22,6 +22,13 @@ namespace BricKartOyunu
             return null;
         }
 
+        /// <summary>Oyun planında "Tek El" seçili mi (tek bord, duplicate puanı, sonraki bord yok).</summary>
+        public bool TekElMi()
+        {
+            var plan = AnaSayfa.OyunPlani;
+            return plan != null && plan.OyunTuru == OyunTuru.TekEl && !MacDurumu.Aktif;
+        }
+
         /// <summary>Sıradaki bordun fiziksel dağıtıcısı (Chicago zonu için).</summary>
         public Player SiradakiFizikselDagitici()
         {

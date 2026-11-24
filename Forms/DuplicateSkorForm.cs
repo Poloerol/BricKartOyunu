@@ -150,6 +150,8 @@ namespace BricKartOyunu.Forms
         {
             SkorSonucu s = _oyun != null ? _oyun.SkorHesapla() : null;
             int bord = _oyun != null ? _oyun.BordNo : 0;
+            // Tek El: oturum toplamı yok, yalnızca bu bordun puanı
+            if (_oyun != null && _oyun.TekElMi()) _oturumSkorlari.Clear();
 
             if (s == null || s.PasGecildi)
             {

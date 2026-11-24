@@ -117,8 +117,6 @@ namespace BricKartOyunu.Forms
                 }
                 Kaydet();
                 string eksik = "";
-                if (Secenekler.OyunTuru == OyunTuru.TekEl)
-                    eksik += "• Oyun türü: Tek El henüz yok (Duplicate, Rubber ve Chicago kullanılabilir).\n";
                 if (eksik.Length > 0)
                     MessageBox.Show(this, "Seçimleriniz kaydedildi, ancak şu ayarlar henüz oyunda etkin değil:\n\n" + eksik,
                         "Oyun Planı", MessageBoxButtons.OK, MessageBoxIcon.Information);

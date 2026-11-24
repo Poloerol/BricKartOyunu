@@ -23,6 +23,9 @@
 - **Temizle** yeni rubber ya da yeni Chicago başlatır. Oyun türünü değiştirince oturum puanları da sıfırlanır.
 - Aynı bordu **Replay** ile tekrar oynarsanız son sonuç öncekinin yerine geçer.
 
+## Tek El
+- Yalnızca bir bord oynanır ve duplicate puanıyla puanlanır; oturum toplamı tutulmaz.
+- Bord bitince **Sonraki El** kapalıdır. Aynı bordu Replay ile tekrar oynayabilir, Ana Menüye dönebilirsiniz.
+
 ## Henüz yok
-- **Tek El** türü.
 - Yarım kalan rubberın puanlanması ve onör puanları.
