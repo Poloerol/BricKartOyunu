@@ -5,7 +5,7 @@
 ## Majör Açılışlara Cevaplar (yükseltmeler)
 - **Standart Yükseltmeler**: 2 seviye destek zayıf ya da orta (6-9 HP), 3 seviyeye sıçrama davet ya da engelleyicidir.
 - **Limit Majör Yükseltmeleri**: 3 seviyeye sıçrama (10-12 HP) davettir; güçlü destek için Jacoby 2NT kullanılır.
-- **Bergen Yükseltmeleri**: 4+ kartlık destekle 3 seviye yükseltmeler farklı güçleri gösterir: **3♣ = 6-9 HP**, **3♦ = 10-12 HP**, açılan majörün kendisi (3M) = 0-5 HP engelleyici.
+- **Bergen Yükseltmeleri**: 4+ kartlık destekle 3 seviye yükseltmeler farklı güçleri gösterir: **3♣ = 7-9 HP**, **3♦ = 10-12 HP**, açılan majörün kendisi (3M) = 0-6 HP engelleyici.
 - **Ters Bergen Yükseltmeleri**: 3♣ ve 3♦ anlamları yer değiştirir: **3♣ = limit raise ya da üstü**, **3♦ = 7-9 HP**.
 
 ## Diğer cevaplar

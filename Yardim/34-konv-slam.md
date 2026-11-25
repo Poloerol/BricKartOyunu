@@ -19,5 +19,6 @@ Slam seviyesine (6 ve 7) çıkmadan önce ortaklar asların, papazların ve kont
 - **DOPI-ROPI**: rakip 4NT'ye ya da cevabına müdahale ederse cevap düzeni; kontra ya da pas gibi çağrılar as sayısını bildirir.
 
 ## Bilmeniz gerekenler
+- Genel slam eşikleri (ortak HP toplamı): küçük slam yaklaşık 33+ HP, büyük slam yaklaşık 37+ HP. Fit varsa dağılım puanıyla birlikte değerlendirilir; as sorma, en az bir renkte kontrol olduğundan emin olunca ve ortak toplam 33 civarına ulaşınca yapılır.
 - Slam eşikleri için "El değerlendirme ve ihale hedefleri" konusuna bakın.
 - Motorun slam araması hâlâ geliştirilmektedir: bazı dizilerde kontrol turu yerine doğrudan oyun ya da slam seviyesine çıkabilir.
