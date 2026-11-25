@@ -634,6 +634,22 @@ namespace BricKartOyunu.Forms
             }
         }
 
+        /// <summary>
+        /// Ortağın 1 seviye renk açılışına, rakipler hiç teklif vermemişken ve biz ilk kez konuşurken
+        /// verilen 2 seviye yeni renk, ortağın renginden yüksek sıradaysa sıçramalı yeni renktir (1♦-2♥, 1♣-2♦...).
+        /// </summary>
+        private static bool SicramaliYeniRenkMi(IhaleDurumu durum, string teklif)
+        {
+            if (string.IsNullOrEmpty(teklif) || teklif.Length != 2 || teklif[0] != '2') return false;
+            if (durum.RakipActiMi() || durum.KendiTeklifleri.Any(t => t != "Pas")) return false;
+            var ortak = durum.PartnerTeklifleri.Where(t => t != "Pas").ToList();
+            if (ortak.Count != 1 || ortak[0].Length != 2 || ortak[0][0] != '1') return false;
+            const string sira = "♣♦♥♠";
+            int ortakSira = sira.IndexOf(ortak[0][1]);
+            int bizimSira = sira.IndexOf(teklif[1]);
+            return ortakSira >= 0 && bizimSira > ortakSira;
+        }
+
         /// <summary>BricOyna menüsünden / araç çubuğundan İpucu: İpucu düğmesiyle aynı işi yapar.</summary>
         public void IpucuGoster() { BtnHint_Click(this, EventArgs.Empty); }
 
@@ -673,6 +689,8 @@ namespace BricKartOyunu.Forms
                 sb.AppendLine("Önerilen teklif: " + teklif);
                 if (!string.IsNullOrEmpty(kural))
                     sb.AppendLine("Kural: " + kural);
+                if (SicramaliYeniRenkMi(durum, teklif))
+                    sb.AppendLine("Sıçramalı yeni renk: oyun zorlaması");
                 sb.AppendLine();
                 sb.AppendLine("Elinizin değeri: " + ElDegerlendirici.HCP(el) + " HP");
                 sb.AppendLine("Dağılım: ♠" + ElDegerlendirici.RenkUzunlugu(el, "Maça") +
