@@ -176,7 +176,7 @@ namespace BricKartOyunu
                 if (el != null) liste.AddRange(el);
                 foreach (var k in _oynananTumEller.Where(t => t.Oyuncu == p).Select(t => t.Kart))
                     if (!liste.Contains(k)) liste.Add(k);
-                eller[KoltukHaritasi.Fiz(p)] = liste;
+                eller[PratikModu ? p : KoltukHaritasi.Fiz(p)] = liste;   // pratikte ekran sabit koltuklarla çizilir (koltuk haritası uygulanmaz)
             }
             if (eller.Values.Any(l => l.Count != 13))
             {
@@ -184,9 +184,9 @@ namespace BricKartOyunu
                 return;
             }
             var maske = DDMotor.Maskeler(eller);
-            int dagitici = FizikselIndeks(KoltukHaritasi.Fiz(IcOyuncu(_ihaleBaslangicOyuncusu)));
+            int dagitici = FizikselIndeks(PratikModu ? IcOyuncu(_ihaleBaslangicOyuncusu) : KoltukHaritasi.Fiz(IcOyuncu(_ihaleBaslangicOyuncusu)));
             bool ns, ew; ZonDurumu(out ns, out ew);
-            if (KoltukHaritasi.CiftlerTers) { bool g = ns; ns = ew; ew = g; }   // fiziksel zon
+            if (!PratikModu && KoltukHaritasi.CiftlerTers) { bool g = ns; ns = ew; ew = g; }   // fiziksel zon
             var sonuc = IhaleSonucu.Coz(_sonIhaleGecmisi, dagitici);
             string metin = string.Join(" ", _sonIhaleGecmisi);
             using (var f = new DDAnalizForm(maske, dagitici, ns, ew, sonuc, metin, "Bord " + _currentTour + " — Çift Dummy Analizi"))
