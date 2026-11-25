@@ -23,7 +23,7 @@ Rakipler de teklif verdiğinde kullanılan konvansiyonlar.
 - **Michaels** / **Michaels Devam**: rakibin açtığı rengin kendisini teklif etmek. Majör açılışa karşı (örneğin 1♠-2♠) o majör dışındaki majör ve bir minör, minör açılışa karşı iki majör gösterir (en az 5-5).
 - **Unusual 2NT**: rakip 1 seviyede açınca 2NT, en düşük iki oynanmamış rengi gösterir (genellikle iki minör). **Unusual over Unusual**: buna karşı cevap yöntemi.
 - **Leaping Michaels**: 4. seviyede sıçramalı Michaels (5-5 minör + majör).
-- **Ghestem**: rakibin açılışından sonra yapay teklifler (2NT, 3♣, 3♦) ile iki renkli elin hangi iki rengi olduğunu bildirir.
+- **Ghestem**: rakibin 1 seviye renk açılışına karşı, oynanmamış iki renkte 5+5 ve 5-11 HP ile yapılan yapay tekliflerdir: 2NT en düşük iki oynanmamış rengi, 3♣ en yüksek iki oynanmamış rengi, cue-bid en düşük ve en yüksek rengi gösterir (1♣ üzerinde: 2♦ = ♥+♠, 2NT = ♥+♦, 3♣ = ♦+♠).
 - **Cue Bid**, **Rakip Renk Cue-Bid**: rakibin açtığı rengi teklif ederek yapay, genellikle güçlü el bildirmek.
 
 ## Cevaplar ve rekabette devam

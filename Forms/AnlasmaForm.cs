@@ -772,7 +772,11 @@ namespace BricKartOyunu.Forms
             _ileri.Click += (s, e) => Git(_i + 1);
             son.Click += (s, e) => { Sonuc = _a; DialogResult = DialogResult.OK; Close(); };
             iptal.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
-            yardim.Click += (s, e) => { /* TODO: yardım içeriği */ };
+            // Yardım: açık sayfanın konusu (Yardim\06p1- ... 06p9-); sayfa sırası sihirbaz sırasıyla aynıdır
+            yardim.Click += (s, e) =>
+            {
+                using (var f = new YardimForm("06p" + (_i + 1) + "-")) f.ShowDialog(this);
+            };
             Controls.AddRange(new Control[] { cizgi, _geri, _ileri, son, iptal, yardim });
             CancelButton = iptal;
             foreach (var pg in _sayfalar) BaslikBicimi.Uygula(pg, true);
