@@ -27,7 +27,7 @@ Rakipler de teklif verdiğinde kullanılan konvansiyonlar.
 - **Cue Bid**, **Rakip Renk Cue-Bid**: rakibin açtığı rengi teklif ederek yapay, genellikle güçlü el bildirmek.
 
 ## Cevaplar ve rekabette devam
-- **Müdahale Oyun Cevabı**, **Müdahale Sonrası NT Cevap**, **Cevapçı İkinci Tur**, **Oyun Daveti Kabulü**, **Minör Davet Cevabı**, **Açıcı 1NT Sonrası**: rakip müdahale ettikten sonra açıcı ve cevaplayanın doğal devam teklifleri.
+- **Müdahale Oyun Cevabı**, **Müdahale Sonrası NT Cevap**, **Cevapçı İkinci Tur**, **Oyun Daveti Kabulü**, **Minör Davet Cevabı**, **Açıcı 1NT Sonrası**: rakip müdahale ettikten sonra açıcı ve cevaplayanın doğal devam teklifleri. **Müdahale Sonrası Güçlü Cevap**: ortağın 1 seviye açılışına rakip müdahale ettiğinde 17+ HP ve 6+ kartlı yeni renkle sıçramalı teklif (örneğin 1♦-(1♠)-3♥), oyun zorlamasıdır.
 - **Invisible Cue-Bids**, **Limit-Plus Cue-Bids**, **Mixed Raise (Jump Cue-Bid)**, **Good-Bad 2NT**, **FSJS**, **Artif. 2C/2D Resp. to 1M-X**, **NT Müdahale Transfer**: rakip müdahalesine karşı fit ve güç gösteren ileri yöntemler.
 - **Weak Jump Overcalls**: rakibin açılışından sonra sıçramalı yeni renk, uzun ve zayıf el (engelleyici; 6 kartlı renk ve yaklaşık 5-10 HP, 2 seviyede 6 kart, 3 seviyede 7 kart).
 - **Yapay 2♣ Sonrası Kontra Stayman**: rakibin yapay 2♣ cevabından sonra kontra ile Stayman cevabı.

@@ -16006,6 +16006,7 @@ new IhaleHamlesi { Oyuncu = Player.Guney, Teklif = "2♣", Sira = 4 },
             BricKartOyunu.Tests.TestRunner_NegatifKontraDevam.TumTestleriCalistir(Yaz);
             BricKartOyunu.Tests.TestRunner_YedekAciklari.TumTestleriCalistir(Yaz);
             BricKartOyunu.Tests.TestRunner_Puanlama.TumTestleriCalistir(Yaz);
+            BricKartOyunu.Tests.TestRunner_MudahaleGuclu.TumTestleriCalistir(Yaz);
             BricKartOyunu.Tests.TestRunner_Analiz.TumTestleriCalistir(Yaz);
             BricKartOyunu.Tests.TestRunner_Duzeltmeler.TumTestleriCalistir(Yaz);
             BricKartOyunu.Tests.TestRunner_DD.TumTestleriCalistir(Yaz);

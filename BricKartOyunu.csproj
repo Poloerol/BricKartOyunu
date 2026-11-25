@@ -255,6 +255,7 @@
     <Compile Include="Class\Bidding\Conventions\Mudahale\NegatifKontraRekabet.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\TakeoutKontraYukseltme.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\MudahaleOyunCevap.cs" />
+    <Compile Include="Class\Bidding\Conventions\Mudahale\MudahaleSonrasiGucluCevap.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\AciciBirNTSonrasi.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\Rubensohl.cs" />
     <Compile Include="Class\Bidding\Conventions\Mudahale\Sandwich1NT.cs" />
@@ -461,6 +462,7 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_NegatifKontraDevam.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_YedekAciklari.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_Puanlama.cs" />
+    <Compile Include="Class\Bidding\Tests\TestRunner_MudahaleGuclu.cs" />
     <Compile Include="Class\KlasikSkor.cs" />
     <Compile Include="Forms\BricOyna.Puanlama.cs" />
     <Compile Include="Forms\KlasikSkorForm.cs">
