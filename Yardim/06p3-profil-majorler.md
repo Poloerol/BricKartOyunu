@@ -11,7 +11,7 @@
 ## Diğer cevaplar
 - **Jacoby 2NT**: 4+ kartlık destek ve 13+ puanla oyun zorlaması. Açıcı minimum eli 4M ile, daha güçlü eli ve tekil/void ya da yeni 5'li rengi tekliflerle gösterir.
 - **DBL Sonrası Truscott 2NT**: açıcının majör açılışına rakip kontra yaptıktan sonra 2NT, 10+ puan ve 4 kartlık destek gösterir (Jacoby 2NT'nin kontra sonrası biçimi).
-- **Splinter'lar**: majör açılışa çifte sıçramalı yeni renk, o renkte tekil ya da void, 4+ kartlık destek ve 13-16 puan gösterir.
+- **Splinter'lar**: majör açılışa çifte sıçramalı yeni renk, o renkte tekil ya da void, 4+ kartlık destek ve 12-15 HP (oyun zorlaması) gösterir.
 - **Blokatif Yükseltmeler** (Preemptive Reraises): açıcı, ortak 2M ile destek verdikten sonra 6+ kartlık majörle ya da en çok 16 puanla 3M'e çıkar.
 - **DBL Sonrası Yapay 2♣/2♦ Yükseltmeleri**: rakip kontra yaptığında 2♣ ve 2♦ ortak renge yapıcı yükseltmelerdir; ortak rengin iki seviyesi 3 kartlı, zayıf bir engelleyici yükseltmedir.
 
