@@ -23,6 +23,6 @@ Zonda olan taraf kontrat yaparsa daha yüksek bonus alır ama bozulursa daha ağ
 Rakibin kontratının bozulacağına inanan taraf **kontra** diyebilir; kontratın puanı artar ya da bozulursa ceza büyür. Kontrat sahibi **redkontra** ile cevap verir.
 
 ## Bridge Baron'daki gibi öğrenmek
-- İlk bordlarda **Oyun Ayarları > İpucu Gösterimi**'ni "Farklıysa göster" yapın; teklifinizi motorun önerisiyle karşılaştırın.
+- Teklif vermeden önce **F2** (İpucu) ile motorun önerisine bakın ve kendi teklifinizle karşılaştırın.
 - **Öğrenme Modu**'nu açın (Ortaklık ayarları); her teklifin kuralı açıklanır.
 - Her bordun sonunda **Oyun Analizi** ile hatalı kartlarınızı bulun.

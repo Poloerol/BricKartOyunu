@@ -123,13 +123,14 @@ namespace BricKartOyunu.Forms
                 DialogResult = DialogResult.OK; Close();
             };
             _btnIptal.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
-            _btnYardim.Click += (s, e) => MessageBox.Show(
-                "Dağıtım: kartların nasıl dağıtılacağı.\nOyun: oyun türü ve oyun akışı.\n" +
-                "Giriş: ipucu, duraklama ve ses.\nOyuncu Türleri: hangi koltuğu bilgisayar, hangisini siz oynarsınız.\n" +
-                "Oyuncu Resimleri: koltuklara resim atayın.\n\n" +
-                "Tamam ayarları kalıcı olarak kaydeder (Varsayılan düğmesi yalnızca formu sıfırlar).\n" +
-                "Dosya: " + AyarDeposu.DosyaYolu(OyunPlaniSecenekleri.DepoAdi),
-                "Yardım", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // Yardım: seçili sekmenin yardım konusu (Yardim\04a-... 04e-...); sıra sekme sırasıyla aynıdır
+            _btnYardim.Click += (s, e) =>
+            {
+                string[] konular = { "04a-", "04b-", "04c-", "04d-", "04e-" };
+                int i = _sekmeler.SelectedIndex;
+                using (var f = new YardimForm(i >= 0 && i < konular.Length ? konular[i] : "04-"))
+                    f.ShowDialog(this);
+            };
             AcceptButton = _btnTamam;
             CancelButton = _btnIptal;
         }
