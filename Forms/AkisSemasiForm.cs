@@ -28,6 +28,8 @@ namespace BricKartOyunu.Forms
         {
             public AkisSemasi.Dugum Dugum;
             public string Cevap;          // bu düğümde verilen cevap ("Evet"/"Hayır"); sonuncuda null
+            public string Neden;          // otomatik cevaplandıysa gerekçesi; elle cevaplandıysa null
+            public string Sema;           // bu düğümün şeması (başlık); şema değişimini yolda göstermek için
         }
 
         private readonly TextBox _txtAra = new TextBox();
@@ -45,6 +47,13 @@ namespace BricKartOyunu.Forms
         private readonly Button _btnGeri = new Button();
         private readonly Button _btnBasa = new Button();
         private readonly Button _btnGit = new Button();
+        private readonly Button _btnOto = new Button();
+        private readonly Label _lblDurum = new Label();
+
+        /// <summary>Otomatik yol için güncel ihale durumunu (sıradaki oyuncunun eli ve ihale geçmişi) verir; atanmazsa düğme gizlenir.</summary>
+        public Func<BricKartOyunu.Class.Bidding.IhaleDurumu> DurumKaynagi { get; set; }
+        private bool _otomatik;          // elime göre yol modu: elle cevaptan sonra da otomatik ilerlenir
+        private bool _yoluKoru;          // şema değişirken izlenen yol silinmesin (otomatik şema geçişi)
         private readonly ListBox _lstYol = new ListBox();
 
         // Tüm şema
@@ -266,6 +275,12 @@ namespace BricKartOyunu.Forms
             Ayarla(_btnGeri, "◄ Geri", 90);
             Ayarla(_btnBasa, "Başa dön", 100);
             Ayarla(_btnGit, "Bu şemaya git ►", 160);
+            Ayarla(_btnOto, "Elime göre yol", 140);
+            _btnOto.Click += delegate { ElimeGoreYol(); };
+            _lblDurum.Dock = DockStyle.Top;
+            _lblDurum.Height = 40;
+            _lblDurum.Padding = new Padding(4, 2, 4, 2);
+            _lblDurum.ForeColor = Color.FromArgb(0, 90, 160);
             _btnEvet.Click += delegate { Ilerle(true); };
             _btnHayir.Click += delegate { Ilerle(false); };
             _btnGeri.Click += delegate { Geri(); };
@@ -280,6 +295,7 @@ namespace BricKartOyunu.Forms
             yolPanel.Controls.Add(yolBaslik);
 
             tp.Controls.Add(_rtbAciklama);
+            tp.Controls.Add(_lblDurum);
             tp.Controls.Add(_lblSoru);
             tp.Controls.Add(yolPanel);
             tp.Controls.Add(dugmeler);
@@ -322,15 +338,18 @@ namespace BricKartOyunu.Forms
             _agac.Nodes.Add(kok);
             kok.Expand();
             _agac.EndUpdate();
-            // Adım adım
-            Basa();
+            // Adım adım (otomatik şema geçişinde izlenen yol korunur)
+            if (_yoluKoru) { _simdiki = sema.Kok; Goster(); }
+            else Basa();
             _sekmeler.SelectedIndex = 0;
         }
 
         private void Basa()
         {
             _yol.Clear();
+            _otomatik = false;
             _simdiki = _sema == null ? null : _sema.Kok;
+            _lblDurum.Text = "";
             Goster();
         }
 
@@ -339,8 +358,62 @@ namespace BricKartOyunu.Forms
             if (_simdiki == null) return;
             var sonraki = evet ? _simdiki.Evet : _simdiki.Hayir;
             if (sonraki == null) return;
-            _yol.Add(new Adim { Dugum = _simdiki, Cevap = evet ? "Evet" : "Hayır" });
+            _yol.Add(new Adim { Dugum = _simdiki, Cevap = evet ? "Evet" : "Hayır", Sema = _sema.Baslik });
             _simdiki = sonraki;
+            Goster();
+            if (_otomatik) OtomatikIlerle();
+        }
+
+        /// <summary>Şemanın başından elime göre yürür: cevabı kesin olan soruları kendisi geçer, emin olamadığında durup cevabı sizden ister.</summary>
+        private void ElimeGoreYol()
+        {
+            if (_sema == null) return;
+            if (DurumKaynagi == null || DurumKaynagi() == null)
+            {
+                MessageBox.Show(this, "Elime göre yol için bir ihale sürüyor olmalı (el ve ihale geçmişi gerekir).", "Akış Şeması", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            Basa();
+            _otomatik = true;
+            OtomatikIlerle();
+        }
+
+        private void OtomatikIlerle()
+        {
+            var durum = DurumKaynagi == null ? null : DurumKaynagi();
+            if (durum == null) { _otomatik = false; return; }
+            for (int sayac = 0; sayac < 300 && _simdiki != null; sayac++)
+            {
+                var d = _simdiki;
+                if (d.Yaprak)
+                {
+                    _lblDurum.Text = "Yol tamamlandı: sonuç bulundu.";
+                    return;
+                }
+                if (d.Kutu.Hedef != null)
+                {
+                    var hedef = _hepsi.FirstOrDefault(x => string.Equals(x.Sema.KisaAd, d.Kutu.Hedef, StringComparison.OrdinalIgnoreCase) ||
+                                                           string.Equals(x.Sema.DosyaAdi, d.Kutu.Hedef, StringComparison.OrdinalIgnoreCase));
+                    if (hedef == null) { _lblDurum.Text = "Hedef şema bulunamadı: " + d.Kutu.Hedef; return; }
+                    _yol.Add(new Adim { Dugum = d, Cevap = "şemaya geçildi: " + hedef.Sema.Baslik, Neden = "otomatik", Sema = _sema.Baslik });
+                    _yoluKoru = true;
+                    try { _txtAra.Text = ""; ListeyiDoldur(); _lst.SelectedItem = hedef; }
+                    finally { _yoluKoru = false; }
+                    _otomatik = true;
+                    continue;
+                }
+                var c = AkisYolBulucu.Cevapla(_sema.DosyaAdi, d, durum);
+                if (c == null)
+                {
+                    _lblDurum.Text = "Bu soruyu eldeki bilgiyle otomatik cevaplayamadım. Lütfen Evet ya da Hayır'ı siz seçin; sonrasında otomatik devam edilir.";
+                    Goster();
+                    return;
+                }
+                _yol.Add(new Adim { Dugum = d, Cevap = c.Evet ? "Evet" : "Hayır", Neden = c.Neden, Sema = _sema.Baslik });
+                _simdiki = c.Evet ? d.Evet : d.Hayir;
+                if (_simdiki == null) { _lblDurum.Text = "Şemada bu cevabın devamı yok."; Goster(); return; }
+            }
+            _lblDurum.Text = "Yol çok uzadı, otomatik ilerleme durduruldu.";
             Goster();
         }
 
@@ -375,7 +448,9 @@ namespace BricKartOyunu.Forms
             _btnBasa.Enabled = _yol.Count > 0;
             _lstYol.BeginUpdate();
             _lstYol.Items.Clear();
-            foreach (var a in _yol) _lstYol.Items.Add(AkisSemasi.Simgeler(a.Dugum.Kutu.Etiket) + "  →  " + a.Cevap);
+            _btnOto.Visible = DurumKaynagi != null;
+            foreach (var a in _yol)
+                _lstYol.Items.Add(AkisSemasi.Simgeler(a.Dugum.Kutu.Etiket) + "  →  " + a.Cevap + (string.IsNullOrEmpty(a.Neden) || a.Neden == "otomatik" ? "" : "   (otomatik: " + a.Neden + ")"));
             _lstYol.EndUpdate();
             if (_lstYol.Items.Count > 0) _lstYol.TopIndex = _lstYol.Items.Count - 1;
 

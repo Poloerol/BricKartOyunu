@@ -539,6 +539,7 @@ namespace BricKartOyunu.Forms
                 return;
             }
             var f = new AkisSemasiForm();
+            f.DurumKaynagi = IhaleDurumuOlustur;      // "Elime göre yol": sıradaki oyuncunun eli ve ihale geçmişi
             if (!f.Hazirla()) { f.Dispose(); return; }
             _akisSemasiForm = f;
             f.FormClosed += (s, a) => { if (_akisSemasiForm == f) _akisSemasiForm = null; };

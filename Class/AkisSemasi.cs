@@ -20,6 +20,7 @@ namespace BricKartOyunu.Class
     {
         public class Kutu
         {
+            public string Orijinal;      // çevrilmemiş İngilizce etiket (otomatik yol bulucu soruyu buradan tanır)
             public string Etiket;        // kısa başlık (satırlar boşlukla birleştirilmiş)
             public string Aciklama;      // açıklama (paragraflar \n ile ayrılmış)
             public string Hedef;         // başka bir şemaya geçiş: hedef şemanın kısa adı (yoksa null)
@@ -80,7 +81,8 @@ namespace BricKartOyunu.Class
                 int tmp;
                 if (i < s.Length && s[i].Trim().Length > 0 && !int.TryParse(s[i].Trim(), out tmp)) hedef = s[i++].Trim();
                 if (i < s.Length && s[i].Trim().Length == 0) i++;      // kutu ayırıcı boş satır
-                kutular.Add(new Kutu { Etiket = Cevir(string.Join(" ", etiket.Where(x => x.Length > 0))), Aciklama = CevirParagraflar(Paragraflar(acik)), Hedef = hedef });
+                string orijinalEtiket = string.Join(" ", etiket.Where(x => x.Length > 0));
+                kutular.Add(new Kutu { Orijinal = orijinalEtiket, Etiket = Cevir(orijinalEtiket), Aciklama = CevirParagraflar(Paragraflar(acik)), Hedef = hedef });
             }
 
             int satirSayisi = Say();
