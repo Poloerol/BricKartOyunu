@@ -249,10 +249,50 @@ namespace BricKartOyunu.Forms
             catch { }
         }
 
+        /// <summary>
+        /// Araç çubuğunu Briç Oyna ile aynı düzene getirir: Kazanan El Rengi düğmesi eklenir, ardından ayırıcı gelir;
+        /// ayırıcının sağındaki oyun düğmeleri (oto oynama, claim, geri/ileri al, ipucu, sonraki el, çıkış, el gösterme)
+        /// ana sayfada oyun olmadığı için pasiftir. Simgeler Briç Oyna'nın kaynaklarından alınır.
+        /// </summary>
+        private void AraclarCubuguTamamla()
+        {
+            var kaynak = new System.ComponentModel.ComponentResourceManager(typeof(BricOyna));
+            Func<string, string, bool, ToolStripButton> yap = delegate(string ad, string ipucu, bool etkin)
+            {
+                return new ToolStripButton
+                {
+                    Name = "BtnAna" + ad,
+                    DisplayStyle = ToolStripItemDisplayStyle.Image,
+                    Image = (Image)kaynak.GetObject("Btn" + ad + ".Image"),
+                    ImageTransparentColor = Color.Magenta,
+                    Text = ipucu,
+                    ToolTipText = ipucu,
+                    Enabled = etkin
+                };
+            };
+
+            // Masa Arka Rengi'nden sonra Kazanan El Rengi; mevcut ayırıcı bunun hemen arkasında kalır
+            toolStrip1.Items.Insert(toolStrip1.Items.IndexOf(toolStripSeparator3), yap("HighLight", "Kazanan El Rengi", true));
+
+            toolStrip1.Items.Add(yap("OtoOyna", "Otomatik Oynama", false));
+            toolStrip1.Items.Add(yap("Claim", "Claim", false));
+            toolStrip1.Items.Add(yap("GeriAl", "Geri Al", false));
+            toolStrip1.Items.Add(yap("ileriAl", "İleri Al", false));
+            toolStrip1.Items.Add(yap("Ipucu", "İpucu", false));
+            toolStrip1.Items.Add(yap("SonrakiEl", "Sonraki El", false));
+            toolStrip1.Items.Add(yap("OyundanExit", "Oyundan Çık", false));
+            toolStrip1.Items.Add(new ToolStripSeparator());
+            toolStrip1.Items.Add(yap("Hepsi", "Hepsini Göster", false));
+            toolStrip1.Items.Add(yap("EW", "E/W Göster", false));
+            toolStrip1.Items.Add(yap("NS", "N/S Göster", false));
+            toolStrip1.Items.Add(yap("Guney", "Aktif Oyuncu Elini Göster", false));
+        }
+
         private void AnaSayfa_Load(object sender, EventArgs e)
         {
             InitializeDynamicControls();
             WireMainButtonEvents();
+            AraclarCubuguTamamla();
             toolStripButton3.Click += MasaRengiToolStripMenuItem_Click;
             AppState.ArkaYuzuYukle();
             currentBackImage = AppState.ArkaYuzYolu();
