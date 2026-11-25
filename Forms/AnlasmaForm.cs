@@ -595,7 +595,7 @@ namespace BricKartOyunu.Forms
             ClientSize = new Size(480, 450);
             Font = new Font("Segoe UI", 9F);
 
-            var tab = new TabControl { Location = new Point(6, 6), Size = new Size(468, 394) };
+            var tab = _sekmeler = new TabControl { Location = new Point(6, 6), Size = new Size(468, 394) };
             tab.TabPages.Add(KartSayfasi("Renge karşı açılış", RenkKartlari, false));
             tab.TabPages.Add(KartSayfasi("NT'ye karşı açılış", NtKartlari, true));
             tab.TabPages.Add(GenelSayfa());
@@ -604,7 +604,7 @@ namespace BricKartOyunu.Forms
             var tamam = new Button { Text = "Tamam", Location = new Point(306, 410), Size = new Size(80, 28) };
             var iptal = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Location = new Point(392, 410), Size = new Size(80, 28) };
             tamam.Click += (s, e) => { Uygula(); DialogResult = DialogResult.OK; Close(); };
-            // Yardım: şimdilik boş; içerik daha sonra eklenecek (YardimTiklandi içine)
+            // Yardım: seçili sekmenin yardım konusu (Yardim\06a-, 06b-, 06c-)
             var yardim = new Button { Text = "Yardım", Location = new Point(220, 410), Size = new Size(80, 28) };
             yardim.Click += (s, e) => YardimTiklandi();
             Controls.AddRange(new Control[] { tab, yardim, tamam, iptal });
@@ -612,9 +612,15 @@ namespace BricKartOyunu.Forms
             BaslikBicimi.Uygula(this, false);   // kart etiketlerine dokunulmaz
         }
 
+        private TabControl _sekmeler;
+
         private void YardimTiklandi()
         {
-            // TODO: Sinyaller yardım içeriği
+            // Sekme sırası: Renge karşı açılış, NT'ye karşı açılış, Genel Sinyaller
+            string[] konular = { "06a-", "06b-", "06c-" };
+            int i = _sekmeler != null ? _sekmeler.SelectedIndex : -1;
+            using (var f = new YardimForm(i >= 0 && i < konular.Length ? konular[i] : "06-"))
+                f.ShowDialog(this);
         }
 
         private void Uygula()

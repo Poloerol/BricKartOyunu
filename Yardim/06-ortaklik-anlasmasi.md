@@ -20,12 +20,10 @@ Her çiftin (Kuzey-Güney ve Doğu-Batı) kendi **ihale profili** vardır. Bilgi
 - **Basit N/S (E/W) Ortaklık Ayarları**: başlangıç için sade bir konvansiyon seti uygular.
 
 ## Sinyaller
-**Sinyalleri Göster** düğmesi karşı oyun anlaşmalarını açar. Genel Sinyaller sekmesinde şunlar seçilir:
-- **Her Türlü Sinyal**: Evet ya da Hayır.
-- **Birincil Sinyal**: Sayı, Tutum ya da Tek/Çift.
-- **Sayı Sinyali**: Çift ya da Tek.
-- **Koz Sinyali**: Vinje, Yok ya da 3+ Yüks-Alç.
-- Atma standardı olarak Standart, UDCA, Tek-Çift Atış, Romen Atış, Lavinthal ve Smith echo seçeneklerinden biri kullanılır.
+**Sinyalleri Göster** düğmesi savunma anlaşmalarını üç sekmeyle açar; her sekmenin altındaki **Yardım** düğmesi o sekmenin konusunu gösterir:
+- **Renge karşı açılış**: kozlu kontrata karşı atak kartı tablosu ve atak yöntemi.
+- **NT'ye karşı açılış**: NT kontratına karşı atak kartı tablosu ve atak yöntemi.
+- **Genel Sinyaller**: sayı ve tutum sinyalleri, atma yöntemleri (UDCA, Tek/Çift, Lavinthal, Romen), Smith echo, koz sinyali.
 
 ## Öğrenme modu
 Açıkken ihale sırasında:
