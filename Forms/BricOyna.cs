@@ -714,8 +714,8 @@ namespace BricKartOyunu
             BtnMasaRenk.Click += MasaRengiToolStripMenuItem_Click;
             ipucuToolStripMenuItem.Click += BtnIpucu_Click;
 
-            // 🔹 Araç çubuğu AnaSayfa ile aynı boyutta: 16x16 simge, otomatik yükseklik
-            toolStrip1.ImageScalingSize = new Size(16, 16);
+            // 🔹 Araç çubuğu AnaSayfa ile aynı boyutta: 24x24 simge, otomatik yükseklik
+            toolStrip1.ImageScalingSize = new Size(24, 24);
             toolStrip1.AutoSize = true;
 
             ////Seed numarası
