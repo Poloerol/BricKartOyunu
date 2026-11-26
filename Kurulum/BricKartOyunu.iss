@@ -43,7 +43,8 @@ Name: "desktopicon"; Description: "Masaüstüne kısayol oluştur"; GroupDescrip
 
 [Files]
 ; Hata ayıklama/yardım dosyaları ve kullanıcıya ait veri dosyaları pakete girmez (güncellemede kullanıcı verisi ezilmez)
-Source: "..\bin\Release\*"; DestDir: "{app}"; Excludes: "*.pdb,*.xml,*.vshost.*,seedler.txt,ortaklik_anlasmasi.json"; Flags: ignoreversion recursesubdirs createallsubdirs
+; AkisSemasi_TR.tsv dağıtılmaz: Bridge Baron metinlerinden türediği için yalnızca yerelde kalır (bkz. DURUM.md)
+Source: "..\bin\Release\*"; DestDir: "{app}"; Excludes: "*.pdb,*.xml,*.vshost.*,seedler.txt,ortaklik_anlasmasi.json,AkisSemasi_TR.tsv"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Yardim\*.md"; DestDir: "{app}\Yardim"; Flags: ignoreversion
 Source: "TesterRehberi.txt"; DestDir: "{app}"; Flags: ignoreversion
 
