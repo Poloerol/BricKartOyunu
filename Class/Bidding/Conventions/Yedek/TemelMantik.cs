@@ -657,6 +657,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // ── Fit varsa: fit rengiyle hedef ──
             if (fit != null && fit != "NT")
             {
+                string ad = AciciMajorDestegi(d, el, fit, gercek);
+                if (ad != null) return ad;
+
                 int T = HedefFit(fit, est, dengeli && NTOlur(el, rakipRenkleri), dar, fitToplam);
                 // Ortak NT dedi (ör. 1♦-1♥-2NT), minör slam hedefi + dengeli el (NT durdurucuları tam): 6NT (aynı löve, 6m yerine daha çok puan; ikili turnuvada fark sıralamayı değiştirir). Tüm minör slamlarda +28 IMP kötü, yalnız ortak NT dedikten sonra nötr.
                 if (!Major(fit) && T >= 6 && dengeli && NTOlur(el, rakipRenkleri) && Cheapest(d, "NT") <= 6 &&
@@ -686,6 +689,26 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // ── Fit yok: NT / uzun renk ──
             return FitsizDevam(d, el, hp, dengeli, est, cur, rakipRenkleri, gercek, zorunlu, benNTAcildi, dar);
+        }
+
+        /// <summary>
+        /// 1x – 1M sonrası (rakip karışmadan) 4+ kart destekli açıcının güçlü majör yükseltmesi, standart destek
+        /// puanıyla (HP + koz dışı kısalık): 16-18 → 3M (davet), 19+ → 4M. 15 ve altı genel mantığa bırakılır (null).
+        /// Genel oyun eşiği (24,5) bu dizide 16 HP'lik davet elini de 4M'ye çıkarıyordu.
+        /// </summary>
+        private string AciciMajorDestegi(IhaleDurumu d, List<Card> el, string fit, List<IhaleHamlesi> gercek)
+        {
+            if (!Major(fit) || gercek.Count != 2) return null;
+            var acis = gercek[0];
+            var cevap = gercek[1];
+            if (acis.Oyuncu != d.AktifOyuncu || acis.Seviye != 1 || acis.Koz == "NT") return null;
+            if (cevap.Oyuncu != d.Partner || cevap.Seviye != 1 || cevap.Koz != fit) return null;
+            if (d.Gecmis.Any(h => d.Rakipler.Contains(h.Oyuncu) && !h.PasMi)) return null;   // rakip teklif/kontra yok
+            if (ElDegerlendirici.RenkUzunlugu(el, fit) < 4) return null;
+
+            int destek = ElDegerlendirici.ToplamPuan(el, fit);
+            if (destek < 16) return null;
+            return Seviye(d, fit, destek >= 19 ? 4 : 3);
         }
 
         /// <summary>

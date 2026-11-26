@@ -33,6 +33,10 @@ namespace BricKartOyunu.Tests
             T("N6 1H-2D (Bord 5 gercek ihale, G dagitici) 17hcp 5H4S -> 2S", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "2♠", "Pas", "1♥", "Pas", "2♦", "Pas");
             T("N7 1H cevap 9hcp 5S 7D -> 1S (2D degil)", TestHelpers.ElOlustur("QJT85", "", "AQ97653", "7"), "1♠", "Pas", "1♥", "Pas");
             T("N8 1H-1S 17hcp 4 maca destek -> 4S (karne ölçümü: davet yerine oyun)", TestHelpers.ElOlustur("A932", "AT942", "K8", "AQ"), "4♠", "Pas", "1♥", "Pas", "1♠", "Pas");
+            // 1x–1M sonrası 4 kart destekli açıcı: 16-18 destek puanı 3M davet, 19+ 4M
+            T("N39 1C-1H 16hcp+2 kisalik=18 destek -> 3H davet", TestHelpers.ElOlustur("Q2", "AJT9", "72", "AKQT5"), "3♥", "1♣", "Pas", "1♥", "Pas");
+            T("N40 1C-1H 17hcp+2 kisalik=19 destek -> 4H", TestHelpers.ElOlustur("K2", "AJT9", "72", "AKQT5"), "4♥", "1♣", "Pas", "1♥", "Pas");
+            T("N41 1D-1S 15hcp tek kupa = 17 destek -> 3S davet", TestHelpers.ElOlustur("KJ72", "8", "AKJ54", "K53"), "3♠", "1♦", "Pas", "1♠", "Pas");
             T("N5 P-1H-2D 3 maca -> 3NT (degismez)", TestHelpers.ElOlustur("A93", "AT942", "K82", "AQ"), "3NT", "Pas", "Pas", "Pas", "1♥", "Pas", "2♦", "Pas");
             // Rakip 1♣ açtı, ortak 1♦ ile araya girdi, sağdaki pas: 5'li ♥ ve 7 HP -> 1♥ (ortağın minörüne 3 kartla 2♦ demek yerine majör)
             T("N9 1C-(1D ortak overcall)-P: 5 kupa 7hcp 3 karo -> 1H (2D degil)", TestHelpers.ElOlustur("Q95", "J7532", "J52", "K6"), "1♥", "1♣", "1♦", "Pas");
