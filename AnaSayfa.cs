@@ -994,6 +994,7 @@ namespace BricKartOyunu.Forms
             if (f is ZorEller) return "Zor Eller";
             if (f is Turnuva) return "Turnuva";
             if (f is KartDagitici) return "Kart Dağıtıcı";
+            if (f is PbnDonusturucuForm) return "PBN Dönüştürücü";
             return null;   // Briç Maçı menüsü başlığını MacMenusunuAc yönetir
         }
         private void ShowChildForm(Form childForm)
@@ -1030,6 +1031,11 @@ namespace BricKartOyunu.Forms
 
             // AnaSayfa'yı kapatma, sadece alt formu aç
             childForm.Show();
+        }
+
+        private void BtnPBN_Click(object sender, EventArgs e)
+        {
+            ShowChildForm(new PbnDonusturucuForm());
         }
 
         private void OrtaButon3_Click(object sender, EventArgs e)
@@ -1229,5 +1235,14 @@ namespace BricKartOyunu.Forms
 
         }
 
+        private void ayarlarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void oyunAyarlarıToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

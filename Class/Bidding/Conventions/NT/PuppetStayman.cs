@@ -78,6 +78,15 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return true;
             }
 
+            // DURUM 8: ben 3♣ sordum, partner 3NT dedi (majör yok): toplam güç yüksekse slam denemesi
+            if (durum.SonGercekTeklif == "3NT" && durum.SonGercekTeklifSahibi == durum.Partner && durum.KendiTeklifleri.Contains("3♣") &&
+                durum.KendiTeklifleri.Contains("2NT") == false && NTA.HcpStd(durum, durum.AktifOyuncuEli) >= Math.Min(Deney.Al("BK_PQ", 99), Deney.Al("BK_P6", 99)))
+                return true;
+            // DURUM 9: ben 2NT açtım, ortak 3♣ sordu, ben 3NT/3♦ dedim, ortak 4NT (nicel, 11-12 HP) dedi: 22+ HP 6NT (tahmin kapısı 33 ister), aksi halde pas
+            if (durum.SonGercekTeklif == "4NT" && durum.SonGercekTeklifSahibi == durum.Partner && durum.KendiTeklifleri.Contains("2NT") &&
+                durum.PartnerTeklifleri.Contains("3♣") && (durum.KendiTeklifleri.Contains("3NT") || durum.KendiTeklifleri.Contains("3♦")))
+                return true;
+
             // ─────────────────────────────────────────────────────
             // DURUM 3: Partner 3♦ dedi, ben (3♣ soran) cevap vereceğim
             // ─────────────────────────────────────────────────────
@@ -180,6 +189,16 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 return "3NT";
             }
 
+            if (durum.SonGercekTeklif == "3NT" && durum.SonGercekTeklifSahibi == durum.Partner && durum.KendiTeklifleri.Contains("3♣") && durum.KendiTeklifleri.Contains("2NT") == false)
+            {
+                int hp8 = NTA.HcpStd(durum, el);
+                if (hp8 >= Deney.Al("BK_P6", 99)) return "6NT";
+                if (hp8 >= Deney.Al("BK_PQ", 99)) return "4NT";
+                return "Pas";
+            }
+            if (durum.SonGercekTeklif == "4NT" && durum.SonGercekTeklifSahibi == durum.Partner && durum.KendiTeklifleri.Contains("2NT") && durum.PartnerTeklifleri.Contains("3♣"))
+                return NTA.HcpStd(durum, el) >= 22 ? "6NT" : "Pas";
+
             // ─────────────────────────────────────────────────────
             // DURUM 3: Ben 3♣ sormuştum, partner 3♦ dedi → 2. tur
             // ─────────────────────────────────────────────────────
@@ -206,7 +225,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 // Sadece 4'lü ♥ var → "4'lü ♥ var mı?" sorusu (3♠)
                 if (dortluKupaVar && !dortluMacaVar) return "3♠";
 
-                // Majör yok → sign-off
+                // Majör yok → sign-off (toplam güç yüksekse nicel 4NT / 6NT)
+                {
+                    int hpS = NTA.HcpStd(durum, el);
+                    if (hpS >= Deney.Al("BK_P6", 99)) return "6NT";
+                    if (hpS >= Deney.Al("BK_PQ", 99)) return "4NT";
+                }
                 return "3NT";
             }
 

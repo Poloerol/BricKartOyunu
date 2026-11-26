@@ -164,6 +164,7 @@ namespace BricKartOyunu.Class.Bidding
                 new IkiliSinekGuclu(),
                 new SicramaSonrasiAcici(),
                 new IkiSinekAciciTekrar(),
+                new IkiSinekBeklemeCevabi(),
                 new ZayifIki(),
                 new Multi2D(),
                 new Namyats(),
@@ -180,8 +181,8 @@ namespace BricKartOyunu.Class.Bidding
                 new BesliMajor(),
                 new InvertedMinors(),
                 new ForcingNT(),
-                new Stayman(),
                 new ForcingNTDevam(),
+                new Stayman(),
                 new BergenRaises(),
                 new Cappelletti(),
                 new Dont(),
@@ -673,6 +674,7 @@ namespace BricKartOyunu.Class.Bidding
                 case "Weak NT": return !_anlasma.StrongNT;
                 case "2♣ Güçlü": return _anlasma.IkiliSinekGuclu && !_anlasma.BenjaminTwoBids;
                 case "2♣ Açıcı Tekrarı": return _anlasma.IkiliSinekGuclu && !_anlasma.BenjaminTwoBids;
+                case "2♣ Bekleme Cevabı": return _anlasma.IkiliSinekGuclu && !_anlasma.BenjaminTwoBids && !_anlasma.TwoClub_AnswerSistemi;
                 case "Zayıf İki": return _anlasma.ZayifIki && !_anlasma.Multi2D;
                 case "Multi 2♦": return _anlasma.Multi2D;
                 case "Preempt": return _anlasma.Preempt;
@@ -701,9 +703,9 @@ namespace BricKartOyunu.Class.Bidding
 
                 case "Inverted Minors": return _anlasma.InvertedMinors;
                 case "Forcing NT": return _anlasma.ForcingNT;
+                case "Forcing NT Devam": return _anlasma.ForcingNT;
                 case "Stayman": return _anlasma.Stayman && _anlasma.NT1Puppet != 1;
                 case "Puppet Stayman (1NT)": return _anlasma.Stayman && _anlasma.NT1Puppet == 1;
-                case "Forcing NT Devam": return _anlasma.ForcingNT;
                 case "Minor Relay (1NT-2♠)": return _anlasma.NT1MinorBid == 2 && !_anlasma.MinorStayman;
                 case "Brozel": return _anlasma.NT1DefenseX == 1;
                 case "Astro": return _anlasma.NT1DefenseX == 2;
@@ -914,4 +916,4 @@ namespace BricKartOyunu.Class.Bidding
     /// Kullanım: public class DopiRopi : IKonvansiyon, IBilincliPas
     /// </summary>
     public interface IBilincliPas { }
-}
+}

@@ -441,6 +441,7 @@ namespace BricKartOyunu
         {
             InitializeComponent();
             DDMenuKur();
+            IhaleAnaliziMenusunuKur();
             if (!DesignMode)
             {
                 this.DoubleBuffered = true;
@@ -657,6 +658,8 @@ namespace BricKartOyunu
             public Image Ust { get; set; }   // Basılmamış (Checked=false)
         }
 
+    
+
 
 
         /// <summary>
@@ -744,12 +747,12 @@ namespace BricKartOyunu
             {
                 var plan = AnaSayfa.OyunPlani ?? new OyunPlaniSecenekleri();
                 _currentTour = (MacDurumu.Aktif || plan.YeniBordNumaralari) ? 1 : MacDurumu.SonrakiBordNo(Math.Max(0, plan.SonBordNo));   // bord numaraları 16'dan sonra 1'e döner
-                DagiticiyiAyarla();
                 if (!MacDurumu.Aktif && plan.IlkBordNo > 0)
                 {
                     _currentTour = plan.IlkBordNo;   // Oyun Planı: "İlk oynanacak bord"; bir kez kullanılır, sonra kaldığı yerden devam
                     plan.IlkBordNo = 0;
                 }
+                DagiticiyiAyarla();
             }
             activePlayer = _dealer;
             _declarer = _dealer;   // İhale henüz yok; geçici

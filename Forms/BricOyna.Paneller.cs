@@ -251,15 +251,17 @@ namespace BricKartOyunu
         }
 
         /// <summary>
-        /// Seed Yönetimi (ComboBox + Sil / Dağıt): yalnızca Ayarlar > Oyun Planı > Dağıtım Kaynağı "Numaralı Rastgele Eller"
-        /// seçiliyken aktif (ihale sırasında da); diğer kaynaklarda pasif.
+        /// Seed Yönetimi (ComboBox + Sil / Dağıt): rastgele dağıtım kaynaklarının hepsinde aktif (ihale sırasında da); PBN / Depo / Kullanıcı Girişi / Pratik / Maç modlarında pasif.
         /// </summary>
         private void SeedPaneliDurumunuGuncelle()
         {
             if (seedPanel == null || seedPanel.IsDisposed) return;
             var plan = AnaSayfa.OyunPlani;
-            bool numarali = plan != null && plan.DagitimKaynagi == DagitimKaynagi.NumaraliRastgele;
-            if (seedPanel.Enabled != numarali) seedPanel.Enabled = numarali;
+            // Seed her rastgele dağıtım kaynağında girilebilir (Rastgele, Part Skor, Oyun, Şlem, Kozsuz, Numaralı Rastgele);
+            // seed'in anlamı olmayan modlarda (PBN dosyası, Dağılım Deposu, Kullanıcı Girişi, Pratik, Maç) pasif kalır.
+            bool seedUygun = plan != null && !PratikModu && !DepoModu && !MacDurumu.Aktif && !ManuelGirisModu() &&
+                             plan.DagitimKaynagi != DagitimKaynagi.Uretilmis && plan.DagitimKaynagi != DagitimKaynagi.KullaniciGirisi;
+            if (seedPanel.Enabled != seedUygun) seedPanel.Enabled = seedUygun;
         }
 
         /// <summary>
@@ -401,9 +403,9 @@ namespace BricKartOyunu
 
             // Dağılım Numarası penceresi açıksa sessizce kapat (bu düğme zaten yeni dağıtım + DekBasForm akışını başlatır)
             ElNumarasiPenceresiniKapat();
+            BordDurumunuSifirla();   // masadaki oynanmış kartlar, löve/skor sayaçları ve oyun geçmişi temizlenir (önceki bordun kartı masada kalıyordu)
 
             KartlariDagitSeedIle(AnaSayfa.SeciliKartSeti, seciliSeed);
-            BordDurumunuSifirla();   // masadaki oynanmış kartlar, löve/skor sayaçları ve oyun geçmişi temizlenir (önceki bordun kartı masada kalıyordu)
 
             _oyunAsamasi = OyunAsamasi.Baslangic;
             _currentTour++;

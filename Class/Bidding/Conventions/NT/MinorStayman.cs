@@ -28,6 +28,9 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (z.Es("O:1NT", "B:2♠", "O:2NT")) return "3NT";
             if (z.Es("O:1NT", "B:2♠", "O:3♣")) return z.Hp >= 15 ? "4♣" : "3NT";
             if (z.Es("O:1NT", "B:2♠", "O:3♦")) return z.Hp >= 15 ? "4♦" : "3NT";
+            // Cevapçı minörü 4 seviyede söyledi (fit + 15+ HP, şlem denemesi): açıcı yeterli güçteyse 4NT (anahtar kart sorusu), değilse Pas
+            if (z.Es("B:1NT", "O:2♠", "B:3♣", "O:4♣") || z.Es("B:1NT", "O:2♠", "B:3♦", "O:4♦"))
+                return z.Hp >= Deney.Al("BK_MS", 99) ? "4NT" : null;
             return null;
         }
     }

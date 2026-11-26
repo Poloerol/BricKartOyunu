@@ -389,6 +389,22 @@ namespace BricKartOyunu.Class
         /// Büyükten küçüğe sıralı aday kartlardan, en üsttekiyle "eşdeğer" (arasında
         /// görünmeyen kart olmayan) kartların en alçağını verir. Örn. KQJ → J.
         /// </summary>
+        /// <summary>
+        /// 3. elde kazanacak kart seçimi. 4. oyuncu açık dummy ise (savunma): yalnız dummy'nin o renkteki en yükseğini geçmek yeter
+        /// (arkada saklı rakip eli kalmadı), yani geçen EN ALÇAK kart oynanır (♣AQ973, dummy J8: Dam; As korunur).
+        /// Aksi halde saklı 4. el olabilir: bitişik kartların en alçağı (UstEsdegerinEnAlcagi).
+        /// </summary>
+        private static Card UcuncuElAlcagi(Ctx x, List<Card> kazananlarDesc, string atak)
+        {
+            if (!x.DeklaranTarafi && x.B.DummyEli != null && OyunKurallari.Sonraki(x.Ben) == x.Dummy)
+            {
+                int dummyUst = x.B.DummyEli.Where(c => c.Suit == atak).Select(c => c.Value).DefaultIfEmpty(0).Max();
+                var aday = kazananlarDesc.Where(c => c.Value > dummyUst).ToList();
+                if (aday.Count > 0) return aday[aday.Count - 1];
+            }
+            return UstEsdegerinEnAlcagi(x, kazananlarDesc);
+        }
+
         private static Card UstEsdegerinEnAlcagi(Ctx x, List<Card> adaylarDesc)
         {
             var cur = adaylarDesc[0];
@@ -480,6 +496,7 @@ namespace BricKartOyunu.Class
                 else if (n == 1)
                 {
                     s = (kozSayim >= 2 && !A) ? 40 : 10;          // tekli: kesme umudu
+                    if (ortakRengi && kozSayim >= 2 && !A) s += 25;  // ortağın söylediği renkte tekli: ortak As/onörle alır, renk döner, ben kozla keserim
                 }
                 else if (n == 2)
                 {
@@ -493,6 +510,7 @@ namespace BricKartOyunu.Class
                     else if ((K || Q) && !A) s -= 8;               // onör altından atak
                 }
 
+                if (!nt && !kozRengi && KesilirMi(x, suit)) s -= 40;   // deklaran bu renkte boş ve kozu duruyor: açılan kart kesilir, dummy'nin onörü terfi eder
                 if (ortakRengi) s += 25;
                 if (rakipRengi) s -= nt ? (kitap && kural == null ? 16 : 10) : 18;
                 if (dummyBilinir && !nt && !kozRengi && x.B.DummyEli != null &&
@@ -888,6 +906,28 @@ namespace BricKartOyunu.Class
         // ───────────────────────────────────────────────────────────────────
         // SAVUNMA LİDERİ
         // ───────────────────────────────────────────────────────────────────
+        /// <summary>Deklaran bu renkte bir önceki atakta renge uymadı (kesti ya da attı): renkte boş.</summary>
+        private static bool DeklaranBos(Ctx x, string suit)
+        {
+            foreach (var grup in x.B.Gecmis.GroupBy(g => g.ElNo))
+            {
+                var lider = grup.First();
+                if (lider.Kart == null || lider.Kart.Suit != suit) continue;
+                foreach (var g in grup)
+                    if (g.Oyuncu == x.B.Deklaran && g.Kart != null && g.Kart.Suit != suit) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Savunmada bu rengi oynamak kesilmeyi davet eder mi: renkli kontrat, renk koz değil, deklaran renkte boş ve dışarıda kozu var.
+        /// (Dummy'nin o renkteki onörü terfi eder, oynanan sağlam kart boşuna kesilir.)
+        /// </summary>
+        private static bool KesilirMi(Ctx x, string suit)
+        {
+            return !x.DeklaranTarafi && x.Koz != null && suit != x.Koz && x.GorunmeyenSayi(x.Koz) > 0 && DeklaranBos(x, suit);
+        }
+
         private static Card SavunmaLideri(Ctx x, out string neden)
         {
             var el = x.B.Elim;
@@ -923,7 +963,7 @@ namespace BricKartOyunu.Class
             }
 
             // A) Sağlam kartı bozdur (koz kontratında yan renkler; sanzatuda atak renkleri)
-            var bossAday = el.Where(c => c.Suit != koz && x.Boss(c) &&
+            var bossAday = el.Where(c => c.Suit != koz && x.Boss(c) && !KesilirMi(x, c.Suit) &&
                                          (koz != null || ortakAtaklari.Contains(c.Suit) || benimAtaklarim.Contains(c.Suit)))
                              .OrderByDescending(c => RenkKartlari(el, c.Suit).Count)
                              .ThenByDescending(c => c.Value)
@@ -938,7 +978,7 @@ namespace BricKartOyunu.Class
             foreach (var s in ortakAtaklari)
             {
                 var c = RenkKartlari(el, s);
-                if (c.Count == 0) continue;
+                if (c.Count == 0 || KesilirMi(x, s)) continue;
                 neden = "Ortağın rengi geri oynanıyor: " + s;
                 return GeriDonusKarti(x, c);
             }
@@ -947,7 +987,7 @@ namespace BricKartOyunu.Class
             foreach (var s in benimAtaklarim)
             {
                 var c = RenkKartlari(el, s);
-                if (c.Count == 0) continue;
+                if (c.Count == 0 || KesilirMi(x, s)) continue;
                 neden = "Atak rengine devam: " + s;
                 return GeriDonusKarti(x, c);
             }
@@ -997,6 +1037,27 @@ namespace BricKartOyunu.Class
         // ═══════════════════════════════════════════════════════════════════
         // TAKİP (başkası başlattı)
         // ═══════════════════════════════════════════════════════════════════
+        /// <summary>
+        /// Savunmada ortak bir onörle (As/Papaz/Dam) atak yaptı ve geçilemiyor: tutum sinyali kartı.
+        /// "Beğenirim" = o renkte K, Q ya da J+10 var. Standart anlaşmada beğenince yüksek, beğenmeyince alçak kart verilir;
+        /// anlaşmada Tutum = "Caydırır" (UDCA) ise tersi (alçak = beğendim, yüksek = istemiyorum). Sinyal verilemiyorsa null (en alçak oynanır).
+        /// </summary>
+        private static Card TutumSinyali(Ctx x, List<Card> renkKartlari, IList<(Player Oyuncu, Card Kart)> masa)
+        {
+            if (x.DeklaranTarafi || x.B.AnlasmaOf == null || masa.Count == 0 || masa[0].Oyuncu != x.Ortak) return null;
+            var an = x.B.AnlasmaOf(x.Ben);
+            if (an == null || an.SigAnySignal != 0) return null;
+            if (masa[0].Kart.Value < 12) return null;                       // yalnız onör atağında
+            var c = renkKartlari.OrderBy(k => k.Value).ToList();            // alçaktan yükseğe
+            var benek = c.Where(k => k.Value <= 10).ToList();               // onörsüz kartlar
+            if (benek.Count < 2) return null;                               // sinyal verecek iki farklı kart yok
+            bool begen = c.Any(k => k.Value >= 12 && k.Value <= 13) || (c.Any(k => k.Value == 11) && c.Any(k => k.Value == 10));
+            bool ters = an.UDCA;
+            bool yuksekVer = ters ? !begen : begen;
+            var yuksek = benek.Where(k => k.Value <= 9).OrderByDescending(k => k.Value).FirstOrDefault() ?? benek[benek.Count - 1];
+            return yuksekVer ? yuksek : benek[0];
+        }
+
         private static Card Takip(Ctx x, List<Card> legal, string atak, out string neden)
         {
             var masa = x.B.Masa;
@@ -1034,13 +1095,16 @@ namespace BricKartOyunu.Class
                     {
                         if (x.UsttekiGorunmeyen(best) == 0)
                         {
+                            // Ortağın atağına tutum (attitude) sinyali: standartta yüksek = beğendim, UDCA'da (Tutum: Caydırır) alçak = beğendim
+                            var tutum = TutumSinyali(x, my, masa);
+                            if (tutum != null) { neden = "Tutum sinyali (" + atak + " rengi)"; return tutum; }
                             neden = "3. el: ortağın kartı geçilemez → en alçak";
                             return en_alcak;
                         }
                         if (kazananlar.Count > 0)
                         {
                             neden = "3. el yüksek: ortağı destekle";
-                            return UstEsdegerinEnAlcagi(x, kazananlar);
+                            return UcuncuElAlcagi(x, kazananlar, atak);
                         }
                         neden = "3. el: ortağı geçemem → en alçak";
                         return en_alcak;
@@ -1048,7 +1112,7 @@ namespace BricKartOyunu.Class
                     if (kazananlar.Count > 0)
                     {
                         neden = "3. el yüksek";
-                        return UstEsdegerinEnAlcagi(x, kazananlar);
+                        return UcuncuElAlcagi(x, kazananlar, atak);
                     }
                     neden = "3. el: kazanamam → en alçak";
                     return en_alcak;

@@ -160,6 +160,7 @@
     <Compile Include="Class\DD\HizliDD.cs" />
     <Compile Include="Class\DD\DDMotor.cs" />
     <Compile Include="Class\DD\ParHesabi.cs" />
+    <Compile Include="Class\DD\ParAnalizi.cs" />
     <Compile Include="Class\DD\IhaleDegerlendirme.cs" />
     <Compile Include="Class\DD\IhaleSonucu.cs" />
     <Compile Include="Class\DD\MotorKarnesi.cs" />
@@ -190,6 +191,19 @@
       <DependentUpon>BricOyna.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\BricOyna.Yardim.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\YardimForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BricOyna.IhaleAnalizi.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\IhaleAnaliziForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="AppState.cs" />
     <Compile Include="Class\AtakKurallari.cs" />
     <Compile Include="Class\Bidding\BiddingPresenter.cs" />
@@ -200,7 +214,9 @@
     <Compile Include="Class\Bidding\Conventions\Acilis\Gambling3NT.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\IkiliSinekGuclu.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\IkiSinekAciciTekrar.cs" />
+    <Compile Include="Class\Bidding\Conventions\Acilis\IkiSinekBeklemeCevabi.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\SicramaSonrasiAcici.cs" />
+    <Compile Include="Class\Bidding\Conventions\Cevap\ForcingNTDevam.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\MiniRoman2D.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\Multi2D.cs" />
     <Compile Include="Class\Bidding\Conventions\Acilis\Namyats.cs" />
@@ -210,7 +226,6 @@
     <Compile Include="Class\Bidding\Conventions\Cevap\BergenRaises.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\Drury.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\ForcingNT.cs" />
-    <Compile Include="Class\Bidding\Conventions\Cevap\ForcingNTDevam.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\InvertedBergenRaises.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\InvertedMinors.cs" />
     <Compile Include="Class\Bidding\Conventions\Cevap\IkiBirOyunZorlama.cs" />
@@ -465,7 +480,9 @@
     <Compile Include="Class\Bidding\Tests\TestRunner_Puanlama.cs" />
     <Compile Include="Class\Bidding\Tests\TestRunner_MudahaleGuclu.cs" />
     <Compile Include="Class\KlasikSkor.cs" />
-    <Compile Include="Forms\BricOyna.Puanlama.cs" />
+    <Compile Include="Forms\BricOyna.Puanlama.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\KlasikSkorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -501,10 +518,6 @@
       <DependentUpon>BricOyna.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\BricOyna.Yardim.cs" />
-    <Compile Include="Forms\YardimForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Forms\BricOyna.Menu.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
       <SubType>Form</SubType>
@@ -532,6 +545,10 @@
     <Compile Include="Forms\BricOyna.Designer.cs">
       <DependentUpon>BricOyna.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\BricOyna.Pratik.cs">
+      <DependentUpon>BricOyna.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\BricOyna.Depo.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -540,10 +557,6 @@
     </Compile>
     <Compile Include="Forms\DagilimDepo.Designer.cs">
       <DependentUpon>DagilimDepo.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\BricOyna.Pratik.cs">
-      <DependentUpon>BricOyna.cs</DependentUpon>
-      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\DagilimDepo.Duzenle.cs">
       <DependentUpon>DagilimDepo.cs</DependentUpon>
@@ -655,6 +668,10 @@
     </Compile>
     <Compile Include="Forms\Konvansiyon.Designer.cs">
       <DependentUpon>Konvansiyon.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Class\Vugraph.cs" />
+    <Compile Include="Forms\PbnDonusturucuForm.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="AnaSayfa.cs">
       <SubType>Form</SubType>

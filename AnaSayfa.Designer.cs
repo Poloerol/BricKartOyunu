@@ -119,6 +119,7 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.BtnPBN = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.ButonPaneli.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -139,7 +140,7 @@
             this.yardımToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1366, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(941, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -175,12 +176,14 @@
             this.ayarlarToolStripMenuItem.Name = "ayarlarToolStripMenuItem";
             this.ayarlarToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
             this.ayarlarToolStripMenuItem.Text = "Ayarlar";
+            this.ayarlarToolStripMenuItem.Click += new System.EventHandler(this.ayarlarToolStripMenuItem_Click);
             // 
             // oyunAyarlarıToolStripMenuItem
             // 
             this.oyunAyarlarıToolStripMenuItem.Name = "oyunAyarlarıToolStripMenuItem";
             this.oyunAyarlarıToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
-            this.oyunAyarlarıToolStripMenuItem.Text = "Oyun Ayarları";
+            this.oyunAyarlarıToolStripMenuItem.Text = "Oyun Ayarları...";
+            this.oyunAyarlarıToolStripMenuItem.Click += new System.EventHandler(this.oyunAyarlarıToolStripMenuItem_Click);
             // 
             // nSOrtaklıkAyarlarıToolStripMenuItem
             // 
@@ -796,7 +799,7 @@
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1366, 31);
+            this.toolStrip1.Size = new System.Drawing.Size(941, 31);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -829,15 +832,26 @@
             this.toolStripStatusLabel2});
             this.statusStrip1.Location = new System.Drawing.Point(0, 629);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1366, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(941, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
+            // 
+            // BtnPBN
+            // 
+            this.BtnPBN.Location = new System.Drawing.Point(156, 589);
+            this.BtnPBN.Name = "BtnPBN";
+            this.BtnPBN.Size = new System.Drawing.Size(138, 37);
+            this.BtnPBN.TabIndex = 48;
+            this.BtnPBN.Text = "PBN Dönüştürücü";
+            this.BtnPBN.UseVisualStyleBackColor = true;
+            this.BtnPBN.Click += new System.EventHandler(this.BtnPBN_Click);
             // 
             // AnaSayfa
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1366, 651);
+            this.ClientSize = new System.Drawing.Size(941, 651);
+            this.Controls.Add(this.BtnPBN);
             this.Controls.Add(this.BtnTestForm);
             this.Controls.Add(this.ButonPaneli);
             this.Controls.Add(this.toolStrip1);
@@ -956,5 +970,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
         private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.Button BtnPBN;
     }
 }

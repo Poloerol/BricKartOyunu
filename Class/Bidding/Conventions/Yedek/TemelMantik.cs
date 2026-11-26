@@ -304,8 +304,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (en == null) return "Pas";
             int lvl = Cheapest(d, en);
             if (lvl == 1 && hp >= 8 + fark) return "1" + KozYardimcisi.KozSembolu(en);
-            if (lvl == 2 && hp >= 11 + fark && enUz >= 5 && IyiRenk(el, en)) return "2" + KozYardimcisi.KozSembolu(en);
-            // Rakip zayıf 2 açtı: 3 seviyesinde uzun (6+) iyi renk, 12+ HP
+            if (lvl == 2 && hp >= 11 + fark && enUz >= 5 && IyiRenk(el, en)) return "2" + KozYardimcisi.KozSembolu(en);            // Rakip zayıf 2 açtı: 3 seviyesinde uzun (6+) iyi renk, 12+ HP
             if (lvl == 3 && sev == 2 && gercek.Count == 1 && enUz >= 6 && hp >= 12 + fark && IyiRenk(el, en)) return "3" + KozYardimcisi.KozSembolu(en);
             return "Pas";
         }
@@ -564,7 +563,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
             // Tek taraflı koz: ortak majör rengini ≥2 kez söyledi (6+), bende o renkte onur var ve
             // güç slam bölgesinde → 4. seviyede kontrol teklifi (4M ile kapatma, slam ara).
-            if (sonOrtak && est >= 31 && cur <= 3)
+            if (sonOrtak && est >= Deney.Al("BK_CE", 31) && cur <= 3)
             {
                 string cue = KontrolTeklifi(d, el, gercek);
                 if (cue != null) return cue;
@@ -676,6 +675,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                             (yan == null || ElDegerlendirici.RenkUzunlugu(el, r) > ElDegerlendirici.RenkUzunlugu(el, yan))) yan = r;
                     if (yan != null) return Seviye(d, yan, Cheapest(d, yan));
                 }
+                // DENEY (BK_GFS): 2/1 oyun zorlayıcı (1M-2x-2M) sonrası fit var ve toplam tahmin yüksekse 4M ile kapatma: 3M (zorlayıcı) ile slam ara
+                if (Deney.Al("BK_GFS", 99) < 99 && Major(fit) && T == 4 && est >= Deney.Al("BK_GFS", 99) && Cheapest(d, fit) == 3 &&
+                    gercek.Count == 3 && !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) && gercek[0].Oyuncu == d.Partner && gercek[0].Seviye == 1 && gercek[0].Koz == fit &&
+                    gercek[1].Oyuncu == d.AktifOyuncu && gercek[1].Seviye == 2 && gercek[1].Koz != "NT" && gercek[1].Koz != fit &&
+                    gercek[2].Oyuncu == d.Partner && gercek[2].Seviye == 2 && gercek[2].Koz == fit)
+                    return Seviye(d, fit, 3);
                 if (T == -1) // 3NT tercih
                     return cur < 3 ? Seviye(d, "NT", 3) : (zorunlu ? EnUcuz(d, fit) : "Pas");
                 // Ortağın son teklifi fit renginde ve hedefin altına ulaştık mı
@@ -821,7 +826,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
         /// </summary>
         private string SlamSorgusu(IhaleDurumu d, List<Card> el, List<IhaleHamlesi> gercek, double est, int hp)
         {
-            if (est < 33 || hp < 16) return null;
+            if (est < Deney.Al("BK_SQ", 33) || hp < Deney.Al("BK_SQH", 16)) return null;
             if (gercek.Any(h => d.Rakipler.Contains(h.Oyuncu) && h.GercekTeklifMi)) return null;
             if (gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Teklif == "4NT")) return null;
             string koz = null;
@@ -833,6 +838,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             }
             if (koz == null) return null;
             // Dağılımımı tam tarif etmeden (söylenmemiş 4+ kartlık yan renk varken) sorma: önce renk göster
+            if (Deney.Al("BK_SQU", 0) == 0)
             foreach (var r in Renkler)
                 if (r != koz && ElDegerlendirici.RenkUzunlugu(el, r) >= 4 && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.Koz == r))
                     return null;
@@ -1012,14 +1018,14 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 var ortagim = gercek.Where(h => h.Oyuncu == d.Partner).ToList();
                 if (benim.Count == 1 && ortagim.Count == 2 && gercek.First().Oyuncu == d.Partner &&
                     gercek.First().Koz != "NT" && benim[0].Koz != "NT" && benim[0].Seviye == 2 &&
-                    ortagim[1].Koz == ortagim[0].Koz && ortagim[1].Seviye == 2 &&
+                    (ortagim[1].Koz == ortagim[0].Koz || Deney.Al("BK_GF", 0) == 1) && ortagim[1].Seviye == 2 &&
                     gercek.Last().Oyuncu == d.Partner && !gercek.Any(h => d.Rakipler.Contains(h.Oyuncu)) &&
                     est >= 26 && hp >= 12)
                 {
                     string ikinci = null; int ikinciUz = 3;
                     foreach (var r in new[] { "Maça", "Kupa", "Sinek", "Karo" })
                     {
-                        if (r == ortagim[0].Koz || r == benim[0].Koz) continue;
+                        if (r == ortagim[0].Koz || r == ortagim[1].Koz || r == benim[0].Koz) continue;
                         int rUz = ElDegerlendirici.RenkUzunlugu(el, r);
                         if (rUz > ikinciUz || (rUz == ikinciUz && rUz >= 4 && ikinci != null && Major(r) && !Major(ikinci))) { ikinci = r; ikinciUz = rUz; }
                     }
@@ -1065,6 +1071,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                 gercek[2].Oyuncu == d.Partner && gercek[2].Seviye == 1 && gercek[2].Koz != "NT" &&
                 gercek[2].Koz != gercek[0].Koz && gercek[2].Koz != gercek[1].Koz)
                 davetEsik = Math.Min(davetEsik, 24.5);
+            // Açıcı 1x-1y sonrası dengeli 18-19 HP: 3NT ile kapatmak yerine 2NT (sıçramalı NT, 18-19) söyler; ortak sınırsızdır, slam için alan kalır (ölçüm: j18, toplam -2741)
+            if (18 <= hp && hp <= 19 && dengeli && ntOlur && !rakipRenkleri.Any() && gercek.Count == 2 &&
+                gercek[0].Oyuncu == d.AktifOyuncu && gercek[0].Seviye == 1 && gercek[0].Koz != "NT" &&
+                gercek[1].Oyuncu == d.Partner && gercek[1].Seviye == 1 && gercek[1].Koz != "NT")
+                return Seviye(d, "NT", 2);
             if (est >= oyunEsik)
             {
                 string uzun = EnUzunRenk(el);
@@ -1243,7 +1254,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             // Güçlü el (davet+): ortağın cevabını sıçramalı destekle (1♣–1♥–(1♠)–3♥), 2. seviyede kalma
             if (ortakGuc && Major(fit) && est >= 23 && ucuz == 2) return Seviye(d, fit, 3);
             // 10+ kart fit (ör. ortağın müdahalesi + bende 5 kart): 2 seviyede rekabetçi destek biraz daha düşük puanla yapılır (1♣–(1♦)–(1♥): ♦K9652 6 HP → 2♦)
-            if (ortakGuc && (est >= 19 || (toplam >= 10 && est >= 18 && ucuz <= 2)) && ucuz <= lott && ucuz <= 3) return Seviye(d, fit, ucuz);
+            if (ortakGuc && (est >= 19 || (toplam >= 10 && est >= 18 && ucuz <= 2)) && ucuz <= lott && ucuz <= 3 && (ElDegerlendirici.RenkUzunlugu(el, fit) >= 4 || hp >= Deney.Al("BK_RZ", 0))) return Seviye(d, fit, ucuz);
             return "Pas";
         }
 
@@ -1405,12 +1416,12 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (gercek.Count(h => h.Oyuncu == d.AktifOyuncu) != 1) return "Pas";       // yalnız açılışım var
             string acilis = gercek[0].Koz;
             bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
-
             // Rakip NT ile müdahale ettiyse (ör. 1♣–(Pas)–1♥–(1NT)): yalnız ortak konuştuysa (A) çalışır
             bool rakipNT = son.Koz == "NT" && d.Rakipler.Contains(son.Oyuncu) && ortakKonustu;
             if (!rakipNT && (rakipRenkleri.Count == 0 || son.Koz == "NT")) return "Pas";
             if (rakipNT && acilis != "NT" && hp >= 14 && ElDegerlendirici.RenkUzunlugu(el, acilis) >= 7 && Cheapest(d, acilis) <= 3)
                 return Seviye(d, acilis, 3);   // 7+ kartlı açış rengi, 14+ HP: ortak en az 6 HP gösterdi, 3 seviyede oyun daveti
+
             // (A) Ortak yeni renk söyledi (zorlayıcı), rakip araya girdi: 6+ kartlı rengimi göster
             if (ortakKonustu && acilis != "NT" &&
                 ((hp >= 13 && Cheapest(d, acilis) <= 3) || (hp >= 11 && Cheapest(d, acilis) <= 2)) &&
@@ -1547,7 +1558,7 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (!Tutuk(el, son.Koz)) return "Pas";
             foreach (var m in new[] { "Maça", "Kupa" })
                 if (m != son.Koz && ElDegerlendirici.RenkUzunlugu(el, m) >= 4) return "Pas";   // majör fiti aranmalı
-            int hedef = hp >= 16 ? 3 : (hp >= 13 ? 2 : 1);
+            int hedef = hp >= Deney.Al("BK_RN3", 16) ? 3 : (hp >= Deney.Al("BK_RN2", 13) ? 2 : 1);
             return Seviye(d, "NT", hedef);
         }
 
@@ -1708,13 +1719,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             est += dar ? 2.5 : 0;     // dar aralıkta tahmin güvenilir: eşikleri aşağı çek
             if (Major(fit))
             {
-                if (est >= 36) return 6;
+                if (est >= Deney.Al("BK_H6", 36)) return 6;
                 if (est >= 24.5) return 4; // Motor Karnesi (30.000 bord): majör oyun eşiği 28,5 -> 24,5 (-3.300 IMP); 22,5'te kazanç geriledi
                 if (est >= 23.5) return 3;
                 return 2;
             }
             // minör
-            if (est >= 36) return 6;
+            if (est >= Deney.Al("BK_H6", 36)) return 6;
             // 8 kartlık minör uyumda dengeli el + durdurucular varken 3NT (9 el) 5m'den (11 el) çok daha kolay.
             // 5m ancak 9+ kartlık uyumda ya da slam'a yakın güçte (est>=34) seçilir.
             if (est >= 29) return (ntSecenegi && fitToplam <= 8 && est < 34) ? -1 : 5;

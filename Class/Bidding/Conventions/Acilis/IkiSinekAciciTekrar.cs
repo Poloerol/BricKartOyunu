@@ -19,6 +19,8 @@ namespace BricKartOyunu.Class.Bidding.Conventions
 
         protected override string Karar(Dz z)
         {
+            // 2♣-2♦-2NT (22-24 dengeli) sonrası cevapçı nicel 4NT dedi (10-11 HP, 6NT daveti): açıcı 23+ HP ile 6NT, 22 ile pas
+            if (z.Es("B:2♣", "O:2♦", "B:2NT", "O:4NT")) return z.Hp >= Deney.Al("BK_Q2C", 23) ? "6NT" : "Pas";
             if (!z.Es("B:2♣", "O:2♦")) return null;
             int m = Math.Max(z.Maca, z.Kupa);
             if (m < 5) return null;

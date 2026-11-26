@@ -3380,6 +3380,97 @@ namespace BricKartOyunu
                 Yaz("   3. el, dummy'de ♠J: koz=" + (kozDeneme ?? "NT") + " → " + (sc == null ? "-" : sc.Suit + " " + sc.Value));
                 if (sc == null || sc.Suit != "Maça" || sc.Value != 13) { hata++; Yaz("❌ 3. el: dummy'nin ♠J'si 10'u yener, ♠K oynanmalıydı (koz=" + (kozDeneme ?? "NT") + ")"); }
             }
+            // Tutum sinyali: ortak ♦A atağı yaptı, dummy ♦ Q T 8 6 5 / Güney'de ♦9 7 2 (onörsüz): standartta alçak (2), UDCA'da (Tutum: Caydırır) yüksek (9) = beğenmedim.
+            // Güney'de ♦Q 7 2 olsaydı: standartta yüksek (7) = beğendim, UDCA'da alçak (2)
+            Func<string, bool, string> tutumDene = (karoEli, udca) =>
+            {
+                var an = OrtaklikAnlasmasi.Varsayilan(); an.UDCA = udca; an.StandartSignal = !udca;
+                var tb = new OyunBaglami
+                {
+                    Ben = Player.Guney, Deklaran = Player.Bati, Koz = "Maça", Seviye = 1, ElNo = 0,
+                    Elim = mk("S:QJ8 H:AQT95 C:T2 D:" + karoEli),
+                    DummyEli = mk("S:T9 H:J643 C:J8 D:QT865"),
+                    IhaleGecmisi = new List<string> { "Pas", "Pas", "1♣", "Pas", "1♥", "1♠", "Pas", "Pas", "Pas" },
+                    IhaleBaslangici = "Guney",
+                    Gecmis = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>(),
+                    Masa = new List<(Player Oyuncu, Card Kart)> { (Player.Kuzey, new Card { Suit = "Karo", Value = 14 }), (Player.Dogu, new Card { Suit = "Karo", Value = 3 }) },
+                    AnlasmaOf = (k) => (k == Player.Kuzey || k == Player.Guney) ? an : OrtaklikAnlasmasi.Varsayilan()
+                };
+                string tn; var tc = OyunZekasi.KartSec(tb, out tn);
+                return tc == null ? "-" : tc.Suit + " " + tc.Value;
+            };
+            string s1 = tutumDene("972", false), s2 = tutumDene("972", true), s3 = tutumDene("Q72", false), s4 = tutumDene("Q72", true);
+            Yaz("   tutum: 972 std=" + s1 + " UDCA=" + s2 + "; Q72 std=" + s3 + " UDCA=" + s4);
+            if (s1 != "Karo 2" || s2 != "Karo 9" || s3 != "Karo 7" || s4 != "Karo 2") { hata++; Yaz("❌ Tutum sinyali: beklenen 972 std=Karo 2 UDCA=Karo 9, Q72 std=Karo 7 UDCA=Karo 2"); }
+            // 3. el: ortak ♣10 atak etti, Batı (deklaran) ♣4 koydu, 4. el açık dummy: ♣J8. Kuzey ♣AQ973: dummy'nin J'sini geçen en alçak kart Dam olmalı (As korunur).
+            // Dummy'de ♣K J olsaydı ancak As geçer.
+            Func<string, string> ucuncuEl = (dummyKulup) =>
+            {
+                var ub = new OyunBaglami
+                {
+                    Ben = Player.Kuzey, Deklaran = Player.Bati, Koz = "Maça", Seviye = 1, ElNo = 2,
+                    Elim = mk("S:K43 H:2 D:KJ42 C:AQ973"),
+                    DummyEli = mk(dummyKulup == "J8" ? "S:T9 H:J643 C:J8 D:QT865" : "S:T9 H:J643 C:KJ D:QT865"),
+                    IhaleGecmisi = new List<string> { "Pas", "Pas", "1♣", "Pas", "1♥", "1♠", "Pas", "Pas", "Pas" },
+                    IhaleBaslangici = "Guney",
+                    Gecmis = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>(),
+                    Masa = new List<(Player Oyuncu, Card Kart)> { (Player.Guney, new Card { Suit = "Sinek", Value = 10 }), (Player.Bati, new Card { Suit = "Sinek", Value = 4 }) },
+                    AnlasmaOf = (k) => OrtaklikAnlasmasi.Varsayilan()
+                };
+                string un; var uc = OyunZekasi.KartSec(ub, out un);
+                return uc == null ? "-" : uc.Suit + " " + uc.Value;
+            };
+            string u1 = ucuncuEl("J8"), u2 = ucuncuEl("KJ");
+            Yaz("   3. el, dummy ♣J8: " + u1 + "; dummy ♣KJ: " + u2);
+            if (u1 != "Sinek 12" || u2 != "Sinek 14") { hata++; Yaz("❌ 3. el kazanan seçimi: dummy ♣J8 → Dam, dummy ♣KJ → As beklenirdi"); }
+            // Savunma lideri: Batı (deklaran) 1. elde ♦A'yı kozla kesti (karoda boş, kozu var): Kuzey ♦K "sağlam" olsa da karo oynamamalı (kesilir, dummy'nin ♦Q'su terfi eder)
+            {
+                Func<int, Player, string, int, (int ElNo, Player Oyuncu, Card Kart, bool Kazandi)> gk = (no, o, r, v) => (no, o, new Card { Suit = r, Value = v }, false);
+                var kb = new OyunBaglami
+                {
+                    Ben = Player.Kuzey, Deklaran = Player.Bati, Koz = "Maça", Seviye = 1, ElNo = 2,
+                    Elim = mk("S:K43 H:2 D:KJ4 C:Q973"),
+                    DummyEli = mk("S:T9 H:J643 C:J D:QT865"),
+                    IhaleGecmisi = new List<string> { "Pas", "Pas", "1♣", "Pas", "1♥", "1♠", "Pas", "Pas", "Pas" },
+                    IhaleBaslangici = "Guney",
+                    Gecmis = new List<(int ElNo, Player Oyuncu, Card Kart, bool Kazandi)>
+                    {
+                        gk(0, Player.Kuzey, "Karo", 14), gk(0, Player.Dogu, "Karo", 3), gk(0, Player.Guney, "Karo", 2), gk(0, Player.Bati, "Maça", 5),
+                        gk(1, Player.Guney, "Sinek", 10), gk(1, Player.Bati, "Sinek", 4), gk(1, Player.Kuzey, "Sinek", 14), gk(1, Player.Dogu, "Sinek", 8)
+                    },
+                    Masa = new List<(Player Oyuncu, Card Kart)>(),
+                    AnlasmaOf = (k) => OrtaklikAnlasmasi.Varsayilan()
+                };
+                string kn; var kc = OyunZekasi.KartSec(kb, out kn);
+                Yaz("   savunma lideri, deklaran karoda boş: " + (kc == null ? "-" : kc.Suit + " " + kc.Value) + " (" + kn + ")");
+                if (kc == null || kc.Suit == "Karo") { hata++; Yaz("❌ Savunma lideri: deklaran karoda boş ve kozlu, karo oynanmamalıydı"); }
+            }
+            // Savunma atağı: ortak ♥ cevabı verdi (1♣-1♥), Batı 1♠ oynuyor. Kuzey'de ♥ tekli (♥2) ve 3 koz: ortağın rengi atılmalı (ortak alır, ♥ döner, Kuzey keser). ♦AKJ4 olsa da.
+            {
+                var lb = new OyunBaglami
+                {
+                    Ben = Player.Kuzey, Deklaran = Player.Bati, Koz = "Maça", Seviye = 1, ElNo = 0,
+                    Elim = mk("S:K43 H:2 D:AKJ4 C:AQ973"),
+                    IhaleGecmisi = new List<string> { "Pas", "Pas", "1♣", "Pas", "1♥", "1♠", "Pas", "Pas", "Pas" },
+                    IhaleBaslangici = "Guney",
+                    AnlasmaOf = (k) => OrtaklikAnlasmasi.Varsayilan()
+                };
+                string ln; var lc = OyunZekasi.KartSec(lb, out ln);
+                Yaz("   atak rengi, ortağın rengi tekli: " + (lc == null ? "-" : lc.Suit + " " + lc.Value) + " (" + ln + ")");
+                if (lc == null || lc.Suit != "Kupa") { hata++; Yaz("❌ Atak: ortağın söylediği renkte tekli ve koz uzunluğu var, ♥ atılmalıydı"); }
+            }
+            // İhale Analizi (ParAnalizi): çift dummy tablosundan par, en yüksek yapılan ve en iyi skorlu kontratlar
+            {
+                var pt = new DDTablo();
+                int[][] pv = { new[] { 4, 9, 4, 9 }, new[] { 6, 7, 6, 7 }, new[] { 11, 1, 11, 1 }, new[] { 10, 0, 10, 0 }, new[] { 9, 1, 9, 1 } };   // koz ♠♥♦♣NT x koltuk NESW
+                for (int pk = 0; pk < 5; pk++) for (int ps = 0; ps < 4; ps++) pt.Lov[pk * 4 + ps] = pv[pk][ps];
+                var pa = ParAnalizi.Hesapla(pt, 0, false, false);
+                Yaz("   ihale analizi: par " + pa.ParKontrati.Kontrat + " " + pa.ParKontrati.Skor + " " + pa.ParKontrati.Deklaran + "; en yüksek " + pa.EnYuksek.Kontrat + " " + pa.EnYuksek.Skor + " " + pa.EnYuksek.Deklaran + "; D-B " + pa.DBEnYuksek.Kontrat + " " + pa.DBEnYuksek.Skor);
+                if (pa.ParKontrati.Kontrat != "5 Maça X" || pa.ParKontrati.Skor != -300 || pa.ParKontrati.Deklaran != "Doğu" || pa.AlternatifDeklaran != "Batı" ||
+                    pa.EnYuksek.Kontrat != "5 Karo" || pa.EnYuksek.Skor != 400 || pa.EnYuksek.Deklaran != "Kuzey/Güney" ||
+                    pa.DBEnYuksek.Kontrat != "3 Maça" || pa.DBEnYuksek.Skor != 140)
+                { hata++; Yaz("❌ İhale Analizi: par 5 Maça X −300 (Doğu/Batı), en yüksek 5 Karo 400 (K/G), D-B en yüksek 3 Maça 140 beklenirdi"); }
+            }
             // Pratik listesi: her konvansiyon bir kategoride, tekrar yok
             var tumListe = KonvansiyonPratigi.Konvansiyonlar();
             var digerler = tumListe.Where(x => KonvansiyonPratigi.Kategori(x) == KonvansiyonPratigi.DigerKategori).ToList();
