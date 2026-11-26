@@ -677,13 +677,13 @@ namespace BricKartOyunu.Class.Bidding.Conventions
                     return cur < 3 ? Seviye(d, "NT", 3) : (zorunlu ? EnUcuz(d, fit) : "Pas");
                 // Ortağın son teklifi fit renginde ve hedefin altına ulaştık mı
                 if (cur >= T && !(zorunlu && cur < OyunSeviyesi(fit))) return "Pas";
+                if (!zorunlu && hp < 5 && fitToplam <= 8 && gercek.Count > 0 && gercek[0].Oyuncu == d.Partner && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi)) return "Pas";   // ölçüm (30.000 bord, 3 dilimde de iyi): ortağın açılışına 8 kartlık uyumda çok zayıf el 2 seviyede destek vermez
                 int ucuz = Cheapest(d, fit);
                 if (ucuz > T && !zorunlu) return "Pas";
                 int hedef = Math.Max(T, ucuz);
                 return Seviye(d, fit, Math.Min(hedef, 6));
             }
 
-                if (!zorunlu && hp < 5 && fitToplam <= 8 && gercek.Count > 0 && gercek[0].Oyuncu == d.Partner && !gercek.Any(h => h.Oyuncu == d.AktifOyuncu && h.GercekTeklifMi)) return "Pas";   // ölçüm (30.000 bord, 3 dilimde de iyi): ortağın açılışına 8 kartlık uyumda çok zayıf el 2 seviyede destek vermez
             // ── Fit yok: NT / uzun renk ──
             return FitsizDevam(d, el, hp, dengeli, est, cur, rakipRenkleri, gercek, zorunlu, benNTAcildi, dar);
         }
@@ -1383,6 +1383,11 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             string acilis = gercek[0].Koz;
             bool ortakKonustu = gercek.Any(h => h.Oyuncu == d.Partner);
 
+            // Rakip NT ile müdahale ettiyse (ör. 1♣–(Pas)–1♥–(1NT)): yalnız ortak konuştuysa (A) çalışır
+            bool rakipNT = son.Koz == "NT" && d.Rakipler.Contains(son.Oyuncu) && ortakKonustu;
+            if (!rakipNT && (rakipRenkleri.Count == 0 || son.Koz == "NT")) return "Pas";
+            if (rakipNT && acilis != "NT" && hp >= 14 && ElDegerlendirici.RenkUzunlugu(el, acilis) >= 7 && Cheapest(d, acilis) <= 3)
+                return Seviye(d, acilis, 3);   // 7+ kartlı açış rengi, 14+ HP: ortak en az 6 HP gösterdi, 3 seviyede oyun daveti
             // (A) Ortak yeni renk söyledi (zorlayıcı), rakip araya girdi: 6+ kartlı rengimi göster
             if (ortakKonustu && acilis != "NT" &&
                 ((hp >= 13 && Cheapest(d, acilis) <= 3) || (hp >= 11 && Cheapest(d, acilis) <= 2)) &&
@@ -1394,11 +1399,6 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             if (!ortakKonustu && hp >= 16 && son.Seviye <= 2 && rakipRenkleri.Count >= 1 && son.Koz != "NT" &&
                 ElDegerlendirici.RenkUzunlugu(el, son.Koz) <= 2 &&
                 !d.Gecmis.Any(h => h.Teklif == "Dbl" || h.Teklif == "Kontr"))
-            // Rakip NT ile müdahale ettiyse (ör. 1♣–(Pas)–1♥–(1NT)): yalnız ortak konuştuysa (A) çalışır
-            bool rakipNT = son.Koz == "NT" && d.Rakipler.Contains(son.Oyuncu) && ortakKonustu;
-            if (!rakipNT && (rakipRenkleri.Count == 0 || son.Koz == "NT")) return "Pas";
-            if (rakipNT && acilis != "NT" && hp >= 14 && ElDegerlendirici.RenkUzunlugu(el, acilis) >= 7 && Cheapest(d, acilis) <= 3)
-                return Seviye(d, acilis, 3);   // 7+ kartlı açış rengi, 14+ HP: ortak en az 6 HP gösterdi, 3 seviyede oyun daveti
                 return "Dbl";
 
             // (C) İki renkli müdahale (Unusual/Michaels) sonrası rakip 3. seviyede kaldı: 16+ HP ile kontra
