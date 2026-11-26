@@ -32,24 +32,27 @@ namespace BricKartOyunu.Forms
                 int k = i;
                 var pb = new PictureBox
                 {
-                    Left = 30 + i * 150, Top = 40, Width = 110, Height = 150,
+                    // 102x136: kartın 3:4 oranıyla aynı, resmin çevresinde boşluk ya da renkli çerçeve kalmaz
+                    Left = 34 + i * 150, Top = 44, Width = 102, Height = 136,
                     SizeMode = PictureBoxSizeMode.Zoom,
                     Cursor = Cursors.Hand,
-                    Image = ResmiYukle(_dosyalar[i]),
-                    Padding = new Padding(4)
+                    Image = ResmiYukle(_dosyalar[i])
                 };
-                pb.Click += (s, e) => { Secilen = _dosyalar[k]; Vurgula(); };
-                pb.DoubleClick += (s, e) => { Secilen = _dosyalar[k]; DialogResult = DialogResult.OK; };
+                // Seçili kart, kartın altındaki seçim düğmesiyle gösterilir
+                var secim = new RadioButton { Text = _adlar[i], Left = pb.Left, Top = 188, Width = pb.Width, Height = 20, CheckAlign = ContentAlignment.MiddleLeft, Padding = new Padding(22, 0, 0, 0) };
+                secim.CheckedChanged += (s, e) => { if (secim.Checked) Secilen = _dosyalar[k]; };
+                secim.Checked = _dosyalar[i] == Secilen;
+                pb.Click += (s, e) => secim.Checked = true;
+                pb.DoubleClick += (s, e) => { secim.Checked = true; DialogResult = DialogResult.OK; };
                 _kutular[i] = pb;
                 Controls.Add(pb);
-                Controls.Add(new Label { Text = _adlar[i], Left = pb.Left, Top = 194, Width = pb.Width, TextAlign = ContentAlignment.MiddleCenter });
+                Controls.Add(secim);
             }
 
             var tamam = new Button { Text = "Tamam", Left = 160, Top = 216, Width = 75, DialogResult = DialogResult.OK };
             var iptal = new Button { Text = "İptal", Left = 241, Top = 216, Width = 75, DialogResult = DialogResult.Cancel };
             Controls.Add(tamam); Controls.Add(iptal);
             AcceptButton = tamam; CancelButton = iptal;
-            Vurgula();
         }
 
         private static Image ResmiYukle(string dosya)
@@ -62,12 +65,6 @@ namespace BricKartOyunu.Forms
                 using (var temp = Image.FromStream(fs)) return new Bitmap(temp);   // dosyayı kilitleme
             }
             catch { return null; }
-        }
-
-        private void Vurgula()
-        {
-            for (int i = 0; i < 2; i++)
-                _kutular[i].BackColor = (_dosyalar[i] == Secilen) ? Color.Gold : SystemColors.Control;
         }
 
         protected override void Dispose(bool disposing)
