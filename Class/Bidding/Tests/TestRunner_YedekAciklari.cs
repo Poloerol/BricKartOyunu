@@ -127,6 +127,8 @@ namespace BricKartOyunu.Tests
             // Reverse sonrası 9+ HP cevap: 3 kart destekle (4-3 fit) reverse rengini söyle; fit yok ve durdurucular tamsa 3NT
             M("YA67 1♦-1♥-2♠-?, 11 HP ♠Q62 ♥J953 (3 kart maça desteği) -> 3♠", TestHelpers.ElOlustur("Q62", "J953", "KQ7", "QJ5"), "3♠", "Pas", "1♦", "Pas", "1♥", "Pas", "2♠", "Pas");
             M("YA68 1♣-1♥-2♠-?, 10 HP ♠32 ♥KJ843 fit yok, durdurucular tam -> 3NT", TestHelpers.ElOlustur("32", "KJ843", "K64", "QJ5"), "3NT", "Pas", "1♣", "Pas", "1♥", "Pas", "2♠", "Pas");
+            M("YA69 1♦-2♣ (2/1): dengeli 5 karo, majörler tutuk, 14 HP -> 2NT", TestHelpers.ElOlustur("A98", "KQ7", "AJT54", "T5"), "2NT", "1♦", "Pas", "2♣", "Pas");
+            M("YA70 1♦-2♣ (2/1): dengeli 5 karo, bir majör tutuksuz -> 2♦", TestHelpers.ElOlustur("AK8", "973", "AJT54", "Q5"), "2♦", "1♦", "Pas", "2♣", "Pas");
             var kozDurum = TestHelpers.DurumOlustur(TestHelpers.ElOlustur("A8765", "KQT87", "QJ2", ""), Player.Guney, "1♠", "Pas", "2♣", "Pas", "2♥", "Pas", "3♠", "Pas", "4♣", "Pas");
             string koz = kozDurum.AnlasilanKoz();
             bool kozTamam = koz == "Maça";

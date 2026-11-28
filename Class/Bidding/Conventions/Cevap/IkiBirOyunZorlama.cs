@@ -201,6 +201,10 @@ namespace BricKartOyunu.Class.Bidding.Conventions
             int hp = z.Hp;
             // Max Hardy: 5+ karo varsa önce 2♦ (majör göstermek 5+ karoyu inkâr eder); sonra 4'lü majör (reverse değil);
             // dengeli ve uygunsa 2NT (iki majör 4'lü olsa bile), 18-20'de 3NT; sinekte 4+ destek 3♣
+            // dengeli 5 karolu (4'lü majör yok) ve iki majör tutuk el 2NT / 3NT ile şeklini ve gücünü tek seferde anlatır
+            if (Deney.Al("BK_D2NT", 1) > 0 && z.Karo == 5 && z.Maca < 4 && z.Kupa < 4 && ElDegerlendirici.DengeliEl(z.El)
+                && ElDegerlendirici.StopperVar(z.El, "Maça") && ElDegerlendirici.StopperVar(z.El, "Kupa"))
+                return hp >= 18 ? "3NT" : "2NT";
             if (z.Karo >= 5) return "2♦";
             if (z.Kupa >= 4) return "2♥";
             if (z.Maca >= 4) return "2♠";
